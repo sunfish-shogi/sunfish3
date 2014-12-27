@@ -15,24 +15,32 @@ namespace sunfish {
 	class ValuePair {
 	public:
 
-		static constexpr int PositionalScale = 256;
+		static constexpr int PositionalScale = 32;
 
 	private:
 
-		Value base;
-		Value positional;
+		Value _base;
+		Value _positional;
 
 	public:
 
-		ValuePair() : base(0), positional(0) {}
-		ValuePair(const Value& base, const Value& positional) : base(base), positional(positional) {}
+		ValuePair() : _base(0), _positional(0) {}
+		ValuePair(const Value& base, const Value& positional) : _base(base), _positional(positional) {}
+
+		Value base() const {
+			return _base;
+		}
+
+		Value positional() const {
+			return _positional;
+		}
 
 		Value value() const {
-			return base + positional / PositionalScale;
+			return _base + _positional / PositionalScale;
 		}
 
 		ValuePair operator+(const ValuePair& right) const {
-			return ValuePair(base + right.base, positional + right.positional);
+			return ValuePair(_base + right._base, _positional + right._positional);
 		}
 
 	};
@@ -68,11 +76,11 @@ namespace sunfish {
 			KPP_BWGOLD   = KPP_BBGOLD   + 81,
 			KPP_BBBISHOP = KPP_BWGOLD   + 81,
 			KPP_BWBISHOP = KPP_BBBISHOP + 81,
-			KPP_BBROOK   = KPP_BWBISHOP + 81,
-			KPP_BWROOK   = KPP_BBROOK   + 81,
-			KPP_BBHORSE  = KPP_BWROOK   + 81,
+			KPP_BBHORSE  = KPP_BWBISHOP + 81,
 			KPP_BWHORSE  = KPP_BBHORSE  + 81,
-			KPP_BBDRAGON = KPP_BWHORSE  + 81,
+			KPP_BBROOK   = KPP_BWHORSE  + 81,
+			KPP_BWROOK   = KPP_BBROOK   + 81,
+			KPP_BBDRAGON = KPP_BWROOK   + 81,
 			KPP_BWDRAGON = KPP_BBDRAGON + 81,
 			KPP_MAX      = KPP_BWDRAGON + 81,
 			KPP_SIZE     = KPP_MAX*(KPP_MAX+1)/2,
@@ -146,18 +154,31 @@ namespace sunfish {
 
 		int convertKkpIndex4FvBin(int index);
 
-		int kkpBoardIndex(Piece piece) const;
+		int kkpBoardIndex(Piece piece, const Position& pos) const;
 
 		int kkpHandIndex(Piece piece) const;
 
 		/**
+		 * 局面の駒割りを算出します。
+		 * @param board
+		 */
+		Value _evaluateBase(const Board& board) const;
+
+		/**
+		 * 局面の駒割りを除いた評価値を算出します。
+		 * @param board
+		 */
+		Value _evaluate(const Board& board) const;
+
+		/**
 		 * 指定した指し手による評価値の変化値を算出します。
 		 * @param board 着手後の局面を指定します。
+		 * @param prevValuePair
 		 * @param move
 		 */
 		template <bool black>
-		ValuePair _evaluateDiff(const Board& board, const Move& move) const;
-
+		ValuePair _evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move) const;
+                                              
 	public:
 
 		Evaluator();
@@ -208,30 +229,24 @@ namespace sunfish {
 		bool convertFromFvBin();
 
 		/**
-		 * 差分計算可能な指し手か判定します。
-		 * @param move
-		 */
-		bool isDiffCalculatable(const Move& move) const {
-			auto piece = move.piece();
-			return piece != Piece::King;
-		}
-
-		/**
 		 * 局面の評価値を算出します。
 		 * @param board
 		 */
-		ValuePair evaluate(const Board& board) const;
+		ValuePair evaluate(const Board& board) const {
+			return ValuePair(_evaluateBase(board), _evaluate(board));
+		}
 
 		/**
-		 * 指定した指し手による評価値の変化値を算出します。
+		 * 指定した指し手に基づき評価値の差分計算を行います。
 		 * @param board 着手後の局面を指定します。
+		 * @param prevValuePair
 		 * @param move
 		 */
-		ValuePair evaluateDiff(const Board& board, const Move& move) const {
+		ValuePair evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move) const {
 			if (!board.isBlack()) {
-				return _evaluateDiff<true>(board, move);
+				return _evaluateDiff<true>(board, prevValuePair, move);
 			} else {
-				return _evaluateDiff<false>(board, move);
+				return _evaluateDiff<false>(board, prevValuePair, move);
 			}
 		}
 

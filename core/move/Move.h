@@ -140,10 +140,10 @@ namespace sunfish {
 			_move = (_move & (~PIECE)) | ((unsigned)piece << PIECE_SHIFT);
 		}
 		void setCaptured(const Piece& captured) {
-			_move = (_move & (~CAP)) | ((captured.kindOnly() + 1L) << CAP_SHIFT);
+			_move = (_move & (~CAP)) | ((unsigned)(captured.kindOnly() + 1U) << CAP_SHIFT);
 		}
 		void setCapturedUnsafe(const Piece& captured) {
-			_move = (_move & (~CAP)) | ((captured + 1L) << CAP_SHIFT);
+			_move = (_move & (~CAP)) | ((unsigned)(captured + 1U) << CAP_SHIFT);
 		}
 		void unsetCaptured() {
 			_move = _move & (~CAP);

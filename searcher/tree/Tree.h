@@ -125,12 +125,7 @@ namespace sunfish {
 				auto& curr = _stack[_ply];
 				auto& prev = _stack[_ply-1];
 				curr.move = move;
-				if (eval.isDiffCalculatable(move)) {
-					auto diff = eval.evaluateDiff(_board, move);
-					curr.valuePair = prev.valuePair + diff;
-				} else {
-					curr.valuePair = eval.evaluate(_board);
-				}
+				curr.valuePair = eval.evaluateDiff(_board, prev.valuePair, move);
 				curr.checking = _board.isChecking();
 				curr.pv.init();
 				return true;
