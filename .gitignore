@@ -1,0 +1,14 @@
+sunfish
+evdata
+fv.bin
+gmon.out
+Kifu
+*.d
+*.o
+*.log
+*~
+*.csa
+*.csv
+sunfish3.xcodeproj/xcuserdata
+sunfish3.xcodeproj/project.xcworkspace/xcuserdata
+sunfish3.xcodeproj/project.xcworkspace/xcshareddata

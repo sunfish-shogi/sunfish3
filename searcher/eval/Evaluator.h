@@ -1,0 +1,250 @@
+/* Evaluator.h
+ *
+ * Kubo Ryosuke
+ */
+
+#ifndef __SUNFISH_EVALUATOR__
+#define __SUNFISH_EVALUATOR__
+
+#include "Value.h"
+#include "core/board/Board.h"
+#include <memory>
+
+namespace sunfish {
+
+	class ValuePair {
+	public:
+
+		static constexpr int PositionalScale = 256;
+
+	private:
+
+		Value base;
+		Value positional;
+
+	public:
+
+		ValuePair() : base(0), positional(0) {}
+		ValuePair(const Value& base, const Value& positional) : base(base), positional(positional) {}
+
+		Value value() const {
+			return base + positional / PositionalScale;
+		}
+
+		ValuePair operator+(const ValuePair& right) const {
+			return ValuePair(base + right.base, positional + right.positional);
+		}
+
+	};
+
+	class Evaluator {
+	public:
+
+		enum {
+
+			KPP_HBPAWN   = 0,
+			KPP_HWPAWN   = KPP_HBPAWN   + 19,
+			KPP_HBLANCE  = KPP_HWPAWN   + 19,
+			KPP_HWLANCE  = KPP_HBLANCE  + 5,
+			KPP_HBKNIGHT = KPP_HWLANCE  + 5,
+			KPP_HWKNIGHT = KPP_HBKNIGHT + 5,
+			KPP_HBSILVER = KPP_HWKNIGHT + 5,
+			KPP_HWSILVER = KPP_HBSILVER + 5,
+			KPP_HBGOLD   = KPP_HWSILVER + 5,
+			KPP_HWGOLD   = KPP_HBGOLD   + 5,
+			KPP_HBBISHOP = KPP_HWGOLD   + 5,
+			KPP_HWBISHOP = KPP_HBBISHOP + 3,
+			KPP_HBROOK   = KPP_HWBISHOP + 3,
+			KPP_HWROOK   = KPP_HBROOK   + 3,
+			KPP_BBPAWN   = KPP_HWROOK   + 3,
+			KPP_BWPAWN   = KPP_BBPAWN   + 81 - 9,
+			KPP_BBLANCE  = KPP_BWPAWN   + 81 - 9,
+			KPP_BWLANCE  = KPP_BBLANCE  + 81 - 9,
+			KPP_BBKNIGHT = KPP_BWLANCE  + 81 - 9,
+			KPP_BWKNIGHT = KPP_BBKNIGHT + 81 - 18,
+			KPP_BBSILVER = KPP_BWKNIGHT + 81 - 18,
+			KPP_BWSILVER = KPP_BBSILVER + 81,
+			KPP_BBGOLD   = KPP_BWSILVER + 81,
+			KPP_BWGOLD   = KPP_BBGOLD   + 81,
+			KPP_BBBISHOP = KPP_BWGOLD   + 81,
+			KPP_BWBISHOP = KPP_BBBISHOP + 81,
+			KPP_BBROOK   = KPP_BWBISHOP + 81,
+			KPP_BWROOK   = KPP_BBROOK   + 81,
+			KPP_BBHORSE  = KPP_BWROOK   + 81,
+			KPP_BWHORSE  = KPP_BBHORSE  + 81,
+			KPP_BBDRAGON = KPP_BWHORSE  + 81,
+			KPP_BWDRAGON = KPP_BBDRAGON + 81,
+			KPP_MAX      = KPP_BWDRAGON + 81,
+			KPP_SIZE     = KPP_MAX*(KPP_MAX+1)/2,
+			KPP_ALL      = 81 * KPP_SIZE,
+
+			KKP_HPAWN   = 0,
+			KKP_HLANCE  = KKP_HPAWN   + 19,
+			KKP_HKNIGHT = KKP_HLANCE  + 5,
+			KKP_HSILVER = KKP_HKNIGHT + 5,
+			KKP_HGOLD   = KKP_HSILVER + 5,
+			KKP_HBISHOP = KKP_HGOLD   + 5,
+			KKP_HROOK   = KKP_HBISHOP + 3,
+			KKP_BPAWN   = KKP_HROOK + 3,
+			KKP_BLANCE  = KKP_BPAWN   + 81 - 9,
+			KKP_BKNIGHT = KKP_BLANCE  + 81 - 9,
+			KKP_BSILVER = KKP_BKNIGHT + 81 - 18,
+			KKP_BGOLD   = KKP_BSILVER + 81,
+			KKP_BBISHOP = KKP_BGOLD   + 81,
+			KKP_BROOK   = KKP_BBISHOP + 81,
+			KKP_BHORSE  = KKP_BROOK   + 81,
+			KKP_BDRAGON = KKP_BHORSE  + 81,
+			KKP_MAX     = KKP_BDRAGON + 81,
+			KKP_ALL     = 81 * 81 * KKP_MAX,
+
+		};
+
+		struct Table {
+			int16_t pawn;
+			int16_t lance;
+			int16_t knight;
+			int16_t silver;
+			int16_t gold;
+			int16_t bishop;
+			int16_t rook;
+			int16_t tokin;
+			int16_t pro_lance;
+			int16_t pro_knight;
+			int16_t pro_silver;
+			int16_t horse;
+			int16_t dragon;
+
+			int16_t pawnEx;
+			int16_t lanceEx;
+			int16_t knightEx;
+			int16_t silverEx;
+			int16_t goldEx;
+			int16_t bishopEx;
+			int16_t rookEx;
+			int16_t tokinEx;
+			int16_t pro_lanceEx;
+			int16_t pro_knightEx;
+			int16_t pro_silverEx;
+			int16_t horseEx;
+			int16_t dragonEx;
+
+			int16_t kpp[81][KPP_SIZE];
+			int16_t kkp[81][81][KKP_MAX];
+		};
+
+	private:
+
+		Table* _t;
+
+		std::shared_ptr<Table> readFvBin();
+
+		void convertFromFvBin(Table* fvbin);
+
+		int posInv(int table[], int in);
+
+		int convertKppIndex4FvBin(int index);
+
+		int convertKkpIndex4FvBin(int index);
+
+		int kkpBoardIndex(Piece piece) const;
+
+		int kkpHandIndex(Piece piece) const;
+
+		/**
+		 * 指定した指し手による評価値の変化値を算出します。
+		 * @param board 着手後の局面を指定します。
+		 * @param move
+		 */
+		template <bool black>
+		ValuePair _evaluateDiff(const Board& board, const Move& move) const;
+
+	public:
+
+		Evaluator();
+
+		virtual ~Evaluator();
+
+		/**
+		 * ファイルからパラメータを読み込みます。
+		 */
+		bool readFile();
+
+		/**
+		 * ファイルからパラメータを読み込みます。
+		 * @param filename
+		 */
+		bool readFile(const char* filename);
+
+		/**
+		 * ファイルからパラメータを読み込みます。
+		 * @param filename
+		 */
+		bool readFile(const std::string& filename) {
+			return readFile(filename.c_str());
+		}
+
+		/**
+		 * ファイルにパラメータを書き出します。
+		 */
+		bool writeFile() const;
+
+		/**
+		 * ファイルにパラメータを書き出します。
+		 * @param filename
+		 */
+		bool writeFile(const char* filename) const;
+
+		/**
+		 * ファイルにパラメータを書き出します。
+		 * @param filename
+		 */
+		bool writeFile(const std::string& filename) const {
+			return writeFile(filename.c_str());
+		}
+
+		/**
+		 * fv.bin があれば読み込んで並べ替えを行います。
+		 */
+		bool convertFromFvBin();
+
+		/**
+		 * 差分計算可能な指し手か判定します。
+		 * @param move
+		 */
+		bool isDiffCalculatable(const Move& move) const {
+			auto piece = move.piece();
+			return piece != Piece::King;
+		}
+
+		/**
+		 * 局面の評価値を算出します。
+		 * @param board
+		 */
+		ValuePair evaluate(const Board& board) const;
+
+		/**
+		 * 指定した指し手による評価値の変化値を算出します。
+		 * @param board 着手後の局面を指定します。
+		 * @param move
+		 */
+		ValuePair evaluateDiff(const Board& board, const Move& move) const {
+			if (!board.isBlack()) {
+				return _evaluateDiff<true>(board, move);
+			} else {
+				return _evaluateDiff<false>(board, move);
+			}
+		}
+
+		Value piece(const Piece& piece) const;
+		Value pieceExchange(const Piece& piece) const;
+		Value piecePromote(const Piece& piece) const;
+
+		const Table& table() const {
+			return *_t;
+		}
+
+	};
+	
+}
+
+#endif // __SUNFISH_EVALUATOR__

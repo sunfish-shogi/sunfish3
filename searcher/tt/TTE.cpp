@@ -1,0 +1,111 @@
+/* TTE.cpp
+ *
+ * Kubo Ryosuke
+ */
+
+#include "TTE.h"
+
+namespace sunfish {
+
+	bool TTE::update(uint64_t newHash,
+			Value newValue,
+			int newValueType,
+			int newDepth, int ply,
+			const NodeStat& newStat,
+			const Move& move,
+			unsigned newAge) {
+
+		assert(newAge < AgeMax);
+		assert(newDepth < (1<<20));
+		assert(newValueType < (1<<2));
+		assert((unsigned)newStat < (1<<4));
+
+		if (newDepth < 0) {
+			newDepth = 0;
+		}
+
+		if (isOk()) {
+			assert(_hash == newHash);
+			// 深さが劣るものは登録させない。
+			if (newDepth < (int)_.depth && _.age == newAge) {
+				return false;
+			}
+		} else {
+			_hash = newHash;
+			_moves.init();
+		}
+
+		if (_value >= Value::Mate) {
+			if (newValueType == Lower) {
+				if (_value < Value::Inf - ply) {
+					_value += ply;
+				} else {
+					_value = Value::Inf;
+				}
+			}
+		} else if (_value <= -Value::Mate) {
+			if (newValueType == Upper) {
+				if (_value > -Value::Inf + ply) {
+					_value -= ply;
+				} else {
+					_value = -Value::Inf;
+				}
+			}
+		}
+
+		_value = newValue;
+		_.valueType = newValueType;
+		_.depth = (unsigned)newDepth;
+		_.stat = (unsigned)newStat;
+		if (!move.isEmpty()) {
+			_moves.update(move);
+		}
+		_.age = newAge;
+		_checkSum = generateCheckSum();
+
+		return true;
+
+	}
+
+	void TTEs::set(const TTE& entity) {
+
+		unsigned l = lastAccess;
+		for (unsigned i = 0; i < Size; i++) {
+			const unsigned index = (l + i) % Size;
+			if (list[index].getHash() == entity.getHash()) {
+				list[index] = entity;
+				lastAccess = index;
+				return;
+			}
+		}
+		l++;
+		for (unsigned i = 0; i < Size; i++) {
+			const unsigned index = (l + i) % Size;
+			if (list[index].isBroken() ||
+					list[index].getAge() != entity.getAge()) {
+				list[index] = entity;
+				lastAccess = index;
+				return;
+			}
+		}
+		const unsigned index = l % Size;
+		list[index] = entity;
+		lastAccess = index;
+
+	}
+
+	bool TTEs::get(uint64_t hash, TTE& entity) {
+
+		unsigned l = lastAccess;
+		for (unsigned i = 0; i < Size; i++) {
+			const unsigned index = (l + i) % Size;
+			if (list[index].getHash() == hash) {
+				entity = list[index];
+				lastAccess = index;
+				return true;
+			}
+		}
+		return false;
+
+	}
+}
