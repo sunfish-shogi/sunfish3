@@ -7,6 +7,8 @@
 #include "core/move/MoveGenerator.h"
 #include "logger/Logger.h"
 
+#define ENABLE_LMR					1
+
 #define FUT_MGN							400
 
 namespace sunfish {
@@ -472,6 +474,7 @@ namespace sunfish {
 
 			// late move reduction
 			int reduced = 0;
+#if ENABLE_LMR
 			if (newDepth >= Depth1Ply && count != 1 &&
 					!isCheck && isPriorMove(tree, move) &&
 					(!move.promote() || move.piece() != Piece::Silver)) {
@@ -480,6 +483,7 @@ namespace sunfish {
 				newDepth -= reduced;
 
 			}
+#endif // ENABLE_LMR
 
 			// futility pruning
 			if (!isCheck && standPat + estimate(tree, move) + FUT_MGN <= newAlpha) {
@@ -616,8 +620,29 @@ namespace sunfish {
 		}
 		tree.resetGenPhase();
 
+		int count = 0;
 		Move move;
 		while (nextMove(tree, move)) {
+
+			count++;
+
+			// depth
+			int newDepth = depth;
+
+			bool isCheck = tree.isChecking() || board.isCheck(move);
+
+			// late move reduction
+			int reduced = 0;
+#if ENABLE_LMR
+			if (newDepth >= Depth1Ply && count != 1 &&
+					!isCheck && isPriorMove(tree, move) &&
+					(!move.promote() || move.piece() != Piece::Silver)) {
+
+				reduced = Depth1Ply;
+				newDepth -= reduced;
+
+			}
+#endif // ENABLE_LMR
 
 			// make move
 			if (!tree.makeMove(move, _eval)) {
@@ -631,15 +656,16 @@ namespace sunfish {
 
 				// aspiration search
 				astat.alpha = value;
-				currval = asp(tree, !black, depth - Depth1Ply, astat);
+				currval = asp(tree, !black, newDepth - Depth1Ply, astat);
 
 			} else {
 
 				// nega-scout
-				currval = -searchr<true>(tree, !black, depth - Depth1Ply, -value-1, -value);
+				currval = -searchr<true>(tree, !black, newDepth - Depth1Ply, -value-1, -value);
 				if (currval >= value + 1) {
 					// full window search
-					currval = -searchr<true>(tree, !black, depth - Depth1Ply, -Value::Inf, -value);
+					newDepth += reduced;
+					currval = -searchr<true>(tree, !black, newDepth - Depth1Ply, -Value::Inf, -value);
 				}
 
 			}
