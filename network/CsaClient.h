@@ -94,28 +94,83 @@ namespace sunfish {
 		};
 		static const ReceiveFlagSet FlagSets[RECV_NUM];
 
-		std::queue<RECV_DATA> _recvQueue; // 受信データ
-		unsigned _endFlags; // 対局終了フラグ
+		/** 受信データ */
+		std::queue<RECV_DATA> _recvQueue;
 
-		const char* _configFilename; // 設定ファイル
-		CsaClientConfig _config; // 設定
+		/** 対局終了フラグ */
+		unsigned _endFlags;
 
-		// 開始局面
+		/** 設定ファイル */
+		const char* _configFilename;
+
+		/** 通信設定 */
+		CsaClientConfig _config;
+
+		/** 探索設定 */
+		Searcher::Config _searchConfigBase;
+
+		/** 開始局面 */
 		Board _board;
 
-		Connection _con; // サーバとのコネクション
+		/** 棋譜 */
+		Record _record;
 
-		RemainingTime _blackTime; // 先手の持ち時間
-		RemainingTime _whiteTime; // 後手の持ち時間
+		/** 思考部 */
+		Searcher _searcher;
+
+		/** サーバとのコネクション */
+		Connection _con;
+
+		/** 先手の持ち時間 */
+		RemainingTime _blackTime;
+		/** 後手の持ち時間 */
+		RemainingTime _whiteTime;
 
 		struct GameSummary {
-			bool black; // 自分の手番が黒か
-			std::string gameId; // 対局ID
-			std::string blackName; // 先手の名前
-			std::string whiteName; // 後手の名前
-			int totalTime; // 持ち時間
-			int readoff; // 秒読み
+			/** 自分の手番が黒か */
+			bool black;
+			/** 対局ID */
+			std::string gameId;
+			/** 先手の名前 */
+			std::string blackName;
+			/** 後手の名前 */
+			std::string whiteName;
+			/** 持ち時間 */
+			int totalTime;
+			/** 秒読み */
+			int readoff;
 		} gameSummary;
+
+		void init() {
+			while (!_recvQueue.empty()) {
+				_recvQueue.pop();
+			}
+			_endFlags = RECV_NULL;
+			gameSummary.gameId = "";
+			gameSummary.blackName = "";
+			gameSummary.whiteName = "";
+			gameSummary.totalTime = 0;
+		}
+
+		/**
+		 * 対局
+		 */
+		bool game();
+
+		/**
+		 * 対局を進める
+		 */
+		bool nextTurn();
+
+		/**
+		 * 自分の手番
+		 */
+		bool myTurn();
+
+		/**
+		 * 相手の手番
+		 */
+		bool enemyTurn();
 
 		void buildSearchConfig(Searcher::Config& searchConfig);
 
@@ -140,17 +195,6 @@ namespace sunfish {
 
 		bool waitGameSummary() {
 			return waitReceive(RECV_SUMMARY) == RECV_SUMMARY;
-		}
-
-		void init() {
-			while (!_recvQueue.empty()) {
-				_recvQueue.pop();
-			}
-			_endFlags = RECV_NULL;
-			gameSummary.gameId = "";
-			gameSummary.blackName = "";
-			gameSummary.whiteName = "";
-			gameSummary.totalTime = 0;
 		}
 
 		unsigned waitReceive(unsigned flags, std::string* str = NULL);
@@ -207,6 +251,9 @@ namespace sunfish {
 			_configFilename = filename;
 		}
 
+		/**
+		 * 対局の実行
+		 */
 		bool execute();
 
 	};

@@ -40,6 +40,9 @@ namespace sunfish {
 		{ std::regex("^#JISHOGI$"), RECV_JISHOGI, NULL, "jishogi" },
 	};
 
+	/**
+	 * 対局の実行
+	 */
 	bool CsaClient::execute() {
 		// 設定の読み込み
 		if (!_config.read(_configFilename)) {
@@ -47,6 +50,7 @@ namespace sunfish {
 		}
 		Loggers::message << _config.toString();
 
+		// 通信設定
 		_con.setHost(_config.getHost());
 		_con.setPort(_config.getPort());
 		_con.setKeepalive(_config.getKeepalive(), _config.getKeepidle(),
@@ -54,136 +58,208 @@ namespace sunfish {
 
 		// 連続対局
 		for (int i = 0; i < _config.getRepeat(); i++) {
-			if (!_con.connect()) {
-				Loggers::error << "ERROR: can not connect to " << _config.getHost()
-						<< ':' << _config.getPort();
+			bool noError = game();
+			if (!noError) {
 				return false;
 			}
-			init();
-			std::thread receiverThread([this]() {
-				receiver();
-			});
+		}
 
-			// login
-			if (!login()) {
-				Loggers::message << "login failed!";
-				goto lab_end;
-			}
-			Loggers::message << "login ok!!";
+		return true;
+	}
 
-			// wait for match-make and agree
-			if (waitGameSummary() && agree()) {
+	/**
+	 * 対局
+	 */
+	bool CsaClient::game() {
+		// 接続を確立
+		if (!_con.connect()) {
+			Loggers::error << "ERROR: can not connect to " << _config.getHost()
+					<< ':' << _config.getPort();
+			return false;
+		}
 
-				// 棋譜の初期化
-				Record record;
-				record.init(_board);
+		// 初期化
+		init();
 
-				// 探索エージェントの初期化
-				// TODO: 評価パラメータのロードを初回のみにする。
-				Searcher searcher;
-				searcher.init();
+		// 受信スレッドを開始
+		std::thread receiverThread([this]() {
+			receiver();
+		});
 
-				// 探索設定
-				auto searchConfigBase = searcher.getConfig();
-				searchConfigBase.maxDepth = _config.getDepth();
-				searchConfigBase.limitEnable = _config.getLimit() != 0;
-				searchConfigBase.limitSeconds = _config.getLimit();
+		bool success = true;
 
-				// 相手番探索設定
-				auto searchConfigEnemy = searchConfigBase;
-				searchConfigEnemy.maxDepth = 32;
-				searchConfigEnemy.limitEnable = false;
+		// login
+		if (!login()) {
+			Loggers::message << "login failed!";
+			success = false;
+			goto lab_end;
+		}
+		Loggers::message << "login ok!!";
 
-				// 残り時間の初期化
-				_blackTime.init(gameSummary.totalTime, gameSummary.readoff);
-				_whiteTime.init(gameSummary.totalTime, gameSummary.readoff);
+		// wait for match-make and agree
+		if (waitGameSummary() && agree()) {
 
-				while (1) {
-#ifndef NDEBUG
-					CsaWriter::write("debug.csa", record);
-#endif
-					Loggers::message << "Time(Black):" << _blackTime.toString();
-					Loggers::message << "Time(White):" << _whiteTime.toString();
-					if (gameSummary.black == record.isBlack()) {
-						// 自分の手番
-						SendingMove sendingMove;
-						Move move;
-						auto searchConfig = searchConfigBase;
-						buildSearchConfig(searchConfig);
-						searcher.setConfig(searchConfig);
-						Loggers::message << "begin search: limit(sec)=" << searchConfig.limitSeconds;
-						bool ok = searcher.idsearch(record.getBoard(), move);
-						Loggers::message << "end search";
-						if (ok) {
-							sendingMove.set(searcher.getInfo());
-						}
-						if (ok && record.makeMove(move)) {
-							std::string recvStr;
-							if (!sendMove(sendingMove, !record.getBoard().isBlack(), &recvStr)) {
-								// TODO: エラーの詳細を出力
-								Loggers::error << "ERROR:could not send a move";
-								break;
-							}
-							// 消費時間の読み込み
-							int usedTime = getUsedTime(recvStr);
-							if (gameSummary.black) {
-								_blackTime.use(usedTime);
-							} else {
-								_whiteTime.use(usedTime);
-							}
-						} else {
-							sendResign();
-							break;
-						}
-					} else {
-						// 相手番
+			// 棋譜の初期化
+			_record.init(_board);
 
-						// TODO: 相手番中の思考開始
+			// 探索エージェントの初期化
+			// TODO: 評価パラメータのロードを初回のみにする。
+			_searcher.init();
 
-						// 相手番の指し手を受信
-						std::string recvStr;
-						unsigned mask = gameSummary.black ? RECV_MOVE_W : RECV_MOVE_B;
-						unsigned flags = waitReceive(mask | RECV_END_MSK, &recvStr);
+			// 探索設定
+			_searchConfigBase = _searcher.getConfig();
+			_searchConfigBase.maxDepth = _config.getDepth();
+			_searchConfigBase.limitEnable = _config.getLimit() != 0;
+			_searchConfigBase.limitSeconds = _config.getLimit();
 
-						// TODO: 相手番中の思考終了
+			// 残り時間の初期化
+			_blackTime.init(gameSummary.totalTime, gameSummary.readoff);
+			_whiteTime.init(gameSummary.totalTime, gameSummary.readoff);
 
-						if (flags & mask) {
-							// 受信した指し手の読み込み
-							Move move;
-							if (!CsaReader::readMove(recvStr.c_str(), record.getBoard(), move) ||
-									!record.makeMove(move)) {
-								Loggers::error << "ERROR:illegal move!!";
-								break;
-							}
-							// 消費時間の読み込み
-							int usedTime = getUsedTime(recvStr);
-							if (gameSummary.black) {
-								_whiteTime.use(usedTime);
-							} else {
-								_blackTime.use(usedTime);
-							}
-						} else if (flags & RECV_END_MSK) {
-							// 対局の終了
-							break;
-						} else {
-							// エラー
-							Loggers::error << "ERROR:unknown error. :" << __FILE__ << '(' << __LINE__ << ")";
-							break;
-						}
-					}
-					Loggers::message << record.getMove().toString();
+			while (1) {
+				bool ok = nextTurn();
+				if (!ok) {
+					break;
 				}
-				// 対局結果の記録
-				writeResult(record);
 			}
+			// 対局結果の記録
+			writeResult(_record);
+		}
 
-			// logout
-			logout();
+		// logout
+		logout();
 
 lab_end:
-			_con.disconnect();
-			receiverThread.join();
+		_con.disconnect();
+		receiverThread.join();
+
+		return success;
+	}
+
+	/**
+	 * 対局を進める
+	 */
+	bool CsaClient::nextTurn() {
+#ifndef NDEBUG
+		CsaWriter::write("debug.csa", _record);
+#endif
+
+		// 残り時間を表示
+		Loggers::message << "Time(Black):" << _blackTime.toString();
+		Loggers::message << "Time(White):" << _whiteTime.toString();
+
+		bool ok;
+		if (gameSummary.black == _record.isBlack()) {
+			// 自分の手番
+			ok = myTurn();
+		} else {
+			// 相手番
+			ok = enemyTurn();
 		}
+
+		if (!ok) {
+			return false;
+		}
+
+		// 指し手を表示
+		Loggers::message << _record.getMove().toString();
+
+		return true;
+	}
+
+	/**
+	 * 自分の手番
+	 */
+	bool CsaClient::myTurn() {
+		// 探索設定
+		auto searchConfig = _searchConfigBase;
+		buildSearchConfig(searchConfig);
+		_searcher.setConfig(searchConfig);
+
+		// 探索
+		Loggers::message << "begin search: limit(sec)=" << searchConfig.limitSeconds;
+		Move move;
+		bool ok = _searcher.idsearch(_record.getBoard(), move);
+		Loggers::message << "end search";
+
+		SendingMove sendingMove;
+		if (ok) {
+			sendingMove.set(_searcher.getInfo());
+		}
+
+		if (ok && _record.makeMove(move)) {
+			// 指し手を送信
+			std::string recvStr;
+			if (!sendMove(sendingMove, !_record.getBoard().isBlack(), &recvStr)) {
+				// TODO: エラーの詳細を出力
+				Loggers::error << "ERROR:could not send a move";
+				return false;
+			}
+
+			// 消費時間の読み込み
+			int usedTime = getUsedTime(recvStr);
+			if (gameSummary.black) {
+				_blackTime.use(usedTime);
+			} else {
+				_whiteTime.use(usedTime);
+			}
+
+		} else {
+			// 投了
+			sendResign();
+			return false;
+
+		}
+
+		return true;
+	}
+
+	/**
+	 * 相手の手番
+	 */
+	bool CsaClient::enemyTurn() {
+		// 相手番探索設定
+		auto searchConfigEnemy = _searchConfigBase;
+		searchConfigEnemy.maxDepth = 32;
+		searchConfigEnemy.limitEnable = false;
+
+		// TODO: 相手番中の思考開始
+
+		// 相手番の指し手を受信
+		std::string recvStr;
+		unsigned mask = gameSummary.black ? RECV_MOVE_W : RECV_MOVE_B;
+		unsigned flags = waitReceive(mask | RECV_END_MSK, &recvStr);
+
+		// TODO: 相手番中の思考終了
+
+		if (flags & mask) {
+			// 受信した指し手の読み込み
+			Move move;
+			if (!CsaReader::readMove(recvStr.c_str(), _record.getBoard(), move) ||
+					!_record.makeMove(move)) {
+				Loggers::error << "ERROR:illegal move!!";
+				return false;
+			}
+
+			// 消費時間の読み込み
+			int usedTime = getUsedTime(recvStr);
+			if (gameSummary.black) {
+				_whiteTime.use(usedTime);
+			} else {
+				_blackTime.use(usedTime);
+			}
+
+		} else if (flags & RECV_END_MSK) {
+			// 対局の終了
+			return false;
+
+		} else {
+			// エラー
+			Loggers::error << "ERROR:unknown error. :" << __FILE__ << '(' << __LINE__ << ")";
+			return false;
+
+		}
+
 		return true;
 	}
 
