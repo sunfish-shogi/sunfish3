@@ -29,7 +29,7 @@ namespace sunfish {
 		}
 
 		static std::string chomp(const std::string& line) {
-			for (int index = line.length()-1; index >= 0; index--) {
+			for (int index = (int)line.length()-1; index >= 0; index--) {
 				if (line.at(index) != '\n') {
 					return line.substr(0, index + 1);
 				}

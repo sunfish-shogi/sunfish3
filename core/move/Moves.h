@@ -45,7 +45,7 @@ namespace sunfish {
 			_size = index;
 		}
 		void removeAfter(iterator ite) {
-			_size = ite - _moves;
+			_size = (int)(ite - _moves);
 		}
 
 		// random accessor

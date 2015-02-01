@@ -263,24 +263,24 @@ POSITION_EACH(from) { \
 	template<>
 	Bitboard LongMoveTable<MoveTableType::BLance>::get(const Position& pos, const Bitboard& bb) const {
 		Bitboard attack = bb & dirMask7x7.file(pos);
-		unsigned b = Bitboard::isHigh(pos) ? attack.high() >> ((Bitboard::HighFiles - pos.getFile()) * 9 + 1)
-																			 : attack.low() >> ((9 - pos.getFile()) * 9 + 1);
+		unsigned b = Bitboard::isHigh(pos) ? (unsigned)(attack.high() >> ((Bitboard::HighFiles - pos.getFile()) * 9 + 1))
+																			 : (unsigned)(attack.low() >> ((9 - pos.getFile()) * 9 + 1));
 		return movePattern.up(pos, b & 0x7f);
 	}
 
 	template<>
 	Bitboard LongMoveTable<MoveTableType::WLance>::get(const Position& pos, const Bitboard& bb) const {
 		Bitboard attack = bb & dirMask7x7.file(pos);
-		unsigned b = Bitboard::isHigh(pos) ? attack.high() >> ((Bitboard::HighFiles - pos.getFile()) * 9 + 1)
-																			 : attack.low() >> ((9 - pos.getFile()) * 9 + 1);
+		unsigned b = Bitboard::isHigh(pos) ? (unsigned)(attack.high() >> ((Bitboard::HighFiles - pos.getFile()) * 9 + 1))
+																			 : (unsigned)(attack.low() >> ((9 - pos.getFile()) * 9 + 1));
 		return movePattern.down(pos, b & 0x7f);
 	}
 
 	inline Bitboard vertical(const Position& pos, const Bitboard& bb) {
 		// 縦方向
 		Bitboard attack = bb & dirMask7x7.file(pos);
-		unsigned b = Bitboard::isHigh(pos) ? attack.high() >> ((Bitboard::HighFiles - pos.getFile()) * 9 + 1)
-																			 : attack.low() >> ((9 - pos.getFile()) * 9 + 1);
+		unsigned b = Bitboard::isHigh(pos) ? (unsigned)(attack.high() >> ((Bitboard::HighFiles - pos.getFile()) * 9 + 1))
+																			 : (unsigned)(attack.low() >> ((9 - pos.getFile()) * 9 + 1));
 		return movePattern.file(pos, b & 0x7f);
 	}
 

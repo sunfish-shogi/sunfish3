@@ -449,7 +449,7 @@ namespace sunfish {
 			return (int)(x & 0x000000000000007FLL);
 		}
 
-		static int _getFirst(unsigned bits) {
+		static int _getFirst(uint32_t bits) {
 #if defined(WIN32) && !defined(VC6) && !defined(__MINGW32__)
 			int b;
 			return _BitScanForward((DWORD*)&b, bits) ? (b+1) : 0;
@@ -464,7 +464,7 @@ namespace sunfish {
 			return   _bfirst[(bits>>24)     ] + 24;
 #endif
 		}
-		static int _getLast(unsigned bits){
+		static int _getLast(uint32_t bits){
 #if defined(WIN32) && !defined(VC6) && !defined(__MINGW32__)
 			int b;
 			return _BitScanReverse((DWORD*)&b, bits) ? (32-b) : 0;
@@ -488,14 +488,14 @@ namespace sunfish {
 
 		int getFirst() const {
 			if (_low) {
-				int b = _getFirst(_low);
+				int b = _getFirst((uint32_t)_low);
 				if (b) {
 					return b - 1;
 				} else {
 					return _getFirst(_low >> 32) + 32 - 1;
 				}
 			} else if (_high) {
-				int b = _getFirst(_high);
+				int b = _getFirst((uint32_t)_high);
 				if (b) {
 					return b + (int)LowBits - 1;
 				} else {
@@ -510,14 +510,14 @@ namespace sunfish {
 				if (b) {
 					return b + 32 + (int)LowBits - 1;
 				} else {
-					return _getLast(_high) + (int)LowBits - 1;
+					return _getLast((uint32_t)_high) + (int)LowBits - 1;
 				}
 			} else if(_low) {
 				int b = _getLast(_low >> 32);
 				if (b) {
 					return b + 32 - 1;
 				} else {
-					return _getLast(_low) - 1;
+					return _getLast((uint32_t)_low) - 1;
 				}
 			}
 			return Position::Invalid;
@@ -526,14 +526,14 @@ namespace sunfish {
 		int pickFirst() {
 			int b;
 			if (_low) {
-				b = _getFirst(_low);
+				b = _getFirst((uint32_t)_low);
 				if (!b) {
 					b = _getFirst((_low >> 32)) + 32;
 				}
 				b--;
 				_low &= ~(0x01LL << b);
 			} else if (_high) {
-				b = _getFirst(_high);
+				b = _getFirst((uint32_t)_high);
 				if (!b) {
 					b = _getFirst((_high >> 32)) + 32;
 				}

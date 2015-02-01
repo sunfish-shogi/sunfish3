@@ -68,7 +68,7 @@ namespace sunfish {
 		 * 総手数を返します。
 		 */
 		int getSize() const {
-			return _moveStack.size();
+			return (int)_moveStack.size();
 		}
 
 		/**

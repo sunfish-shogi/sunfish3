@@ -318,7 +318,7 @@ namespace sunfish {
 			}
 
 			// 角の利き
-			if (tempAttacker = (MoveTables::Bishop2.get(king, occ) & (board.getWBishop() | board.getWHorse()))) {
+			if ((tempAttacker = (MoveTables::Bishop2.get(king, occ) & (board.getWBishop() | board.getWHorse())))) {
 				longMask = MoveTables::Bishop.get(king, occ);
 				longAttacker = tempAttacker;
 				if (dirMask.rightUp(king) & longAttacker) {
@@ -334,7 +334,7 @@ namespace sunfish {
 			}
 
 			// 飛車の利き
-			if (tempAttacker = (MoveTables::Rook2.get(king, occ) & (board.getWRook() | board.getWDragon()))) {
+			if ((tempAttacker = (MoveTables::Rook2.get(king, occ) & (board.getWRook() | board.getWDragon())))) {
 				longMask = MoveTables::Rook.get(king, occ);
 				longAttacker = tempAttacker;
 				if (dirMask.left(king) & longAttacker) {
@@ -371,7 +371,7 @@ namespace sunfish {
 			}
 
 			// 角の利き
-			if (tempAttacker = (MoveTables::Bishop2.get(king, occ) & (board.getBBishop() | board.getBHorse()))) {
+			if ((tempAttacker = (MoveTables::Bishop2.get(king, occ) & (board.getBBishop() | board.getBHorse())))) {
 				longMask = MoveTables::Bishop.get(king, occ);
 				longAttacker = tempAttacker;
 				if (dirMask.rightUp(king) & longAttacker) {
@@ -387,7 +387,7 @@ namespace sunfish {
 			}
 
 			// 飛車の利き
-			if (tempAttacker = (MoveTables::Rook2.get(king, occ) & (board.getBRook() | board.getBDragon()))) {
+			if ((tempAttacker = (MoveTables::Rook2.get(king, occ) & (board.getBRook() | board.getBDragon())))) {
 				longMask = MoveTables::Rook.get(king, occ);
 				longAttacker = tempAttacker;
 				if (dirMask.left(king) & longAttacker) {
