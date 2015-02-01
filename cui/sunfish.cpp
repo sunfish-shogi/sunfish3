@@ -45,10 +45,10 @@ private:
 	}
 public:
 	void addOption(const char* key, const char* description, bool arg = false) {
-		_options.push_back(std::move(Option{ key, "", description, arg }));
+		_options.push_back(std::move(Option{ key, "", description, arg, false, "" }));
 	}
 	void addOption(const char* key, const char* shortKey, const char* description, bool arg = false) {
-		_options.push_back(std::move(Option{ key, shortKey, description, arg }));
+		_options.push_back(std::move(Option{ key, shortKey, description, arg, false, "" }));
 	}
 	void parse(int argc, char** argv) {
 		const char* key = nullptr;

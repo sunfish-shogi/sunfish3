@@ -332,7 +332,7 @@ namespace sunfish {
 			return index;
 		}
 
-		for (int i = 0; i < sizeof(biList)/sizeof(biList[0]); i++) {
+		for (unsigned i = 0; i < sizeof(biList)/sizeof(biList[0]); i++) {
 			const auto& bi = biList[i];
 			if (bi.begin <= index && index < bi.end) {
   			int pos = index - bi.begin;
@@ -380,7 +380,7 @@ namespace sunfish {
 			return index;
 		}
 
-		for (int i = 0; i < sizeof(biList)/sizeof(biList[0]); i++) {
+		for (unsigned i = 0; i < sizeof(biList)/sizeof(biList[0]); i++) {
 			const auto& bi = biList[i];
 			if (bi.begin <= index && index < bi.end) {
   			int pos = index - bi.begin;

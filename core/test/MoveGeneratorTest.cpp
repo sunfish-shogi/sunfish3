@@ -9,6 +9,7 @@
 
 using namespace sunfish;
 
+#if 0
 namespace {
 	void debugPrint(const Moves& moves) {
 		std::ostringstream oss;
@@ -18,6 +19,7 @@ namespace {
 		Loggers::debug << oss.str();
 	}
 }
+#endif
 
 TEST(MoveGeneratorTest, testNoCap) {
 	Board board;
