@@ -7,7 +7,7 @@ SOURCES:=$(shell find . -name "*.cpp")
 OBJECTS:=$(SOURCES:.cpp=.o)
 DEPENDS:=$(SOURCES:.cpp=.d)
 
-override CFLAGS+=-std=c++0x
+override CFLAGS+=-std=c++11
 override CFLAGS+=-DPOSIX
 override CFLAGS+=-Wall
 override CFLAGS+=-W
@@ -15,15 +15,12 @@ override CFLAGS+=-O2
 #override CFLAGS+=-O3
 #override CFLAGS+=-DNDEBUG
 override CFLAGS+=-DNLEARN
-#override CFLAGS+=-DPRUN_EXPR
 override CFLAGS+=-I .
 #override CFLAGS+=-g
 #override CFLAGS+=-pg
 override CFLAGS+=-msse2
+override CFLAGS+=-pthread
 override LIBS+=-lrt
-override LIBS+=-lboost_program_options
-override LIBS+=-lboost_thread
-override LIBS+=-lboost_regex
 
 .PHONY: all pgo
 

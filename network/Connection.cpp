@@ -3,6 +3,7 @@
  */
 
 #include "Connection.h"
+#include <string.h>
 
 #if WIN32
 # include <windows.h>

@@ -16,6 +16,7 @@
 #include <queue>
 #include <regex>
 #include <thread>
+#include <mutex>
 
 namespace sunfish {
 
