@@ -81,33 +81,58 @@ namespace sunfish {
 			return false;
 		}
 
+		// 移動元
 		auto to = Position::parse(&str[2]);
 		if (!to.isValid()) {
 			return false;
 		}
 
+		// 移動先
 		auto from = Position::parse(&str[0]);
+
 		if (from.isValid()) {
 			// 盤上の駒を動かす手
+
+			// 駒種
 			auto piece = board.getBoardPiece(from);
-			auto promote = str[4] == 'n';
 			if (piece.isEmpty()) {
 				return false;
 			}
+
+			// 成
+			auto promote = str[4] == 'n';
+			if (promote && piece.isPromoted()) {
+				return false;
+			}
+
 			move.set(piece, from, to, promote);
-			if (!board.isValidMoveStrict(move) && !promote) {
-				Move mtemp(piece, from, to, true);
-				if (board.isValidMoveStrict(mtemp)) {
-					move = mtemp;
+
+			// 合法手チェック
+			if (board.isValidMoveStrict(move)) {
+				return true;
+			}
+
+			// 成を自動付加
+			if (!promote && piece.isUnpromoted()) {
+				move.setPromote(true);
+				if (board.isValidMoveStrict(move)) {
+					return true;
 				}
 			}
-			return true;
 
 		} else {
 			// 持ち駒を打つ手
+
+			// 駒種
 			auto piece = Piece::parse(&str[0]);
-			if (piece != Piece::Empty) {
-				move.set(piece.black(), to);
+			if (piece.isEmpty()) {
+				return false;
+			}
+
+			move.set(piece.black(), to);
+
+			// 合法手チェック
+			if (board.isValidMoveStrict(move)) {
 				return true;
 			}
 
@@ -222,7 +247,7 @@ namespace sunfish {
 	ConsoleManager::CommandResult ConsoleManager::inputCommand() {
 
 		char line[1024];
-		
+
 		std::cout << "> ";
 
 		// コマンド受付
@@ -309,7 +334,7 @@ namespace sunfish {
 			// 指し手入力
 			Move move;
 			if (CsaReader::readMove(line, _record.getBoard(), move) ||
-					inputMove(line, _record.getBoard(), move)) {
+				inputMove(line, _record.getBoard(), move)) {
 				if (_record.makeMove(move)) {
 					std::cout << "Move:\n";
 					std::cout << "  " << move.toString() << '\n';
@@ -329,7 +354,7 @@ namespace sunfish {
 	 * コンソール上で対局を行います。
 	 */
 	bool ConsoleManager::play() {
-		
+
 		_record.init(Board::Handicap::Even);
 
 		// 棋譜の読み込み
