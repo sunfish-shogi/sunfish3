@@ -11,6 +11,8 @@
 #include <fstream>
 #include <sstream>
 
+#define WARN_IGNORED(key, value) Loggers::warning << __THIS__ << ": not supported: key=[" << (key) << "] value=[" << (value) << "]"
+
 namespace sunfish {
 
 	const char* CsaClient::DEFAULT_CONFIG_FILE = "network.conf";
@@ -323,6 +325,7 @@ lab_end:
 			}
 			if (!ok) {
 				Loggers::warning << __THIS__ << ": parse error!!";
+				Loggers::warning << recvStr;
 			}
 		}
 	}
@@ -333,7 +336,7 @@ lab_end:
 			return false;
 		}
 		std::string key = recvStr.substr(0, sep);
-		std::string value = recvStr.substr(sep);
+		std::string value = recvStr.substr(sep + 1);
 
 		if (key == "Your_Turn") {
 			if (value == "+") {
@@ -341,6 +344,7 @@ lab_end:
 			} else if (value == "-") {
 				gameSummary.black = false;
 			} else {
+				Loggers::warning << __THIS__ << ": unknown value [" << value << "]";
 				return false;
 			}
 		} else if (key == "Game_ID") {
@@ -351,17 +355,23 @@ lab_end:
 			gameSummary.whiteName = value;
 		} else if (key == "Protocol_Version") {
 			// TODO
+			WARN_IGNORED(key, value);
 		} else if (key == "Protocol_Mode") {
 			// TODO
+			WARN_IGNORED(key, value);
 		} else if (key == "Format") {
 			// TODO
+			WARN_IGNORED(key, value);
 		} else if (key == "Declaration") {
 			// TODO
+			WARN_IGNORED(key, value);
 		} else if (key == "Rematch_On_Draw") {
 			// 自動再試合(CSAプロトコル仕様1.1.3では無視してよい。)
+			WARN_IGNORED(key, value);
 		} else if (key == "To_Move") {
 			// TODO
 		} else {
+			Loggers::warning << __THIS__ << ": unknown key [" << key << "]";
 			return false;
 		}
 		return true;
@@ -387,18 +397,21 @@ lab_end:
 			return false;
 		}
 		std::string key = recvStr.substr(0, sep);
-		std::string value = recvStr.substr(sep);
+		std::string value = recvStr.substr(sep + 1);
 
 		if (key == "Time_Unit") {
 			// 計測単位
 			// TODO
+			WARN_IGNORED(key, value);
 		} else if (key == "Least_Time_Per_Move") {
 			// 1手毎の最小消費時間
 			// TODO
+			WARN_IGNORED(key, value);
 		} else if (key == "Time_Roundup") {
 			// YES : 時間切り上げ
 			// NO : 時間切り捨て
 			// TODO
+			WARN_IGNORED(key, value);
 		} else if (key == "Total_Time") {
 			// 持ち時間(省略時無制限)
 			gameSummary.totalTime = std::stoi(value);
@@ -406,6 +419,7 @@ lab_end:
 			// 秒読み
 			gameSummary.readoff = std::stoi(value);
 		} else {
+			Loggers::warning << __THIS__ << ": unknown key [" << key << "]";
 			return false;
 		}
 		return true;
@@ -426,6 +440,22 @@ lab_end:
 	}
 
 	bool CsaClient::inputBoard(std::string recvStr) {
+		auto sep = recvStr.find_first_of(':');
+
+		if (sep != std::string::npos) {
+			std::string key = recvStr.substr(0, sep);
+			std::string value = recvStr.substr(sep + 1);
+
+			if (key == "Jishogi_Declaration") {
+				// TODO: 宣言法対応
+				WARN_IGNORED(key, value);
+				return true;
+			} else {
+				Loggers::warning << __THIS__ << ": unknown key [" << key << "]";
+				return false;
+			}
+		}
+
 		return CsaReader::readBoard(recvStr.c_str(), _board);
 	}
 
