@@ -84,6 +84,16 @@ namespace sunfish {
 		}
 
 		/**
+		 * ツリーの再確保
+		 */
+		void reallocTrees() {
+			if (_trees != nullptr) {
+				delete[] _trees;
+			}
+			_trees = new Tree[_config.treeSize];
+		}
+
+		/**
 		 * 前処理
 		 */
 		void before();
@@ -178,17 +188,18 @@ namespace sunfish {
 		 * 初期化
 		 */
 		void init() {
-			if (_trees != nullptr) {
-				delete[] _trees;
-			}
-			_trees = new Tree[_config.treeSize];
+			reallocTrees();
 		}
 
 		/**
 		 * 設定を反映します。
 		 */
 		void setConfig(const Config& config) {
+			auto org = _config;
 			_config = config;
+			if (_config.treeSize != org.treeSize) {
+				reallocTrees();
+			}
 		}
 
 		/**

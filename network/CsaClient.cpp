@@ -81,6 +81,7 @@ namespace sunfish {
 				// 探索エージェントの初期化
 				// TODO: 評価パラメータのロードを初回のみにする。
 				Searcher searcher;
+				searcher.init();
 
 				// 探索設定
 				auto searchConfigBase = searcher.getConfig();
@@ -110,9 +111,8 @@ namespace sunfish {
 						auto searchConfig = searchConfigBase;
 						buildSearchConfig(searchConfig);
 						searcher.setConfig(searchConfig);
-						searcher.init();
 						Loggers::message << "begin search: limit(sec)=" << searchConfig.limitSeconds;
-						bool ok = searcher.search(record.getBoard(), move);
+						bool ok = searcher.idsearch(record.getBoard(), move);
 						Loggers::message << "end search";
 						if (ok) {
 							sendingMove.set(searcher.getInfo());

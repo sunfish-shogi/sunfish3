@@ -29,7 +29,7 @@ namespace sunfish {
 				return false;
 			}
 			if (!readLine(line)) {
-				Loggers::error << "syntax error: " << filename << '(' << l << ')';
+				Loggers::error << "read error: " << filename << '(' << l << ')';
 				Loggers::error << line;
 			}
 		}
@@ -44,7 +44,7 @@ namespace sunfish {
 		for (int i = 0; i < size; i++){
 			// 設定項目のデータ型毎に変換
 			if (!convert(items[i], items[i].defaultValue)) {
-				Loggers::error << "unknown error";
+				Loggers::error << __THIS__ << "fatal error";
 			}
 		}
 	}
@@ -69,11 +69,12 @@ namespace sunfish {
 				if (convert(items[i], value)) {
 					return true;
 				} else {
-					Loggers::error << "unknown error";
+					Loggers::error << __THIS__ << ": invalid value type [" << value << "]";
 					return false;
 				}
 			}
 		}
+		Loggers::error << __THIS__ << ": unknown key [" << key << "]";
 		return false;
 	}
 
