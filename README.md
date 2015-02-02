@@ -3,8 +3,12 @@ Sunfish
 
 Sunfish is computer Shogi program.
 
-Compile
---------
+Build and Execute
+------------------
+
+### GCC
+
+#### Compile
 
 ```
 make
@@ -16,8 +20,7 @@ make -j
 make clean
 ```
 
-Execute
---------
+#### Execute
 
 ```
 ./sunfish
@@ -30,4 +33,24 @@ Execute
 
 # unit test
 ./sunfish --test
+```
+
+### OS X
+
+Open "sunfish3.xcodeproj" and build "release/debug > My Mac".
+
+## Usage
+
+### Show help
+
+```
+./sunfish --help
+```
+
+### Import fv.bin
+
+```
+rm evdata
+cp /hoge/bonanza/fv.bin ./fv.bin
+./sunfish
 ```
