@@ -104,6 +104,11 @@ namespace sunfish {
 		void after();
 
 		/**
+		 * 探索中断判定
+		 */
+		bool isInterrupted();
+
+		/**
 		 * 優先的に探索する手を追加
 		 */
 		void addPriorMove(Tree& tree, const Move& move);

@@ -52,6 +52,16 @@ namespace sunfish {
 	}
 
 	/**
+	 * 探索中断判定
+	 */
+	inline bool Searcher::isInterrupted() {
+		if (_timer.get() >= _config.limitSeconds) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * sort moves by see
 	 */
 	void Searcher::sortSee(Tree& tree, bool plusOnly /* = false */) {
@@ -333,6 +343,11 @@ namespace sunfish {
 			// unmake move
 			tree.unmakeMove(move);
 
+			// 中断判定
+			if (isInterrupted()) {
+				return Value::Zero;
+			}
+
 			// 値更新
 			if (currval > value) {
 				value = currval;
@@ -431,6 +446,12 @@ namespace sunfish {
 				// unmake move
 				tree.unmakeNullMove();
 
+				// 中断判定
+				if (isInterrupted()) {
+					return Value::Zero;
+				}
+
+				// beta-cut
 				if (currval >= beta) {
 					tree.updatePv();
 					_info.nullMovePruning++;
@@ -444,6 +465,13 @@ namespace sunfish {
 		if (!hashOk && depth >= Depth1Ply * 3) {
 			auto newStat = NodeStat(stat).unsetNullMove().unsetMate().unsetHashCut();
 			searchr<pvNode>(tree, black, depth - Depth1Ply, alpha, beta, newStat);
+
+			// 中断判定
+			if (isInterrupted()) {
+				return Value::Zero;
+			}
+
+			// ハッシュ表から前回の最善手を取得
 			if (_tt.get(hash, tte)) {
 				hash1 = tte.getMoves().getMove1();
 				hash2 = tte.getMoves().getMove2();
@@ -516,7 +544,7 @@ namespace sunfish {
 				// nega-scout
 				currval = -searchr<false>(tree, !black, newDepth - Depth1Ply, -newAlpha-1, -newAlpha);
 
-				if (currval > newAlpha &&  currval < beta) {
+				if (!isInterrupted() && currval > newAlpha &&  currval < beta) {
 					newDepth += reduced;
 					currval = -searchr<pvNode>(tree, !black, newDepth - Depth1Ply, -beta, -newAlpha);
 				}
@@ -525,6 +553,11 @@ namespace sunfish {
 
 			// unmake move
 			tree.unmakeMove(move);
+
+			// 中断判定
+			if (isInterrupted()) {
+				return Value::Zero;
+			}
 
 			// 値更新
 			if (currval > value) {
@@ -568,23 +601,33 @@ namespace sunfish {
 
 			Value value = -searchr<true>(tree, black, depth, -beta, -alpha);
 
+			// 中断判定
+			if (isInterrupted()) {
+				return Value::Zero;
+			}
+
+			// 値が確定 (alpha < value < beta)
 			if (value > alpha && value < beta) {
 				return value;
 			}
 
+			// alpha-cut
 			if (value <= astat.alpha) {
 				return value;
 			}
 
+			// 最大 window 幅のため値が確定
 			if (astat.upper == wcnt-1 && astat.lower == wcnt-1) {
 				return value;
 			}
 
+			// alpha 値を広げる
 			while (value <= alphas[astat.lower]) {
 				astat.lower++;
 				assert(astat.lower < wcnt);
 			}
 
+			// beta 値を広げる
 			while (value >= betas[astat.upper]) {
 				astat.upper++;
 				assert(astat.upper < wcnt);
@@ -662,7 +705,7 @@ namespace sunfish {
 
 				// nega-scout
 				currval = -searchr<true>(tree, !black, newDepth - Depth1Ply, -value-1, -value);
-				if (currval >= value + 1) {
+				if (!isInterrupted() && currval >= value + 1) {
 					// full window search
 					newDepth += reduced;
 					currval = -searchr<true>(tree, !black, newDepth - Depth1Ply, -Value::Inf, -value);
@@ -672,6 +715,11 @@ namespace sunfish {
 
 			// unmake move
 			tree.unmakeMove(move);
+
+			// 中断判定
+			if (isInterrupted()) {
+				return false;
+			}
 
 			move.setExt(currval.int32(), -10000, 10000);
 

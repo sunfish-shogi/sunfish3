@@ -263,15 +263,20 @@ lab_end:
 		return true;
 	}
 
+	/**
+	 * 探索設定を構築
+	 */
 	void CsaClient::buildSearchConfig(Searcher::Config& searchConfig) {
+		// 思考時間設定
 		if (searchConfig.limitEnable) {
-			int usableTime = gameSummary.black
-					? _blackTime.usable() : _whiteTime.usable();
-			usableTime = usableTime / 20;
-			if (usableTime <= 0) { usableTime = 1; }
-			searchConfig.limitSeconds =
-					searchConfig.limitSeconds <= usableTime
-					? searchConfig.limitSeconds : usableTime;
+			const auto& myTime = gameSummary.black ? _blackTime : _whiteTime;
+
+			// 次の一手で利用可能な最大時間
+			int usableTime = myTime.usable();
+
+			// 最大思考時間を確定
+			usableTime = std::min(usableTime, std::max(usableTime / 20 + 1, myTime.getReadoff() * 2));
+			searchConfig.limitSeconds = std::min(searchConfig.limitSeconds, usableTime);
 		}
 	}
 
