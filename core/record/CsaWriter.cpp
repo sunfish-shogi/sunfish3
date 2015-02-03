@@ -52,9 +52,6 @@ namespace sunfish {
 	 */
 	void CsaWriter::writeMoves(std::ostream& os, const Record& record) {
 
-		// 手番
-		os << (record.isBlackAt(0) ? '+' : '-') << '\n';
-
 		// 手順
 		for (int i = 0; i < record.getSize(); i++) {
 			bool black = record.isBlackAt(i);

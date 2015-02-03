@@ -1499,6 +1499,9 @@ namespace sunfish {
 		}
 		oss << '\n';
 
+		// 手番
+		oss << (isBlack() ? '+' : '-') << '\n';
+
 		return oss.str();
 	}
 }               

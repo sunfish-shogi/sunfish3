@@ -165,9 +165,9 @@ namespace sunfish {
 	 * 盤面を表示します。
 	 */
 	void ConsoleManager::printBoard(const Board& board) const {
-		std::cout << "===================\n";
-		std::cout << board.toString();
-		std::cout << "===================\n";
+		std::cout << "'----------------------------\n";
+		std::cout << board.toStringCsa();
+		std::cout << "'----------------------------\n";
 		std::cout << std::endl;
 
 #if 1
