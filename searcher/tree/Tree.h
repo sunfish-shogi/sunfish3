@@ -55,8 +55,8 @@ namespace sunfish {
 		/** 局面 */
 		Board _board;
 
-		/** ソート用のバッファ */
-		int32_t _sortBuffer[1024];
+		/** ソートキー */
+		int32_t _sortValues[1024];
 
 	public:
 
@@ -120,24 +120,43 @@ namespace sunfish {
 			return _stack[_ply].moves.removeAfter(ite);
 		}
 
+		int getIndexByIterator(const Moves::iterator ite) const {
+			return ite - _stack[_ply].moves.begin();
+		}
+
+		int getIndexByMove(const Move& move) const {
+			const auto& moves = _stack[_ply].moves;
+			for (int i = 0; i < moves.size(); i++) {
+				if (moves[i].equals(move)) {
+					return i;
+				}
+			}
+			return -1;
+		}
+
 		void setSortValue(const Moves::iterator ite, int32_t value) {
-			auto index = ite - _stack[_ply].moves.begin();
-			_sortBuffer[index] = value;
+			auto index = getIndexByIterator(ite);
+			_sortValues[index] = value;
 		}
 
 		int32_t getSortValue(const Moves::iterator ite) {
-			auto index = ite - _stack[_ply].moves.begin();
-			return _sortBuffer[index];
+			auto index = getIndexByIterator(ite);
+			return _sortValues[index];
 		}
 
-		void sortByValue(const Moves::iterator begin);
-
-		void sortByValueAll() {
-			sortByValue(_stack[_ply].moves.begin());
+		void setSortValues(const int32_t* sortValues) {
+			unsigned size = _stack[_ply].moves.size();
+			memcpy(_sortValues, sortValues, sizeof(int32_t) * size);
 		}
 
-		void sortByValueAfterCurrent() {
-			sortByValue(_stack[_ply].ite);
+		void sort(const Moves::iterator begin);
+
+		void sortAll() {
+			sort(_stack[_ply].moves.begin());
+		}
+
+		void sortAfterCurrent() {
+			sort(_stack[_ply].ite);
 		}
 
 		PriorMoves& getPriorMoves() {

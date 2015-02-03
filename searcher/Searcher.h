@@ -175,6 +175,8 @@ namespace sunfish {
 		 */
 		bool search(int depth, Move& best, bool gen = true, Value* prevval = nullptr);
 
+		void showPv(int depth, const Pv& pv, const Value& value, double seconds);
+
 		/**
 		 * iterative deepening search from root node
 		 * @return {有効な手がないか深さ1で中断された場合にfalseを返します。}

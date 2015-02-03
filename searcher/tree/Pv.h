@@ -7,6 +7,7 @@
 #define __SUNFISH_PV__
 
 #include "core/move/Move.h"
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <algorithm>

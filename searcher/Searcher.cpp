@@ -6,8 +6,10 @@
 #include "Searcher.h"
 #include "core/move/MoveGenerator.h"
 #include "logger/Logger.h"
+#include <iomanip>
 
 #define ENABLE_LMR					1
+#define SHOW_ROOT_MOVES			0
 
 #define FUT_MGN							400
 
@@ -73,7 +75,7 @@ namespace sunfish {
 			tree.setSortValue(ite, value.int32());
 		}
 
-		tree.sortByValueAfterCurrent();
+		tree.sortAfterCurrent();
 
 		if (plusOnly) {
 			for (auto ite = tree.getCurrent(); ite != tree.getEnd(); ite++) {
@@ -136,7 +138,7 @@ namespace sunfish {
 			tree.setSortValue(ite, (int32_t)h);
 		}
 
-		tree.sortByValueAfterCurrent();
+		tree.sortAfterCurrent();
 
 	}
 
@@ -638,6 +640,9 @@ namespace sunfish {
 		// tree
 		auto& tree = _trees[0];
 
+		// sort values
+		int sortValues[1024];
+
 		auto& moves = tree.getMoves();
 		const auto& board = tree.getBoard();
 		bool black = board.isBlack();
@@ -715,7 +720,8 @@ namespace sunfish {
 			}
 
 			// ソート用に値をセット
-			tree.setSortValue(tree.getPrevious(), currval.int32());
+			auto index = tree.getIndexByMove(move);
+			sortValues[index] = (currval != value) ? (currval.int32()) : (currval.int32() - 1);
 
 			// 値更新
 			if (currval > value) {
@@ -725,7 +731,8 @@ namespace sunfish {
 			}
 		}
 
-		tree.sortByValueAll();
+		tree.setSortValues(sortValues);
+		tree.sortAll();
 
 		_info.eval = value;
 		if (prevval != nullptr) {
@@ -738,6 +745,11 @@ namespace sunfish {
 
 		return true;
 
+	}
+
+	void Searcher::showPv(int depth, const Pv& pv, const Value& value, double seconds) {
+		auto realDepth = depth / Depth1Ply;
+		Loggers::message << realDepth << ": " << pv.toString() << ": " << value.int32() << " (" << seconds << "sec)";
 	}
 
 	/**
@@ -764,7 +776,17 @@ namespace sunfish {
 			bool ok = search(depth, best, gen, &value);
 
 			gen = false;
-			Loggers::message << tree.getPv().toString() << ": " << (black ? value.int32() : -value.int32());
+
+#if !defined(NDEBUG) && SHOW_ROOT_MOVES
+			auto& tree = _trees[0];
+			std::ostringstream oss;
+			for (auto ite = tree.getBegin(); ite != tree.getEnd(); ite++) {
+				oss << ' ' << (*ite).toString() << '[' << tree.getSortValue(ite) << ']';
+			}
+			Loggers::debug << oss.str();
+#endif
+
+			showPv(depth, tree.getPv(), black ? value : -value, _timer.get());
 
 			if (!ok) {
 				break;
