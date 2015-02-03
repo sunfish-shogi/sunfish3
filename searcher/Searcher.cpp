@@ -1,5 +1,5 @@
 /* Searcher.cpp
- * 
+ *
  * Kubo Ryosuke
  */
 
@@ -66,20 +66,19 @@ namespace sunfish {
 	 */
 	void Searcher::sortSee(Tree& tree, bool plusOnly /* = false */) {
 
-		auto& moves = tree.getMoves();
 		const auto& board = tree.getBoard();
 
-		for (auto ite = tree.getIterator(); ite != moves.end(); ite++) {
+		for (auto ite = tree.getCurrent(); ite != tree.getEnd(); ite++) {
 			Value value = _see.search(_eval, board, *ite);
-			ite->setExt(value.int32(), -10000, 10000);
+			tree.setSortValue(ite, value.int32());
 		}
 
-		moves.sortDesc(tree.getIterator(), moves.end());
+		tree.sortByValueAfterCurrent();
 
 		if (plusOnly) {
-			for (auto ite = tree.getIterator(); ite != moves.end(); ite++) {
-				if (ite->ext(-10000, 10000) <= 0) {
-					moves.removeAfter(ite);
+			for (auto ite = tree.getCurrent(); ite != tree.getEnd(); ite++) {
+				if (tree.getSortValue(ite) <= 0) {
+					tree.removeAfter(ite);
 					break;
 				}
 			}
@@ -117,12 +116,11 @@ namespace sunfish {
 	 */
 	void Searcher::removePriorMove(Tree& tree) {
 
-		auto& moves = tree.getMoves();
 		auto& priorMoves = tree.getPriorMoves();
 
-		for (auto ite = tree.getIterator(); ite != moves.end(); ite++) {
+		for (auto ite = tree.getCurrent(); ite != tree.getEnd(); ite++) {
 			if (priorMoves.find(*ite) != priorMoves.end()) {
-				ite = moves.remove(ite) - 1;
+				ite = tree.remove(ite) - 1; // Moves::Iterator の -1 は安全
 			}
 		}
 
@@ -133,14 +131,12 @@ namespace sunfish {
 	 */
 	void Searcher::sortHistory(Tree& tree) {
 
-		auto& moves = tree.getMoves();
-
-		for (auto ite = tree.getIterator(); ite != moves.end(); ite++) {
-			unsigned h = _history.get(*ite);
-			ite->setExt(h, 0, History::Scale-1);
+		for (auto ite = tree.getCurrent(); ite != tree.getEnd(); ite++) {
+			auto h = std::min(_history.get(*ite), History::Scale-1); // XXX: min を取る必要あるんだっけ？
+			tree.setSortValue(ite, (int32_t)h);
 		}
 
-		moves.sortDesc(tree.getIterator(), moves.end());
+		tree.sortByValueAfterCurrent();
 
 	}
 
@@ -172,14 +168,13 @@ namespace sunfish {
 		auto& moves = tree.getMoves();
 		auto& priorMoves = tree.getPriorMoves();
 		auto& genPhase = tree.getGenPhase();
-		auto& ite = tree.getIterator();
 		auto& board = tree.getBoard();
 
 		while (true) {
 
-			if (ite != moves.end()) {
-				move = *ite;
-				ite++;
+			if (tree.getCurrent() != tree.getEnd()) {
+				move = *tree.getCurrent();
+				tree.selectNextMove();
 				return true;
 			}
 
@@ -187,7 +182,7 @@ namespace sunfish {
 			case GenPhase::Prior:
 				for (auto ite = priorMoves.begin(); ite != priorMoves.end(); ite++) {
 					if (board.isValidMoveStrict(*ite)) {
-						moves.add(*ite);
+						moves.add(*ite); // TODO: create Tree's method
 					}
 				}
 				genPhase = GenPhase::Capture;
@@ -266,10 +261,7 @@ namespace sunfish {
 	 */
 	void Searcher::rejectMove(Tree& tree) {
 
-		auto& moves = tree.getMoves();
-		auto& ite = tree.getIterator();
-
-		ite = moves.remove(ite-1);
+		tree.remove(tree.getCurrent()-1);
 
 	}
 
@@ -639,6 +631,7 @@ namespace sunfish {
 
 	/**
 	 * search from root node
+	 * @return {有効な手がないか中断された場合にfalseを返します。}
 	 */
 	bool Searcher::search(int depth, Move& best, bool gen /* = true */, Value* prevval /* = nullptr */) {
 
@@ -721,7 +714,8 @@ namespace sunfish {
 				return false;
 			}
 
-			move.setExt(currval.int32(), -10000, 10000);
+			// ソート用に値をセット
+			tree.setSortValue(tree.getPrevious(), currval.int32());
 
 			// 値更新
 			if (currval > value) {
@@ -731,7 +725,7 @@ namespace sunfish {
 			}
 		}
 
-		moves.sortDesc();
+		tree.sortByValueAll();
 
 		_info.eval = value;
 		if (prevval != nullptr) {
@@ -748,13 +742,14 @@ namespace sunfish {
 
 	/**
 	 * iterative deepening search from root node
+	 * @return {有効な手がないか深さ1で中断された場合にfalseを返します。}
 	 */
 	bool Searcher::idsearch(Move& best) {
 
 		auto& tree = _trees[0];
 		const auto& board = tree.getBoard();
 		bool black = board.isBlack();
-		bool result = true;
+		bool result = false;
 		bool gen = true;
 
 		// 前処理
@@ -765,10 +760,17 @@ namespace sunfish {
 
 		Value value = -Value::Inf;
 
-		for (int depth = Depth1Ply; depth <= maxDepth && result; depth += Depth1Ply) {
-			result = search(depth, best, gen, &value);
+		for (int depth = Depth1Ply; depth <= maxDepth; depth += Depth1Ply) {
+			bool ok = search(depth, best, gen, &value);
+
 			gen = false;
 			Loggers::message << tree.getPv().toString() << ": " << (black ? value.int32() : -value.int32());
+
+			if (!ok) {
+				break;
+			}
+
+			result = true;
 		}
 
 		// 後処理
@@ -780,6 +782,7 @@ namespace sunfish {
 
 	/**
 	 * 指定した局面に対して探索を実行します。
+	 * @return {有効な手がないか中断された場合にfalseを返します。}
 	 */
 	bool Searcher::search(const Board& initialBoard, Move& best) {
 
@@ -804,6 +807,7 @@ namespace sunfish {
 
 	/**
 	 * 指定した局面に対して反復深化探索を実行します。
+	 * @return {有効な手がないか深さ1で中断された場合にfalseを返します。}
 	 */
 	bool Searcher::idsearch(const Board& initialBoard, Move& best) {
 

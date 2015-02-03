@@ -55,6 +55,9 @@ namespace sunfish {
 		/** 局面 */
 		Board _board;
 
+		/** ソート用のバッファ */
+		int32_t _sortBuffer[1024];
+
 	public:
 
 		void init(const Board& board, const Evaluator& eval) {
@@ -80,16 +83,65 @@ namespace sunfish {
 			return _stack[_ply].moves;
 		}
 
-		PriorMoves& getPriorMoves() {
-			return _stack[_ply].priorMoves;
-		}
-
 		GenPhase& getGenPhase() {
 			return _stack[_ply].genPhase;
 		}
 
-		Moves::iterator& getIterator() {
+		Moves::iterator getCurrent() {
 			return _stack[_ply].ite;
+		}
+
+		Moves::iterator getPrevious() {
+			assert(_stack[_ply].ite != _stack[_ply].moves.begin());
+			return _stack[_ply].ite - 1;
+		}
+
+		Moves::iterator getBegin() {
+			return _stack[_ply].moves.begin();
+		}
+
+		Moves::iterator getEnd() {
+			return _stack[_ply].moves.end();
+		}
+
+		Moves::iterator selectNextMove() {
+			assert(_stack[_ply].ite != _stack[_ply].moves.end());
+			return _stack[_ply].ite++;
+		}
+
+		Moves::iterator remove(Moves::iterator ite) {
+			if (ite < _stack[_ply].ite) {
+				_stack[_ply].ite--; // 前方を削除する場合はイテレータを繰り下げる。
+			}
+			return _stack[_ply].moves.remove(ite);
+		}
+
+		void removeAfter(const Moves::iterator ite) {
+			return _stack[_ply].moves.removeAfter(ite);
+		}
+
+		void setSortValue(const Moves::iterator ite, int32_t value) {
+			auto index = ite - _stack[_ply].moves.begin();
+			_sortBuffer[index] = value;
+		}
+
+		int32_t getSortValue(const Moves::iterator ite) {
+			auto index = ite - _stack[_ply].moves.begin();
+			return _sortBuffer[index];
+		}
+
+		void sortByValue(const Moves::iterator begin);
+
+		void sortByValueAll() {
+			sortByValue(_stack[_ply].moves.begin());
+		}
+
+		void sortByValueAfterCurrent() {
+			sortByValue(_stack[_ply].ite);
+		}
+
+		PriorMoves& getPriorMoves() {
+			return _stack[_ply].priorMoves;
 		}
 
 		bool isChecking() {

@@ -1,5 +1,5 @@
 /* Searcher.h
- * 
+ *
  * Kubo Ryosuke
  */
 
@@ -171,11 +171,13 @@ namespace sunfish {
 
 		/**
 		 * search from root node
+		 * @return {有効な手がないか中断された場合にfalseを返します。}
 		 */
 		bool search(int depth, Move& best, bool gen = true, Value* prevval = nullptr);
 
 		/**
 		 * iterative deepening search from root node
+		 * @return {有効な手がないか深さ1で中断された場合にfalseを返します。}
 		 */
 		bool idsearch(Move& best);
 
@@ -223,11 +225,13 @@ namespace sunfish {
 
 		/**
 		 * 指定した局面に対して探索を実行します。
+		 * @return {有効な手がないか中断された場合にfalseを返します。}
 		 */
 		bool search(const Board& initialBoard, Move& best);
 
 		/**
 		 * 指定した局面に対して反復深化探索を実行します。
+		 * @return {有効な手がないか深さ1で中断された場合にfalseを返します。}
 		 */
 		bool idsearch(const Board& initialBoard, Move& best);
 

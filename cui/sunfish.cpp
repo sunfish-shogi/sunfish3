@@ -131,7 +131,8 @@ int main(int argc, char** argv, char** /*envp*/) {
 	po.addOption("out", "o", "record file name to save", true);
 	po.addOption("black", "b", "auto/manual (default: manual)", true);
 	po.addOption("white", "w", "auto/manual (default: auto)", true);
-	po.addOption("depth", "d", "max depth (default: 5)", true);
+	po.addOption("depth", "d", "max depth (default: 10)", true);
+	po.addOption("time", "t", "max time for 1 move [sec] (default: 3)", true);
 	po.addOption("network", "n", "network mode");
 	po.addOption("help", "h", "show this help.");
 #ifndef NDEBUG
@@ -220,10 +221,17 @@ int main(int argc, char** argv, char** /*envp*/) {
 		}
 	}
 
+    // 最大探索深さ
 	if (po.has("depth")) {
 		int depth = std::stoi(po.getValue("depth"));
 		console.setMaxDepth(depth);
 	}
+
+    // 最大思考時間
+    if (po.has("time")) {
+        int time = std::stoi(po.getValue("time"));
+        console.setLimitSeconds(time);
+    }
 
 	bool ok = console.play();
 

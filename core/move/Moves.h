@@ -69,18 +69,6 @@ namespace sunfish {
 			return end();
 		}
 
-		void sort() {
-			std::stable_sort(_moves, _moves + _size);
-		}
-
-		void sortDesc() {
-			std::stable_sort(_moves, _moves + _size, std::greater<Move>());
-		}
-
-		void sortDesc(iterator begin, iterator end) {
-			std::stable_sort(begin, end, std::greater<Move>());
-		}
-
 	};
 
 	typedef TempMoves<1024> Moves;

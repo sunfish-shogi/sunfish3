@@ -43,12 +43,14 @@ namespace sunfish {
 	 * 設定の初期化
 	 */
 	void ConsoleManager::initConfig() {
+		// default settings
 		_config.autoBlack = false;
 		_config.autoWhite = true;
-		_config.maxDepth = 5;
+		_config.maxDepth = 10;
+		_config.limitSeconds = 3;
 		_config.inFileName = "";
 #ifndef NDEBUG
-		_config.outFileName = ".debug.csa";
+		_config.outFileName = ".debug.csa"; // debug build only
 #else
 		_config.outFileName = "";
 #endif
@@ -364,6 +366,7 @@ namespace sunfish {
 
 		auto searchConfig = _searcher.getConfig();
 		searchConfig.maxDepth = _config.maxDepth;
+		searchConfig.limitSeconds = _config.limitSeconds;
 		searchConfig.treeSize = 1;
 		searchConfig.wokerSize = 1;
 		_searcher.setConfig(searchConfig);

@@ -44,6 +44,7 @@ namespace sunfish {
 			bool autoBlack;
 			bool autoWhite;
 			int maxDepth;
+			int limitSeconds;
 			std::string inFileName;
 			std::string outFileName;
 		} _config;
@@ -95,8 +96,15 @@ namespace sunfish {
 		void setMaxDepth(int depth) {
 			_config.maxDepth = depth;
 		}
-		bool getMaxDepth() const  {
+		int getMaxDepth() const  {
 			return _config.maxDepth;
+		}
+
+		void setLimitSeconds(int limitSeconds) {
+			_config.limitSeconds = limitSeconds;
+		}
+		int getLimitSeconds() const {
+			return _config.limitSeconds;
 		}
 
 		void setInFileName(const std::string& inFileName) {

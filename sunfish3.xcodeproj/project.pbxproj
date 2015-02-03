@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0904956B1A80E4CF0016AC43 /* Tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0904956A1A80E4CF0016AC43 /* Tree.cpp */; };
 		0969B6881A41C91200D56A21 /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B6131A41C91200D56A21 /* Config.cpp */; };
 		0969B6891A41C91200D56A21 /* Piece.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B6191A41C91200D56A21 /* Piece.cpp */; };
 		0969B68A1A41C91200D56A21 /* Position.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B61B1A41C91200D56A21 /* Position.cpp */; };
@@ -62,6 +63,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0904956A1A80E4CF0016AC43 /* Tree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Tree.cpp; sourceTree = "<group>"; };
 		0969B6131A41C91200D56A21 /* Config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Config.cpp; sourceTree = "<group>"; };
 		0969B6141A41C91200D56A21 /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Config.h; sourceTree = "<group>"; };
 		0969B6191A41C91200D56A21 /* Piece.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Piece.cpp; sourceTree = "<group>"; };
@@ -387,6 +389,7 @@
 				0969B6791A41C91200D56A21 /* NodeStat.h */,
 				0969B67A1A41C91200D56A21 /* Pv.h */,
 				0969B67B1A41C91200D56A21 /* Tree.h */,
+				0904956A1A80E4CF0016AC43 /* Tree.cpp */,
 			);
 			path = tree;
 			sourceTree = "<group>";
@@ -506,6 +509,7 @@
 				0969B6AD1A41C91200D56A21 /* TT.cpp in Sources */,
 				0969B6891A41C91200D56A21 /* Piece.cpp in Sources */,
 				0969B69C1A41C91200D56A21 /* PieceTest.cpp in Sources */,
+				0904956B1A80E4CF0016AC43 /* Tree.cpp in Sources */,
 				0969B6A71A41C91200D56A21 /* CsaClientConfig.cpp in Sources */,
 				0969B6A21A41C91200D56A21 /* sunfish.cpp in Sources */,
 				0969B6AB1A41C91200D56A21 /* See.cpp in Sources */,

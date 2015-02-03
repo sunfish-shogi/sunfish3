@@ -25,13 +25,12 @@ namespace sunfish {
 		static const unsigned PROMOTE    = 0x00004000;
 		static const unsigned PIECE      = 0x00078000;
 		static const unsigned CAP        = 0x00f80000;
-		static const unsigned EXT        = 0xff000000;
+		static const unsigned UNUSED     = 0xff000000;
 		static const unsigned EMPTY      = 0xffffffff;
 
 		static const unsigned TO_SHIFT = 7;
 		static const unsigned PIECE_SHIFT = 15;
 		static const unsigned CAP_SHIFT = 19;
-		static const unsigned EXT_SHIFT = 24;
 
 		unsigned _move;
 
@@ -148,13 +147,6 @@ namespace sunfish {
 		void unsetCaptured() {
 			_move = _move & (~CAP);
 		}
-		void setExt(unsigned ext) {
-			assert(ext <= 0xff);
-			_move = (_move & (~EXT)) | (ext << EXT_SHIFT);
-		}
-		void setExt(int ext, int min, int max) {
-			setExt((std::max(min, std::min(ext, max)) - min) * 256 / (max - min + 1));
-		}
 
 		// getters
 		Position from() const {
@@ -179,17 +171,10 @@ namespace sunfish {
 		bool isHand() const {
 			return !(_move & FROM);
 		}
-		unsigned ext() const {
-			return _move >> EXT_SHIFT;
-		}
-		int ext(int min, int max) const {
-			int e = ext();
-			return e * (max - min + 1) / 256 + min;
-		}
 
 		// comparator
 		bool equals(const Move& obj) const {
-			return (_move & ~(EXT | CAP)) == (obj._move & ~(EXT | CAP));
+			return (_move & ~(UNUSED | CAP)) == (obj._move & ~(UNUSED | CAP));
 		}
 		bool operator==(const Move& obj) const {
 			return _move == obj._move;
