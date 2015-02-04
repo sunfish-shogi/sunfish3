@@ -25,6 +25,8 @@ namespace sunfish {
 	class Searcher : public ISearcher {
 	public:
 
+		static constexpr int Depth1Ply = 4;
+
 		/** 探索設定 */
 		struct Config {
 			int maxDepth;
@@ -39,7 +41,7 @@ namespace sunfish {
 		/** 探索情報 */
 		struct Info {
 			Move move;
-			int node;
+			uint64_t node;
 			double time;
 			double nps;
 			Value eval;
@@ -47,11 +49,12 @@ namespace sunfish {
 			uint64_t nullMovePruning;
 			uint64_t futilityPruning;
 			uint64_t extendedFutilityPruning;
+			uint64_t checkExtension;
+			uint64_t onerepExtension;
+			uint64_t recapExtension;
 		};
 
 	private:
-
-		static const int Depth1Ply = 4;
 
 		Config _config;
 		Info _info;
@@ -175,7 +178,7 @@ namespace sunfish {
 		 */
 		bool search(int depth, Move& best, bool gen = true, Value* prevval = nullptr);
 
-		void showPv(int depth, const Pv& pv, const Value& value, double seconds);
+		void showPv(int depth, const Pv& pv, const Value& value);
 
 		/**
 		 * iterative deepening search from root node

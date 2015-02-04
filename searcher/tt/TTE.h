@@ -34,8 +34,8 @@ namespace sunfish {
 					^ (unsigned)_moves.getMove2()
 					^ (unsigned)_.age
 					^ ((unsigned)_.depth << 8)
-					^ ((unsigned)_.valueType << 28)
-					^ ((unsigned)_.stat << 30)
+					^ ((unsigned)_.valueType << 26)
+					^ ((unsigned)_.stat << 28)
 					;
 		}
 

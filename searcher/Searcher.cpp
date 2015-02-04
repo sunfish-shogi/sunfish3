@@ -11,9 +11,14 @@
 #define ENABLE_LMR					1
 #define SHOW_ROOT_MOVES			0
 
-#define FUT_MGN							400
-
 namespace sunfish {
+
+	namespace search_param {
+		constexpr int FUT_MGN = 400;
+		constexpr int EXT_CHECK = Searcher::Depth1Ply;
+		constexpr int EXT_ONEREP = Searcher::Depth1Ply * 1 / 2;
+		constexpr int EXT_RECAP = Searcher::Depth1Ply * 1 / 4;
+	}
 
 	/**
 	 * 前処理
@@ -29,6 +34,9 @@ namespace sunfish {
 		_info.nullMovePruning = 0;
 		_info.futilityPruning = 0;
 		_info.extendedFutilityPruning = 0;
+		_info.checkExtension = 0;
+		_info.onerepExtension = 0;
+		_info.recapExtension = 0;
 		_timer.set();
 
 		// transposition table
@@ -70,7 +78,7 @@ namespace sunfish {
 
 		const auto& board = tree.getBoard();
 
-		for (auto ite = tree.getCurrent(); ite != tree.getEnd(); ite++) {
+		for (auto ite = tree.getNext(); ite != tree.getEnd(); ite++) {
 			Value value = _see.search(_eval, board, *ite);
 			tree.setSortValue(ite, value.int32());
 		}
@@ -78,7 +86,7 @@ namespace sunfish {
 		tree.sortAfterCurrent();
 
 		if (plusOnly) {
-			for (auto ite = tree.getCurrent(); ite != tree.getEnd(); ite++) {
+			for (auto ite = tree.getNext(); ite != tree.getEnd(); ite++) {
 				if (tree.getSortValue(ite) <= 0) {
 					tree.removeAfter(ite);
 					break;
@@ -120,7 +128,7 @@ namespace sunfish {
 
 		auto& priorMoves = tree.getPriorMoves();
 
-		for (auto ite = tree.getCurrent(); ite != tree.getEnd(); ite++) {
+		for (auto ite = tree.getNext(); ite != tree.getEnd(); ite++) {
 			if (priorMoves.find(*ite) != priorMoves.end()) {
 				ite = tree.remove(ite) - 1; // Moves::Iterator の -1 は安全
 			}
@@ -133,7 +141,7 @@ namespace sunfish {
 	 */
 	void Searcher::sortHistory(Tree& tree) {
 
-		for (auto ite = tree.getCurrent(); ite != tree.getEnd(); ite++) {
+		for (auto ite = tree.getNext(); ite != tree.getEnd(); ite++) {
 			auto h = std::min(_history.get(*ite), History::Scale-1); // XXX: min を取る必要あるんだっけ？
 			tree.setSortValue(ite, (int32_t)h);
 		}
@@ -174,8 +182,8 @@ namespace sunfish {
 
 		while (true) {
 
-			if (tree.getCurrent() != tree.getEnd()) {
-				move = *tree.getCurrent();
+			if (tree.getNext() != tree.getEnd()) {
+				move = *tree.getNext();
 				tree.selectNextMove();
 				return true;
 			}
@@ -263,7 +271,7 @@ namespace sunfish {
 	 */
 	void Searcher::rejectMove(Tree& tree) {
 
-		tree.remove(tree.getCurrent()-1);
+		tree.remove(tree.getNext()-1);
 
 	}
 
@@ -487,12 +495,38 @@ namespace sunfish {
 			count++;
 
 			// depth
-			int newDepth = depth;
+			int newDepth = depth - Depth1Ply;
+                          
+			// stat
+			NodeStat newStat = NodeStat::Default;
 
 			// alpha value
 			Value newAlpha = Value::max(alpha, value);
 
-			bool isCheck = tree.isChecking() || board.isCheck(move);
+			bool isCheckCurr = board.isCheck(move);
+            bool isCheckPrev = tree.isChecking();
+            bool isCheck = isCheckCurr || isCheckPrev;
+
+			// extensions
+			if (isCheckCurr) {
+				// check
+				newDepth += search_param::EXT_CHECK;
+				_info.checkExtension++;
+
+			} else if (isCheckPrev && tree.getNext() == tree.getEnd()) {
+				// one-reply
+				newDepth += search_param::EXT_ONEREP;
+				_info.onerepExtension++;
+
+			} else if (!isCheckPrev && stat.isRecapture() && tree.isRecapture()
+								 // TODO: 前回の最善のcaptureを除外
+								 ) {
+				// recapture
+				newDepth += search_param::EXT_RECAP;
+				newStat.unsetRecapture();
+				_info.recapExtension++;
+
+			}
 
 			// late move reduction
 			int reduced = 0;
@@ -508,7 +542,7 @@ namespace sunfish {
 #endif // ENABLE_LMR
 
 			// futility pruning
-			if (!isCheck && standPat + estimate(tree, move) + FUT_MGN <= newAlpha) {
+			if (!isCheck && standPat + estimate(tree, move) + search_param::FUT_MGN <= newAlpha) {
 				value = newAlpha;
 				_info.futilityPruning++;
 				continue;
@@ -522,7 +556,7 @@ namespace sunfish {
 			Value newStandPat = tree.getValue() * (black ? 1 : -1);
 
 			// extended futility pruning
-			if (!isCheck && newStandPat + FUT_MGN <= newAlpha) {
+			if (!isCheck && newStandPat + search_param::FUT_MGN <= newAlpha) {
 				tree.unmakeMove(move);
 				value = newAlpha;
 				_info.extendedFutilityPruning++;
@@ -532,15 +566,15 @@ namespace sunfish {
 			// reccursive call
 			Value currval;
 			if (count == 1) {
-				currval = -searchr<pvNode>(tree, !black, newDepth - Depth1Ply, -beta, -newAlpha);
+				currval = -searchr<pvNode>(tree, !black, newDepth, -beta, -newAlpha, newStat);
 
 			} else {
 				// nega-scout
-				currval = -searchr<false>(tree, !black, newDepth - Depth1Ply, -newAlpha-1, -newAlpha);
+				currval = -searchr<false>(tree, !black, newDepth, -newAlpha-1, -newAlpha, newStat);
 
 				if (!isInterrupted() && currval > newAlpha &&  currval < beta) {
 					newDepth += reduced;
-					currval = -searchr<pvNode>(tree, !black, newDepth - Depth1Ply, -beta, -newAlpha);
+					currval = -searchr<pvNode>(tree, !black, newDepth, -beta, -newAlpha, newStat);
 				}
 
 			}
@@ -747,9 +781,20 @@ namespace sunfish {
 
 	}
 
-	void Searcher::showPv(int depth, const Pv& pv, const Value& value, double seconds) {
+	void Searcher::showPv(int depth, const Pv& pv, const Value& value) {
 		auto realDepth = depth / Depth1Ply;
-		Loggers::message << realDepth << ": " << pv.toString() << ": " << value.int32() << " (" << seconds << "sec)";
+		double seconds = _timer.get();
+		uint64_t node = _info.node;
+
+		std::ostringstream oss;
+		oss << std::setw(2) << realDepth;
+		oss << ": " << std::setw(10) << node;
+		oss << ": " << pv.toString();
+		oss << ": " << value.int32();
+		oss << " (" << seconds << "sec)";
+
+		Loggers::message << oss.str();
+
 	}
 
 	/**
@@ -786,7 +831,7 @@ namespace sunfish {
 			Loggers::debug << oss.str();
 #endif
 
-			showPv(depth, tree.getPv(), black ? value : -value, _timer.get());
+			showPv(depth, tree.getPv(), black ? value : -value);
 
 			if (!ok) {
 				break;

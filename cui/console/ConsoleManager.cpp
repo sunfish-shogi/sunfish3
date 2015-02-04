@@ -195,14 +195,17 @@ namespace sunfish {
 
 		const auto& info = _searcher.getInfo();
 		std::cout << "Search Info:\n";
-		std::cout << "  node: " << info.node << '\n';
-		std::cout << "  time: " << info.time << '\n';
-		std::cout << "  nps : " << (int)info.nps << '\n';
-		std::cout << "  eval: " << info.eval.int32() << '\n';
-		std::cout << "  tt  : " << info.hashPruning << '\n';
-		std::cout << "  null: " << info.nullMovePruning << '\n';
-		std::cout << "  fut : " << info.futilityPruning << '\n';
-		std::cout << "  efut: " << info.extendedFutilityPruning << '\n';
+		std::cout << "  node     : " << info.node << '\n';
+		std::cout << "  time     : " << info.time << '\n';
+		std::cout << "  nps      : " << (int)info.nps << '\n';
+		std::cout << "  eval     : " << info.eval.int32() << '\n';
+		std::cout << "  tt       : " << info.hashPruning << '\n';
+		std::cout << "  null     : " << info.nullMovePruning << '\n';
+		std::cout << "  fut      : " << info.futilityPruning << '\n';
+		std::cout << "  efut     : " << info.extendedFutilityPruning << '\n';
+		std::cout << "  check-ext: " << info.checkExtension << '\n';
+		std::cout << "  1rep-ext : " << info.onerepExtension << '\n';
+		std::cout << "  recap-ext: " << info.recapExtension << '\n';
 		std::cout << std::endl;
 
 		if (ok) {

@@ -87,7 +87,16 @@ namespace sunfish {
 			return _stack[_ply].genPhase;
 		}
 
-		Moves::iterator getCurrent() {
+		bool isRecapture() const {
+			if (_ply == 0) {
+				return false;
+			}
+			const auto& m0 = *(_stack[_ply-1].ite - 1);
+			const auto& m1 = *(_stack[_ply].ite - 1);
+			return m0.to() == m1.to() && m0.isCapturing();
+		}
+
+		Moves::iterator getNext() {
 			return _stack[_ply].ite;
 		}
 
@@ -121,7 +130,7 @@ namespace sunfish {
 		}
 
 		int getIndexByIterator(const Moves::iterator ite) const {
-			return ite - _stack[_ply].moves.begin();
+			return (int)(ite - _stack[_ply].moves.begin());
 		}
 
 		int getIndexByMove(const Move& move) const {
