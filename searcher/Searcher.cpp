@@ -633,7 +633,7 @@ namespace sunfish {
 
 	/**
 	 * search from root node
-	 * @return {有効な手がないか中断された場合にfalseを返します。}
+	 * @return {負けたか中断された場合にfalseを返します。}
 	 */
 	bool Searcher::search(int depth, Move& best, bool gen /* = true */, Value* prevval /* = nullptr */) {
 
@@ -739,7 +739,7 @@ namespace sunfish {
 			*prevval = value;
 		}
 
-		if (value == -Value::Inf) {
+		if (value <= -Value::Mate) {
 			return false;
 		}
 
@@ -754,7 +754,7 @@ namespace sunfish {
 
 	/**
 	 * iterative deepening search from root node
-	 * @return {有効な手がないか深さ1で中断された場合にfalseを返します。}
+	 * @return {負けたか深さ1で中断された場合にfalseを返します。}
 	 */
 	bool Searcher::idsearch(Move& best) {
 
@@ -804,7 +804,7 @@ namespace sunfish {
 
 	/**
 	 * 指定した局面に対して探索を実行します。
-	 * @return {有効な手がないか中断された場合にfalseを返します。}
+	 * @return {負けたか中断された場合にfalseを返します。}
 	 */
 	bool Searcher::search(const Board& initialBoard, Move& best) {
 
@@ -829,7 +829,7 @@ namespace sunfish {
 
 	/**
 	 * 指定した局面に対して反復深化探索を実行します。
-	 * @return {有効な手がないか深さ1で中断された場合にfalseを返します。}
+	 * @return {負けたか深さ1で中断された場合にfalseを返します。}
 	 */
 	bool Searcher::idsearch(const Board& initialBoard, Move& best) {
 
