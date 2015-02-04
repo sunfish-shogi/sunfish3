@@ -28,10 +28,10 @@ namespace {
 	const CommandSet commandSet[COMMAND_NUM] = {
 		{ "q", "quit", Command::Quit, "quit." },
 		{ "h", "help", Command::Help, "show this help." },
-		{ "p", "prev", Command::Prev, "go to a previous position." },
-		{ "n", "next", Command::Next, "go to a next position." },
-		{ "t", "top", Command::Top, "go to a top of this record." },
-		{ "e", "end", Command::End, "go to a end of this record." },
+		{ "p", "prev", Command::Prev, "go to previous position." },
+		{ "n", "next", Command::Next, "go to next position." },
+		{ "t", "top", Command::Top, "go to top of this record." },
+		{ "e", "end", Command::End, "go to end of this record." },
 		{ "s", "search", Command::Search, "search from current position." },
 	};
 
@@ -46,7 +46,7 @@ namespace sunfish {
 		// default settings
 		_config.autoBlack = false;
 		_config.autoWhite = true;
-		_config.maxDepth = 10;
+		_config.maxDepth = 15;
 		_config.limitSeconds = 3;
 		_config.inFileName = "";
 #ifndef NDEBUG

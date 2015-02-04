@@ -131,7 +131,7 @@ int main(int argc, char** argv, char** /*envp*/) {
 	po.addOption("out", "o", "record file name to save", true);
 	po.addOption("black", "b", "auto/manual (default: manual)", true);
 	po.addOption("white", "w", "auto/manual (default: auto)", true);
-	po.addOption("depth", "d", "max depth (default: 10)", true);
+	po.addOption("depth", "d", "max depth (default: 15)", true);
 	po.addOption("time", "t", "max time for 1 move [sec] (default: 3)", true);
 	po.addOption("network", "n", "network mode");
 	po.addOption("help", "h", "show this help.");
