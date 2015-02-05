@@ -275,7 +275,7 @@ lab_end:
 			int usableTime = myTime.usable();
 
 			// 最大思考時間を確定
-			usableTime = std::min(usableTime, std::max(usableTime / 20 + 1, myTime.getReadoff() * 2));
+			usableTime = std::min(usableTime - 1, std::max(usableTime / 20 + 1, myTime.getReadoff() * 2));
 			searchConfig.limitSeconds = std::min(searchConfig.limitSeconds, usableTime);
 		}
 	}
