@@ -428,7 +428,10 @@
 				0969B6821A41C91200D56A21 /* test */,
 				09D366FF1A41C604002D88B9 /* Products */,
 			);
+			indentWidth = 2;
 			sourceTree = "<group>";
+			tabWidth = 2;
+			usesTabs = 1;
 		};
 		09D366FF1A41C604002D88B9 /* Products */ = {
 			isa = PBXGroup;
