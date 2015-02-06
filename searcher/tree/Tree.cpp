@@ -30,4 +30,20 @@ namespace sunfish {
 		}
 	}
 
+	bool Tree::__debug__matchPath(const char* path) {
+		std::ostringstream oss;
+		bool isFirst = true;
+		for (int ply = 0; ply < _ply; ply++) {
+			const auto& move = *(_stack[ply].ite - 1);
+			bool black = (_ply - ply) % 2 == 0 ? _board.isBlack() : !_board.isBlack();
+			if (isFirst) {
+				isFirst = false;
+			} else {
+				oss << ' ';
+			}
+			oss << move.toStringCsa(black);
+		}
+		return oss.str() == path;
+	}
+
 }
