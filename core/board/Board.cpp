@@ -68,6 +68,7 @@ namespace sunfish {
 		default:
 			assert(false);
 		}
+		return *(Bitboard*)nullptr; // unreachable
 	}
 
 	void Board::init() {

@@ -69,6 +69,7 @@ namespace sunfish {
 			case Piece::Rook: return HandBRook[num];
 			default: assert(false);
 			}
+			return 0; // unreachable
 		}
 
 		static uint64_t handWhite(const Piece piece, int num) {
@@ -82,6 +83,7 @@ namespace sunfish {
 			case Piece::Rook: return HandWRook[num];
 			default: assert(false);
 			}
+			return 0; // unreachable
 		}
 
 		static uint64_t black() {
