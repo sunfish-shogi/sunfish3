@@ -3,6 +3,8 @@
  * Kubo Ryosuke
  */
 
+ #if !defined(NDEBUG)
+
 #include "test/Test.h"
 #include "../base/Position.h"
 
@@ -48,3 +50,5 @@ TEST(PositionTest, test) {
 		ASSERT_EQ(Position::End, pos19.nextRightDown());
 	}
 }
+
+#endif // !defined(NDEBUG)

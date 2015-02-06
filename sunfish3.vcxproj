@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7F19D8A5-2624-4826-B135-A117E32132A5}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="config\Config.cpp" />
+    <ClCompile Include="core\base\Piece.cpp" />
+    <ClCompile Include="core\base\Position.cpp" />
+    <ClCompile Include="core\board\Bitboard.cpp" />
+    <ClCompile Include="core\board\Board.cpp" />
+    <ClCompile Include="core\board\Zobrist.cpp" />
+    <ClCompile Include="core\dev\CodeGenerator.cpp" />
+    <ClCompile Include="core\dev\MoveGeneratorExpr.cpp" />
+    <ClCompile Include="core\move\Move.cpp" />
+    <ClCompile Include="core\move\MoveGenerator.cpp" />
+    <ClCompile Include="core\move\MoveTable.cpp" />
+    <ClCompile Include="core\record\CsaReader.cpp" />
+    <ClCompile Include="core\record\CsaWriter.cpp" />
+    <ClCompile Include="core\record\Record.cpp" />
+    <ClCompile Include="core\test\BitboardTest.cpp" />
+    <ClCompile Include="core\test\BoardTest.cpp" />
+    <ClCompile Include="core\test\CsaReaderTest.cpp" />
+    <ClCompile Include="core\test\HandTest.cpp" />
+    <ClCompile Include="core\test\MoveGeneratorTest.cpp" />
+    <ClCompile Include="core\test\MoveTest.cpp" />
+    <ClCompile Include="core\test\PieceTest.cpp" />
+    <ClCompile Include="core\test\PositionTest.cpp" />
+    <ClCompile Include="core\test\ZobristTest.cpp" />
+    <ClCompile Include="cui\console\ConsoleManager.cpp" />
+    <ClCompile Include="cui\dev.cpp" />
+    <ClCompile Include="cui\network.cpp" />
+    <ClCompile Include="cui\sunfish.cpp" />
+    <ClCompile Include="cui\test.cpp" />
+    <ClCompile Include="logger\Logger.cpp" />
+    <ClCompile Include="network\Connection.cpp" />
+    <ClCompile Include="network\CsaClient.cpp" />
+    <ClCompile Include="network\CsaClientConfig.cpp" />
+    <ClCompile Include="searcher\eval\Evaluator.cpp" />
+    <ClCompile Include="searcher\RandomSearcher.cpp" />
+    <ClCompile Include="searcher\Searcher.cpp" />
+    <ClCompile Include="searcher\see\See.cpp" />
+    <ClCompile Include="searcher\test\SeeTest.cpp" />
+    <ClCompile Include="searcher\tree\Tree.cpp" />
+    <ClCompile Include="searcher\tt\TT.cpp" />
+    <ClCompile Include="searcher\tt\TTE.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="config\Config.h" />
+    <ClInclude Include="core\base\Piece.h" />
+    <ClInclude Include="core\base\Position.h" />
+    <ClInclude Include="core\board\Bitboard.h" />
+    <ClInclude Include="core\board\Board.h" />
+    <ClInclude Include="core\board\Hand.h" />
+    <ClInclude Include="core\board\Zobrist.h" />
+    <ClInclude Include="core\def.h" />
+    <ClInclude Include="core\dev\CodeGenerator.h" />
+    <ClInclude Include="core\dev\MoveGeneratorExpr.h" />
+    <ClInclude Include="core\move\Move.h" />
+    <ClInclude Include="core\move\MoveGenerator.h" />
+    <ClInclude Include="core\move\Moves.h" />
+    <ClInclude Include="core\move\MoveTable.h" />
+    <ClInclude Include="core\record\CsaReader.h" />
+    <ClInclude Include="core\record\CsaWriter.h" />
+    <ClInclude Include="core\record\Record.h" />
+    <ClInclude Include="core\util\Random.h" />
+    <ClInclude Include="core\util\StringUtil.h" />
+    <ClInclude Include="core\util\Timer.h" />
+    <ClInclude Include="cui\console\ConsoleManager.h" />
+    <ClInclude Include="cui\sunfish.h" />
+    <ClInclude Include="logger\Logger.h" />
+    <ClInclude Include="network\Connection.h" />
+    <ClInclude Include="network\CsaClient.h" />
+    <ClInclude Include="network\CsaClientConfig.h" />
+    <ClInclude Include="network\RemainingTime.h" />
+    <ClInclude Include="searcher\def.h" />
+    <ClInclude Include="searcher\eval\Evaluator.h" />
+    <ClInclude Include="searcher\eval\Value.h" />
+    <ClInclude Include="searcher\history\History.h" />
+    <ClInclude Include="searcher\ISearcher.h" />
+    <ClInclude Include="searcher\RandomSearcher.h" />
+    <ClInclude Include="searcher\Searcher.h" />
+    <ClInclude Include="searcher\see\See.h" />
+    <ClInclude Include="searcher\table\HashTable.h" />
+    <ClInclude Include="searcher\tree\NodeStat.h" />
+    <ClInclude Include="searcher\tree\Pv.h" />
+    <ClInclude Include="searcher\tree\Tree.h" />
+    <ClInclude Include="searcher\tt\TT.h" />
+    <ClInclude Include="searcher\tt\TTE.h" />
+    <ClInclude Include="searcher\tt\TTMoves.h" />
+    <ClInclude Include="test\Test.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

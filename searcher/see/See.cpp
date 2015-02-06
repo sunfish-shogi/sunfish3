@@ -14,7 +14,7 @@ namespace sunfish {
 	void See::generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Bitboard& mask) {
 
 		auto& num = black ? _bnum : _wnum;
-		auto& list = black ? _b : _w;
+		auto list = black ? _b : _w;
 
 		num = 0;
 

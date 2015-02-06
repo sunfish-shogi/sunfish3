@@ -3,6 +3,8 @@
  * Kubo Ryosuke
  */
 
+ #if !defined(NDEBUG)
+
 #include "test/Test.h"
 #include "../base/Piece.h"
 
@@ -95,3 +97,5 @@ TEST(PieceTest, testStringify) {
 	ASSERT_EQ(std::string("Fu"), Piece(Piece::WPawn).toString());
 	ASSERT_EQ(std::string("Ry"), Piece(Piece::WDragon).toString());
 }
+
+#endif // !defined(NDEBUG)

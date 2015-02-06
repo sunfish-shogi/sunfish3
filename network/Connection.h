@@ -5,6 +5,9 @@
 #ifndef __SUNFISH_CONNECTION__
 #define __SUNFISH_CONNECTION__
 
+#if WIN32
+# include "windows.h" // Fix for C2146
+#endif
 #include <queue>
 #include <string>
 

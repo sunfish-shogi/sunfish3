@@ -3,6 +3,8 @@
  * Kubo Ryosuke
  */
 
+#if !defined(NDEBUG)
+
 #include "test/Test.h"
 #include "../record/CsaReader.h"
 #include <sstream>
@@ -55,3 +57,5 @@ next: black\n\
 ";
 	ASSERT_EQ(correct, record.getBoard().toString(false));
 }
+
+#endif // !defined(NDEBUG)

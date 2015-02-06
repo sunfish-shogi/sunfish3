@@ -3,6 +3,8 @@
  * Kubo Ryosuke
  */
 
+ #if !defined(NDEBUG)
+
 #include "test/Test.h"
 #include "../move/MoveGenerator.h"
 #include "../record/CsaReader.h"
@@ -251,3 +253,5 @@ TEST(MoveGeneratorTest, testEvasion) {
 	}
 
 }
+
+#endif // !defined(NDEBUG)

@@ -18,6 +18,10 @@
 # include <emmintrin.h>
 #endif
 
+#if WIN32
+# include "windows.h"
+#endif
+
 /*
  *  9  8  7  6  5  4  3  2  1 |
  * ---------------------------+--
@@ -194,7 +198,7 @@ namespace sunfish {
 		Bitboard() {
 		}
 		Bitboard(const Bitboard& src) {
-			_bb.m = src._bb.m;
+			_bb = src._bb;
 		}
 #if USE_SSE2
 		Bitboard(__m128i m) {
@@ -450,7 +454,7 @@ namespace sunfish {
 		}
 
 		static int _getFirst(uint32_t bits) {
-#if defined(WIN32) && !defined(VC6) && !defined(__MINGW32__)
+#if defined(WIN32) && !defined(__MINGW32__)
 			int b;
 			return _BitScanForward((DWORD*)&b, bits) ? (b+1) : 0;
 #elif defined(POSIX)
@@ -465,7 +469,7 @@ namespace sunfish {
 #endif
 		}
 		static int _getLast(uint32_t bits){
-#if defined(WIN32) && !defined(VC6) && !defined(__MINGW32__)
+#if defined(WIN32) && !defined(__MINGW32__)
 			int b;
 			return _BitScanReverse((DWORD*)&b, bits) ? (32-b) : 0;
 #elif defined(POSIX)

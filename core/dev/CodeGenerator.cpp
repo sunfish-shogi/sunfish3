@@ -3,6 +3,8 @@
  * Kubo Ryosuke
  */
 
+#if !defined(NDEBUG)
+
 #include "CodeGenerator.h"
 #include "core/util/Random.h"
 #include "core/base/Piece.h"
@@ -79,3 +81,5 @@ namespace sunfish {
 	}
 
 }
+
+#endif // !defined(NDEBUG)

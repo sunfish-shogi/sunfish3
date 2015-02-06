@@ -157,8 +157,8 @@ namespace sunfish {
 			return false;
 		}
 
-		file.read((char*)_t->kpp, sizeof(Table::kpp));
-		file.read((char*)_t->kkp, sizeof(Table::kkp));
+		file.read((char*)_t->kpp, sizeof(_t->kpp));
+		file.read((char*)_t->kkp, sizeof(_t->kkp));
 
 
 		file.close();
@@ -184,8 +184,8 @@ namespace sunfish {
 			return false;
 		}
 
-		file.write((const char*)_t->kpp, sizeof(Table::kpp));
-		file.write((const char*)_t->kkp, sizeof(Table::kkp));
+		file.write((const char*)_t->kpp, sizeof(_t->kpp));
+		file.write((const char*)_t->kkp, sizeof(_t->kkp));
 
 		file.close();
 
@@ -219,8 +219,8 @@ namespace sunfish {
 		std::shared_ptr<Table> fvbin_ptr = std::make_shared<Table>();
 		auto fvbin = fvbin_ptr.get();
 
-		file.read((char*)fvbin->kpp, sizeof(Table::kpp));
-		file.read((char*)fvbin->kkp, sizeof(Table::kkp));
+		file.read((char*)fvbin->kpp, sizeof(_t->kpp));
+		file.read((char*)fvbin->kkp, sizeof(_t->kkp));
 
 		file.close();
 

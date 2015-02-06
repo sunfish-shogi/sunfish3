@@ -7,7 +7,7 @@
 
 namespace sunfish {
 
-#if defined(UNKNOWN_API) || defined(VC6) || defined(__MINGW32__)
+#if defined(UNKNOWN_API) || defined(__MINGW32__)
 	const unsigned Bitboard::_bfirst[256] = {
 		 0, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1,
 		 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 6, 1, 2, 1, 3, 1, 2, 1,

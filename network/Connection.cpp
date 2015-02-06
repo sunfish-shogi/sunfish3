@@ -6,7 +6,6 @@
 #include <string.h>
 
 #if WIN32
-# include <windows.h>
 # include <shlwapi.h>
 #else
 # include <unistd.h>

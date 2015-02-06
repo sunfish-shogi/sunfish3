@@ -3,6 +3,8 @@
  * Kubo Ryosuke
  */
 
+#if !defined(NDEBUG)
+
 #include "test/Test.h"
 #include "../board/Bitboard.h"
 
@@ -67,3 +69,5 @@ TEST(BitboardTest, testIterate) {
 	pos = bb.pickFirst();
 	ASSERT(pos.isInvalid());
 }
+
+#endif // !defined(NDEBUG)

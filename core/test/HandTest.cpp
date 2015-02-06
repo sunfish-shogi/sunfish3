@@ -3,6 +3,8 @@
  * Kubo Ryosuke
  */
 
+#if !defined(NDEBUG)
+
 #include "test/Test.h"
 #include "../board/Hand.h"
 
@@ -45,3 +47,5 @@ TEST(HandTest, testUnsafe) {
 	hand.inc(Piece::Rook);
 	ASSERT_EQ(1, hand.get(Piece::Rook));
 }
+
+#endif // !defined(NDEBUG)

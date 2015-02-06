@@ -3,6 +3,8 @@
  * Kubo Ryosuke
  */
 
+#if !defined(NDEBUG)
+
 #include "test/Test.h"
 #include "../record/CsaReader.h"
 
@@ -912,3 +914,5 @@ P-\n\
 		ASSERT_EQ(false, board.isCheck(Move(Piece::Silver, P55, P66, false)));
 	}
 }
+
+#endif // !defined(NDEBUG)

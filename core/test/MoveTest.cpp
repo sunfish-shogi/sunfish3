@@ -3,6 +3,8 @@
  * Kubo Ryosuke
  */
 
+ #if !defined(NDEBUG)
+
 #include "test/Test.h"
 #include "../move/Move.h"
 #include "../board/Board.h"
@@ -45,3 +47,5 @@ TEST(MoveTest, test) {
 		ASSERT_EQ(true, move.isHand());
 	}
 }
+
+#endif // !defined(NDEBUG)

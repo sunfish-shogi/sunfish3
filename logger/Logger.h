@@ -10,13 +10,6 @@
 #include <vector>
 #include <ctime>
 
-#ifdef _MSC_VER
-#else
-# if GCC_VERSION < 40600 && !defined(nullptr)
-#  define nullptr							NULL
-# endif
-#endif
-
 #define __THIS__			__FILE__ << '(' << __LINE__ << ')'
 
 namespace sunfish {
@@ -89,8 +82,12 @@ namespace sunfish {
 				if (top) {
 					if (it->timestamp) {
 						time_t t = time(nullptr);
+#if defined(_MSC_VER)
+						auto& lt = *localtime(&t);
+#else
 						struct tm lt;
 						localtime_r(&t, &lt);
+#endif
 						char tstr[32];
 						strftime(tstr, sizeof(tstr)-1, "%Y-%m-%dT%H:%M:%S\t", &lt);
 						*(it->pout) << tstr;

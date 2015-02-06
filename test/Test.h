@@ -6,6 +6,8 @@
 #ifndef __SUNFISH_TEST__
 #define __SUNFISH_TEST__
 
+#if !defined(NDEBUG)
+
 #include <typeinfo>
 #include <sstream>
 #include <string>
@@ -138,5 +140,7 @@ namespace sunfish {
 	};
 
 }
+
+#endif // !defined(NDEBUG)
 
 #endif // __SUNFISH_TEST__

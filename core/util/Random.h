@@ -8,6 +8,7 @@
 
 #include "../def.h"
 #include <random>
+#include <ctime>
 #include <climits>
 
 namespace sunfish {

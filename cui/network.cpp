@@ -21,8 +21,10 @@ int network() {
 	Loggers::message.addStream(std::cerr, "\x1b[32m", "\x1b[39m");
 	Loggers::send.addStream(std::cerr, true, true, "\x1b[34m", "\x1b[39m");
 	Loggers::receive.addStream(std::cerr, true, true, "\x1b[35m", "\x1b[39m");
+#ifndef NDEBUG
 	Loggers::debug.addStream(std::cerr, "\x1b[36m", "\x1b[39m");
 	Loggers::develop.addStream(std::cerr, "\x1b[37m", "\x1b[39m");
+#endif // NDEBUG
 
 	CsaClient csaClient;
 

@@ -3,6 +3,8 @@
  * Kubo Ryosuke
  */
 
+ #if !defined(NDEBUG)
+
 #include "test/Test.h"
 #include "../record/CsaReader.h"
 
@@ -157,3 +159,5 @@ P-\n\
 	}
 
 }
+
+#endif // !defined(NDEBUG)

@@ -6,8 +6,14 @@
 #ifndef __SUNFISH_VALUE__
 #define __SUNFISH_VALUE__
 
+#include <cstdint>
 #include <cstdlib>
 #include <climits>
+
+#if WIN32
+# undef max
+# undef min
+#endif
 
 namespace sunfish {
 
@@ -122,11 +128,11 @@ namespace sunfish {
 			return Value(a._value - b._value);
 		}
 
-		static Value max(const Value& a, const Value& b) {
+		static Value (max)(const Value& a, const Value& b) {
 			return a >= b ? a : b;
 		}
 
-		static Value min(const Value& a, const Value& b) {
+		static Value (min)(const Value& a, const Value& b) {
 			return a < b ? a : b;
 		}
 
