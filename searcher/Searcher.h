@@ -45,10 +45,17 @@ namespace sunfish {
 			double time;
 			double nps;
 			Value eval;
-			uint64_t hashPruning;
+			uint64_t failHigh;
+			uint64_t failHighFirst;
+			uint64_t hashProbed;
+			uint64_t hashExact;
+			uint64_t hashLower;
+			uint64_t hashUpper;
 			uint64_t nullMovePruning;
+			uint64_t nullMovePruningTried;
 			uint64_t futilityPruning;
 			uint64_t extendedFutilityPruning;
+			uint64_t expanded;
 			uint64_t checkExtension;
 			uint64_t onerepExtension;
 			uint64_t recapExtension;

@@ -30,10 +30,17 @@ namespace sunfish {
 		_info.time = 0.0;
 		_info.nps = 0;
 		_info.eval = Value::Zero;
-		_info.hashPruning = 0;
+		_info.failHigh = 0;
+		_info.failHighFirst = 0;
+		_info.hashProbed = 0;
+		_info.hashExact = 0;
+		_info.hashLower = 0;
+		_info.hashUpper = 0;
 		_info.nullMovePruning = 0;
+		_info.nullMovePruningTried = 0;
 		_info.futilityPruning = 0;
 		_info.extendedFutilityPruning = 0;
+		_info.expanded = 0;
 		_info.checkExtension = 0;
 		_info.onerepExtension = 0;
 		_info.recapExtension = 0;
@@ -399,12 +406,13 @@ namespace sunfish {
 		bool hashOk = false;
 		Move hash1 = Move::empty();
 		Move hash2 = Move::empty();
+		_info.hashProbed++;
 		if (_tt.get(hash, tte)) {
 			Value ttv = tte.getValue(tree.getPly());
 			switch (tte.getValueType()) {
 			case TTE::Exact: // 確定
 				if (!pvNode && stat.isHashCut() && tte.isSuperior(depth)) {
-					_info.hashPruning++;
+					_info.hashExact++;
 					return ttv;
 				}
 				hash1 = tte.getMoves().getMove1();
@@ -414,7 +422,7 @@ namespace sunfish {
 			case TTE::Lower: // 下界値
 				if (ttv >= beta) {
 					if (!pvNode && stat.isHashCut() && tte.isSuperior(depth)) {
-						_info.hashPruning++;
+						_info.hashLower++;
 						return ttv;
 					}
 					hash1 = tte.getMoves().getMove1();
@@ -424,7 +432,7 @@ namespace sunfish {
 				break;
 			case TTE::Upper: // 上界値
 				if (!pvNode && stat.isHashCut() && ttv <= alpha && tte.isSuperior(depth)) {
-					_info.hashPruning++;
+					_info.hashUpper++;
 					return ttv;
 				}
 				break;
@@ -439,6 +447,8 @@ namespace sunfish {
 			if (!pvNode && stat.isNullMove() && beta <= standPat && depth >= Depth1Ply * 2) {
 				auto newStat = NodeStat().unsetNullMove();
 				int newDepth = depth / 2;
+
+				_info.nullMovePruningTried++;
 
 				// make move
 				tree.makeNullMove();
@@ -491,6 +501,8 @@ namespace sunfish {
 		addPriorMove(tree, hash1);
 		addPriorMove(tree, hash2);
 		while (nextMove(tree, move)) {
+
+			_info.expanded++;
 
 			count++;
 
@@ -596,6 +608,10 @@ namespace sunfish {
 				// beta-cut
 				if (currval >= beta) {
 					updateHistory(tree, depth, move);
+					_info.failHigh++;
+					if (count == 1) {
+						_info.failHighFirst++;
+					}
 					break;
 				}
 			}
