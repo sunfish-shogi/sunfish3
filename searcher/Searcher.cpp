@@ -446,7 +446,13 @@ namespace sunfish {
 			// null move pruning
 			if (!pvNode && stat.isNullMove() && beta <= standPat && depth >= Depth1Ply * 2) {
 				auto newStat = NodeStat().unsetNullMove();
-				int newDepth = depth / 2;
+#if 0
+				// same to bonanza
+				int newDepth = (depth < Depth1Ply * 26 / 4 ? depth - Depth1Ply * 12 / 4 :
+												(depth <= Depth1Ply * 30 / 4 ? Depth1Ply * 14 / 4 : depth - Depth1Ply * 16 / 4));
+#else
+				int newDepth = depth - Depth1Ply * 7 / 2;
+#endif
 
 				_info.nullMovePruningTried++;
 
