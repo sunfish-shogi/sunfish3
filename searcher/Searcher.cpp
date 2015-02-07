@@ -619,8 +619,8 @@ namespace sunfish {
 	Value Searcher::asp(Tree& tree, bool black, int depth, AspSearchStatus& astat) {
 
 		const int wcnt = 3;
-		const Value alphas[wcnt] = { astat.base-32, astat.base-256, -Value::Inf };
-		const Value betas[wcnt] = { astat.base+32, astat.base+256, Value::Inf };
+		const Value alphas[wcnt] = { astat.base-320, astat.base-1280, -Value::Inf };
+		const Value betas[wcnt] = { astat.base+320, astat.base+1280, Value::Inf };
 
 		while (true) {
 
