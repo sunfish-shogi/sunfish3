@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0904956B1A80E4CF0016AC43 /* Tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0904956A1A80E4CF0016AC43 /* Tree.cpp */; };
+		090B23141A87520C00FD67CC /* TreeTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 090B23121A87520C00FD67CC /* TreeTest.cpp */; };
 		0969B6881A41C91200D56A21 /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B6131A41C91200D56A21 /* Config.cpp */; };
 		0969B6891A41C91200D56A21 /* Piece.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B6191A41C91200D56A21 /* Piece.cpp */; };
 		0969B68A1A41C91200D56A21 /* Position.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B61B1A41C91200D56A21 /* Position.cpp */; };
@@ -63,6 +64,7 @@
 
 /* Begin PBXFileReference section */
 		0904956A1A80E4CF0016AC43 /* Tree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Tree.cpp; sourceTree = "<group>"; };
+		090B23121A87520C00FD67CC /* TreeTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TreeTest.cpp; sourceTree = "<group>"; };
 		0969B6131A41C91200D56A21 /* Config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Config.cpp; sourceTree = "<group>"; };
 		0969B6141A41C91200D56A21 /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Config.h; sourceTree = "<group>"; };
 		0969B6191A41C91200D56A21 /* Piece.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Piece.cpp; sourceTree = "<group>"; };
@@ -377,6 +379,7 @@
 			isa = PBXGroup;
 			children = (
 				0969B6771A41C91200D56A21 /* SeeTest.cpp */,
+				090B23121A87520C00FD67CC /* TreeTest.cpp */,
 			);
 			path = test;
 			sourceTree = "<group>";
@@ -511,6 +514,7 @@
 				0969B69C1A41C91200D56A21 /* PieceTest.cpp in Sources */,
 				0904956B1A80E4CF0016AC43 /* Tree.cpp in Sources */,
 				0969B6A71A41C91200D56A21 /* CsaClientConfig.cpp in Sources */,
+				090B23141A87520C00FD67CC /* TreeTest.cpp in Sources */,
 				0969B6A21A41C91200D56A21 /* sunfish.cpp in Sources */,
 				0969B6AB1A41C91200D56A21 /* See.cpp in Sources */,
 				0969B6971A41C91200D56A21 /* BoardTest.cpp in Sources */,
