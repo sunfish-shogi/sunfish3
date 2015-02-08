@@ -46,7 +46,6 @@
 		0969B6AC1A41C91200D56A21 /* SeeTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B6771A41C91200D56A21 /* SeeTest.cpp */; };
 		0969B6AD1A41C91200D56A21 /* TT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B67D1A41C91200D56A21 /* TT.cpp */; };
 		0969B6AE1A41C91200D56A21 /* TTE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B67F1A41C91200D56A21 /* TTE.cpp */; };
-		0969B6B01A41C91200D56A21 /* sample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B6861A41C91200D56A21 /* sample.cpp */; };
 		09F998A71A4B1C1E00709E58 /* Evaluator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09F998A61A4B1C1E00709E58 /* Evaluator.cpp */; };
 /* End PBXBuildFile section */
 
@@ -145,7 +144,6 @@
 		0969B67F1A41C91200D56A21 /* TTE.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TTE.cpp; sourceTree = "<group>"; };
 		0969B6801A41C91200D56A21 /* TTE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTE.h; sourceTree = "<group>"; };
 		0969B6811A41C91200D56A21 /* TTMoves.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTMoves.h; sourceTree = "<group>"; };
-		0969B6861A41C91200D56A21 /* sample.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sample.cpp; sourceTree = "<group>"; };
 		0969B6871A41C91200D56A21 /* Test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Test.h; sourceTree = "<group>"; };
 		09D366FE1A41C604002D88B9 /* sunfish3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sunfish3; sourceTree = BUILT_PRODUCTS_DIR; };
 		09F998A61A4B1C1E00709E58 /* Evaluator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Evaluator.cpp; sourceTree = "<group>"; };
@@ -409,7 +407,6 @@
 		0969B6821A41C91200D56A21 /* test */ = {
 			isa = PBXGroup;
 			children = (
-				0969B6861A41C91200D56A21 /* sample.cpp */,
 				0969B6871A41C91200D56A21 /* Test.h */,
 			);
 			path = test;
@@ -524,7 +521,6 @@
 				0969B68F1A41C91200D56A21 /* MoveGeneratorExpr.cpp in Sources */,
 				0969B6A51A41C91200D56A21 /* Connection.cpp in Sources */,
 				0969B6881A41C91200D56A21 /* Config.cpp in Sources */,
-				0969B6B01A41C91200D56A21 /* sample.cpp in Sources */,
 				0969B6951A41C91200D56A21 /* Record.cpp in Sources */,
 				0969B6981A41C91200D56A21 /* CsaReaderTest.cpp in Sources */,
 				0969B6A01A41C91200D56A21 /* dev.cpp in Sources */,
