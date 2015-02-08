@@ -522,8 +522,8 @@ namespace sunfish {
 			Value newAlpha = Value::max(alpha, value);
 
 			bool isCheckCurr = board.isCheck(move);
-            bool isCheckPrev = tree.isChecking();
-            bool isCheck = isCheckCurr || isCheckPrev;
+			bool isCheckPrev = tree.isChecking();
+			bool isCheck = isCheckCurr || isCheckPrev;
 
 			// extensions
 			if (isCheckCurr) {
@@ -531,7 +531,7 @@ namespace sunfish {
 				newDepth += search_param::EXT_CHECK;
 				_info.checkExtension++;
 
-			} else if (isCheckPrev && tree.getNext() == tree.getEnd()) {
+			} else if (isCheckPrev && count == 1 && tree.getGenPhase() == GenPhase::End && tree.getNext() == tree.getEnd()) {
 				// one-reply
 				newDepth += search_param::EXT_ONEREP;
 				_info.onerepExtension++;
