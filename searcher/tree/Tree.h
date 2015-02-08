@@ -18,7 +18,6 @@ namespace sunfish {
 			Prior,
 			Capture,
 			NoCapture,
-			Drop,
 			TacticalOnly,
 			CaptureOnly,
 			End,

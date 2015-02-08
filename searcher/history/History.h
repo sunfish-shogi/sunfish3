@@ -16,27 +16,44 @@ namespace sunfish {
 
 	class History {
 	private:
-		static const int Board = Position::N;
-		static const int Hand = Piece::KindNum;
-		static const int From = Board + Hand;
-		static const int To = Board;
+		static constexpr int Board = Position::N;
+		static constexpr int Hand = Piece::KindNum;
+		static constexpr int From = Board + Hand;
+		static constexpr int To = Board;
+		static constexpr int Size = From * To;
 
-		uint64_t (*hist)[To];
+		uint64_t (*hist);
 
-		int from(const Move& move) const {
+		static int from(const Move& move) {
 			if (move.isHand()) {
-				return Board + move.piece().kindOnly() - Piece::KindBegin;
+				assert(move.piece() >= Piece::KindBegin);
+				assert(move.piece() < Piece::KindEnd);
+				int result = Board + move.piece() - Piece::KindBegin;
+				assert(result >= Board);
+				assert(result < From);
+				return result;
 			} else {
-				return move.from();
+				int result = move.from();
+				assert(result >= 0);
+				assert(result < Board);
+				return result;
 			}
+		}
+
+		static int to(const Move& move) {
+			int result = move.to();
+			assert(result >= 0);
+			assert(result < To);
+			return result;
 		}
 
 	public:
 
-		static const unsigned Scale = 0x100;
+		static const uint32_t Scale = 0x2000;
+		static const uint64_t Max = 0x0008000000000000ull;
 
 		History() {
-			hist = new uint64_t[From][To];
+			hist = new uint64_t[Size];
 			assert(hist != NULL);
 		}
 
@@ -49,37 +66,48 @@ namespace sunfish {
 		}
 
 		void reduce() {
-			for (int from = 0; from < From; from++) {
-				for (int to = 0; to < To; to++) {
-					hist[from][to] = (hist[from][to] >> 3) & ~0xe0000000ull;
-				}
+			for (int i = 0; i < Size; i++) {
+				hist[i] = (hist[i] >> 3) & ~0xe0000000ull;
 			}
 		}
 
-		void add(const Move& move, int appear, int good) {
-			appear = std::max(appear, 0);
-			good = std::max(good, 0);
+		void add(int key, int appear, int good) {
+			assert(appear >= 0);
+			assert(good >= 0);
 			assert(good <= appear);
-			unsigned f = from(move);
-			uint64_t h = hist[f][move.to()];
+			uint64_t h = hist[key];
 			uint64_t d = ((uint64_t)appear << 32) + good;
-			if (h >= 0x0100000000000000ull - d) {
+			if (h >= Max - d) {
 				h = (h >> 1) & ~0x80000000ull;
 			}
-			hist[f][move.to()] = h + d;
+			hist[key] = h + d;
 		}
 
-		unsigned get(const Move& move) const {
-			int f = from(move);
-			assert(f < From);
-			assert(move.to() < To);
-			uint64_t h = hist[f][move.to()];
-			unsigned a = (unsigned)(h >> 32);
-			unsigned g = (unsigned)h;
-			unsigned r = g * Scale / (a + 1);
+		uint64_t getData(int key) const {
+			return hist[key];
+		}
+
+		static uint32_t getRatio(uint64_t data) {
+			uint32_t a = getAppearCount(data);
+			uint32_t g = getGoodCount(data);
 			assert(g <= a);
+			uint32_t r = (g + 1) * Scale / (a + 2);
 			assert(r < Scale);
 			return r;
+		}
+
+		static uint32_t getAppearCount(uint64_t data) {
+			return (uint32_t)(data >> 32);
+		}
+
+		static uint32_t getGoodCount(uint64_t data) {
+			return (uint32_t)data;
+		}
+
+		static int getKey(const Move& move) {
+			int f = from(move);
+			int t = to(move);
+			return f * To + t;
 		}
 
 	};

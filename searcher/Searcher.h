@@ -25,7 +25,7 @@ namespace sunfish {
 	class Searcher : public ISearcher {
 	public:
 
-		static constexpr int Depth1Ply = 4;
+		static constexpr int Depth1Ply = 16;
 
 		/** 探索設定 */
 		struct Config {
@@ -147,6 +147,11 @@ namespace sunfish {
 		 * update history
 		 */
 		void updateHistory(Tree& tree, int depth, const Move& move);
+
+		/**
+		 * get LMR depth
+		 */
+		int getReductionDepth(const Move& move, bool isNullWindow);
 
 		/**
 		 * get next move

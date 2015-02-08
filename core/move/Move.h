@@ -177,22 +177,10 @@ namespace sunfish {
 			return (_move & ~(UNUSED | CAP)) == (obj._move & ~(UNUSED | CAP));
 		}
 		bool operator==(const Move& obj) const {
-			return _move == obj._move;
+			return equals(obj);
 		}
 		bool operator!=(const Move& obj) const {
-			return _move != obj._move;
-		}
-		bool operator<(const Move& obj) const {
-			return _move < obj._move;
-		}
-		bool operator<=(const Move& obj) const {
-			return _move <= obj._move;
-		}
-		bool operator>(const Move& obj) const {
-			return _move > obj._move;
-		}
-		bool operator>=(const Move& obj) const {
-			return _move >= obj._move;
+			return !equals(obj);
 		}
 
 		// cast operator

@@ -8,8 +8,11 @@
 #include "logger/Logger.h"
 #include <iomanip>
 
-#define ENABLE_LMR					1
-#define SHOW_ROOT_MOVES			0
+#define ENABLE_SEE										1
+#define ENABLE_HISTORY_HEURISTIC			1
+#define ENABLE_LMR										1
+#define ENABLE_HASH_MOVE							1
+#define SHOW_ROOT_MOVES								0
 
 namespace sunfish {
 
@@ -82,7 +85,7 @@ namespace sunfish {
 	 * sort moves by see
 	 */
 	void Searcher::sortSee(Tree& tree, bool plusOnly /* = false */) {
-
+#if ENABLE_SEE
 		const auto& board = tree.getBoard();
 
 		for (auto ite = tree.getNext(); ite != tree.getEnd(); ite++) {
@@ -100,6 +103,7 @@ namespace sunfish {
 				}
 			}
 		}
+#endif // ENABLE_SEE
 
 	}
 
@@ -147,13 +151,16 @@ namespace sunfish {
 	 * sort moves by history
 	 */
 	void Searcher::sortHistory(Tree& tree) {
-
+#if ENABLE_HISTORY_HEURISTIC
 		for (auto ite = tree.getNext(); ite != tree.getEnd(); ite++) {
-			auto h = std::min(_history.get(*ite), History::Scale-1); // XXX: min を取る必要あるんだっけ？
-			tree.setSortValue(ite, (int32_t)h);
+			auto key = History::getKey(*ite);
+			auto data = _history.getData(key);
+			auto ratio = History::getRatio(data);
+			tree.setSortValue(ite, (int32_t)ratio);
 		}
 
 		tree.sortAfterCurrent();
+#endif // ENABLE_HISTORY_HEURISTIC
 
 	}
 
@@ -162,19 +169,52 @@ namespace sunfish {
 	 */
 	void Searcher::updateHistory(Tree& tree, int depth, const Move& move) {
 
-		auto& moves = tree.getMoves();
-
-		for (auto ite = moves.begin(); ite != moves.end(); ite++) {
-
-			if (*ite == move) {
-				_history.add(*ite, depth, depth);
-				break;
+		int value = std::max(depth / (Depth1Ply/4), 1);
+		for (auto ite = tree.getBegin(); ite != tree.getNext(); ite++) {
+			assert(ite != tree.getEnd());
+			auto key = History::getKey(*ite);
+			if (ite->equals(move)) {
+				_history.add(key, value, value);
+				return;
 			} else {
-				_history.add(*ite, depth, 0);
+				_history.add(key, value, 0);
 			}
 
 		}
+		assert(false); // unreachable
 
+	}
+
+	/**
+	 * get LMR depth
+	 */
+	int Searcher::getReductionDepth(const Move& move, bool isNullWindow) {
+		auto key = History::getKey(move);
+		auto data = _history.getData(key);
+		auto good = History::getGoodCount(data);
+		auto appear = History::getAppearCount(data);
+
+		if (!isNullWindow) {
+			if (good * 20 < appear) {
+				return Depth1Ply * 3 / 2;
+			} else if (good * 7 < appear) {
+				return Depth1Ply * 2 / 2;
+			} else if (good * 3 < appear) {
+				return Depth1Ply * 1 / 2;
+			}
+		} else {
+			if (good * 10 < appear) {
+				return Depth1Ply * 4 / 2;
+			} else if (good * 6 < appear) {
+				return Depth1Ply * 3 / 2;
+			} else if (good * 4 < appear) {
+				return Depth1Ply * 2 / 2;
+			} else if (good * 2 < appear) {
+				return Depth1Ply * 1 / 2;
+			}
+		}
+
+		return 0;
 	}
 
 	/**
@@ -224,12 +264,6 @@ namespace sunfish {
 
 			case GenPhase::NoCapture:
 				MoveGenerator::generateNoCap(board, moves);
-				removePriorMove(tree);
-				sortHistory(tree);
-				genPhase = GenPhase::Drop;
-				break;
-
-			case GenPhase::Drop:
 				MoveGenerator::generateDrop(board, moves);
 				removePriorMove(tree);
 				sortHistory(tree);
@@ -504,8 +538,10 @@ namespace sunfish {
 		Move best;
 		best.setEmpty();
 		tree.initGenPhase();
+#if ENABLE_HASH_MOVE
 		addPriorMove(tree, hash1);
 		addPriorMove(tree, hash2);
+#endif // ENABLE_HASH_MOVE
 		while (nextMove(tree, move)) {
 
 			_info.expanded++;
@@ -549,11 +585,11 @@ namespace sunfish {
 			// late move reduction
 			int reduced = 0;
 #if ENABLE_LMR
-			if (newDepth >= Depth1Ply && count != 1 &&
-					!isCheck && isPriorMove(tree, move) &&
-					(!move.promote() || move.piece() != Piece::Silver)) {
+			if (newDepth >= Depth1Ply && count != 1 && !isCheck &&
+					(!move.promote() || move.piece() != Piece::Silver) &&
+					isPriorMove(tree, move)) {
 
-				reduced = Depth1Ply;
+				reduced = getReductionDepth(move, beta == newAlpha + 1);
 				newDepth -= reduced;
 
 			}
@@ -613,7 +649,6 @@ namespace sunfish {
 
 				// beta-cut
 				if (currval >= beta) {
-					updateHistory(tree, depth, move);
 					_info.failHigh++;
 					if (count == 1) {
 						_info.failHighFirst++;
@@ -625,6 +660,10 @@ namespace sunfish {
 		}
 
 		if (!best.isEmpty()) {
+			if (value > alpha) {
+				updateHistory(tree, depth, best);
+			}
+
 			// TODO: GHI対策
 			_tt.entry(hash, alpha, beta, value, depth, tree.getPly(), stat, best);
 		}
@@ -731,11 +770,11 @@ namespace sunfish {
 			// late move reduction
 			int reduced = 0;
 #if ENABLE_LMR
-			if (newDepth >= Depth1Ply && count != 1 &&
-					!isCheck && isPriorMove(tree, move) &&
-					(!move.promote() || move.piece() != Piece::Silver)) {
+			if (newDepth >= Depth1Ply && count != 1 && !isCheck &&
+					(!move.promote() || move.piece() != Piece::Silver) &&
+					isPriorMove(tree, move)) {
 
-				reduced = Depth1Ply;
+				reduced = getReductionDepth(move, false);
 				newDepth -= reduced;
 
 			}
