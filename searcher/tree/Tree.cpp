@@ -30,7 +30,7 @@ namespace sunfish {
 		}
 	}
 
-	bool Tree::__debug__matchPath(const char* path) {
+	std::string Tree::__debug__getPath() const {
 		std::ostringstream oss;
 		bool isFirst = true;
 		for (int ply = 0; ply < _ply; ply++) {
@@ -43,7 +43,11 @@ namespace sunfish {
 			}
 			oss << move.toStringCsa(black);
 		}
-		return oss.str() == path;
+		return oss.str();
+	}
+
+	bool Tree::__debug__matchPath(const char* path) const {
+		return __debug__getPath() == path;
 	}
 
 }

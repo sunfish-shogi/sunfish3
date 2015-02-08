@@ -250,12 +250,14 @@ namespace sunfish {
 			return node.pv;
 		}
 
-		const Pv& __debug__getNextPv() {
+		const Pv& __debug__getNextPv() const {
 			auto& next = _stack[_ply+1];
 			return next.pv;
 		}
 
-		bool __debug__matchPath(const char* path);
+		std::string __debug__getPath() const;
+
+		bool __debug__matchPath(const char* path ) const;
 
 	};
 
