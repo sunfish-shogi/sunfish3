@@ -252,6 +252,31 @@ TEST(MoveGeneratorTest, testEvasion) {
 		ASSERT_EQ(6, moves.size());
 	}
 
+	{
+		// 跳び駒の近接からの王手(2)
+		std::string src = 
+"P1-KY-KE-GI-KI *  *  * -KE-KY\n"
+"P2 * -OU *  * -KI-HI *  *  * \n"
+"P3-FU-FU-FU-FU-FU *  * -FU-FU\n"
+"P4 *  *  *  * -GI * -FU+FU * \n"
+"P5 *  *  *  *  * -FU *  *  * \n"
+"P6+FU * +FU * +FU *  *  *  * \n"
+"P7 * +FU-UM+FU * +FU+FU * +FU\n"
+"P8 *  * +OU * +KI *  * +HI * \n"
+"P9+KY+KE+KA+KI *  * +GI+KE+KY\n"
+"P+\n"
+"P-00GI\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		// 桂 玉x3
+		Moves moves;
+		MoveGenerator::generateEvasion(board, moves);
+		ASSERT_EQ(4, moves.size());
+	}
+
 }
 
 #endif // !defined(NDEBUG)

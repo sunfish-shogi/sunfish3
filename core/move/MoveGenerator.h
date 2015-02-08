@@ -49,7 +49,7 @@ namespace sunfish {
 		/**
 		 * 駒を取る手と成る手を生成します。
 		 * 王手がかかっていない場合のみに使用します。
-		 * 打ち歩詰めや王手放置の手を含む可能性があります。
+		 * 王手放置の手を含む可能性があります。
 		 */
 		static void generateTactical(const Board& board, Moves& moves) {
 			assert(!board.isChecking());
@@ -65,7 +65,7 @@ namespace sunfish {
 		/**
 		 * 駒を取る手を生成します。
 		 * 王手がかかっていない場合のみに使用します。
-		 * 打ち歩詰めや王手放置の手を含む可能性があります。
+		 * 王手放置の手を含む可能性があります。
 		 */
 		static void generateCap(const Board& board, Moves& moves) {
 			assert(!board.isChecking());
@@ -79,7 +79,7 @@ namespace sunfish {
 		/**
 		 * 駒を取らない移動手を生成します。
 		 * 王手がかかっていない場合のみに使用します。
-		 * 打ち歩詰めや王手放置の手を含む可能性があります。
+		 * 王手放置の手を含む可能性があります。
 		 */
 		static void generateNoCap(const Board& board, Moves& moves) {
 			assert(!board.isChecking());
