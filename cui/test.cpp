@@ -35,7 +35,7 @@ int test() {
 	} else {
 		Loggers::error << "Test was failed.";
 	}
-	Loggers::message << "Show 'test.log'.";
+	Loggers::message << "Look 'test.log'.";
 
 	// return value
 	return result ? 0 : 1;
