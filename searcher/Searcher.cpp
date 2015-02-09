@@ -897,6 +897,16 @@ namespace sunfish {
 				break;
 			}
 
+			if (value >= Value::Mate) {
+				result = true;
+				break;
+			}
+
+			if (value <= -Value::Mate) {
+				result = false;
+				break;
+			}
+
 			result = true;
 		}
 
