@@ -587,7 +587,7 @@ namespace sunfish {
 #if ENABLE_LMR
 			if (newDepth >= Depth1Ply && count != 1 && !isCheck &&
 					(!move.promote() || move.piece() != Piece::Silver) &&
-					isPriorMove(tree, move)) {
+					!isPriorMove(tree, move)) {
 
 				reduced = getReductionDepth(move, beta == newAlpha + 1);
 				newDepth -= reduced;
@@ -772,7 +772,7 @@ namespace sunfish {
 #if ENABLE_LMR
 			if (newDepth >= Depth1Ply && count != 1 && !isCheck &&
 					(!move.promote() || move.piece() != Piece::Silver) &&
-					isPriorMove(tree, move)) {
+					!isPriorMove(tree, move)) {
 
 				reduced = getReductionDepth(move, false);
 				newDepth -= reduced;
