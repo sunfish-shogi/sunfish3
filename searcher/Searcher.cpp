@@ -427,7 +427,7 @@ namespace sunfish {
 		}
 
 		// 静止探索の結果を返す。
-		if (!tree.isChecking() && depth <= 0) {
+		if (!tree.isChecking() && depth < Depth1Ply) {
 			return qsearch(tree, black, 0, alpha, beta);
 		}
 
@@ -763,7 +763,7 @@ namespace sunfish {
 			count++;
 
 			// depth
-			int newDepth = depth;
+			int newDepth = depth - Depth1Ply;
 
 			bool isCheck = tree.isChecking() || board.isCheck(move);
 
@@ -792,16 +792,16 @@ namespace sunfish {
 
 				// aspiration search
 				astat.alpha = value;
-				currval = asp(tree, !black, newDepth - Depth1Ply, astat);
+				currval = asp(tree, !black, newDepth, astat);
 
 			} else {
 
 				// nega-scout
-				currval = -searchr<true>(tree, !black, newDepth - Depth1Ply, -value-1, -value);
+				currval = -searchr<true>(tree, !black, newDepth, -value-1, -value);
 				if (!isInterrupted() && currval >= value + 1) {
 					// full window search
 					newDepth += reduced;
-					currval = -searchr<true>(tree, !black, newDepth - Depth1Ply, -Value::Inf, -value);
+					currval = -searchr<true>(tree, !black, newDepth, -Value::Inf, -value);
 				}
 
 			}
