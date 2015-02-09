@@ -705,21 +705,24 @@ namespace sunfish {
 				return value;
 			}
 
-			// 最大 window 幅のため値が確定
-			if (astat.upper == wcnt-1 && astat.lower == wcnt-1) {
-				return value;
-			}
+			bool retry = false;
 
 			// alpha 値を広げる
-			while (value <= alphas[astat.lower]) {
+			while (value <= alphas[astat.lower] && astat.lower != wcnt - 1) {
 				astat.lower++;
 				assert(astat.lower < wcnt);
+				retry = true;
 			}
 
 			// beta 値を広げる
-			while (value >= betas[astat.upper]) {
+			while (value >= betas[astat.upper] && astat.upper != wcnt - 1) {
 				astat.upper++;
 				assert(astat.upper < wcnt);
+				retry = true;
+			}
+
+			if (!retry) {
+				return value;
 			}
 
 		}
