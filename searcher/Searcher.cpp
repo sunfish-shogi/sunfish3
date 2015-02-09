@@ -843,12 +843,11 @@ namespace sunfish {
 	}
 
 	void Searcher::showPv(int depth, const Pv& pv, const Value& value) {
-		auto realDepth = depth / Depth1Ply;
 		double seconds = _timer.get();
 		uint64_t node = _info.node;
 
 		std::ostringstream oss;
-		oss << std::setw(2) << realDepth;
+		oss << std::setw(2) << depth;
 		oss << ": " << std::setw(10) << node;
 		oss << ": " << pv.toString();
 		oss << ": " << value.int32();
@@ -873,13 +872,10 @@ namespace sunfish {
 		// 前処理
 		before();
 
-		// 最大深さ
-		int maxDepth = _config.maxDepth * Depth1Ply;
-
 		Value value = -Value::Inf;
 
-		for (int depth = Depth1Ply; depth <= maxDepth; depth += Depth1Ply) {
-			bool ok = search(depth, best, gen, &value);
+		for (int depth = 1; depth <= _config.maxDepth; depth++) {
+			bool ok = search(depth * Depth1Ply + Depth1Ply / 2, best, gen, &value);
 
 			gen = false;
 
