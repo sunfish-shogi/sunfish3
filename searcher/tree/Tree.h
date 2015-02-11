@@ -264,6 +264,12 @@ namespace sunfish {
 
 		bool __debug__matchPath(const char* path ) const;
 
+		const Move& __debug__getFrontMove() const {
+			assert(_ply >= 1);
+			auto& front = _stack[_ply];
+			return front.move;
+		}
+
 	};
 
 }
