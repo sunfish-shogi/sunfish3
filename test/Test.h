@@ -19,7 +19,7 @@ void __test_method_ ## group ## name();\
 sunfish::__test_adder__ __test_adder_ ## group ## name (#group, #name, __test_method_ ## group ## name); \
 void __test_method_ ## group ## name()
 
-#define __TEST_RESULT__(reason)								throw sunfish::TestError{(reason).c_str(), __FILE__, __LINE__}
+#define __TEST_RESULT__(reason)								throw sunfish::TestError{(reason), __FILE__, __LINE__}
 
 #define ASSERT_EQ(correct, exact)							do { \
 	const auto _correct = (correct); \
@@ -44,7 +44,7 @@ namespace sunfish {
 	 * error
 	 */
 	struct TestError {
-		const char* reason;
+		std::string reason;
 		const char* file;
 		unsigned line;
 	};
