@@ -59,6 +59,12 @@ namespace sunfish {
 
 	public:
 
+		Tree() : _ply(0) {
+		}
+
+		virtual ~Tree() {
+		}
+
 		void init(const Board& board, const Evaluator& eval) {
 			_ply = 0;
 			_board.init(board);
@@ -202,9 +208,9 @@ namespace sunfish {
 			if (_board.makeMove(move)) {
 				_ply++;
 				auto& curr = _stack[_ply];
-				auto& prev = _stack[_ply-1];
+				auto& front = _stack[_ply-1];
 				curr.move = move;
-				curr.valuePair = eval.evaluateDiff(_board, prev.valuePair, move);
+				curr.valuePair = eval.evaluateDiff(_board, front.valuePair, move);
 				curr.checking = _board.isChecking();
 				curr.pv.init();
 				return true;
