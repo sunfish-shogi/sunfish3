@@ -47,6 +47,7 @@
 		0969B6AC1A41C91200D56A21 /* SeeTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B6771A41C91200D56A21 /* SeeTest.cpp */; };
 		0969B6AD1A41C91200D56A21 /* TT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B67D1A41C91200D56A21 /* TT.cpp */; };
 		0969B6AE1A41C91200D56A21 /* TTE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B67F1A41C91200D56A21 /* TTE.cpp */; };
+		0982DDD91A8B95AA003D8576 /* EvaluatorTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0982DDD71A8B95AA003D8576 /* EvaluatorTest.cpp */; };
 		09F998A71A4B1C1E00709E58 /* Evaluator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09F998A61A4B1C1E00709E58 /* Evaluator.cpp */; };
 /* End PBXBuildFile section */
 
@@ -147,6 +148,7 @@
 		0969B6801A41C91200D56A21 /* TTE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTE.h; sourceTree = "<group>"; };
 		0969B6811A41C91200D56A21 /* TTMoves.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTMoves.h; sourceTree = "<group>"; };
 		0969B6871A41C91200D56A21 /* Test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Test.h; sourceTree = "<group>"; };
+		0982DDD71A8B95AA003D8576 /* EvaluatorTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EvaluatorTest.cpp; sourceTree = "<group>"; };
 		09D366FE1A41C604002D88B9 /* sunfish3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sunfish3; sourceTree = BUILT_PRODUCTS_DIR; };
 		09F998A61A4B1C1E00709E58 /* Evaluator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Evaluator.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -380,6 +382,7 @@
 			children = (
 				0969B6771A41C91200D56A21 /* SeeTest.cpp */,
 				090B23121A87520C00FD67CC /* TreeTest.cpp */,
+				0982DDD71A8B95AA003D8576 /* EvaluatorTest.cpp */,
 			);
 			path = test;
 			sourceTree = "<group>";
@@ -509,6 +512,7 @@
 				0969B6A41A41C91200D56A21 /* Logger.cpp in Sources */,
 				0969B68B1A41C91200D56A21 /* Bitboard.cpp in Sources */,
 				0969B68E1A41C91200D56A21 /* CodeGenerator.cpp in Sources */,
+				0982DDD91A8B95AA003D8576 /* EvaluatorTest.cpp in Sources */,
 				0969B6AD1A41C91200D56A21 /* TT.cpp in Sources */,
 				0969B6891A41C91200D56A21 /* Piece.cpp in Sources */,
 				0969B69C1A41C91200D56A21 /* PieceTest.cpp in Sources */,

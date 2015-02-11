@@ -348,8 +348,7 @@ namespace sunfish {
 		_info.node++;
 
 		// stand-pat
-		Value sign(black ? 1 : -1);
-		Value value = tree.getValue() * sign;
+		Value value = tree.getValue() * (black ? 1 : -1);
 
 		// スタックサイズの限界
 		if (tree.isStackFull()) {

@@ -158,6 +158,12 @@ namespace sunfish {
 
 		int kkpHandIndex(Piece piece) const;
 
+		template <bool blackPiece>
+		int kppBoardIndex(Piece piece, const Position& pos) const;
+
+		template <bool blackPiece>
+		int kppHandIndex(Piece piece) const;
+
 		/**
 		 * 局面の駒割りを算出します。
 		 * @param board
