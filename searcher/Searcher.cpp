@@ -293,7 +293,8 @@ namespace sunfish {
 					break;
 
 				} else {
-					MoveGenerator::generateTactical(board, moves);
+					MoveGenerator::generateCap(board, moves);
+					MoveGenerator::generateProm(board, moves);
 					sortSee(tree, true);
 					genPhase = GenPhase::End;
 					break;

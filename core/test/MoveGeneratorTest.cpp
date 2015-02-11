@@ -71,6 +71,107 @@ TEST(MoveGeneratorTest, testCap) {
 	}
 }
 
+TEST(MoveGeneratorTest, testProm) {
+	{
+		// 先手の駒 歩から桂まで
+		// (+5552KY は駒を取る手なので除外)
+		std::string src =
+"P1 *  *  *  *  *  *  *  *  * \n"
+"P2 * +OU *  * -FU *  *  *  * \n"
+"P3 *  *  * +FU *  *  *  *  * \n"
+"P4 *  * +FU *  *  *  * +KE * \n"
+"P5 * +FU *  *  *  * +KE *  * \n"
+"P6 *  *  *  * +KY+KY * +KE * \n"
+"P7 *  *  *  *  *  *  *  *  * \n"
+"P8 *  *  *  *  *  *  *  *  * \n"
+"P9 *  *  *  *  *  *  *  *  * \n"
+"P+\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		Moves moves;
+		MoveGenerator::generateProm(board, moves);
+		ASSERT_EQ(10, moves.size());
+		ASSERT_EQ(true, moves[0].promote());
+	}
+
+	{
+		// 先手の駒 銀から飛車まで
+		std::string src =
+"P1 *  *  *  *  * +KA *  *  * \n"
+"P2+KI *  *  *  *  *  * +HI * \n"
+"P3 *  * +GI *  *  *  *  *  * \n"
+"P4+GI *  *  *  *  *  *  *  * \n"
+"P5 *  * +KA *  *  *  *  *  * \n"
+"P6 *  *  *  *  *  * +HI *  * \n"
+"P7 *  *  *  *  *  *  *  *  * \n"
+"P8 *  *  *  *  *  *  *  *  * \n"
+"P9 *  *  *  *  *  *  *  *  * \n"
+"P+\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		Moves moves;
+		MoveGenerator::generateProm(board, moves);
+		ASSERT_EQ(37, moves.size());
+	}
+
+	{
+		// 後手の駒 歩から桂まで
+		std::string src =
+"P1 *  *  *  *  *  *  *  *  * \n"
+"P2 *  *  *  *  *  *  *  *  * \n"
+"P3 *  *  *  *  *  *  *  *  * \n"
+"P4 *  *  *  * -KY-KY * -KE * \n"
+"P5 * -FU *  *  *  * -KE *  * \n"
+"P6 *  * -FU *  *  *  * -KE * \n"
+"P7 *  *  * -FU *  *  *  *  * \n"
+"P8 * -OU *  * +FU *  *  *  * \n"
+"P9 *  *  *  *  *  *  *  *  * \n"
+"P+\n"
+"P-\n"
+"-\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		Moves moves;
+		MoveGenerator::generateProm(board, moves);
+		ASSERT_EQ(10, moves.size());
+		ASSERT_EQ(true, moves[0].promote());
+	}
+
+	{
+		// 後手の駒 銀から飛車まで
+		std::string src =
+"P1 *  *  *  *  *  *  *  *  * \n"
+"P2 *  *  *  *  *  *  *  *  * \n"
+"P3 *  *  *  *  *  *  *  *  * \n"
+"P4 *  *  *  *  *  * -HI *  * \n"
+"P5 *  * -KA *  *  *  *  *  * \n"
+"P6-GI *  *  *  *  *  *  *  * \n"
+"P7 *  * -GI *  *  *  *  *  * \n"
+"P8-KI *  *  *  *  *  * -HI * \n"
+"P9 *  *  *  *  * -KA *  *  * \n"
+"P+\n"
+"P-\n"
+"-\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		Moves moves;
+		MoveGenerator::generateProm(board, moves);
+		ASSERT_EQ(37, moves.size());
+	}
+}
+
 TEST(MoveGeneratorTest, testDrop) {
 	Board board;
 	Moves moves;
@@ -262,8 +363,8 @@ TEST(MoveGeneratorTest, testEvasion) {
 "P5 *  *  *  *  * -FU *  *  * \n"
 "P6+FU * +FU * +FU *  *  *  * \n"
 "P7 * +FU-UM+FU * +FU+FU * +FU\n"
-"P8 *  * +OU * +KI *  * +HI * \n"
-"P9+KY+KE+KA+KI *  * +GI+KE+KY\n"
+"P8 * +KA * +OU+KI *  * +HI * \n"
+"P9+KY+KE * +KI *  * +GI+KE+KY\n"
 "P+\n"
 "P-00GI\n"
 "+\n";
@@ -271,10 +372,10 @@ TEST(MoveGeneratorTest, testEvasion) {
 		Board board;
 		CsaReader::readBoard(iss, board);
 
-		// 桂 玉x3
+		// 角 桂 玉x5
 		Moves moves;
 		MoveGenerator::generateEvasion(board, moves);
-		ASSERT_EQ(4, moves.size());
+		ASSERT_EQ(7, moves.size());
 	}
 
 }
