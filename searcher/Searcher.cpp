@@ -97,7 +97,7 @@ namespace sunfish {
 
 		if (plusOnly) {
 			for (auto ite = tree.getNext(); ite != tree.getEnd(); ite++) {
-				if (tree.getSortValue(ite) <= 0) {
+				if (tree.getSortValue(ite) < 0) {
 					tree.removeAfter(ite);
 					break;
 				}
@@ -683,6 +683,11 @@ namespace sunfish {
 		const int wcnt = 3;
 		const Value alphas[wcnt] = { astat.base-320, astat.base-1280, -Value::Inf };
 		const Value betas[wcnt] = { astat.base+320, astat.base+1280, Value::Inf };
+
+		if (astat.base == -Value::Inf) {
+			astat.lower = wcnt - 1;
+			astat.upper = wcnt - 1;
+		}
 
 		while (true) {
 
