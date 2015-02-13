@@ -57,6 +57,8 @@ namespace sunfish {
 	public:
 		Logger(const char* name = nullptr) : name(name) {
 		}
+		Logger(const Logger& logger) = delete;
+		Logger(Logger&& logger) = delete;
 
 		void addStream(std::ostream& o, bool timestamp, bool loggerName,
 				const char* before, const char* after) {

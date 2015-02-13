@@ -58,6 +58,8 @@ namespace sunfish {
 		Connection() {
 			init();
 		}
+		Connection(const Connection&) = delete;
+		Connection(Connection&&) = delete;
 
 		Connection(const std::string& _host, int port)
 				: _host(_host), _port(port) {

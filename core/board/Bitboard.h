@@ -197,11 +197,8 @@ namespace sunfish {
 
 		Bitboard() {
 		}
-		Bitboard(const Bitboard& src) {
-			_bb = src._bb;
-		}
 #if USE_SSE2
-		Bitboard(__m128i m) {
+		explicit Bitboard(__m128i m) {
 			_bb.m = m;
 		}
 #endif
@@ -336,19 +333,19 @@ namespace sunfish {
 		// bit operators
 #if USE_SSE2
 		Bitboard operator|(const Bitboard& bb) const {
-			return _mm_or_si128(_bb.m, bb._bb.m);
+			return Bitboard(_mm_or_si128(_bb.m, bb._bb.m));
 		}
 		Bitboard operator&(const Bitboard& bb) const {
-			return _mm_and_si128(_bb.m, bb._bb.m);
+			return Bitboard(_mm_and_si128(_bb.m, bb._bb.m));
 		}
 		Bitboard operator^(const Bitboard& bb) const {
-			return _mm_xor_si128(_bb.m, bb._bb.m);
+			return Bitboard(_mm_xor_si128(_bb.m, bb._bb.m));
 		}
 		Bitboard operator~() const{
-			return _mm_andnot_si128(_bb.m, _mm_set_epi64((__m64)__HIGH_RANGE__, (__m64)__LOW_RANGE__));
+			return Bitboard(_mm_andnot_si128(_bb.m, _mm_set_epi64((__m64)__HIGH_RANGE__, (__m64)__LOW_RANGE__)));
 		}
 		Bitboard andNot(const Bitboard& bb) const{
-			return _mm_andnot_si128(_bb.m, bb._bb.m);
+			return Bitboard(_mm_andnot_si128(_bb.m, bb._bb.m));
 		}
 #else
 		Bitboard operator|(const Bitboard& bb) const {

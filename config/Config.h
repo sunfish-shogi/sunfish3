@@ -51,6 +51,10 @@ namespace sunfish {
 
 	public:
 
+		Config() {}
+		Config(const Config&) = delete;
+		Config(Config&&) = delete;
+
 		bool read(const char* filename);
 
 		std::string toString();

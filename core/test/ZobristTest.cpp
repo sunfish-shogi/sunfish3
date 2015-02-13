@@ -37,7 +37,7 @@ P-\n\
 		// make move
 		board.makeMove(move1);
 
-		board2.init(board);
+		board2 = board;
 		board2.refreshHash();
 
 		ASSERT_EQ(board.getHash(), board2.getHash());
@@ -45,7 +45,7 @@ P-\n\
 		// make move
 		board.makeMove(move2);
 
-		board2.init(board);
+		board2 = board;
 		board2.refreshHash();
 
 		ASSERT_EQ(board.getHash(), board2.getHash());
@@ -53,7 +53,7 @@ P-\n\
 		// unmake move
 		board.unmakeMove(move2);
 
-		board2.init(board);
+		board2 = board;
 		board2.refreshHash();
 
 		ASSERT_EQ(board.getHash(), board2.getHash());
@@ -61,7 +61,7 @@ P-\n\
 		// unmake move
 		board.unmakeMove(move1);
 
-		board2.init(board);
+		board2 = board;
 		board2.refreshHash();
 
 		ASSERT_EQ(board.getHash(), board2.getHash());
@@ -95,7 +95,7 @@ P-\n\
 		// make move
 		board.makeMove(move1);
 
-		board2.init(board);
+		board2 = board;
 		board2.refreshHash();
 
 		ASSERT_EQ(board.getHash(), board2.getHash());
@@ -103,7 +103,7 @@ P-\n\
 		// make move
 		board.makeMove(move2);
 
-		board2.init(board);
+		board2 = board;
 		board2.refreshHash();
 
 		ASSERT_EQ(board.getHash(), board2.getHash());
@@ -111,7 +111,7 @@ P-\n\
 		// make move
 		board.makeMove(move3);
 
-		board2.init(board);
+		board2 = board;
 		board2.refreshHash();
 
 		ASSERT_EQ(board.getHash(), board2.getHash());
@@ -119,7 +119,7 @@ P-\n\
 		// make move
 		board.makeMove(move4);
 
-		board2.init(board);
+		board2 = board;
 		board2.refreshHash();
 
 		ASSERT_EQ(board.getHash(), board2.getHash());
@@ -127,7 +127,7 @@ P-\n\
 		// unmake move
 		board.unmakeMove(move4);
 
-		board2.init(board);
+		board2 = board;
 		board2.refreshHash();
 
 		ASSERT_EQ(board.getHash(), board2.getHash());
@@ -135,7 +135,7 @@ P-\n\
 		// unmake move
 		board.unmakeMove(move3);
 
-		board2.init(board);
+		board2 = board;
 		board2.refreshHash();
 
 		ASSERT_EQ(board.getHash(), board2.getHash());
@@ -143,7 +143,7 @@ P-\n\
 		// unmake move
 		board.unmakeMove(move2);
 
-		board2.init(board);
+		board2 = board;
 		board2.refreshHash();
 
 		ASSERT_EQ(board.getHash(), board2.getHash());
@@ -151,7 +151,7 @@ P-\n\
 		// unmake move
 		board.unmakeMove(move1);
 
-		board2.init(board);
+		board2 = board;
 		board2.refreshHash();
 
 		ASSERT_EQ(board.getHash(), board2.getHash());

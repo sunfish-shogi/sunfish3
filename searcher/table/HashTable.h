@@ -37,6 +37,8 @@ namespace sunfish {
 		HashTable(unsigned bits = DefaultBits) : _size(0), _table(nullptr) {
 			init(bits);
 		}
+		HashTable(const HashTable&) = delete;
+		HashTable(HashTable&&) = delete;
 
 		virtual ~HashTable() {
 			delete [] _table;

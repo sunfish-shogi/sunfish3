@@ -87,9 +87,6 @@ namespace sunfish {
 		Piece() : _index(Empty) {
 		}
 
-		Piece(const Piece& piece) : _index(piece._index) {
-		}
-
 		Piece(unsigned char index) : _index(index) {
 		}
 

@@ -22,15 +22,9 @@ namespace sunfish {
 		Hand() {
 			init();
 		}
-		Hand(const Hand& src) {
-			init(src);
-		}
 
 		void init() {
 			memset(_counts, 0, sizeof(_counts));
-		}
-		void init(const Hand& src) {
-			memcpy(_counts, src._counts, sizeof(_counts));
 		}
 
 		int inc(const Piece& piece) {

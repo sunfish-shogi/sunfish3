@@ -24,6 +24,8 @@ namespace sunfish {
 	public:
 		Random() : rgen(static_cast<unsigned>(time(NULL))), dstBit(0, 1) {
 		}
+		Random(const Random&) = delete;
+		Random(Random&&) = delete;
 
 		uint16_t getInt16() {
 			return dst16(rgen);

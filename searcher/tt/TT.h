@@ -18,6 +18,10 @@ namespace sunfish {
 
 	public:
 
+		TT() : HashTable<TTEs>() {}
+		TT(const TT&) = delete;
+		TT(TT&&) = delete;
+
 		void evolve() {
 			_age = (_age + 1) % TTE::AgeMax;
 		}

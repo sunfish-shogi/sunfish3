@@ -47,6 +47,8 @@ namespace sunfish {
 	public:
 
 		CsaClientConfig(const char* filename = NULL);
+		CsaClientConfig(const CsaClientConfig&) = delete;
+		CsaClientConfig(CsaClientConfig&&) = delete;
 		
 		const std::string& getHost() const {
 			return _host;

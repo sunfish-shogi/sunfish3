@@ -67,7 +67,7 @@ namespace sunfish {
 
 		void init(const Board& board, const Evaluator& eval) {
 			_ply = 0;
-			_board.init(board);
+			_board = board;
 #ifndef NDEBUG
 			_board.validate();
 #endif

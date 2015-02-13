@@ -31,10 +31,6 @@ namespace sunfish {
 		init();
 	}
 
-	Board::Board(const Board& board) {
-		init(board);
-	}
-
 	const Bitboard& Board::_getBB(const Piece& piece) const {
 		switch(piece) {
 		case Piece::BPawn     : return _bbBPawn;
@@ -91,26 +87,6 @@ namespace sunfish {
 		refreshHash();
 	}
 
-	void Board::init(const Board& board) {
-		_black = board._black;
-
-		_blackHand.init(board._blackHand);
-		_whiteHand.init(board._whiteHand);
-
-#define BB_OPE				((*this).*__P__).init(board.*__P__);
-		BB_OPE_EACH;
-#undef BB_OPE
-
-		_posBKing = board._posBKing;
-		_posWKing = board._posWKing;
-
-		POSITION_EACH(pos) {
-			_board[pos] = board._board[pos];
-		}
-
-		_hash = board._hash;
-	}
-		
 	void Board::init(Handicap handicap) {
 		init();
 

@@ -38,8 +38,6 @@ namespace sunfish {
 
 		Position() : _index(Invalid) {
 		}
-		Position(const Position& src) : _index(src._index) {
-		}
 		Position(int index) : _index(index) {
 		}
 		explicit Position(int file, int rank) {

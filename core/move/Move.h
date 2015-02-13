@@ -44,8 +44,6 @@ namespace sunfish {
 
 		Move() {
 		}
-		Move(const Move& src) : _move(src._move) {
-		}
 		Move(const Piece& piece, const Position& from, const Position& to, bool promote, bool safe = true) {
 			if (safe) {
 				set(piece, from, to, promote);

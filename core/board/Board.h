@@ -88,10 +88,8 @@ namespace sunfish {
 		};
 
 		Board();
-		Board(const Board& board);
 
 		void init();
-		void init(const Board& board);
 		void init(Handicap handicap);
 		void refreshHash();
 

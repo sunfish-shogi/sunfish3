@@ -25,6 +25,8 @@ namespace sunfish {
 		}
 		Record(const Board& board) : _board(board), _count(0) {
 		}
+		Record(Board&& board) : _board(std::move(board)), _count(0) {
+		}
 
 		void init(const Board& board) {
 			_board = board;

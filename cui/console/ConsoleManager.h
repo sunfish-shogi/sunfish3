@@ -78,6 +78,8 @@ namespace sunfish {
 			initConfig();
 			_prevCommand = Command::Empty;
 		}
+		ConsoleManager(const ConsoleManager&) = delete;
+		ConsoleManager(ConsoleManager&&) = delete;
 
 		void setAutoBlack(bool enable) {
 			_config.autoBlack = enable;

@@ -33,6 +33,8 @@ namespace sunfish {
 
 	public:
 		DirectionMaskTable();
+		DirectionMaskTable(const DirectionMaskTable&) = delete;
+		DirectionMaskTable(DirectionMaskTable&) = delete;
 		const Bitboard& file(const Position& pos) const {
 			return _file[pos];
 		}
@@ -83,6 +85,8 @@ namespace sunfish {
 
 	public:
 		MagicNumberTable();
+		MagicNumberTable(const MagicNumberTable&) = delete;
+		MagicNumberTable(MagicNumberTable&&) = delete;
 		const Bitboard& rank(const Position& pos) const {
 			return _rank[pos];
 		}
@@ -108,6 +112,8 @@ namespace sunfish {
 
 	public:
 		MovePatternTable();
+		MovePatternTable(const MovePatternTable&) = delete;
+		MovePatternTable(MovePatternTable&&) = delete;
 		const Bitboard& up(const Position& pos, unsigned pattern) const {
 			return _up[pos][pattern];
 		}
@@ -149,7 +155,9 @@ namespace sunfish {
 
 	public:
 		OneStepMoveTable();
-
+		OneStepMoveTable(const OneStepMoveTable&) = delete;
+		OneStepMoveTable(OneStepMoveTable&&) = delete;
+                     
 		const Bitboard& get(const Position& pos) const {
 			return _table[pos];
 		}
@@ -163,6 +171,8 @@ namespace sunfish {
 	class LongMoveTable {
 	public:
 		LongMoveTable() {}
+		LongMoveTable(const LongMoveTable&) = delete;
+		LongMoveTable(LongMoveTable&&) = delete;
 		Bitboard get(const Position& pos, const Bitboard& bb) const;
 	};
 
@@ -170,6 +180,8 @@ namespace sunfish {
 	 * 利き算出テーブル
 	 */
 	class MoveTables {
+	private:
+		MoveTables();
 	public:
 		/** 先手の歩の利き */
 		static const OneStepMoveTable<MoveTableType::BPawn> BPawn;

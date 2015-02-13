@@ -243,6 +243,8 @@ namespace sunfish {
 		CsaClient() {
 			_configFilename = DEFAULT_CONFIG_FILE;
 		}
+		CsaClient(const CsaClient&) = delete;
+		CsaClient(CsaClient&&) = delete;
 
 		~CsaClient() {
 		}

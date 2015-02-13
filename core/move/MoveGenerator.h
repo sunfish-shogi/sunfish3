@@ -32,6 +32,10 @@ namespace sunfish {
 
 	public:
 
+		MoveGenerator() {}
+		MoveGenerator(const MoveGenerator&) = delete;
+		MoveGenerator(MoveGenerator&&) = delete;
+
 		/**
 		 * 全ての合法手を生成します。
 		 * 打ち歩詰めや王手放置の手を含む可能性があります。
