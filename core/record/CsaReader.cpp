@@ -139,7 +139,7 @@ namespace sunfish {
 	 * 持ち駒の読み込み
 	 */
 	bool CsaReader::_readHand(const char* line, Board& board, bool black) {
-		unsigned length = strlen(line);
+		unsigned length = (unsigned)strlen(line);
 		for (unsigned i = 2; i + 4 <= length; i += 4) {
 			unsigned file = line[i+0] - '0';
 			unsigned rank = line[i+1] - '0';
