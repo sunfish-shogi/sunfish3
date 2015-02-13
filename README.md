@@ -37,7 +37,7 @@ make clean
 
 ### OS X
 
-Open "sunfish3.xcodeproj" and build "release/debug > My Mac".
+Open `sunfish3.xcodeproj` and build `release/debug > My Mac`.
 
 ## Usage
 
