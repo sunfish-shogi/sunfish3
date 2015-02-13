@@ -135,6 +135,12 @@
     <ClCompile Include="searcher\tt\TTE.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="searcher\shek\ShekEntity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="searcher\shek\ShekTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config\Config.h">
@@ -218,9 +224,6 @@
     <ClInclude Include="network\RemainingTime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="searcher\def.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="searcher\ISearcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -264,6 +267,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="test\Test.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="searcher\shek\ShekEntity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="searcher\shek\ShekStat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="searcher\shek\ShekTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="searcher\shek\HandSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

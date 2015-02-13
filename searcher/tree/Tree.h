@@ -8,6 +8,7 @@
 
 #include "Pv.h"
 #include "../eval/Evaluator.h"
+#include "../shek/ShekTable.h"
 #include "core/move/Moves.h"
 #include <cassert>
 
@@ -48,11 +49,14 @@ namespace sunfish {
 		/** stack */
 		Node _stack[StackSize];
 
-		/** ルート局面からの手数 */
-		int _ply;
+		/** SHEK table */
+		ShekTable _shekTable;
 
 		/** 局面 */
 		Board _board;
+
+		/** ルート局面からの手数 */
+		int _ply;
 
 		/** ソートキー */
 		int32_t _sortValues[1024];
@@ -205,6 +209,7 @@ namespace sunfish {
 		}
 
 		bool makeMove(Move& move, const Evaluator& eval) {
+			_shekTable.set(_board);
 			if (_board.makeMove(move)) {
 				_ply++;
 				auto& curr = _stack[_ply];
@@ -215,12 +220,14 @@ namespace sunfish {
 				curr.pv.init();
 				return true;
 			}
+			_shekTable.unset(_board);
 			return false;
 		}
 
 		void unmakeMove(const Move& move) {
 			_ply--;
 			_board.unmakeMove(move);
+			_shekTable.unset(_board);
 		}
 
 		void makeNullMove() {
@@ -253,6 +260,14 @@ namespace sunfish {
 		const Pv& getPv() {
 			auto& node = _stack[_ply];
 			return node.pv;
+		}
+
+		ShekTable& getShekTable() {
+			return _shekTable;
+		}
+
+		ShekStat checkShek() const {
+			return _shekTable.check(_board);
 		}
 
 		const Pv& __debug__getNextPv() const {

@@ -12,41 +12,26 @@
 #define ENABLE_HISTORY_HEURISTIC			1
 #define ENABLE_LMR										1
 #define ENABLE_HASH_MOVE							1
+#define ENABLE_SHEK_PRESET						1
+#define ENABLE_SHEK										1
 #define SHOW_ROOT_MOVES								0
 
 namespace sunfish {
 
 	namespace search_param {
-		constexpr int FUT_MGN = 400;
-		constexpr int EXT_CHECK = Searcher::Depth1Ply;
-		constexpr int EXT_ONEREP = Searcher::Depth1Ply * 1 / 2;
-		constexpr int EXT_RECAP = Searcher::Depth1Ply * 1 / 4;
+		CONSTEXPR int FUT_MGN = 400;
+		CONSTEXPR int EXT_CHECK = Searcher::Depth1Ply;
+		CONSTEXPR int EXT_ONEREP = Searcher::Depth1Ply * 1 / 2;
+		CONSTEXPR int EXT_RECAP = Searcher::Depth1Ply * 1 / 4;
 	}
 
 	/**
 	 * 前処理
 	 */
-	void Searcher::before() {
+	void Searcher::before(const Board& initialBoard) {
 
 		// 探索情報収集準備
-		_info.node = 0;
-		_info.time = 0.0;
-		_info.nps = 0;
-		_info.eval = Value::Zero;
-		_info.failHigh = 0;
-		_info.failHighFirst = 0;
-		_info.hashProbed = 0;
-		_info.hashExact = 0;
-		_info.hashLower = 0;
-		_info.hashUpper = 0;
-		_info.nullMovePruning = 0;
-		_info.nullMovePruningTried = 0;
-		_info.futilityPruning = 0;
-		_info.extendedFutilityPruning = 0;
-		_info.expanded = 0;
-		_info.checkExtension = 0;
-		_info.onerepExtension = 0;
-		_info.recapExtension = 0;
+		memset(&_info, 0, sizeof(_info));
 		_timer.set();
 
 		// transposition table
@@ -55,12 +40,27 @@ namespace sunfish {
 		// hisotory heuristic
 		_history.reduce();
 
+#if ENABLE_SHEK_PRESET
+		{
+			// SHEK
+			auto& tree = _trees[0];
+			auto& shekTable = tree.getShekTable();
+			Board board = initialBoard;
+			for (int i = (int)_record.size()-1; i >= 0; i--) {
+				bool ok = board.unmakeMove(_record[i]);
+				assert(ok);
+				shekTable.set(board);
+				std::cout << board.toString() << std::endl;
+			}
+		}
+#endif
+
 	}
 
 	/**
 	 * 後処理
 	 */
-	void Searcher::after() {
+	void Searcher::after(const Board& initialBoard) {
 
 		auto& tree = _trees[0];
 
@@ -69,6 +69,36 @@ namespace sunfish {
 		_info.nps = _info.node / _info.time;
 		_info.move = tree.getPv().get(0);
 
+#if ENABLE_SHEK_PRESET
+		{
+			// SHEK
+			auto& tree = _trees[0];
+			auto& shekTable = tree.getShekTable();
+			Board board = initialBoard;
+			for (int i = (int)_record.size()-1; i >= 0; i--) {
+				bool ok = board.unmakeMove(_record[i]);
+				assert(ok);
+				shekTable.unset(board);
+			}
+		}
+#endif
+
+	}
+
+	/**
+	 * SHEK と千日手検出のための過去の棋譜をクリアします。
+	 */
+	void Searcher::clearRecord() {
+		_record.clear();
+	}
+
+	/**
+	 * SHEK と千日手検出のために過去の棋譜をセットします。
+	 */
+	void Searcher::setRecord(const Record& record) {
+		for (unsigned i = 0; i < record.getCount(); i++) {
+			_record.push_back(record.getMoveAt(i));
+		}
 	}
 
 	/**
@@ -420,6 +450,31 @@ namespace sunfish {
 		if (alpha >= maxv) {
 			return maxv;
 		}
+
+#if ENABLE_SHEK
+		// SHEK
+		ShekStat shekStat = tree.checkShek();
+		_info.shekProbed++;
+		switch (shekStat) {
+			case ShekStat::Superior:
+				// 既出の局面に対して優位な局面
+				_info.shekSuperior++;
+				return Value::Inf - tree.getPly();
+
+			case ShekStat::Inferior:
+				// 既出の局面に対して劣る局面
+				_info.shekInferior++;
+				return -Value::Inf + tree.getPly();
+
+			case ShekStat::Equal:
+				// TODO: 連続王手千日手の検出
+				_info.shekEqual++;
+				return Value::Zero;
+
+			default:
+				break;
+		}
+#endif
 
 		// スタックサイズの限界
 		if (tree.isStackFull()) {
@@ -877,9 +932,6 @@ namespace sunfish {
 		bool result = false;
 		bool gen = true;
 
-		// 前処理
-		before();
-
 		Value value = -Value::Inf;
 
 		for (int depth = 1; depth <= _config.maxDepth; depth++) {
@@ -915,9 +967,6 @@ namespace sunfish {
 			result = true;
 		}
 
-		// 後処理
-		after();
-
 		return result;
 
 	}
@@ -929,8 +978,8 @@ namespace sunfish {
 	bool Searcher::search(const Board& initialBoard, Move& best) {
 
 		// 前処理
-		before();
-
+		before(initialBoard);
+           
 		// 最大深さ
 		int depth = _config.maxDepth * Depth1Ply;
 
@@ -941,7 +990,7 @@ namespace sunfish {
 		bool result = search(depth, best);
 
 		// 後処理
-		after();
+		after(initialBoard);
 
 		return result;
 
@@ -954,7 +1003,7 @@ namespace sunfish {
 	bool Searcher::idsearch(const Board& initialBoard, Move& best) {
 
 		// 前処理
-		before();
+		before(initialBoard);
 
 		// ツリーの初期化
 		auto& tree = _trees[0];
@@ -963,7 +1012,7 @@ namespace sunfish {
 		bool result = idsearch(best);
 
 		// 後処理
-		after();
+		after(initialBoard);
 
 		return result;
 

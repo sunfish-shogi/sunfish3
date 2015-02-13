@@ -8,6 +8,7 @@
 
 #include "Bitboard.h"
 #include "Hand.h"
+#include "Zobrist.h"
 #include "../move/Move.h"
 
 namespace sunfish {
@@ -55,7 +56,8 @@ namespace sunfish {
 		Hand _whiteHand;
 		bool _black;
 
-		uint64_t _hash;
+		uint64_t _boardHash;
+		uint64_t _handHash;
 
 		Bitboard& getBB(const Piece& piece) {
 			return *(const_cast<Bitboard*>(&_getBB(piece)));
@@ -95,7 +97,19 @@ namespace sunfish {
 
 		/** 局面のハッシュ値を返します。 */
 		uint64_t getHash() const {
-			return _hash;
+			return getBoardHash() ^ getHandHash() ^ getTurnHash();
+		}
+		/** 盤上のみのハッシュ値を返します。 */
+		uint64_t getBoardHash() const {
+			return _boardHash;
+		}
+		/** 持ち駒のみのハッシュ値を返します。 */
+		uint64_t getHandHash() const {
+			return _handHash;
+		}
+		/** 手番のみのハッシュ値を返します。 */
+		uint64_t getTurnHash() const {
+			return _black ? Zobrist::black() : 0ull;
 		}
 
 		/** 盤面の駒を取得します。 */

@@ -15,6 +15,10 @@ namespace sunfish {
 
 	public:
 
+		/**
+		 * 指定した局面に対して探索を実行します。
+		 * @return {負けたいか中断された場合にfalseを返します。}
+		 */
 		virtual bool search(const Board& board, Move& move) = 0;
 
 	};

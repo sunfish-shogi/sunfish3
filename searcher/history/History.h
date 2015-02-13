@@ -16,11 +16,11 @@ namespace sunfish {
 
 	class History {
 	private:
-		static constexpr int Board = Position::N;
-		static constexpr int Hand = Piece::KindNum;
-		static constexpr int From = Board + Hand;
-		static constexpr int To = Board;
-		static constexpr int Size = From * To;
+		static CONSTEXPR int Board = Position::N;
+		static CONSTEXPR int Hand = Piece::KindNum;
+		static CONSTEXPR int From = Board + Hand;
+		static CONSTEXPR int To = Board;
+		static CONSTEXPR int Size = From * To;
 
 		uint64_t (*hist);
 

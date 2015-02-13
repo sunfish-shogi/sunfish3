@@ -9,7 +9,7 @@
 #include "../def.h"
 #include <random>
 #include <ctime>
-#include <climits>
+#include <cstdint>
 
 namespace sunfish {
 

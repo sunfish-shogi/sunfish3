@@ -11,6 +11,7 @@
 #include "tree/Tree.h"
 #include "history/History.h"
 #include "tt/TT.h"
+#include "core/record/Record.h"
 #include "core/util/Timer.h"
 
 namespace sunfish {
@@ -25,7 +26,7 @@ namespace sunfish {
 	class Searcher : public ISearcher {
 	public:
 
-		static constexpr int Depth1Ply = 16;
+		static CONSTEXPR int Depth1Ply = 16;
 
 		/** 探索設定 */
 		struct Config {
@@ -40,17 +41,16 @@ namespace sunfish {
 
 		/** 探索情報 */
 		struct Info {
-			Move move;
-			uint64_t node;
-			double time;
-			double nps;
-			Value eval;
 			uint64_t failHigh;
 			uint64_t failHighFirst;
 			uint64_t hashProbed;
 			uint64_t hashExact;
 			uint64_t hashLower;
 			uint64_t hashUpper;
+			uint64_t shekProbed;
+			uint64_t shekSuperior;
+			uint64_t shekInferior;
+			uint64_t shekEqual;
 			uint64_t nullMovePruning;
 			uint64_t nullMovePruningTried;
 			uint64_t futilityPruning;
@@ -59,6 +59,11 @@ namespace sunfish {
 			uint64_t checkExtension;
 			uint64_t onerepExtension;
 			uint64_t recapExtension;
+			uint64_t node;
+			double time;
+			double nps;
+			Move move;
+			Value eval;
 		};
 
 	private:
@@ -82,6 +87,9 @@ namespace sunfish {
 		/** transposition table */
 		TT _tt;
 
+		/** record */
+		std::vector<Move> _record;
+
 		/**
 		 * 設定の初期化
 		 */
@@ -96,7 +104,7 @@ namespace sunfish {
 		/**
 		 * ツリーの再確保
 		 */
-		void reallocTrees() {
+		void reallocateTrees() {
 			if (_trees != nullptr) {
 				delete[] _trees;
 			}
@@ -106,12 +114,12 @@ namespace sunfish {
 		/**
 		 * 前処理
 		 */
-		void before();
+		void before(const Board& initialBoard);
 
 		/**
 		 * 後処理
 		 */
-		void after();
+		void after(const Board& initialBoard);
 
 		/**
 		 * 探索中断判定
@@ -212,7 +220,7 @@ namespace sunfish {
 		 * 初期化
 		 */
 		void init() {
-			reallocTrees();
+			reallocateTrees();
 		}
 
 		/**
@@ -222,7 +230,7 @@ namespace sunfish {
 			auto org = _config;
 			_config = config;
 			if (_config.treeSize != org.treeSize) {
-				reallocTrees();
+				reallocateTrees();
 			}
 		}
 
@@ -241,10 +249,20 @@ namespace sunfish {
 		}
 
 		/**
+		 * SHEK と千日手検出のための過去の棋譜をクリアします。
+		 */
+		void clearRecord();
+
+		/**
+		 * SHEK と千日手検出のために過去の棋譜をセットします。
+		 */
+		void setRecord(const Record& record);
+
+		/**
 		 * 指定した局面に対して探索を実行します。
 		 * @return {負けたいか中断された場合にfalseを返します。}
 		 */
-		bool search(const Board& initialBoard, Move& best);
+		virtual bool search(const Board& initialBoard, Move& best) override final;
 
 		/**
 		 * 指定した局面に対して反復深化探索を実行します。

@@ -16,26 +16,26 @@ namespace sunfish {
 	class TTE {
 	private:
 
-		unsigned _checkSum;
+		uint32_t _checkSum;
 		uint64_t _hash;
 		Value _value;
 		TTMoves _moves;
 		struct {
-			unsigned age : 8;
-			unsigned depth : 18;
-			unsigned valueType : 2;
-			unsigned stat : 4;
+			uint32_t age : 8;
+			uint32_t depth : 18;
+			uint32_t valueType : 2;
+			uint32_t stat : 4;
 		} _;
 
-		unsigned generateCheckSum() const {
-			return (unsigned)_hash ^ (unsigned)(_hash >> 32)
-					^ (unsigned)(int32_t)_value
-					^ (unsigned)_moves.getMove1()
-					^ (unsigned)_moves.getMove2()
-					^ (unsigned)_.age
-					^ ((unsigned)_.depth << 8)
-					^ ((unsigned)_.valueType << 26)
-					^ ((unsigned)_.stat << 28)
+		uint32_t generateCheckSum() const {
+			return (uint32_t)_hash ^ (uint32_t)(_hash >> 32)
+					^ (uint32_t)(int32_t)_value
+					^ (uint32_t)_moves.getMove1()
+					^ (uint32_t)_moves.getMove2()
+					^ (uint32_t)_.age
+					^ ((uint32_t)_.depth << 8)
+					^ ((uint32_t)_.valueType << 26)
+					^ ((uint32_t)_.stat << 28)
 					;
 		}
 
@@ -45,10 +45,10 @@ namespace sunfish {
 				int newDepth, int ply,
 				const NodeStat& newStat,
 				const Move& move,
-				unsigned newAge);
+				uint32_t newAge);
 
 	public:
-		static const unsigned AgeMax = 0x01 << 8;
+		static const uint32_t AgeMax = 0x01 << 8;
 
 		enum {
 			Exact = 0,
@@ -71,7 +71,7 @@ namespace sunfish {
 				int newDepth, int ply,
 				const NodeStat& newStat,
 				const Move& move,
-				unsigned newAge) {
+				uint32_t newAge) {
 
 			int newValueType;
 			if (newValue >= beta) {
@@ -125,7 +125,7 @@ namespace sunfish {
 			return _value;
 		}
 
-		unsigned getValueType() const {
+		uint32_t getValueType() const {
 			return _.valueType;
 		}
 
@@ -141,7 +141,7 @@ namespace sunfish {
 			return _moves;
 		}
 
-		unsigned getAge() const {
+		uint32_t getAge() const {
 			return _.age;
 		}
 
@@ -150,17 +150,17 @@ namespace sunfish {
 	class TTEs {
 	private:
 
-		static const unsigned Size = 4;
+		static const uint32_t Size = 4;
 		TTE list[Size];
-		volatile unsigned lastAccess;
+		volatile uint32_t lastAccess;
 
 	public:
 
 		TTEs() : lastAccess(0) {
 		}
 
-		void init(unsigned) {
-			for (unsigned i = 0; i < Size; i++) {
+		void init(uint32_t) {
+			for (uint32_t i = 0; i < Size; i++) {
 				list[i].init();
 			}
 		}

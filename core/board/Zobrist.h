@@ -8,6 +8,7 @@
 
 #include "../base/Position.h"
 #include "../base/Piece.h"
+#include <cstdint>
 #include <cassert>
 
 namespace sunfish {

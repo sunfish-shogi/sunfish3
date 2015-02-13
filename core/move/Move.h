@@ -20,19 +20,19 @@ namespace sunfish {
 	class Move {
 	private:
 
-		static const unsigned FROM       = 0x0000007f;
-		static const unsigned TO         = 0x00003f80;
-		static const unsigned PROMOTE    = 0x00004000;
-		static const unsigned PIECE      = 0x00078000;
-		static const unsigned CAP        = 0x00f80000;
-		static const unsigned UNUSED     = 0xff000000;
-		static const unsigned EMPTY      = 0xffffffff;
+		static const uint32_t FROM       = 0x0000007f;
+		static const uint32_t TO         = 0x00003f80;
+		static const uint32_t PROMOTE    = 0x00004000;
+		static const uint32_t PIECE      = 0x00078000;
+		static const uint32_t CAP        = 0x00f80000;
+		static const uint32_t UNUSED     = 0xff000000;
+		static const uint32_t EMPTY      = 0xffffffff;
 
-		static const unsigned TO_SHIFT = 7;
-		static const unsigned PIECE_SHIFT = 15;
-		static const unsigned CAP_SHIFT = 19;
+		static const uint32_t TO_SHIFT = 7;
+		static const uint32_t PIECE_SHIFT = 15;
+		static const uint32_t CAP_SHIFT = 19;
 
-		unsigned _move;
+		uint32_t _move;
 
 	public:
 
@@ -60,10 +60,10 @@ namespace sunfish {
 		}
 
 		// serialization
-		static unsigned serialize(const Move& obj) {
+		static uint32_t serialize(const Move& obj) {
 			return obj._move;
 		}
-		static Move deserialize(unsigned value) {
+		static Move deserialize(uint32_t value) {
 			Move move;
 			move._move = value;
 			return move;
@@ -75,9 +75,9 @@ namespace sunfish {
 		void _set(const Piece& piece, const Position& from, const Position& to, bool promote) {
 			assert(!piece.isEmpty());
 			assert(piece.isUnpromoted() || !promote);
-			_move = ((unsigned)from + 1)
-			      | ((unsigned)to << TO_SHIFT)
-						| ((unsigned)(safe ? piece.kindOnly() : piece) << PIECE_SHIFT);
+			_move = ((uint32_t)from + 1)
+			      | ((uint32_t)to << TO_SHIFT)
+						| ((uint32_t)(safe ? piece.kindOnly() : piece) << PIECE_SHIFT);
 			if (promote) {
 				_move |= PROMOTE;
 			}
@@ -98,8 +98,8 @@ namespace sunfish {
 			assert(!piece.isWhite());
 			assert(piece.isUnpromoted());
 			const Piece& hand = (safe ? piece.hand() : piece);
-			_move = ((unsigned)to << TO_SHIFT)
-						| ((unsigned)hand << PIECE_SHIFT);
+			_move = ((uint32_t)to << TO_SHIFT)
+						| ((uint32_t)hand << PIECE_SHIFT);
 		}
 	public:
 		void set(const Piece& piece, const Position& to) {
@@ -131,16 +131,16 @@ namespace sunfish {
 			}
 		}
 		void setPiece(const Piece& piece) {
-			_move = (_move & (~PIECE)) | ((unsigned)piece.kindOnly() << PIECE_SHIFT);
+			_move = (_move & (~PIECE)) | ((uint32_t)piece.kindOnly() << PIECE_SHIFT);
 		}
 		void setPieceUnsafe(const Piece& piece) {
-			_move = (_move & (~PIECE)) | ((unsigned)piece << PIECE_SHIFT);
+			_move = (_move & (~PIECE)) | ((uint32_t)piece << PIECE_SHIFT);
 		}
 		void setCaptured(const Piece& captured) {
-			_move = (_move & (~CAP)) | ((unsigned)(captured.kindOnly() + 1U) << CAP_SHIFT);
+			_move = (_move & (~CAP)) | ((uint32_t)(captured.kindOnly() + 1U) << CAP_SHIFT);
 		}
 		void setCapturedUnsafe(const Piece& captured) {
-			_move = (_move & (~CAP)) | ((unsigned)(captured + 1U) << CAP_SHIFT);
+			_move = (_move & (~CAP)) | ((uint32_t)(captured + 1U) << CAP_SHIFT);
 		}
 		void unsetCaptured() {
 			_move = _move & (~CAP);
@@ -160,7 +160,7 @@ namespace sunfish {
 			return (_move & PIECE) >> PIECE_SHIFT;
 		}
 		Piece captured() const {
-			unsigned cap = _move & CAP;
+			uint32_t cap = _move & CAP;
 			return cap ? ((cap >> CAP_SHIFT) - 1L) : Piece::Empty;
 		}
 		bool isCapturing() const {
@@ -182,7 +182,7 @@ namespace sunfish {
 		}
 
 		// cast operator
-		operator unsigned() const {
+		operator uint32_t() const {
 			return _move;
 		}
 

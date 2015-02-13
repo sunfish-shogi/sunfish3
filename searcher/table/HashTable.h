@@ -16,8 +16,8 @@ namespace sunfish {
 	template <class E> class HashTable {
 	private:
 
-		unsigned _size;
-		unsigned _mask;
+		uint32_t _size;
+		uint32_t _mask;
 		E* _table;
 
 	protected:
@@ -26,15 +26,15 @@ namespace sunfish {
 			return _table[hash&_mask];
 		}
 
-		E& _getEntity(unsigned index) {
+		E& _getEntity(uint32_t index) {
 			return _table[index];
 		}
 
 	public:
 
-		static const unsigned DefaultBits = 21;
+		static const uint32_t DefaultBits = 21;
 
-		HashTable(unsigned bits = DefaultBits) : _size(0), _table(nullptr) {
+		HashTable(uint32_t bits = DefaultBits) : _size(0), _table(nullptr) {
 			init(bits);
 		}
 		HashTable(const HashTable&) = delete;
@@ -44,8 +44,8 @@ namespace sunfish {
 			delete [] _table;
 		}
 
-		void init(unsigned bits = 0) {
-			unsigned newSize = 1 << bits;
+		void init(uint32_t bits = 0) {
+			uint32_t newSize = 1 << bits;
 			if (bits != 0 && _size != newSize) {
 				_size = newSize;
 				_mask = _size - 1;
@@ -54,7 +54,7 @@ namespace sunfish {
 				}
 				_table = new E[_size];
 			} else {
-				for (unsigned i = 0; i < _size; i++) {
+				for (uint32_t i = 0; i < _size; i++) {
 					_table[i].init(i);
 				}
 			}
@@ -64,11 +64,11 @@ namespace sunfish {
 			return _table[hash&_mask];
 		}
 
-		const E& getEntity(unsigned index) const {
+		const E& getEntity(uint32_t index) const {
 			return _table[index];
 		}
 
-		unsigned getSize() const {
+		uint32_t getSize() const {
 			return _size;
 		}
 	};

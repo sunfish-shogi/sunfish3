@@ -15,7 +15,7 @@ namespace sunfish {
 	class ValuePair {
 	public:
 
-		static constexpr int PositionalScale = 32;
+		static CONSTEXPR int PositionalScale = 32;
 
 	private:
 

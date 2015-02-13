@@ -7,6 +7,7 @@
 #define __SUNFISH_HASHMOVE__
 
 #include "core/move/Move.h"
+#include <cstdint>
 
 namespace sunfish {
 

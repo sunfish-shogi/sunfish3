@@ -53,7 +53,7 @@ namespace sunfish {
 	void CsaWriter::writeMoves(std::ostream& os, const Record& record) {
 
 		// 手順
-		for (int i = 0; i < record.getSize(); i++) {
+		for (int i = 0; i < record.getTotalCount(); i++) {
 			bool black = record.isBlackAt(i);
 			os << record.getMoveAt(i).toStringCsa(black) << '\n';
 		}

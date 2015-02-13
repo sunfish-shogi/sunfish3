@@ -67,13 +67,6 @@ namespace sunfish {
 		Board getInitialBoard() const;
 
 		/**
-		 * 総手数を返します。
-		 */
-		int getSize() const {
-			return (int)_moveStack.size();
-		}
-
-		/**
 		 * 先手番かチェックします。
 		 */
 		bool isBlack() const {
@@ -113,6 +106,20 @@ namespace sunfish {
 		 */
 		Move getMove() const {
 			return _count >= 1 ? getMoveAt(_count-1) : Move();
+		}
+
+		/**
+		 * 総手数を返します。
+		 */
+		unsigned getTotalCount() const {
+			return (unsigned)_moveStack.size();
+		}
+
+		/**
+		 * 現在の手数を返します。
+		 */
+		unsigned getCount() const {
+			return _count;
 		}
 
 	};

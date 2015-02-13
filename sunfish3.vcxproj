@@ -112,6 +112,8 @@
     <ClCompile Include="searcher\RandomSearcher.cpp" />
     <ClCompile Include="searcher\Searcher.cpp" />
     <ClCompile Include="searcher\see\See.cpp" />
+    <ClCompile Include="searcher\shek\ShekEntity.cpp" />
+    <ClCompile Include="searcher\shek\ShekTable.cpp" />
     <ClCompile Include="searcher\test\SeeTest.cpp" />
     <ClCompile Include="searcher\tree\Tree.cpp" />
     <ClCompile Include="searcher\tt\TT.cpp" />
@@ -145,7 +147,6 @@
     <ClInclude Include="network\CsaClient.h" />
     <ClInclude Include="network\CsaClientConfig.h" />
     <ClInclude Include="network\RemainingTime.h" />
-    <ClInclude Include="searcher\def.h" />
     <ClInclude Include="searcher\eval\Evaluator.h" />
     <ClInclude Include="searcher\eval\Value.h" />
     <ClInclude Include="searcher\history\History.h" />
@@ -153,6 +154,10 @@
     <ClInclude Include="searcher\RandomSearcher.h" />
     <ClInclude Include="searcher\Searcher.h" />
     <ClInclude Include="searcher\see\See.h" />
+    <ClInclude Include="searcher\shek\HandSet.h" />
+    <ClInclude Include="searcher\shek\ShekEntity.h" />
+    <ClInclude Include="searcher\shek\ShekStat.h" />
+    <ClInclude Include="searcher\shek\ShekTable.h" />
     <ClInclude Include="searcher\table\HashTable.h" />
     <ClInclude Include="searcher\tree\NodeStat.h" />
     <ClInclude Include="searcher\tree\Pv.h" />

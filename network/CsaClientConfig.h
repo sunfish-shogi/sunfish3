@@ -36,11 +36,11 @@ namespace sunfish {
 
 	protected:
 
-		ConfigItem* itemList() {
+		virtual ConfigItem* itemList() override final {
 			return _items;
 		}
 
-		int itemSize() {
+		virtual int itemSize() override final {
 			return sizeof(_items)/sizeof(_items[0]);
 		}
 

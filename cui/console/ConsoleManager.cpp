@@ -189,7 +189,9 @@ namespace sunfish {
 		// 探索
 		Move move;
 		std::cout << "searching..\n";
+		_searcher.setRecord(_record);
 		bool ok = _searcher.idsearch(_record.getBoard(), move);
+		_searcher.clearRecord();
 		std::cout << "done.\n";
 		std::cout << std::endl;
 
@@ -208,6 +210,9 @@ namespace sunfish {
 		PRINT_INFO2("  hash extract   : ", info.hashExact, info.hashProbed);
 		PRINT_INFO2("  hash lower     : ", info.hashLower, info.hashProbed);
 		PRINT_INFO2("  hash upper     : ", info.hashUpper, info.hashProbed);
+		PRINT_INFO2("  shek superior  : ", info.shekSuperior, info.shekProbed);
+		PRINT_INFO2("  shek inferior  : ", info.shekInferior, info.shekProbed);
+		PRINT_INFO2("  shek equal     : ", info.shekEqual, info.shekProbed);
 		PRINT_INFO2("  null mv pruning: ", info.nullMovePruning, info.nullMovePruningTried);
 		PRINT_INFO ("  fut pruning    : ", info.futilityPruning);
 		PRINT_INFO ("  ext fut pruning: ", info.extendedFutilityPruning);

@@ -4,7 +4,6 @@
  */
 
 #include "Board.h"
-#include "Zobrist.h"
 #include "../move/MoveTable.h"
 #include "logger/Logger.h"
 #include <sstream>
@@ -160,23 +159,24 @@ namespace sunfish {
 
 	void Board::refreshHash() {
 
-		_hash = 0ull;
+		_boardHash = 0ull;
+		_handHash = 0ull;
 
 		POSITION_EACH(pos) {
 			auto& piece = _board[pos];
 			if (piece.exists()) {
-				_hash ^= Zobrist::board(pos, piece);
+				_boardHash ^= Zobrist::board(pos, piece);
 			}
 		}
 
 #define __HASH_HAND__(piece)					{ \
 	int num = _blackHand.getUnsafe(Piece::piece); \
 	for (int i = 0; i < num; i++) { \
-		_hash ^= Zobrist::handB ## piece (i); \
+		_handHash ^= Zobrist::handB ## piece (i); \
 	} \
 	num = _whiteHand.getUnsafe(Piece::piece); \
 	for (int i = 0; i < num; i++) { \
-		_hash ^= Zobrist::handW ## piece (i); \
+		_handHash ^= Zobrist::handW ## piece (i); \
 	} \
 }
 
@@ -187,8 +187,6 @@ namespace sunfish {
 		__HASH_HAND__(Gold);
 		__HASH_HAND__(Bishop);
 		__HASH_HAND__(Rook);
-
-		if (_black) { _hash ^= Zobrist::black(); }
 
 	}
 
@@ -837,7 +835,7 @@ namespace sunfish {
 			Hand& hand = black ? _blackHand : _whiteHand;
 			assert(!piece.isPromoted());
 			int num = hand.decUnsafe(piece);
-			_hash ^= black ? Zobrist::handBlack(piece, num) : Zobrist::handWhite(piece, num);
+			_handHash ^= black ? Zobrist::handBlack(piece, num) : Zobrist::handWhite(piece, num);
 
 		} else { // !move.isHand()
 
@@ -891,7 +889,7 @@ namespace sunfish {
 				}
 			}
 			_board[from] = Piece::Empty;
-			_hash ^= Zobrist::board(from, black ? piece : piece.white());
+			_boardHash ^= Zobrist::board(from, black ? piece : piece.white());
 
 			// capturing
 			const auto& captured = _board[to];
@@ -939,13 +937,13 @@ namespace sunfish {
 						assert(false);
 					}
 				}
-				_hash ^= Zobrist::board(to, captured);
+				_boardHash ^= Zobrist::board(to, captured);
 
 				// hand
 				auto& hand = black ? _blackHand : _whiteHand;
 				Piece captured_k = captured.kindOnly().unpromote();
 				int num = hand.incUnsafe(captured_k) - 1;
-				_hash ^= black ? Zobrist::handBlack(captured_k, num) : Zobrist::handWhite(captured_k, num);
+				_handHash ^= black ? Zobrist::handBlack(captured_k, num) : Zobrist::handWhite(captured_k, num);
 			}
 		}
 
@@ -976,7 +974,7 @@ namespace sunfish {
 					assert(false);
 				}
 				_board[to] = piece;
-				_hash ^= Zobrist::board(to, piece);
+				_boardHash ^= Zobrist::board(to, piece);
 			} else {
 				switch (piece) {
 				case Piece::Pawn     : _bbWPawn.set(to); assert(to.getRank() <= 8); break;
@@ -998,7 +996,7 @@ namespace sunfish {
 				}
 				Piece piece_w = piece.white();
 				_board[to] = piece_w;
-				_hash ^= Zobrist::board(to, piece_w);
+				_boardHash ^= Zobrist::board(to, piece_w);
 			}
 		} else { // promote
 			Piece piece_p;
@@ -1066,12 +1064,11 @@ namespace sunfish {
 				}
 			}
 			_board[to] = piece_p;
-			_hash ^= Zobrist::board(to, piece_p);
+			_boardHash ^= Zobrist::board(to, piece_p);
 		}
 
 		// next turn
 		_black = !black;
-		_hash ^= Zobrist::black();
 
 		return true;
 	}
@@ -1093,7 +1090,7 @@ namespace sunfish {
 			auto& hand = black ? _blackHand : _whiteHand;
 			assert(!piece.isPromoted());
 			int num = hand.incUnsafe(piece) - 1;
-			_hash ^= black ? Zobrist::handBlack(piece, num) : Zobrist::handWhite(piece, num);
+			_handHash ^= black ? Zobrist::handBlack(piece, num) : Zobrist::handWhite(piece, num);
 
 			_board[to] = Piece::Empty;
 
@@ -1124,7 +1121,7 @@ namespace sunfish {
 					assert(false);
 				}
 				_board[from] = piece;
-				_hash ^= Zobrist::board(from, piece);
+				_boardHash ^= Zobrist::board(from, piece);
 			} else {
 				assert(_board[to] == (promote ? piece.white().promote() : piece.white()));
 				_bbWOccupy.set(from);
@@ -1148,7 +1145,7 @@ namespace sunfish {
 				}
 				Piece piece_w = piece.white();
 				_board[from] = piece_w;
-				_hash ^= Zobrist::board(from, piece_w);
+				_boardHash ^= Zobrist::board(from, piece_w);
 			}
 
 			// capturing
@@ -1176,7 +1173,7 @@ namespace sunfish {
 					}
 					Piece captured_w = captured.white();
 					_board[to] = captured_w;
-					_hash ^= Zobrist::board(to, captured_w);
+					_boardHash ^= Zobrist::board(to, captured_w);
 				} else {
 					_bbBOccupy.set(to);
 					switch (captured) {
@@ -1198,14 +1195,14 @@ namespace sunfish {
 						assert(false);
 					}
 					_board[to] = captured;
-					_hash ^= Zobrist::board(to, captured);
+					_boardHash ^= Zobrist::board(to, captured);
 				}
 
 				// hand
 				auto& hand = black ? _blackHand : _whiteHand;
 				Piece captured_u = captured.unpromote();
 				int num = hand.decUnsafe(captured_u);
-				_hash ^= black ? Zobrist::handBlack(captured_u, num) : Zobrist::handWhite(captured_u, num);
+				_handHash ^= black ? Zobrist::handBlack(captured_u, num) : Zobrist::handWhite(captured_u, num);
 			} else {
 				_board[to] = Piece::Empty;
 			}
@@ -1258,7 +1255,7 @@ namespace sunfish {
 					assert(false);
 				}
 			}
-			_hash ^= Zobrist::board(to, black ? piece : piece.white());
+			_boardHash ^= Zobrist::board(to, black ? piece : piece.white());
 		} else {
 			if (black) {
 				switch (piece) {
@@ -1283,12 +1280,11 @@ namespace sunfish {
 					assert(false);
 				}
 			}
-			_hash ^= Zobrist::board(to, black ? piece.promote() : piece.promote().white());
+			_boardHash ^= Zobrist::board(to, black ? piece.promote() : piece.promote().white());
 		}
 
 		// next turn
 		_black = black;
-		_hash ^= Zobrist::black();
 
 		return true;
 	}
@@ -1301,7 +1297,6 @@ namespace sunfish {
 	 */
 	void Board::makeNullMove() {
 		_black = !_black;
-		_hash ^= Zobrist::black();
 	}
 
 	/**
@@ -1309,7 +1304,6 @@ namespace sunfish {
 	 */
 	void Board::unmakeNullMove() {
 		_black = !_black;
-		_hash ^= Zobrist::black();
 	}
 
 	/**

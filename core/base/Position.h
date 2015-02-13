@@ -7,6 +7,7 @@
 #define __SUNFISH_POSITION__
 
 #include "../def.h"
+#include <string>
 
 namespace sunfish {
 
