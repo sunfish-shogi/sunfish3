@@ -194,7 +194,15 @@ namespace sunfish {
 	 * 指し手の読み込み
 	 */
 	bool CsaReader::readMove(const char* line, const Board& board, Move& move) {
-		if (line[0] == '\0' || line[0] == 'T' || line[0] == '\'') {
+		if (line[0] == '\0' || line[0] == '\'') {
+			return true;
+		}
+
+		if (line[0] == 'T') {
+			return true;
+		}
+
+		if (line[0] == '%') {
 			return true;
 		}
 

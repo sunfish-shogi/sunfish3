@@ -1,4 +1,5 @@
 sunfish
+sunfish-debug
 evdata
 fv.bin
 gmon.out
@@ -12,7 +13,6 @@ Kifu
 sunfish3.xcodeproj/xcuserdata
 sunfish3.xcodeproj/project.xcworkspace/xcuserdata
 sunfish3.xcodeproj/project.xcworkspace/xcshareddata
-*.obj
 Release/
 Debug/
 *.obj
@@ -44,3 +44,4 @@ Thumbs.db
 [Tt]est[Rr]esults/
 _UpgradeReport_Files/
 _ReSharper.*/
+*.tar.gz

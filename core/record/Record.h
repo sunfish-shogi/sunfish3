@@ -31,11 +31,13 @@ namespace sunfish {
 		void init(const Board& board) {
 			_board = board;
 			_moveStack.clear();
+			_moveStack.shrink_to_fit();
 			_count = 0;
 		}
 		void init(Board::Handicap handicap) {
 			_board.init(handicap);
 			_moveStack.clear();
+			_moveStack.shrink_to_fit();
 			_count = 0;
 		}
 
@@ -105,7 +107,14 @@ namespace sunfish {
 		 * 指し手を返します。
 		 */
 		Move getMove() const {
-			return _count >= 1 ? getMoveAt(_count-1) : Move();
+			return _count >= 1 ? getMoveAt(_count-1) : Move::empty();
+		}
+
+		/**
+		 * 次の指し手を返します。
+		 */
+		Move getNextMove() const {
+			return _count < getTotalCount() ? getMoveAt(_count) : Move::empty();
 		}
 
 		/**

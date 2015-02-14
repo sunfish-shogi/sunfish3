@@ -50,7 +50,6 @@ namespace sunfish {
 				bool ok = board.unmakeMove(_record[i]);
 				assert(ok);
 				shekTable.set(board);
-				std::cout << board.toString() << std::endl;
 			}
 		}
 #endif

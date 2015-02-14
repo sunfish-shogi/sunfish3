@@ -37,7 +37,7 @@ namespace sunfish {
 			int limitSeconds;
 		};
 
-		static const int DefaultMaxDepth = 4;
+		static const int DefaultMaxDepth = 7;
 
 		/** 探索情報 */
 		struct Info {

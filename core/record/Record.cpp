@@ -81,7 +81,7 @@ namespace sunfish {
 			count--;
 		}
 
-		return std::move(board);
+		return board;
 	}
 
 }

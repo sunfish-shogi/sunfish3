@@ -16,6 +16,9 @@ using namespace sunfish;
 // network
 int network();
 
+// solve
+int solve(const std::vector<std::string>& problems);
+
 // test.cpp
 int test();
 
@@ -34,6 +37,7 @@ private:
 		std::string value;
 	};
 	std::vector<Option> _options;
+	std::vector<std::string> _stdArgs;
 	void setValue(const char* key, const char* value) {
 		for (auto& option : _options) {
 			if (option.key == key || option.shortKey == key) {
@@ -54,18 +58,18 @@ public:
 		const char* key = nullptr;
 		for (int i = 1; i <= argc; i++) {
 			bool isLast = (i == argc);
-			const char* opt = !isLast ? argv[i] : "";
-			if (opt[0] == '-') {
-				bool isFullSpell = (opt[1] == '-');
+			const char* arg = !isLast ? argv[i] : "";
+			if (arg[0] == '-') {
+				bool isFullSpell = (arg[1] == '-');
 				if (key != nullptr) {
 					setValue(key, "");
 				}
-				key = &opt[isFullSpell?2:1];
-			} else {
-				if (key != nullptr) {
-					setValue(key, opt);
-					key = nullptr;
-				}
+				key = &arg[isFullSpell?2:1];
+			} else if (key != nullptr) {
+				setValue(key, arg);
+				key = nullptr;
+			} else if (!isLast) {
+				_stdArgs.push_back(arg);
 			}
 		}
 	}
@@ -88,6 +92,9 @@ public:
 			}
 		}
 		return "";
+	}
+	const std::vector<std::string> getStdArgs() const {
+		return _stdArgs;
 	}
 	std::string help() const {
 		std::ostringstream oss;
@@ -134,6 +141,7 @@ int main(int argc, char** argv, char** /*envp*/) {
 	po.addOption("depth", "d", "max depth (default: 15)", true);
 	po.addOption("time", "t", "max time for 1 move [sec] (default: 3)", true);
 	po.addOption("network", "n", "network mode");
+	po.addOption("problem", "p", "solve problems");
 	po.addOption("help", "h", "show this help.");
 #ifndef NDEBUG
 	po.addOption("test", "unit test");
@@ -148,6 +156,9 @@ int main(int argc, char** argv, char** /*envp*/) {
 
 	} else if (po.has("network")) {
 		return network();
+
+	} else if (po.has("problem")) {
+		return solve(po.getStdArgs());
 
 #ifndef NDEBUG
 	} else if (po.has("test")) {
