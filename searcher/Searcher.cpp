@@ -14,7 +14,8 @@
 #define ENABLE_HASH_MOVE							1
 #define ENABLE_SHEK_PRESET						1
 #define ENABLE_SHEK										1
-#define SHOW_ROOT_MOVES								0
+#define DEBUG_ROOT_MOVES							0
+#define DEBUG_TREE										0
 
 namespace sunfish {
 
@@ -374,6 +375,15 @@ namespace sunfish {
 	 */
 	Value Searcher::qsearch(Tree& tree, bool black, int qply, Value alpha, Value beta) {
 
+#if !defined(NDEBUG) && DEBUG_TREE
+		{
+			for (int i = 0; i < tree.getPly(); i++) {
+				std::cout << ' ';
+			}
+			std::cout << tree.__debug__getFrontMove().toString() << std::endl;
+		}
+#endif
+
 		_info.node++;
 
 		// stand-pat
@@ -441,6 +451,15 @@ namespace sunfish {
 	 */
 	template <bool pvNode>
 	Value Searcher::searchr(Tree& tree, bool black, int depth, Value alpha, Value beta, NodeStat stat) {
+
+#if !defined(NDEBUG) && DEBUG_TREE
+		{
+			for (int i = 0; i < tree.getPly(); i++) {
+				std::cout << ' ';
+			}
+			std::cout << tree.__debug__getFrontMove().toString() << std::endl;
+		}
+#endif
 
 		const auto& board = tree.getBoard();
 
@@ -938,7 +957,7 @@ namespace sunfish {
 
 			gen = false;
 
-#if !defined(NDEBUG) && SHOW_ROOT_MOVES
+#if !defined(NDEBUG) && DEBUG_ROOT_MOVES
 			auto& tree = _trees[0];
 			std::ostringstream oss;
 			for (auto ite = tree.getBegin(); ite != tree.getEnd(); ite++) {
