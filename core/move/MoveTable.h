@@ -107,8 +107,14 @@ namespace sunfish {
 		Bitboard _down[Position::N][0x80];
 		Bitboard _file[Position::N][0x80];
 		Bitboard _rank[Position::N][0x80];
+		Bitboard _leftUpX[Position::N][0x80];
+		Bitboard _rightUpX[Position::N][0x80];
 		Bitboard _leftUp[Position::N][0x80];
+		Bitboard _leftDown[Position::N][0x80];
 		Bitboard _rightUp[Position::N][0x80];
+		Bitboard _rightDown[Position::N][0x80];
+		Bitboard _left[Position::N][0x80];
+		Bitboard _right[Position::N][0x80];
 
 	public:
 		MovePatternTable();
@@ -126,11 +132,29 @@ namespace sunfish {
 		const Bitboard& rank(const Position& pos, unsigned pattern) const {
 			return _rank[pos][pattern];
 		}
+		const Bitboard& leftUpX(const Position& pos, unsigned pattern) const {
+			return _leftUpX[pos][pattern];
+		}
+		const Bitboard& rightUpX(const Position& pos, unsigned pattern) const {
+			return _rightUpX[pos][pattern];
+		}
 		const Bitboard& leftUp(const Position& pos, unsigned pattern) const {
 			return _leftUp[pos][pattern];
 		}
+		const Bitboard& leftDown(const Position& pos, unsigned pattern) const {
+			return _leftDown[pos][pattern];
+		}
 		const Bitboard& rightUp(const Position& pos, unsigned pattern) const {
 			return _rightUp[pos][pattern];
+		}
+		const Bitboard& rightDown(const Position& pos, unsigned pattern) const {
+			return _rightDown[pos][pattern];
+		}
+		const Bitboard& left(const Position& pos, unsigned pattern) const {
+			return _left[pos][pattern];
+		}
+		const Bitboard& right(const Position& pos, unsigned pattern) const {
+			return _right[pos][pattern];
 		}
 	};
 
@@ -139,7 +163,9 @@ namespace sunfish {
 			BPawn, BLance, BKnight, BSilver, BGold,
 			WPawn, WLance, WKnight, WSilver, WGold,
 			Bishop, Rook, Bishop2, Rook2, King, Horse, Dragon,
-			Vertical, Horizontal, RightUp, RightDown
+			Vertical, Horizontal, RightUpX, RightDownX,
+			RightUp, RightDown, LeftUp, LeftDown,
+			Left, Right
 		};
 	}
 	typedef _MoveTableType::Type MoveTableType;
@@ -227,10 +253,23 @@ namespace sunfish {
 		static const LongMoveTable<MoveTableType::Vertical> Vertical;
 		/** 段 */
 		static const LongMoveTable<MoveTableType::Horizontal> Horizontal;
+		/** 双方向右上がり */
+		static const LongMoveTable<MoveTableType::RightUpX> RightUpX;
+		/** 双方向右下がり */
+		static const LongMoveTable<MoveTableType::RightDownX> RightDownX;
+
 		/** 右上がり */
 		static const LongMoveTable<MoveTableType::RightUp> RightUp;
 		/** 右下がり */
 		static const LongMoveTable<MoveTableType::RightDown> RightDown;
+		/** 左上がり */
+		static const LongMoveTable<MoveTableType::LeftUp> LeftUp;
+		/** 左下がり */
+		static const LongMoveTable<MoveTableType::LeftDown> LeftDown;
+		/** 右 */
+		static const LongMoveTable<MoveTableType::Right> Right;
+		/** 左 */
+		static const LongMoveTable<MoveTableType::Left> Left;
 	};
 
 	extern const sunfish::DirectionMaskTable<true> dirMask;

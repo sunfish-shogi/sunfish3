@@ -40,10 +40,53 @@ P-\n\
 
 		ASSERT_EQ(see.getBlackNum(), 1);
 		ASSERT_EQ(see.getWhiteNum(), 2);
-		ASSERT_EQ(see.getBlackList()[0].int32(), eval.table().knightEx);
-		ASSERT_EQ(see.getWhiteList()[0].int32(), eval.table().silverEx);
-		ASSERT_EQ(see.getWhiteList()[1].int32(), eval.table().horseEx);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().knightEx);
+		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().silverEx);
+		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), eval.table().horseEx);
 	}
+
+	{
+		std::string src = "\
+P1 *  * -KE *  *  *  *  *  * \n\
+P2 *  *  * -KI-KI * -OU *  * \n\
+P3 * -RY-KI-GI *  * +FU *  * \n\
+P4 *  *  * +FU+GI *  *  *  * \n\
+P5 *  *  *  * +KE+UM *  *  * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  * +KY *  *  * +KA * \n\
+P8 *  *  *  *  * +OU *  *  * \n\
+P9 * +KY * +RY *  *  *  *  * \n\
+P+\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		Move move(Piece::BPawn, P64, P63, true);
+
+		see.generateAttackers(eval, board, move);
+
+		ASSERT_EQ(see.getBlackNum(), 6);
+		ASSERT_EQ(see.getWhiteNum(), 5);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().lanceEx);
+		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), eval.table().knightEx);
+		ASSERT_EQ(see.getBlackList()[2].attacker->value.int32(), eval.table().silverEx);
+		ASSERT_EQ(see.getBlackList()[3].attacker->value.int32(), eval.table().bishopEx);
+		ASSERT_EQ(see.getBlackList()[4].attacker->value.int32(), eval.table().horseEx);
+		ASSERT_EQ(see.getBlackList()[5].attacker->value.int32(), eval.table().dragonEx);
+		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().knightEx);
+		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), eval.table().goldEx);
+		ASSERT_EQ(see.getWhiteList()[2].attacker->value.int32(), eval.table().goldEx);
+		ASSERT_EQ(see.getWhiteList()[3].attacker->value.int32(), eval.table().goldEx);
+		ASSERT_EQ(see.getWhiteList()[4].attacker->value.int32(), eval.table().dragonEx);
+		ASSERT_EQ(see.getBlackList()[0].attacker->dependOn == nullptr, true);
+		ASSERT_EQ(see.getBlackList()[1].attacker->dependOn == nullptr, true);
+		ASSERT_EQ(see.getBlackList()[2].attacker->dependOn == nullptr, true);
+		ASSERT_EQ(see.getBlackList()[3].attacker->dependOn == see.getBlackList()[4].attacker, true);
+		ASSERT_EQ(see.getBlackList()[4].attacker->dependOn == see.getBlackList()[2].attacker, true);
+		ASSERT_EQ(see.getBlackList()[5].attacker->dependOn == see.getBlackList()[0].attacker, true);
+	}                                 
 
 }
 

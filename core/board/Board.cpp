@@ -253,13 +253,13 @@ namespace sunfish {
 				return bb & _bbBKing && bb & (_bbWRook | _bbWDragon);
 			}
 			case PinDir::RightUp: {
-				// 右上がり
-				Bitboard bb = MoveTables::RightUp.get(pos, occ);
+				// 右上がり/左下がり
+				Bitboard bb = MoveTables::RightUpX.get(pos, occ);
 				return bb & _bbBKing && bb & (_bbWBishop | _bbWHorse);
 			}
 			case PinDir::RightDown: {
-				// 右下がり
-				Bitboard bb = MoveTables::RightDown.get(pos, occ);
+				// 右下がり/左上がり
+				Bitboard bb = MoveTables::RightDownX.get(pos, occ);
 				return bb & _bbBKing && bb & (_bbWBishop | _bbWHorse);
 			}
 			default:
@@ -285,13 +285,13 @@ namespace sunfish {
 				return bb & _bbWKing && bb & (_bbBRook | _bbBDragon);
 			}
 			case PinDir::RightUp: {
-				// 右上がり
-				Bitboard bb = MoveTables::RightUp.get(pos, occ);
+				// 右上がり/左下がり
+				Bitboard bb = MoveTables::RightUpX.get(pos, occ);
 				return bb & _bbWKing && bb & (_bbBBishop | _bbBHorse);
 			}
 			case PinDir::RightDown: {
-				// 右下がり
-				Bitboard bb = MoveTables::RightDown.get(pos, occ);
+				// 右下がり/左上がり
+				Bitboard bb = MoveTables::RightDownX.get(pos, occ);
 				return bb & _bbWKing && bb & (_bbBBishop | _bbBHorse);
 			}
 			default:

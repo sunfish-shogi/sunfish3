@@ -10,108 +10,246 @@
 
 namespace sunfish {
 
-	template <bool black>
-	void See::generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Bitboard& mask) {
+	struct MovableFlags {
+		bool up;
+		bool down;
+		bool left;
+		bool right;
+		bool leftUp;
+		bool leftDown;
+		bool rightUp;
+		bool rightDown;
+	};
+	MovableFlags MovableTable[] = {
+		//   up,  down,  left, right,   l-u,   l-d,   r-u,   r-d
+		{  true, false, false, false, false, false, false, false }, // black pawn
+		{  true, false, false, false, false, false, false, false }, // black lance
+		{ false, false, false, false, false, false, false, false }, // black knight
+		{  true, false, false, false,  true,  true,  true,  true }, // black silver
+		{  true,  true,  true,  true,  true, false,  true, false }, // black gold
+		{ false, false, false, false,  true,  true,  true,  true }, // black bishop
+		{  true,  true,  true,  true, false, false, false, false }, // black rook
+		{  true,  true,  true,  true,  true,  true,  true,  true }, // black king
+		{  true,  true,  true,  true,  true, false,  true, false }, // black tokin
+		{  true,  true,  true,  true,  true, false,  true, false }, // black pro-lance
+		{  true,  true,  true,  true,  true, false,  true, false }, // black pro-knight
+		{  true,  true,  true,  true,  true, false,  true, false }, // black pro-silver
+		{ false, false, false, false, false, false, false, false }, // n/a
+		{  true,  true,  true,  true,  true,  true,  true,  true }, // black horse
+		{  true,  true,  true,  true,  true,  true,  true,  true }, // black dragon
+		{ false, false, false, false, false, false, false, false }, // n/a
+		{ false,  true, false, false, false, false, false, false }, // white pawn
+		{ false,  true, false, false, false, false, false, false }, // white lance
+		{ false, false, false, false, false, false, false, false }, // white knight
+		{ false,  true, false, false,  true,  true,  true,  true }, // white silver
+		{  true,  true,  true,  true, false,  true, false,  true }, // white gold
+		{ false, false, false, false,  true,  true,  true,  true }, // white bishop
+		{  true,  true,  true,  true, false, false, false, false }, // white rook
+		{  true,  true,  true,  true,  true,  true,  true,  true }, // white king
+		{  true,  true,  true,  true, false,  true, false,  true }, // white tokin
+		{  true,  true,  true,  true, false,  true, false,  true }, // white pro-lance
+		{  true,  true,  true,  true, false,  true, false,  true }, // white pro-knight
+		{  true,  true,  true,  true, false,  true, false,  true }, // white pro-silver
+		{ false, false, false, false, false, false, false, false }, // n/a
+		{  true,  true,  true,  true,  true,  true,  true,  true }, // white horse
+		{  true,  true,  true,  true,  true,  true,  true,  true }, // white dragon
+		{ false, false, false, false, false, false, false, false }, // n/a
+	};
+
+	template <bool black, See::Direction dir, bool isFirst>
+	void See::generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Attacker* dependOn) {
 
 		auto& num = black ? _bnum : _wnum;
 		auto list = black ? _b : _w;
 
-		num = 0;
+		// 斜め
+		if (dir == Direction::LeftUp || dir == Direction::LeftDown ||
+				dir == Direction::RightUp || dir == Direction::RightDown) {
+			// 距離1
+			if (isFirst) {
+				auto from = (dir == Direction::LeftUp ? to.leftUp() :
+										 dir == Direction::LeftDown ? to.leftDown() :
+										 dir == Direction::RightUp ? to.rightUp() :
+										 to.rightDown());
+				auto piece = board.getBoardPiece(from);
+				if (((black && piece.isBlack()) || (!black && piece.isWhite())) &&
+						(dir == Direction::LeftUp ? MovableTable[piece].rightDown :
+						 dir == Direction::LeftDown ? MovableTable[piece].rightUp :
+						 dir == Direction::RightUp ? MovableTable[piece].leftDown :
+						 MovableTable[piece].leftUp)) {
+					if (from != exceptPos) {
+						list[num++] = { eval.pieceExchange(piece), dependOn, false };
+						generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
+					} else {
+						generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
+					}
+					return;
+				}
+			}
 
-		// pawn
-		auto bb = black ? MoveTables::WPawn.get(to) : MoveTables::BPawn.get(to);
-		bb &= mask;
-		if (bb & (black ? board.getBPawn() : board.getWPawn())) {
-			list[num++] = eval.table().pawnEx;
-		}
-
-		// knight
-		bb = black ? MoveTables::WKnight.get(to) : MoveTables::BKnight.get(to);
-		bb &= mask;
-		if (bb & (black ? board.getBKnight() : board.getWKnight())) {
-			list[num++] = eval.table().knightEx;
-		}
-
-		// silver
-		bb = black ? MoveTables::WSilver.get(to) : MoveTables::BSilver.get(to);
-		bb &= mask;
-		if (bb & (black ? board.getBSilver() : board.getWSilver())) {
-			list[num++] = eval.table().silverEx;
-		}
-
-		// gold
-		bb = black ? MoveTables::WGold.get(to) : MoveTables::BGold.get(to);
-		bb &= mask;
-		if (bb & (black ? board.getBGold() : board.getWGold())) {
-			list[num++] = eval.table().goldEx;
-		}
-		if (bb & (black ? board.getBTokin() : board.getWTokin())) {
-			list[num++] = eval.table().tokinEx;
-		}
-		if (bb & (black ? board.getBProLance() : board.getWProLance())) {
-			list[num++] = eval.table().pro_lanceEx;
-		}
-		if (bb & (black ? board.getBProKnight() : board.getWProKnight())) {
-			list[num++] = eval.table().pro_knightEx;
-		}
-		if (bb & (black ? board.getBProSilver() : board.getWProSilver())) {
-			list[num++] = eval.table().pro_silverEx;
-		}
-
-		// horse, dragon
-		bb = MoveTables::King.get(to);
-		bb &= mask;
-		if (bb & (black ? board.getBHorse() : board.getWHorse())) {
-			list[num++] = eval.table().horseEx;
-		}
-		if (bb & (black ? board.getBDragon() : board.getWDragon())) {
-			list[num++] = eval.table().dragonEx;
-		}
-
-		// lance
-		bb = black ? MoveTables::WLance.get(to, occ) : MoveTables::BLance.get(to, occ);
-		bb &= mask;
-		if (bb & (black ? board.getBLance() : board.getWLance())) {
-			list[num++] = eval.table().lanceEx;
+			// 長い距離
+			auto bb = (dir == Direction::LeftUp ? MoveTables::LeftUp.get(to, occ) :
+								 dir == Direction::LeftDown ? MoveTables::LeftDown.get(to, occ) :
+								 dir == Direction::RightUp ? MoveTables::RightUp.get(to, occ) :
+								 MoveTables::RightDown.get(to, occ));
+			auto result = bb & (black ? board.getBBishop() : board.getWBishop());
+			if (result) {
+				auto from = result.pickFirst();
+				if (from != exceptPos) {
+					list[num++] = { eval.table().bishopEx, dependOn, false };
+					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
+				} else {
+					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
+				}
+			}
+			result = bb & (black ? board.getBHorse() : board.getWHorse());
+			if (result) {
+				auto from = result.pickFirst();
+				if (from != exceptPos) {
+					list[num++] = { eval.table().horseEx, dependOn, false };
+					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
+				} else {
+					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
+				}
+			}
 		}
 
-		// bishop, horse
-		bb = MoveTables::Bishop2.get(to, occ);
-		bb &= mask;
-		if (bb & (black ? board.getBBishop() : board.getWBishop())) {
-			list[num++] = eval.table().bishopEx;
-		}
-		if (bb & (black ? board.getBHorse() : board.getWHorse())) {
-			list[num++] = eval.table().horseEx;
-		}
+		// 縦と横
+		if (dir == Direction::Up || dir == Direction::Down ||
+				dir == Direction::Left || dir == Direction::Right) {
+			// 距離1
+			if (isFirst) {
+				auto from = (dir == Direction::Up ? to.up() :
+										 dir == Direction::Down ? to.down() :
+										 dir == Direction::Left ? to.left() :
+										 to.right());
+				auto piece = board.getBoardPiece(from);
+				if (((black && piece.isBlack()) || (!black && piece.isWhite())) &&
+						(dir == Direction::Up ? MovableTable[piece].down :
+						 dir == Direction::Down ? MovableTable[piece].up :
+						 dir == Direction::Left ? MovableTable[piece].right :
+						 MovableTable[piece].left)) {
+					if (from != exceptPos) {
+						list[num++] = { eval.pieceExchange(piece), dependOn, false };
+						generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
+					} else {
+						generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
+					}
+					return;
+				}
+			}
 
-		// rook, dragon
-		bb = MoveTables::Rook2.get(to, occ);
-		bb &= mask;
-		if (bb & (black ? board.getBRook() : board.getWRook())) {
-			list[num++] = eval.table().rookEx;
+			// 長い距離
+			auto bb = (dir == Direction::Up ? MoveTables::BLance.get(to, occ) :
+								 dir == Direction::Down ? MoveTables::WLance.get(to, occ) :
+								 dir == Direction::Left ? MoveTables::Left.get(to, occ) :
+								 MoveTables::Right.get(to, occ));
+			auto result = bb & (black ? board.getBRook() : board.getWRook());
+			if (result) {
+				auto from = result.pickFirst();
+				if (from != exceptPos) {
+					list[num++] = { eval.table().rookEx, dependOn, false };
+					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
+				} else {
+					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
+				}
+			}
+			result = bb & (black ? board.getBDragon() : board.getWDragon());
+			if (result) {
+				auto from = result.pickFirst();
+				if (from != exceptPos) {
+					list[num++] = { eval.table().dragonEx, dependOn, false };
+					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
+				} else {
+					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
+				}
+			}
+			if ((black && dir == Direction::Down) || (!black && dir == Direction::Up)) {
+				result = bb & (black ? board.getBLance() : board.getWLance());
+				if (result) {
+					auto from = result.pickFirst();
+					if (from != exceptPos) {
+						list[num++] = { eval.table().lanceEx, dependOn, false };
+						generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
+					} else {
+						generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
+					}
+				}
+			}
 		}
-		if (bb & (black ? board.getBDragon() : board.getWDragon())) {
-			list[num++] = eval.table().dragonEx;
-		}
-
-		assert(num < (int)(sizeof(_b) / sizeof(_b[0])));
-
-		std::sort(list, list + num);
 
 	}
 
 	template <bool black>
-	Value See::search(int b, int w, Value value) {
+	void See::generateKnightAttacker(const Evaluator& eval, const Board& board, const Position& from, const Position& exceptPos) {
+		auto& num = black ? _bnum : _wnum;
+		auto list = black ? _b : _w;
 
+		auto piece = board.getBoardPiece(from);
+		if ((black && piece == Piece::BKnight) || (!black && piece == Piece::WKnight)) {
+			if (from != exceptPos) { list[num++] = { eval.pieceExchange(piece), nullptr, false }; }
+			return;
+		}
+	}
+
+	template <bool black>
+	void See::generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos) {
+
+		auto& num = black ? _bnum : _wnum;
+		auto list = black ? _b : _w;
+		auto listRef = black ? _bref : _wref;
+
+		num = 0;
+
+		generateAttackers<black, Direction::Up, true>(eval, board, to, occ, exceptPos, nullptr);
+		generateAttackers<black, Direction::Down, true>(eval, board, to, occ, exceptPos, nullptr);
+		generateAttackers<black, Direction::Left, true>(eval, board, to, occ, exceptPos, nullptr);
+		generateAttackers<black, Direction::Right, true>(eval, board, to, occ, exceptPos, nullptr);
+		generateAttackers<black, Direction::LeftUp, true>(eval, board, to, occ, exceptPos, nullptr);
+		generateAttackers<black, Direction::RightUp, true>(eval, board, to, occ, exceptPos, nullptr);
+		generateAttackers<black, Direction::LeftDown, true>(eval, board, to, occ, exceptPos, nullptr);
+		generateAttackers<black, Direction::RightDown, true>(eval, board, to, occ, exceptPos, nullptr);
+
+		// 桂馬
+		auto from = black ? to.down(2).right() : to.up(2).left();
+		generateKnightAttacker<black>(eval, board, from, exceptPos);
+		from = black ? to.down(2).left() : to.up(2).right();
+		generateKnightAttacker<black>(eval, board, from, exceptPos);
+
+		assert(num < (int)(sizeof(_b) / sizeof(_b[0])));
+
+#define SET_REF(i) listRef[i].attacker = &list[i]
+		SET_REF(0); SET_REF(1); SET_REF(2); SET_REF(3);
+		SET_REF(4); SET_REF(5); SET_REF(6); SET_REF(7);
+		SET_REF(8); SET_REF(9); SET_REF(10); SET_REF(11);
+		SET_REF(12); SET_REF(13); SET_REF(14); SET_REF(15);
+
+		std::sort(listRef, listRef + num);
+
+	}
+
+	template <bool black>
+	Value See::search(Value value) {
+
+#define SEARCH(i, c) if (i < _ ## c ## num) { \
+			auto att = _ ## c ## ref[i].attacker; \
+			if (!att->used && (att->dependOn == nullptr || att->dependOn->used)) { \
+				att->used = true; \
+				auto result = Value::max(0, value - search<!black>(att->value)); \
+				att->used = false; \
+				return result; \
+			} \
+	}
 		if (black) {
-			if (b < _bnum) {
-				return Value::max(0, value - search<false>(b+1, w, _b[b]));
-			}
+			SEARCH(0, b); SEARCH(1, b); SEARCH(2, b); SEARCH(3, b);
+			SEARCH(4, b); SEARCH(5, b); SEARCH(6, b); SEARCH(7, b);
+			SEARCH(8, b); SEARCH(9, b); SEARCH(10, b); SEARCH(11, b);
+			SEARCH(12, b); SEARCH(13, b); SEARCH(14, b); SEARCH(15, b);
 		} else {
-			if (w < _wnum) {
-				return Value::max(0, value - search<true>(b, w+1, _w[w]));
-			}
+			SEARCH(0, w); SEARCH(1, w); SEARCH(2, w); SEARCH(3, w);
+			SEARCH(4, w); SEARCH(5, w); SEARCH(6, w); SEARCH(7, w);
+			SEARCH(8, w); SEARCH(9, w); SEARCH(10, w); SEARCH(11, w);
+			SEARCH(12, w); SEARCH(13, w); SEARCH(14, w); SEARCH(15, w);
 		}
 
 		return 0;
@@ -134,9 +272,9 @@ namespace sunfish {
 		Value attacker = eval.pieceExchange(piece);
 
 		if (board.isBlack()) {
-			return captured - search<false>(0, 0, attacker);
+			return captured - search<false>(attacker);
 		} else {
-			return captured - search<true>(0, 0, attacker);
+			return captured - search<true>(attacker);
 		}
 
 	}

@@ -134,29 +134,35 @@ POSITION_EACH(from) { \
 				// left
 				for (Position pos = basePos.safetyLeft(); pos.isValid() && pos.getFile() <= 9; pos = pos.safetyLeft()) {
 					_rank[basePos][b].set(pos);
+					_left[basePos][b].set(pos);
 					if (b & (1 << (8 - pos.getFile()))) { break; }
 				}
 				// right
 				for (Position pos = basePos.safetyRight(); pos.isValid() && pos.getFile() >= 1; pos = pos.safetyRight()) {
 					_rank[basePos][b].set(pos);
+					_right[basePos][b].set(pos);
 					if (b & (1 << (8 - pos.getFile()))) { break; }
 				}
 				// left-up
 				for (Position pos = basePos.safetyLeftUp(); pos.isValid() && pos.getFile() <= 9 && pos.getRank() >= 1; pos = pos.safetyLeftUp()) {
+					_leftUpX[basePos][b].set(pos);
 					_leftUp[basePos][b].set(pos);
 					if (b & (1 << (pos.getRank() - 2))) { break; }
 				}
 				for (Position pos = basePos.safetyRightDown(); pos.isValid() && pos.getFile() >= 1 && pos.getRank() <= 9; pos = pos.safetyRightDown()) {
-					_leftUp[basePos][b].set(pos);
+					_leftUpX[basePos][b].set(pos);
+					_rightDown[basePos][b].set(pos);
 					if (b & (1 << (pos.getRank() - 2))) { break; }
 				}
 				// right-up
 				for (Position pos = basePos.safetyRightUp(); pos.isValid() && pos.getFile() >= 1 && pos.getRank() >= 1; pos = pos.safetyRightUp()) {
+					_rightUpX[basePos][b].set(pos);
 					_rightUp[basePos][b].set(pos);
 					if (b & (1 << (pos.getRank() - 2))) { break; }
 				}
 				for (Position pos = basePos.safetyLeftDown(); pos.isValid() && pos.getFile() <= 9 && pos.getRank() <= 9; pos = pos.safetyLeftDown()) {
-					_rightUp[basePos][b].set(pos);
+					_rightUpX[basePos][b].set(pos);
+					_leftDown[basePos][b].set(pos);
 					if (b & (1 << (pos.getRank() - 2))) { break; }
 				}
 			}
@@ -292,9 +298,25 @@ POSITION_EACH(from) { \
 		return movePattern.rank(pos, b & 0x7f);
 	}
 
+	inline Bitboard rightUpX(const Position& pos, const Bitboard& bb) {
+		// 双方向右上がり
+		Bitboard attack = bb & dirMask7x7.rightUpX(pos);
+		const auto& m = magic.rightUp(pos);
+		unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+		return movePattern.rightUpX(pos, b & 0x7f);
+	}
+
+	inline Bitboard rightDownX(const Position& pos, const Bitboard& bb) {
+		// 双方向右下がり
+		Bitboard attack = bb & dirMask7x7.leftUpX(pos);
+		const auto& m = magic.leftUp(pos);
+		unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+		return movePattern.leftUpX(pos, b & 0x7f);
+	}
+
 	inline Bitboard rightUp(const Position& pos, const Bitboard& bb) {
 		// 右上がり
-		Bitboard attack = bb & dirMask7x7.rightUpX(pos);
+		Bitboard attack = bb & dirMask7x7.rightUp(pos);
 		const auto& m = magic.rightUp(pos);
 		unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
 		return movePattern.rightUp(pos, b & 0x7f);
@@ -302,10 +324,42 @@ POSITION_EACH(from) { \
 
 	inline Bitboard rightDown(const Position& pos, const Bitboard& bb) {
 		// 右下がり
-		Bitboard attack = bb & dirMask7x7.leftUpX(pos);
+		Bitboard attack = bb & dirMask7x7.rightDown(pos);
+		const auto& m = magic.leftUp(pos);
+		unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+		return movePattern.rightDown(pos, b & 0x7f);
+	}
+
+	inline Bitboard leftUp(const Position& pos, const Bitboard& bb) {
+		// 左上がり
+		Bitboard attack = bb & dirMask7x7.leftUp(pos);
 		const auto& m = magic.leftUp(pos);
 		unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
 		return movePattern.leftUp(pos, b & 0x7f);
+	}
+
+	inline Bitboard leftDown(const Position& pos, const Bitboard& bb) {
+		// 左下がり
+		Bitboard attack = bb & dirMask7x7.leftDown(pos);
+		const auto& m = magic.rightUp(pos);
+		unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+		return movePattern.leftDown(pos, b & 0x7f);
+	}
+
+	inline Bitboard right(const Position& pos, const Bitboard& bb) {
+		// 右
+		Bitboard attack = bb & dirMask7x7.right(pos);
+		const auto& m = magic.rank(pos);
+		unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+		return movePattern.right(pos, b & 0x7f);
+	}
+
+	inline Bitboard left(const Position& pos, const Bitboard& bb) {
+		// 左
+		Bitboard attack = bb & dirMask7x7.left(pos);
+		const auto& m = magic.rank(pos);
+		unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+		return movePattern.left(pos, b & 0x7f);
 	}
 
 	/**
@@ -313,7 +367,7 @@ POSITION_EACH(from) { \
 	 */
 	template<>
 	Bitboard LongMoveTable<MoveTableType::Bishop>::get(const Position& pos, const Bitboard& bb) const {
-		return rightUp(pos, bb) | rightDown(pos, bb);
+		return rightUpX(pos, bb) | rightDownX(pos, bb);
 	}
 
 	/**
@@ -329,7 +383,7 @@ POSITION_EACH(from) { \
 	 */
 	template<>
 	Bitboard LongMoveTable<MoveTableType::Bishop2>::get(const Position& pos, const Bitboard& bb) const {
-		return (rightUp(pos, bb) | rightDown(pos, bb)) & ~MoveTables::King.get(pos);
+		return (rightUpX(pos, bb) | rightDownX(pos, bb)) & ~MoveTables::King.get(pos);
 	}
 
 	/**
@@ -346,7 +400,7 @@ POSITION_EACH(from) { \
 	template<>
 	Bitboard LongMoveTable<MoveTableType::Horse>::get(const Position& pos, const Bitboard& bb) const {
 		// 角の利きに横1マスの移動を加える。
-		return rightUp(pos, bb) | rightDown(pos, bb) | horseOneStepMove.get(pos);
+		return rightUpX(pos, bb) | rightDownX(pos, bb) | horseOneStepMove.get(pos);
 	}
 
 	/**
@@ -375,6 +429,22 @@ POSITION_EACH(from) { \
 	}
 
 	/**
+	 * 双方向右上がり
+	 */
+	template<>
+	Bitboard LongMoveTable<MoveTableType::RightUpX>::get(const Position& pos, const Bitboard& bb) const {
+		return rightUpX(pos, bb);
+	}
+
+	/**
+	 * 双方向右下がり
+	 */
+	template<>
+	Bitboard LongMoveTable<MoveTableType::RightDownX>::get(const Position& pos, const Bitboard& bb) const {
+		return rightDownX(pos, bb);
+	}
+
+	/**
 	 * 右上がり
 	 */
 	template<>
@@ -390,6 +460,38 @@ POSITION_EACH(from) { \
 		return rightDown(pos, bb);
 	}
 
+	/**
+	 * 左上がり
+	 */
+	template<>
+	Bitboard LongMoveTable<MoveTableType::LeftUp>::get(const Position& pos, const Bitboard& bb) const {
+		return leftUp(pos, bb);
+	}
+
+	/**
+	 * 左下がり
+	 */
+	template<>
+	Bitboard LongMoveTable<MoveTableType::LeftDown>::get(const Position& pos, const Bitboard& bb) const {
+		return leftDown(pos, bb);
+	}
+
+	/**
+	 * 右
+	 */
+	template<>
+	Bitboard LongMoveTable<MoveTableType::Right>::get(const Position& pos, const Bitboard& bb) const {
+		return right(pos, bb);
+	}
+
+	/**
+	 * 左
+	 */
+	template<>
+	Bitboard LongMoveTable<MoveTableType::Left>::get(const Position& pos, const Bitboard& bb) const {
+		return left(pos, bb);
+	}
+
 	const LongMoveTable<MoveTableType::BLance> MoveTables::BLance;
 	const LongMoveTable<MoveTableType::WLance> MoveTables::WLance;
 	const LongMoveTable<MoveTableType::Bishop> MoveTables::Bishop;
@@ -401,6 +503,12 @@ POSITION_EACH(from) { \
 
 	const LongMoveTable<MoveTableType::Vertical> MoveTables::Vertical;
 	const LongMoveTable<MoveTableType::Horizontal> MoveTables::Horizontal;
+	const LongMoveTable<MoveTableType::RightUpX> MoveTables::RightUpX;
+	const LongMoveTable<MoveTableType::RightDownX> MoveTables::RightDownX;
 	const LongMoveTable<MoveTableType::RightUp> MoveTables::RightUp;
 	const LongMoveTable<MoveTableType::RightDown> MoveTables::RightDown;
+	const LongMoveTable<MoveTableType::LeftUp> MoveTables::LeftUp;
+	const LongMoveTable<MoveTableType::LeftDown> MoveTables::LeftDown;
+	const LongMoveTable<MoveTableType::Right> MoveTables::Right;
+	const LongMoveTable<MoveTableType::Left> MoveTables::Left;
 }
