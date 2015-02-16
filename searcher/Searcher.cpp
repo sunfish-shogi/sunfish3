@@ -55,6 +55,9 @@ namespace sunfish {
 		}
 #endif
 
+		_forceInterrupt = false;
+		_isRunning = true;
+
 	}
 
 	/**
@@ -83,6 +86,9 @@ namespace sunfish {
 		}
 #endif
 
+		_isRunning = false;
+		_forceInterrupt = false;
+
 	}
 
 	/**
@@ -105,10 +111,20 @@ namespace sunfish {
 	 * 探索中断判定
 	 */
 	inline bool Searcher::isInterrupted() {
-		if (_timer.get() >= _config.limitSeconds) {
+		if (_forceInterrupt) {
+			return true;
+		}
+		if (_config.limitEnable && _timer.get() >= _config.limitSeconds) {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * 探索を強制的に打ち切ります。
+	 */
+	void Searcher::forceInterrupt() {
+		_forceInterrupt = true;
 	}
 
 	/**

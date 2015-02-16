@@ -10,6 +10,7 @@
 #include <mutex>
 #include <fstream>
 #include <sstream>
+#include <thread>
 
 #define WARN_IGNORED(key, value) Loggers::warning << __THIS__ << ": not supported: key=[" << (key) << "] value=[" << (value) << "]"
 
@@ -218,19 +219,25 @@ lab_end:
 	 * 相手の手番
 	 */
 	bool CsaClient::enemyTurn() {
-		// 相手番探索設定
-		auto searchConfigEnemy = _searchConfigBase;
-		searchConfigEnemy.maxDepth = 32;
-		searchConfigEnemy.limitEnable = false;
-
-		// TODO: 相手番中の思考開始
+		// 相手番中の思考開始
+		_ponderCompleted = false;
+		std::thread th([this]() {
+			ponder();
+		});
 
 		// 相手番の指し手を受信
 		std::string recvStr;
 		unsigned mask = gameSummary.black ? RECV_MOVE_W : RECV_MOVE_B;
 		unsigned flags = waitReceive(mask | RECV_END_MSK, &recvStr);
 
-		// TODO: 相手番中の思考終了
+		// 探索が開始されていることを確認
+		while (!_searcher.isRunning() && !_ponderCompleted) {
+			std::this_thread::yield();
+		}
+
+		// 相手番中の思考終了
+		_searcher.forceInterrupt();
+		th.join();
 
 		if (flags & mask) {
 			// 受信した指し手の読み込み
@@ -261,6 +268,27 @@ lab_end:
 		}
 
 		return true;
+	}
+
+	/**
+	 * Ponder
+	 */
+	void CsaClient::ponder() {
+		assert(_ponderCompleted == false);
+
+		// 相手番探索設定
+		auto searchConfig = _searchConfigBase;
+		searchConfig.maxDepth = 32;
+		searchConfig.limitEnable = false;
+		_searcher.setConfig(searchConfig);
+
+		// 探索
+		Loggers::message << "begin ponder";
+		Move move;
+		_searcher.idsearch(_record.getBoard(), move);
+		Loggers::message << "end ponder";
+
+		_ponderCompleted = true;
 	}
 
 	/**

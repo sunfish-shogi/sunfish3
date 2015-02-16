@@ -90,6 +90,12 @@ namespace sunfish {
 		/** record */
 		std::vector<Move> _record;
 
+		/** 中断フラグ */
+		volatile bool _forceInterrupt;
+
+		/** 実行中フラグ */
+		volatile bool _isRunning;
+
 		/**
 		 * 設定の初期化
 		 */
@@ -211,7 +217,11 @@ namespace sunfish {
 		/**
 		 * コンストラクタ
 		 */
-		Searcher() : _trees(nullptr) {
+		Searcher()
+		: _trees(nullptr)
+		, _forceInterrupt(false)
+		, _isRunning(false)
+		{
 			initConfig();
 			_history.init();
 		}
@@ -257,6 +267,18 @@ namespace sunfish {
 		 * SHEK と千日手検出のために過去の棋譜をセットします。
 		 */
 		void setRecord(const Record& record);
+
+		/**
+		 * 探索を強制的に打ち切ります。
+		 */
+		void forceInterrupt();
+
+		/**
+		 * 探索中かチェックします。
+		 */
+		bool isRunning() const {
+			return _isRunning;
+		}
 
 		/**
 		 * 指定した局面に対して探索を実行します。

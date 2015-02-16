@@ -126,6 +126,8 @@ namespace sunfish {
 		/** 後手の持ち時間 */
 		RemainingTime _whiteTime;
 
+		volatile bool _ponderCompleted;
+
 		struct GameSummary {
 			/** 自分の手番が黒か */
 			bool black;
@@ -172,6 +174,14 @@ namespace sunfish {
 		 */
 		bool enemyTurn();
 
+		/**
+		 * Ponder
+		 */
+		void ponder();
+
+		/**
+		 * 探索設定を構築
+		 */
 		void buildSearchConfig(Searcher::Config& searchConfig);
 
 		void receiver();
