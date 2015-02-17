@@ -114,9 +114,9 @@ namespace sunfish {
 		template<bool black>
 		bool isLanceSignficant() const {
 			if (black) {
-				return getRank() - 1 >= 2;
+				return getRank() - 1 == 2;
 			} else {
-				return getRank() - 1 <= 6;
+				return getRank() - 1 == 6;
 			}
 		}
 		template<bool black>

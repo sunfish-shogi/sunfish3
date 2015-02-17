@@ -85,9 +85,7 @@ namespace sunfish {
 			Bitboard bb2 = black ? MoveTables::BSilver.get(from) : MoveTables::WSilver.get(from);
 			bb2 &= mask;
 			BB_EACH_OPE(to, bb2, {
-				if (!exceptNonPromAll) {
-					moves.add(Move(Piece::Silver, from, to, false, false));
-				}
+				moves.add(Move(Piece::Silver, from, to, false, false));
 				if (to.isPromotable<black>() || from.isPromotable<black>()) {
 					moves.add(Move(Piece::Silver, from, to, true, false));
 				}
@@ -114,6 +112,10 @@ namespace sunfish {
 			BB_EACH_OPE(to, bb2, {
 				if (to.isPromotable<black>() || from.isPromotable<black>()) {
 					moves.add(Move(Piece::Bishop, from, to, true, false));
+  				if (!exceptNonEffectiveProm && !exceptNonPromAll) {
+  					// 不成りを生成
+						moves.add(Move(Piece::Bishop, from, to, false, false));
+  				}
 				} else if (!exceptNonPromAll) {
 					moves.add(Move(Piece::Bishop, from, to, false, false));
 				}
@@ -128,6 +130,10 @@ namespace sunfish {
 			BB_EACH_OPE(to, bb2, {
 				if (to.isPromotable<black>() || from.isPromotable<black>()) {
 					moves.add(Move(Piece::Rook, from, to, true, false));
+  				if (!exceptNonEffectiveProm && !exceptNonPromAll) {
+  					// 不成りを生成
+						moves.add(Move(Piece::Rook, from, to, false, false));
+  				}
 				} else if (!exceptNonPromAll) {
 					moves.add(Move(Piece::Rook, from, to, false, false));
 				}
