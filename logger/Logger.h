@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 #include <ctime>
+#include <mutex>
 
 #define __THIS__			__FILE__ << '(' << __LINE__ << ')'
 
@@ -51,11 +52,12 @@ namespace sunfish {
 			const char* after;
 		};
 
-		const char* name;
-		std::vector<Stream> os;
+		static std::mutex _mutex;
+		const char* _name;
+		std::vector<Stream> _os;
 
 	public:
-		Logger(const char* name = nullptr) : name(name) {
+		Logger(const char* name = nullptr) : _name(name) {
 		}
 		Logger(const Logger& logger) = delete;
 		Logger(Logger&& logger) = delete;
@@ -63,7 +65,7 @@ namespace sunfish {
 		void addStream(std::ostream& o, bool timestamp, bool loggerName,
 				const char* before, const char* after) {
 			Stream s = { &o, timestamp, loggerName, before, after };
-			os.push_back(s);
+			_os.push_back(s);
 		}
 		void addStream(std::ostream& o, bool timestamp, bool loggerName) {
 			addStream(o, timestamp, loggerName, nullptr, nullptr);
@@ -76,8 +78,9 @@ namespace sunfish {
 		}
 
 		template <class T> void print(const T t, bool top = false) {
+			std::lock_guard<std::mutex> lock(_mutex);
 			std::vector<Stream>::iterator it;
-			for (it = os.begin(); it != os.end(); it++) {
+			for (it = _os.begin(); it != _os.end(); it++) {
 				if (it->before != nullptr) {
 					*(it->pout) << it->before;
 				}
@@ -94,8 +97,8 @@ namespace sunfish {
 						strftime(tstr, sizeof(tstr)-1, "%Y-%m-%dT%H:%M:%S\t", &lt);
 						*(it->pout) << tstr;
 					}
-					if (it->loggerName && name) {
-						*(it->pout) << '[' << name << ']';
+					if (it->loggerName && _name) {
+						*(it->pout) << '[' << _name << ']';
 					}
 				}
 				*(it->pout) << t;
