@@ -64,12 +64,15 @@ namespace sunfish {
 		while (_record.unmakeMove())
 			;
 
-		while (_record.makeMove()) {
+		while (true) {
 			Move correct = _record.getNextMove();
 			if (correct.isEmpty()) {
 				break;
 			}
   		solve(_record.getBoard(), correct);
+			if (!_record.makeMove()) {
+				break;
+			}
 		}
 
 	}
