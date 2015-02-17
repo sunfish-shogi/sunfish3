@@ -13,6 +13,7 @@
 #include "tt/TT.h"
 #include "core/record/Record.h"
 #include "core/util/Timer.h"
+#include <atomic>
 
 namespace sunfish {
 
@@ -91,10 +92,10 @@ namespace sunfish {
 		std::vector<Move> _record;
 
 		/** 中断フラグ */
-		volatile bool _forceInterrupt;
+		std::atomic<bool> _forceInterrupt;
 
 		/** 実行中フラグ */
-		volatile bool _isRunning;
+		std::atomic<bool> _isRunning;
 
 		/**
 		 * 設定の初期化

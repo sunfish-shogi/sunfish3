@@ -17,6 +17,7 @@
 #include <regex>
 #include <thread>
 #include <mutex>
+#include <atomic>
 
 namespace sunfish {
 
@@ -126,7 +127,7 @@ namespace sunfish {
 		/** 後手の持ち時間 */
 		RemainingTime _whiteTime;
 
-		volatile bool _ponderCompleted;
+		std::atomic<bool> _ponderCompleted;
 
 		struct GameSummary {
 			/** 自分の手番が黒か */
