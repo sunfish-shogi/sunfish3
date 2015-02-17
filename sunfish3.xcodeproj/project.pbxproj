@@ -155,6 +155,7 @@
 		0969B6801A41C91200D56A21 /* TTE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTE.h; sourceTree = "<group>"; };
 		0969B6811A41C91200D56A21 /* TTMoves.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTMoves.h; sourceTree = "<group>"; };
 		0969B6871A41C91200D56A21 /* Test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Test.h; sourceTree = "<group>"; };
+		09761B391A9392E400193EA8 /* ProgramOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ProgramOptions.h; path = program_options/ProgramOptions.h; sourceTree = "<group>"; };
 		0982DDD71A8B95AA003D8576 /* EvaluatorTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EvaluatorTest.cpp; sourceTree = "<group>"; };
 		099DBAD81A8E1E840084CB2E /* ShekTable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ShekTable.h; path = shek/ShekTable.h; sourceTree = "<group>"; };
 		099DBAD91A8E1F090084CB2E /* ShekEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShekEntity.cpp; path = shek/ShekEntity.cpp; sourceTree = "<group>"; };
@@ -314,6 +315,7 @@
 		0969B6491A41C91200D56A21 /* cui */ = {
 			isa = PBXGroup;
 			children = (
+				09761B381A9392B500193EA8 /* program_options */,
 				094161921A8F61B800E3D250 /* solve */,
 				0969B64A1A41C91200D56A21 /* console */,
 				0969B64D1A41C91200D56A21 /* dev.cpp */,
@@ -452,6 +454,14 @@
 				0969B6871A41C91200D56A21 /* Test.h */,
 			);
 			path = test;
+			sourceTree = "<group>";
+		};
+		09761B381A9392B500193EA8 /* program_options */ = {
+			isa = PBXGroup;
+			children = (
+				09761B391A9392E400193EA8 /* ProgramOptions.h */,
+			);
+			name = program_options;
 			sourceTree = "<group>";
 		};
 		09D366F51A41C603002D88B9 = {
