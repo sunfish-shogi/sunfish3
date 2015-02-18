@@ -17,12 +17,20 @@ namespace sunfish {
 	 * 指し手生成
 	 */
 	class MoveGenerator {
+	public:
+
+		enum class GenType : int {
+			Capture,
+			NoCapture,
+			Evasion,
+		};
+
 	private:
 
-		template <bool black, bool exceptNonEffectiveProm, bool exceptNonPromAll, bool exceptKingMasking>
-		static void _generateOnBoard(const Board& board, Moves& moves, const Bitboard& mask);
+		template <bool black, GenType genType>
+		static void _generateOnBoard(const Board& board, Moves& moves, const Bitboard* costumToMask);
 		template <bool black>
-		static void _generateDrop(const Board& board, Moves& moves, const Bitboard& mask);
+		static void _generateDrop(const Board& board, Moves& moves, const Bitboard& toMask);
 		template <bool black>
 		static void _generateEvasion(const Board& board, Moves& moves);
 		template <bool black>
@@ -51,47 +59,28 @@ namespace sunfish {
 		}
 
 		/**
-		 * 駒を取る手を生成します。
+		 * 駒を取る手と成る手を生成します。
 		 * 王手がかかっていない場合のみに使用します。
 		 * 王手放置の手を含む可能性があります。
 		 */
 		static void generateCap(const Board& board, Moves& moves) {
-			assert(!board.isChecking());
 			if (board.isBlack()) {
-				_generateOnBoard<true, true, false, false>(board, moves, board.getWOccupy());
+				_generateOnBoard<true, GenType::Capture>(board, moves, nullptr);
 			} else {
-				_generateOnBoard<false, true, false, false>(board, moves, board.getBOccupy());
+				_generateOnBoard<false, GenType::Capture>(board, moves, nullptr);
 			}
 		}
 
 		/**
-		 * 駒を取らずに成る手のみを生成します。
-		 * 王手がかかっていない場合のみに使用します。
-		 * 王手放置の手を含む可能性があります。
-		 */
-		static void generateProm(const Board& board, Moves& moves) {
-			assert(!board.isChecking());
-			// TODO: 移動元が成れない位置の場合に移動先をマスクして高速化
-			Bitboard occ = board.getBOccupy() | board.getWOccupy();
-			if (board.isBlack()) {
-				_generateOnBoard<true, true, true, false>(board, moves, ~occ);
-			} else {
-				_generateOnBoard<false, true, true, false>(board, moves, ~occ);
-			}
-		}
-
-		/**
-		 * 駒を取らない移動手を生成します。
+		 * 駒を取らずかつ成らない移動手を生成します。
 		 * 王手がかかっていない場合のみに使用します。
 		 * 王手放置の手を含む可能性があります。
 		 */
 		static void generateNoCap(const Board& board, Moves& moves) {
-			assert(!board.isChecking());
-			Bitboard occ = board.getBOccupy() | board.getWOccupy();
 			if (board.isBlack()) {
-				_generateOnBoard<true, true, false, false>(board, moves, ~occ);
+				_generateOnBoard<true, GenType::NoCapture>(board, moves, nullptr);
 			} else {
-				_generateOnBoard<false, true, false, false>(board, moves, ~occ);
+				_generateOnBoard<false, GenType::NoCapture>(board, moves, nullptr);
 			}
 		}
 
@@ -101,12 +90,11 @@ namespace sunfish {
 		 * 打ち歩詰めや王手放置の手を含む可能性があります。
 		 */
 		static void generateDrop(const Board& board, Moves& moves) {
-			assert(!board.isChecking());
-			Bitboard occ = board.getBOccupy() | board.getWOccupy();
+			Bitboard nocc = ~(board.getBOccupy() | board.getWOccupy());
 			if (board.isBlack()) {
-				_generateDrop<true>(board, moves, ~occ);
+				_generateDrop<true>(board, moves, nocc);
 			} else {
-				_generateDrop<false>(board, moves, ~occ);
+				_generateDrop<false>(board, moves, nocc);
 			}
 		}
 
@@ -116,7 +104,6 @@ namespace sunfish {
 		 * 打ち歩詰めや王手放置の手を含む可能性があります。
 		 */
 		static void generateEvasion(const Board& board, Moves& moves) {
-			assert(board.isChecking());
 			if (board.isBlack()) {
 				_generateEvasion<true>(board, moves);
 			} else {

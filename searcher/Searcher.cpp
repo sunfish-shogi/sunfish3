@@ -130,12 +130,22 @@ namespace sunfish {
 	/**
 	 * sort moves by see
 	 */
-	void Searcher::sortSee(Tree& tree, bool plusOnly /* = false */) {
+	void Searcher::sortSee(Tree& tree, bool plusOnly /* = false */, bool exceptSmallCapture /* = false */) {
 #if ENABLE_SEE
 		const auto& board = tree.getBoard();
 
 		for (auto ite = tree.getNext(); ite != tree.getEnd(); ite++) {
-			Value value = _see.search(_eval, board, *ite);
+			const Move& move = *ite;
+
+			if (exceptSmallCapture) {
+				auto captured = tree.getBoard().getBoardPiece(move.to()).kindOnly();
+				if ((captured == Piece::Pawn && !move.promote()) ||
+						(captured.isEmpty() && move.piece() != Piece::Pawn)) {
+					tree.setSortValue(ite, -Value::Inf);
+				}
+			}
+
+			Value value = _see.search(_eval, board, move);
 			tree.setSortValue(ite, value.int32());
 		}
 
@@ -149,6 +159,8 @@ namespace sunfish {
 				}
 			}
 		}
+#else // ENABLE_SEE
+		sortHistory(tree);
 #endif // ENABLE_SEE
 
 	}
@@ -317,6 +329,40 @@ namespace sunfish {
 				break;
 
 			case GenPhase::CaptureOnly:
+				assert(false);
+
+			case GenPhase::End:
+				return false;
+			}
+		}
+
+	}
+
+	/**
+	 * get next move
+	 */
+	bool Searcher::nextMoveQuies(Tree& tree, Move& move, int qply) {
+
+		auto& moves = tree.getMoves();
+		auto& genPhase = tree.getGenPhase();
+		auto& board = tree.getBoard();
+
+		while (true) {
+
+			if (tree.getNext() != tree.getEnd()) {
+				move = *tree.getNext();
+				tree.selectNextMove();
+				return true;
+			}
+
+			switch (genPhase) {
+			case GenPhase::Prior: // fall through
+			case GenPhase::Capture: // fall through
+			case GenPhase::NoCapture:
+				assert(false);
+				break;
+
+			case GenPhase::CaptureOnly:
 				if (tree.isChecking()) {
 					MoveGenerator::generateEvasion(board, moves);
 					sortHistory(tree);
@@ -324,24 +370,9 @@ namespace sunfish {
 					break;
 
 				} else {
+					bool light = (qply >= 7 ? true : false);
 					MoveGenerator::generateCap(board, moves);
-					sortSee(tree, true);
-					genPhase = GenPhase::End;
-					break;
-
-				}
-
-			case GenPhase::TacticalOnly:
-				if (tree.isChecking()) {
-					MoveGenerator::generateEvasion(board, moves);
-					sortHistory(tree);
-					genPhase = GenPhase::End;
-					break;
-
-				} else {
-					MoveGenerator::generateCap(board, moves);
-					MoveGenerator::generateProm(board, moves);
-					sortSee(tree, true);
+					sortSee(tree, true, light);
 					genPhase = GenPhase::End;
 					break;
 
@@ -418,14 +449,10 @@ namespace sunfish {
 		// 合法手生成
 		auto& moves = tree.getMoves();
 		moves.clear();
-		if (qply < 7) {
-			tree.initGenPhase(GenPhase::TacticalOnly);
-		} else {
-			tree.initGenPhase(GenPhase::CaptureOnly);
-		}
+		tree.initGenPhase(GenPhase::CaptureOnly);
 
 		Move move;
-		while (nextMove(tree, move)) {
+		while (nextMoveQuies(tree, move, qply)) {
 			// alpha value
 			Value newAlpha = Value::max(alpha, value);
 

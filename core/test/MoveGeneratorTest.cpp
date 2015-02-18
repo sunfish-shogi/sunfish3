@@ -23,63 +23,64 @@ namespace {
 }
 #endif
 
-TEST(MoveGeneratorTest, testNoCap) {
-	Board board;
-	board.init(Board::Handicap::Even);
+TEST(MoveGeneratorTest, test) {
 	{
+		std::string src =
+"P1-KY-KE-GI-KI * -KI * -KE-KY\n"
+"P2 * -OU *  *  *  *  * -HI * \n"
+"P3-FU-FU-FU-FU-FU * -KA * -FU\n"
+"P4 *  *  *  * -GI-FU-FU+KA * \n"
+"P5 *  *  *  *  *  *  *  *  * \n"
+"P6+FU * +FU * +FU *  *  *  * \n"
+"P7 * +FU+GI+FU * +FU+FU * +FU\n"
+"P8 *  * +OU * +KI *  * +HI * \n"
+"P9+KY+KE * +KI *  * +GI+KE+KY\n"
+"P+00FU\n"
+"P-00FU\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
 		Moves moves;
-		MoveGenerator::generateNoCap(board, moves);
-		ASSERT_EQ(30, moves.size());
+		MoveGenerator::generate(board, moves);
+		ASSERT_EQ(46, moves.size());
 	}
-	// 76歩
-	board.makeMoveIrr(Move(Piece::Pawn, P77, P76, false));
+}
+
+TEST(MoveGeneratorTest, testNocap) {
 	{
+		std::string src =
+"P1-KY-KE-GI-KI * -KI * -KE-KY\n"
+"P2 * -OU *  *  *  *  * -HI * \n"
+"P3-FU-FU-FU-FU-FU * -KA * -FU\n"
+"P4 *  *  *  * -GI-FU-FU+KA * \n"
+"P5 *  *  *  *  *  *  *  *  * \n"
+"P6+FU * +FU * +FU *  *  *  * \n"
+"P7 * +FU+GI+FU * +FU+FU * +FU\n"
+"P8 *  * +OU * +KI *  * +HI * \n"
+"P9+KY+KE * +KI *  * +GI+KE+KY\n"
+"P+00FU\n"
+"P-00FU\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
 		Moves moves;
 		MoveGenerator::generateNoCap(board, moves);
-		ASSERT_EQ(30, moves.size());
-	}
-	// 34歩
-	board.makeMoveIrr(Move(Piece::Pawn, P33, P34, false));
-	{
-		Moves moves;
-		MoveGenerator::generateNoCap(board, moves);
-		ASSERT_EQ(36, moves.size());
+		ASSERT_EQ(40, moves.size());
 	}
 }
 
 TEST(MoveGeneratorTest, testCap) {
-	Board board;
-	Moves moves;
-	board.init(Board::Handicap::Even);
-	{
-		MoveGenerator::generateCap(board, moves);
-		ASSERT_EQ(0, moves.size());
-	}
-	// 76歩
-	board.makeMoveIrr(Move(Piece::Pawn, P77, P76, false));
-	{
-		Moves moves;
-		MoveGenerator::generateCap(board, moves);
-		ASSERT_EQ(0, moves.size());
-	}
-	// 34歩
-	board.makeMoveIrr(Move(Piece::Pawn, P33, P34, false));
-	{
-		Moves moves;
-		MoveGenerator::generateCap(board, moves);
-		ASSERT_EQ(1, moves.size());
-	}
-}
-
-TEST(MoveGeneratorTest, testProm) {
 	{
 		// 先手の駒 歩から桂まで
-		// (+5552KY は駒を取る手なので除外)
 		std::string src =
 "P1 *  *  *  *  *  *  *  *  * \n"
 "P2 * +OU *  * -FU *  *  *  * \n"
 "P3 *  *  * +FU *  *  *  *  * \n"
-"P4 *  * +FU *  *  *  * +KE * \n"
+"P4 *  * +FU *  *  * -KI+KE * \n"
 "P5 * +FU *  *  *  * +KE *  * \n"
 "P6 *  *  *  * +KY+KY * +KE * \n"
 "P7 *  *  *  *  *  *  *  *  * \n"
@@ -93,9 +94,8 @@ TEST(MoveGeneratorTest, testProm) {
 		CsaReader::readBoard(iss, board);
 
 		Moves moves;
-		MoveGenerator::generateProm(board, moves);
-		ASSERT_EQ(10, moves.size());
-		ASSERT_EQ(true, moves[0].promote());
+		MoveGenerator::generateCap(board, moves);
+		ASSERT_EQ(12, moves.size());
 	}
 
 	{
@@ -109,7 +109,7 @@ TEST(MoveGeneratorTest, testProm) {
 "P6 *  *  *  *  *  * +HI *  * \n"
 "P7 *  *  *  *  *  *  *  *  * \n"
 "P8 *  *  *  *  *  *  *  *  * \n"
-"P9 *  *  *  *  *  *  *  *  * \n"
+"P9 *  *  *  *  *  * -TO *  * \n"
 "P+\n"
 "P-\n"
 "+\n";
@@ -118,8 +118,8 @@ TEST(MoveGeneratorTest, testProm) {
 		CsaReader::readBoard(iss, board);
 
 		Moves moves;
-		MoveGenerator::generateProm(board, moves);
-		ASSERT_EQ(37, moves.size());
+		MoveGenerator::generateCap(board, moves);
+		ASSERT_EQ(39, moves.size());
 	}
 
 	{
@@ -128,12 +128,12 @@ TEST(MoveGeneratorTest, testProm) {
 "P1 *  *  *  *  *  *  *  *  * \n"
 "P2 *  *  *  *  *  *  *  *  * \n"
 "P3 *  *  *  *  *  *  *  *  * \n"
-"P4 *  *  *  * -KY-KY * -KE * \n"
-"P5 * -FU *  *  *  * -KE *  * \n"
+"P4-FU *  *  * -KY-KY * -KE * \n"
+"P5+UM-FU *  *  *  * -KE *  * \n"
 "P6 *  * -FU *  *  *  * -KE * \n"
 "P7 *  *  * -FU *  *  *  *  * \n"
 "P8 * -OU *  * +FU *  *  *  * \n"
-"P9 *  *  *  *  *  *  *  *  * \n"
+"P9 * +KE *  *  *  *  *  *  * \n"
 "P+\n"
 "P-\n"
 "-\n";
@@ -142,9 +142,8 @@ TEST(MoveGeneratorTest, testProm) {
 		CsaReader::readBoard(iss, board);
 
 		Moves moves;
-		MoveGenerator::generateProm(board, moves);
-		ASSERT_EQ(10, moves.size());
-		ASSERT_EQ(true, moves[0].promote());
+		MoveGenerator::generateCap(board, moves);
+		ASSERT_EQ(13, moves.size());
 	}
 
 	{
@@ -153,12 +152,12 @@ TEST(MoveGeneratorTest, testProm) {
 "P1 *  *  *  *  *  *  *  *  * \n"
 "P2 *  *  *  *  *  *  *  *  * \n"
 "P3 *  *  *  *  *  *  *  *  * \n"
-"P4 *  *  *  *  *  * -HI *  * \n"
+"P4 *  *  *  *  *  * -HI * +KY\n"
 "P5 *  * -KA *  *  *  *  *  * \n"
 "P6-GI *  *  *  *  *  *  *  * \n"
 "P7 *  * -GI *  *  *  *  *  * \n"
 "P8-KI *  *  *  *  *  * -HI * \n"
-"P9 *  *  *  *  * -KA *  *  * \n"
+"P9 * +KE *  *  * -KA *  *  * \n"
 "P+\n"
 "P-\n"
 "-\n";
@@ -167,38 +166,60 @@ TEST(MoveGeneratorTest, testProm) {
 		CsaReader::readBoard(iss, board);
 
 		Moves moves;
-		MoveGenerator::generateProm(board, moves);
-		ASSERT_EQ(37, moves.size());
+		MoveGenerator::generateCap(board, moves);
+		ASSERT_EQ(39, moves.size());
 	}
 }
 
 TEST(MoveGeneratorTest, testDrop) {
-	Board board;
-	Moves moves;
-	board.init(Board::Handicap::Even);
 	{
+		// 先手の手
+		std::string src =
+"P1+TO-KE *  *  *  *  *  *  * \n"
+"P2 *  *  *  *  *  *  *  *  * \n"
+"P3 *  *  * -OU *  *  * -FU * \n"
+"P4 *  *  *  *  *  *  *  *  * \n"
+"P5 *  *  * +FU * -KI *  *  * \n"
+"P6 *  *  *  *  *  *  *  *  * \n"
+"P7 *  * +FU *  *  *  * +FU * \n"
+"P8 *  * +OU *  *  *  *  *  * \n"
+"P9 *  *  *  * -KY * -RY *  * \n"
+"P+00FU00FU00KY00KE00KA\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		// FUx45 KYx63 KEx54 KAx70
 		Moves moves;
 		MoveGenerator::generateDrop(board, moves);
-		ASSERT_EQ(0, moves.size());
+		ASSERT_EQ(45+63+54+70, moves.size());
 	}
-	board.makeMoveIrr(Move(Piece::Pawn, P77, P76, false));
-	board.makeMoveIrr(Move(Piece::Pawn, P33, P34, false));
-	board.makeMoveIrr(Move(Piece::Pawn, P27, P26, false));
-	board.makeMoveIrr(Move(Piece::Pawn, P83, P84, false));
-	board.makeMoveIrr(Move(Piece::Pawn, P26, P25, false));
-	board.makeMoveIrr(Move(Piece::Pawn, P84, P85, false));
-	board.makeMoveIrr(Move(Piece::Gold, P69, P78, false));
-	board.makeMoveIrr(Move(Piece::Gold, P41, P32, false));
-	board.makeMoveIrr(Move(Piece::Pawn, P25, P24, false));
-	board.makeMoveIrr(Move(Piece::Pawn, P23, P24, false));
-	board.makeMoveIrr(Move(Piece::Rook, P28, P24, false));
-	board.makeMoveIrr(Move(Piece::Pawn, P85, P86, false));
-	board.makeMoveIrr(Move(Piece::Pawn, P87, P86, false));
-	board.makeMoveIrr(Move(Piece::Rook, P82, P86, false));
+
 	{
+		// 後手の手
+		std::string src =
+"P1 *  *  *  * +KY * +RY *  * \n"
+"P2 *  * -OU *  *  *  *  *  * \n"
+"P3 *  * -FU *  *  *  * -FU * \n"
+"P4 *  *  *  *  *  *  *  *  * \n"
+"P5 *  *  * -FU * +KI *  *  * \n"
+"P6 *  *  *  *  *  *  *  *  * \n"
+"P7 *  *  * +OU *  *  * +FU * \n"
+"P8 *  *  *  *  *  *  *  *  * \n"
+"P9-TO+KE *  *  *  *  *  *  * \n"
+"P+\n"
+"P-00FU00FU00KY00KE00KA\n"
+"-\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		// FUx45 KYx63 KEx54 KAx70
 		Moves moves;
 		MoveGenerator::generateDrop(board, moves);
-		ASSERT_EQ(10, moves.size());
+		ASSERT_EQ(45+63+54+70, moves.size());
 	}
 }
 

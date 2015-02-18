@@ -308,6 +308,12 @@ namespace sunfish {
 	 */
 	void Board::setBoardPiece(const Position& pos, const Piece& piece) {
 		_board[pos] = piece;
+		if (_posBKing == pos) {
+			_posBKing = Position::Invalid;
+		}
+		if (_posWKing == pos) {
+			_posWKing = Position::Invalid;
+		}
 #define BB_OPE				((*this).*__P__).unset(pos);
 		BB_OPE_EACH;
 #undef BB_OPE

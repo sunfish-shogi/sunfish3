@@ -151,7 +151,7 @@ namespace sunfish {
 		/**
 		 * sort moves by see
 		 */
-		void sortSee(Tree& tree, bool plusOnly = false);
+		void sortSee(Tree& tree, bool plusOnly = false, bool exceptSmallCapture = false);
 
 		/**
 		 * sort moves by history
@@ -172,6 +172,11 @@ namespace sunfish {
 		 * get next move
 		 */
 		bool nextMove(Tree& tree, Move& move);
+
+		/**
+		 * get next move
+		 */
+		bool nextMoveQuies(Tree& tree, Move& move, int ply);
 
 		/**
 		 * reject current move

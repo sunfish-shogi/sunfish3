@@ -65,7 +65,7 @@ int main(int argc, char** argv, char** /*envp*/) {
 		return solve(po.getStdArgs());
 
 #ifndef NDEBUG
-	} else if (po.has("test")) {
+	} else if (po.has("test") || true) {
 		// unit test
 		return test();
 

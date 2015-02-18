@@ -12,13 +12,19 @@ namespace sunfish {
 	/**
 	 * 盤上の駒を動かす手を生成
 	 * @param black 先手番
-	 * @param exceptNonEffectiveProm 打ち歩詰め回避の不成の手を生成しない。
-	 * @param exceptNonPromAll 全ての駒について成る手以外を生成しない。
-	 * @param exceptKingMasking 玉の移動の手の場合に mask を使用しない。
+	 * @param genType
 	 */
-	template <bool black, bool exceptNonEffectiveProm, bool exceptNonPromAll, bool exceptKingMasking>
-	void MoveGenerator::_generateOnBoard(const Board& board, Moves& moves, const Bitboard& mask) {
-		auto occ = board.getBOccupy() | board.getWOccupy();
+	template <bool black, MoveGenerator::GenType genType>
+	void MoveGenerator::_generateOnBoard(const Board& board, Moves& moves, const Bitboard* costumToMask) {
+		const bool exceptNonEffectiveProm = true;
+		const bool exceptProm = (genType == GenType::NoCapture);
+		const bool tactical = (genType == GenType::Capture);
+		const auto movable = ~(black ? board.getBOccupy() : board.getWOccupy());
+		const auto occ = board.getBOccupy() | board.getWOccupy();
+		const auto promotable = (black ? Bitboard::BPromotable : Bitboard::WPromotable) & movable;
+		const Bitboard& toMask = (genType == GenType::Capture ? (black ? board.getWOccupy() : board.getBOccupy()) :
+															genType == GenType::NoCapture ? (~(board.getBOccupy() | board.getWOccupy())) :
+															*costumToMask);
 
 		// pawn
 		Bitboard bb = black ? board.getBPawn() : board.getWPawn();
@@ -27,16 +33,22 @@ namespace sunfish {
 		} else {
 			bb.cheepLeftShift(1);
 		}
-		bb &= mask;
+		if (tactical) {
+			bb &= toMask | promotable;
+		} else {
+  		bb &= toMask;
+		}
 		BB_EACH_OPE(to, bb,
 			if (to.isPromotable<black>()) {
 				// 成る手を生成
-				moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, true, false));
-				if (!exceptNonEffectiveProm && !exceptNonPromAll) {
-					// 不成りを生成
+				if (!exceptProm) {
+					moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, true, false));
+				}
+				// 不成りを生成
+				if (!exceptNonEffectiveProm) {
 					moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, false, false));
 				}
-			} else if (!exceptNonPromAll) {
+			} else {
 				moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, false, false));
 			}
 		);
@@ -45,16 +57,23 @@ namespace sunfish {
 		bb = black ? board.getBLance() : board.getWLance();
 		BB_EACH_OPE(from, bb,
 			Bitboard bb2 = black ? MoveTables::BLance.get(from, occ) : MoveTables::WLance.get(from, occ);
-			bb2 &= mask;
+  		if (tactical) {
+				bb2 &= toMask | promotable;
+			} else {
+				bb2 &= toMask;
+			}
 			BB_EACH_OPE(to, bb2, {
 				if (to.isPromotable<black>()) {
 					// 成る手を生成
-					moves.add(Move(Piece::Lance, from, to, true, false));
-  				if (!exceptNonPromAll && (!exceptNonEffectiveProm || to.isLanceSignficant<black>())) {
-						// 意味のない不成でなければ不成を生成
-  					moves.add(Move(Piece::Lance, from, to, false, false));
-  				}
-				} else if (!exceptNonPromAll) {
+					if (!exceptProm) {
+						moves.add(Move(Piece::Lance, from, to, true, false));
+					}
+					// 意味のない不成でなければ不成を生成
+					if (!exceptNonEffectiveProm ||
+							((!tactical || !board.getBoardPiece(to).isEmpty()) && to.isLanceSignficant<black>())) {
+						moves.add(Move(Piece::Lance, from, to, false, false));
+					}
+				} else {
 					moves.add(Move(Piece::Lance, from, to, false, false));
 				}
 			});
@@ -64,16 +83,22 @@ namespace sunfish {
 		bb = black ? board.getBKnight() : board.getWKnight();
 		BB_EACH_OPE(from, bb,
 			Bitboard bb2 = black ? MoveTables::BKnight.get(from) : MoveTables::WKnight.get(from);
-			bb2 &= mask;
+  		if (tactical) {
+				bb2 &= toMask | promotable;
+			} else {
+				bb2 &= toMask;
+			}
 			BB_EACH_OPE(to, bb2, {
 				if (to.isPromotable<black>()) {
 					// 成る手を生成
-					moves.add(Move(Piece::Knight, from, to, true, false));
-					if (!exceptNonPromAll && to.isKnightMovable<black>()) {
-						// 不成を生成
+					if (!exceptProm) {
+						moves.add(Move(Piece::Knight, from, to, true, false));
+					}
+					// 不成を生成
+					if ((!tactical || !board.getBoardPiece(to).isEmpty()) && to.isKnightMovable<black>()) {
 						moves.add(Move(Piece::Knight, from, to, false, false));
 					}
-				} else if (!exceptNonPromAll) {
+				} else {
 					moves.add(Move(Piece::Knight, from, to, false, false));
 				}
 			});
@@ -83,40 +108,62 @@ namespace sunfish {
 		bb = black ? board.getBSilver() : board.getWSilver();
 		BB_EACH_OPE(from, bb, {
 			Bitboard bb2 = black ? MoveTables::BSilver.get(from) : MoveTables::WSilver.get(from);
-			bb2 &= mask;
+  		if (tactical) {
+				if (!from.isPromotable<black>()) {
+					bb2 &= toMask | promotable;
+				} else {
+					bb2 &= movable;
+				}
+			} else {
+				bb2 &= toMask;
+			}
 			BB_EACH_OPE(to, bb2, {
-				moves.add(Move(Piece::Silver, from, to, false, false));
 				if (to.isPromotable<black>() || from.isPromotable<black>()) {
-					moves.add(Move(Piece::Silver, from, to, true, false));
+					if (!exceptProm) {
+						moves.add(Move(Piece::Silver, from, to, true, false));
+					}
+					if ((!tactical || !board.getBoardPiece(to).isEmpty())) {
+						moves.add(Move(Piece::Silver, from, to, false, false));
+					}
+				} else {
+					moves.add(Move(Piece::Silver, from, to, false, false));
 				}
 			});
 		});
 
 		// gold
-		if (!exceptNonPromAll) {
-			bb = black ? board.getBGold() : board.getWGold();
-			BB_EACH_OPE(from, bb, {
-				Bitboard bb2 = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
-				bb2 &= mask;
-				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::Gold, from, to, false, false));
-				});
+		bb = black ? board.getBGold() : board.getWGold();
+		BB_EACH_OPE(from, bb, {
+			Bitboard bb2 = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
+			bb2 &= toMask;
+			BB_EACH_OPE(to, bb2, {
+				moves.add(Move(Piece::Gold, from, to, false, false));
 			});
-		}
+		});
 
 		// bishop
 		bb = black ? board.getBBishop() : board.getWBishop();
 		BB_EACH_OPE(from, bb,
 			Bitboard bb2 = MoveTables::Bishop.get(from, occ);
-			bb2 &= mask;
+  		if (tactical) {
+				if (!from.isPromotable<black>()) {
+					bb2 &= toMask | promotable;
+				} else {
+					bb2 &= movable;
+				}
+			} else {
+				bb2 &= toMask;
+			}
 			BB_EACH_OPE(to, bb2, {
 				if (to.isPromotable<black>() || from.isPromotable<black>()) {
-					moves.add(Move(Piece::Bishop, from, to, true, false));
-  				if (!exceptNonEffectiveProm && !exceptNonPromAll) {
-  					// 不成りを生成
+					if (!exceptProm) {
+						moves.add(Move(Piece::Bishop, from, to, true, false));
+					}
+					// 不成りを生成
+					if (!exceptNonEffectiveProm) {
 						moves.add(Move(Piece::Bishop, from, to, false, false));
-  				}
-				} else if (!exceptNonPromAll) {
+					}
+				} else {
 					moves.add(Move(Piece::Bishop, from, to, false, false));
 				}
 			});
@@ -126,28 +173,38 @@ namespace sunfish {
 		bb = black ? board.getBRook() : board.getWRook();
 		BB_EACH_OPE(from, bb,
 			Bitboard bb2 = MoveTables::Rook.get(from, occ);
-			bb2 &= mask;
+  		if (tactical) {
+				if (!from.isPromotable<black>()) {
+					bb2 &= toMask | promotable;
+				} else {
+					bb2 &= movable;
+				}
+			} else {
+				bb2 &= toMask;
+			}
 			BB_EACH_OPE(to, bb2, {
 				if (to.isPromotable<black>() || from.isPromotable<black>()) {
-					moves.add(Move(Piece::Rook, from, to, true, false));
-  				if (!exceptNonEffectiveProm && !exceptNonPromAll) {
-  					// 不成りを生成
+					if (!exceptProm) {
+						moves.add(Move(Piece::Rook, from, to, true, false));
+					}
+					// 不成りを生成
+					if (!exceptNonEffectiveProm) {
 						moves.add(Move(Piece::Rook, from, to, false, false));
-  				}
-				} else if (!exceptNonPromAll) {
+					}
+				} else {
 					moves.add(Move(Piece::Rook, from, to, false, false));
 				}
 			});
 		);
 
 		// king
-		if (!exceptNonPromAll) {
+		{
 			Position from = black ? board.getBKingPosition() : board.getWKingPosition();
 			Bitboard bb2 = MoveTables::King.get(from);
-			if (exceptKingMasking) {
+			if (genType == GenType::Evasion) {
 				bb2 &= black ? ~board.getBOccupy() : ~board.getWOccupy();
 			} else {
-				bb2 &= mask;
+  			bb2 &= toMask;
 			}
 			BB_EACH_OPE(to, bb2, {
 				moves.add(Move(Piece::King, from, to, false, false));
@@ -155,93 +212,81 @@ namespace sunfish {
 		}
 
 		// tokin
-		if (!exceptNonPromAll) {
-			bb = black ? board.getBTokin() : board.getWTokin();
-			BB_EACH_OPE(from, bb, {
-				Bitboard bb2 = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
-				bb2 &= mask;
-				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::Tokin, from, to, false, false));
-				});
+		bb = black ? board.getBTokin() : board.getWTokin();
+		BB_EACH_OPE(from, bb, {
+			Bitboard bb2 = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
+			bb2 &= toMask;
+			BB_EACH_OPE(to, bb2, {
+				moves.add(Move(Piece::Tokin, from, to, false, false));
 			});
-		}
+		});
 
 		// promoted lance
-		if (!exceptNonPromAll) {
 		bb = black ? board.getBProLance() : board.getWProLance();
-			BB_EACH_OPE(from, bb, {
-				Bitboard bb2 = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
-				bb2 &= mask;
-				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::ProLance, from, to, false, false));
-				});
+		BB_EACH_OPE(from, bb, {
+			Bitboard bb2 = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
+			bb2 &= toMask;
+			BB_EACH_OPE(to, bb2, {
+				moves.add(Move(Piece::ProLance, from, to, false, false));
 			});
-		}
+		});
 
 		// promoted knight
-		if (!exceptNonPromAll) {
 		bb = black ? board.getBProKnight() : board.getWProKnight();
-			BB_EACH_OPE(from, bb, {
-				Bitboard bb2 = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
-				bb2 &= mask;
-				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::ProKnight, from, to, false, false));
-				});
+		BB_EACH_OPE(from, bb, {
+			Bitboard bb2 = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
+			bb2 &= toMask;
+			BB_EACH_OPE(to, bb2, {
+				moves.add(Move(Piece::ProKnight, from, to, false, false));
 			});
-		}
+		});
 
 		// promoted silver
-		if (!exceptNonPromAll) {
 		bb = black ? board.getBProSilver() : board.getWProSilver();
-			BB_EACH_OPE(from, bb, {
-				Bitboard bb2 = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
-				bb2 &= mask;
-				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::ProSilver, from, to, false, false));
-				});
+		BB_EACH_OPE(from, bb, {
+			Bitboard bb2 = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
+			bb2 &= toMask;
+			BB_EACH_OPE(to, bb2, {
+				moves.add(Move(Piece::ProSilver, from, to, false, false));
 			});
-		}
+		});
 
 		// horse
-		if (!exceptNonPromAll) {
 		bb = black ? board.getBHorse() : board.getWHorse();
-			BB_EACH_OPE(from, bb, {
-				Bitboard bb2 = MoveTables::Horse.get(from, occ);
-				bb2 &= mask;
-				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::Horse, from, to, false, false));
-				});
+		BB_EACH_OPE(from, bb, {
+			Bitboard bb2 = MoveTables::Horse.get(from, occ);
+			bb2 &= toMask;
+			BB_EACH_OPE(to, bb2, {
+				moves.add(Move(Piece::Horse, from, to, false, false));
 			});
-		}
+		});
 
 		// dragon
-		if (!exceptNonPromAll) {
 		bb = black ? board.getBDragon() : board.getWDragon();
-			BB_EACH_OPE(from, bb, {
-				Bitboard bb2 = MoveTables::Dragon.get(from, occ);
-				bb2 &= mask;
-				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::Dragon, from, to, false, false));
-				});
+		BB_EACH_OPE(from, bb, {
+			Bitboard bb2 = MoveTables::Dragon.get(from, occ);
+			bb2 &= toMask;
+			BB_EACH_OPE(to, bb2, {
+				moves.add(Move(Piece::Dragon, from, to, false, false));
 			});
-		}
+		});
 	}
-	template void MoveGenerator::_generateOnBoard<true, true, true, false>(const Board& board, Moves& moves, const Bitboard& mask);
-	template void MoveGenerator::_generateOnBoard<true, true, false, false>(const Board& board, Moves& moves, const Bitboard& mask);
-	template void MoveGenerator::_generateOnBoard<true, true, false, true>(const Board& board, Moves& moves, const Bitboard& mask);
-	template void MoveGenerator::_generateOnBoard<false, true, true, false>(const Board& board, Moves& moves, const Bitboard& mask);
-	template void MoveGenerator::_generateOnBoard<false, true, false, false>(const Board& board, Moves& moves, const Bitboard& mask);
-	template void MoveGenerator::_generateOnBoard<false, true, false, true>(const Board& board, Moves& moves, const Bitboard& mask);
+	template void MoveGenerator::_generateOnBoard<true, MoveGenerator::GenType::Capture>(const Board&, Moves&, const Bitboard*);
+	template void MoveGenerator::_generateOnBoard<true, MoveGenerator::GenType::NoCapture>(const Board&, Moves&, const Bitboard*);
+	template void MoveGenerator::_generateOnBoard<true, MoveGenerator::GenType::Evasion>(const Board&, Moves&, const Bitboard*);
+	template void MoveGenerator::_generateOnBoard<false, MoveGenerator::GenType::Capture>(const Board&, Moves&, const Bitboard*);
+	template void MoveGenerator::_generateOnBoard<false, MoveGenerator::GenType::NoCapture>(const Board&, Moves&, const Bitboard*);
+	template void MoveGenerator::_generateOnBoard<false, MoveGenerator::GenType::Evasion>(const Board&, Moves&, const Bitboard*);
 
 	/**
 	 * 持ち駒を打つ手を生成
 	 */
 	template <bool black>
-	void MoveGenerator::_generateDrop(const Board& board, Moves& moves, const Bitboard& mask) {
+	void MoveGenerator::_generateDrop(const Board& board, Moves& moves, const Bitboard& toMask) {
 		// pawn
 		int pawnCount = black ? board.getBlackHand(Piece::Pawn) : board.getWhiteHand(Piece::Pawn);
 		if (pawnCount) {
-			Bitboard bb = mask & (black ? Bitboard::BPawnMovable : Bitboard::WPawnMovable);
+			Bitboard bb = toMask & (black ? Bitboard::BPawnMovable : Bitboard::WPawnMovable);
 			const Bitboard& bbPawn = black ? board.getBPawn() : board.getWPawn();
 			if (bbPawn & Bitboard::file(1)) { bb &= Bitboard::notFile(1); }
 			if (bbPawn & Bitboard::file(2)) { bb &= Bitboard::notFile(2); }
@@ -260,7 +305,7 @@ namespace sunfish {
 		// lance
 		int lanceCount = black ? board.getBlackHand(Piece::Lance) : board.getWhiteHand(Piece::Lance);
 		if (lanceCount) {
-			Bitboard bb = mask & (black ? Bitboard::BLanceMovable : Bitboard::WLanceMovable);
+			Bitboard bb = toMask & (black ? Bitboard::BLanceMovable : Bitboard::WLanceMovable);
 			BB_EACH_OPE(to, bb,
 				moves.add(Move(Piece::Lance, to, false));
 			);
@@ -269,14 +314,14 @@ namespace sunfish {
 		// knight
 		int knightCount = black ? board.getBlackHand(Piece::Knight) : board.getWhiteHand(Piece::Knight);
 		if (knightCount) {
-			Bitboard bb = mask & (black ? Bitboard::BKnightMovable : Bitboard::WKnightMovable);
+			Bitboard bb = toMask & (black ? Bitboard::BKnightMovable : Bitboard::WKnightMovable);
 			BB_EACH_OPE(to, bb,
 				moves.add(Move(Piece::Knight, to, false));
 			);
 		}
 
 #define GEN_DROP(silver, gold, bishop, rook)					do { \
-	Bitboard bb = mask; \
+	Bitboard bb = toMask; \
 	BB_EACH_OPE(to, bb, \
 		if (silver) { moves.add(Move(Piece::Silver, to, false)); } \
 		if (gold) { moves.add(Move(Piece::Gold, to, false)); } \
@@ -313,8 +358,8 @@ namespace sunfish {
 		}
 #undef GEN_DROP
 	}
-	template void MoveGenerator::_generateDrop<true>(const Board& board, Moves& moves, const Bitboard& mask);
-	template void MoveGenerator::_generateDrop<false>(const Board& board, Moves& moves, const Bitboard& mask);
+	template void MoveGenerator::_generateDrop<true>(const Board&, Moves&, const Bitboard&);
+	template void MoveGenerator::_generateDrop<false>(const Board&, Moves&, const Bitboard&);
 
 	/**
 	 * 王手を防ぐ手を生成します。
@@ -453,7 +498,7 @@ namespace sunfish {
 			// 跳び駒の利き
 
 			// 1. 移動合と玉の移動
-			_generateOnBoard<black, false, false, true>(board, moves, longMask);
+			_generateOnBoard<black, GenType::Evasion>(board, moves, &longMask);
 
 			// 2. 持ち駒
 			Bitboard dropMask = longMask & ~longAttacker;
@@ -604,9 +649,9 @@ namespace sunfish {
 	template <bool black>
 	void MoveGenerator::_generateKing(const Board& board, Moves& moves) {
 		const auto& from = black ? board.getBKingPosition() : board.getWKingPosition();
-		Bitboard mask = black ? ~board.getBOccupy() : ~board.getWOccupy();
+		Bitboard toMask = black ? ~board.getBOccupy() : ~board.getWOccupy();
 
-		Bitboard bb = MoveTables::King.get(from) & mask;
+		Bitboard bb = MoveTables::King.get(from) & toMask;
 		BB_EACH_OPE(to, bb,
 			moves.add(Move(Piece::King, from, to, false, false));
 		);

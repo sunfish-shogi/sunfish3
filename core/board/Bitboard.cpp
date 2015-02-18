@@ -43,7 +43,7 @@ namespace sunfish {
 	const Bitboard& Bitboard::mask(unsigned pos) {
 #define BB(sq)									Bitboard(sq)
 		static Bitboard masks[] = {
-			Bitboard(), // Position::Invalid(=-1)
+			Bitboard(0, 0), // Position::Invalid(=-1)
 			BB( 0), BB( 1), BB( 2), BB( 3), BB( 4), BB( 5), BB( 6), BB( 7), BB( 8),
 			BB( 9), BB(10), BB(11), BB(12), BB(13), BB(14), BB(15), BB(16), BB(17),
 			BB(18), BB(19), BB(20), BB(21), BB(22), BB(23), BB(24), BB(25), BB(26),
@@ -94,11 +94,11 @@ namespace sunfish {
 	const Bitboard Bitboard::WKnightMovable = Bitboard(__HIGH_RANGE__, __LOW_RANGE__)
 		.unset(P19).unset(P29).unset(P39).unset(P49).unset(P59).unset(P69).unset(P79).unset(P89).unset(P99)
 		.unset(P18).unset(P28).unset(P38).unset(P48).unset(P58).unset(P68).unset(P78).unset(P88).unset(P98);
-	const Bitboard Bitboard::BPromotable = Bitboard()
+	const Bitboard Bitboard::BPromotable = Bitboard(0, 0)
 		.set(P11).set(P21).set(P31).set(P41).set(P51).set(P61).set(P71).set(P81).set(P91)
 		.set(P12).set(P22).set(P32).set(P42).set(P52).set(P62).set(P72).set(P82).set(P92)
 		.set(P13).set(P23).set(P33).set(P43).set(P53).set(P63).set(P73).set(P83).set(P93);
-	const Bitboard Bitboard::WPromotable = Bitboard()
+	const Bitboard Bitboard::WPromotable = Bitboard(0, 0)
 		.set(P17).set(P27).set(P37).set(P47).set(P57).set(P67).set(P77).set(P87).set(P97)
 		.set(P18).set(P28).set(P38).set(P48).set(P58).set(P68).set(P78).set(P88).set(P98)
 		.set(P19).set(P29).set(P39).set(P49).set(P59).set(P69).set(P79).set(P89).set(P99);
