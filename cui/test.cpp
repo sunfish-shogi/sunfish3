@@ -31,9 +31,9 @@ int test() {
 	bool result = TestSuite::test();
 
 	if (result) {
-		Loggers::message << "Test was succeeded.";
+		Loggers::message << "The test is succeeded.";
 	} else {
-		Loggers::error << "Test was failed.";
+		Loggers::error << "The test is failed.";
 	}
 	Loggers::message << "Look 'test.log'.";
 
