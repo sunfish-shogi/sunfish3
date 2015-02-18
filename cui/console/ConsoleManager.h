@@ -61,7 +61,7 @@ namespace sunfish {
 
 		bool inputMove(const char* str, const Board& board, Move& move) const;
 
-		void printBoard(const Board& board) const;
+		void printBoard(const Board& board);
 
 		bool isAuto() const {
 			return (_record.getBoard().isBlack() && _config.autoBlack)

@@ -111,6 +111,10 @@ namespace sunfish {
 		uint64_t getTurnHash() const {
 			return _black ? Zobrist::black() : 0ull;
 		}
+		/** 手番を除く局面のハッシュ値を返します。 */
+		uint64_t getNoTurnHash() const {
+			return getBoardHash() ^ getHandHash();
+		}
 
 		/** 盤面の駒を取得します。 */
 		Piece getBoardPiece(const Position& pos) const {

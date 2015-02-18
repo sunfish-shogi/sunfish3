@@ -163,6 +163,8 @@
 		099DBADD1A8E26300084CB2E /* HandSet.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HandSet.h; path = shek/HandSet.h; sourceTree = "<group>"; };
 		099DBADE1A8E27950084CB2E /* ShekStat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ShekStat.h; path = shek/ShekStat.h; sourceTree = "<group>"; };
 		09D366FE1A41C604002D88B9 /* sunfish3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sunfish3; sourceTree = BUILT_PRODUCTS_DIR; };
+		09F2E63F1A94D7EB006E411C /* EvaluateEntity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EvaluateEntity.h; sourceTree = "<group>"; };
+		09F2E6401A94D928006E411C /* EvaluateTable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EvaluateTable.h; sourceTree = "<group>"; };
 		09F998A61A4B1C1E00709E58 /* Evaluator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Evaluator.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -386,6 +388,8 @@
 				09F998A61A4B1C1E00709E58 /* Evaluator.cpp */,
 				0969B6671A41C91200D56A21 /* Evaluator.h */,
 				0969B6681A41C91200D56A21 /* Value.h */,
+				09F2E63F1A94D7EB006E411C /* EvaluateEntity.h */,
+				09F2E6401A94D928006E411C /* EvaluateTable.h */,
 			);
 			path = eval;
 			sourceTree = "<group>";

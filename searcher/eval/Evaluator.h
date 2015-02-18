@@ -6,6 +6,7 @@
 #ifndef __SUNFISH_EVALUATOR__
 #define __SUNFISH_EVALUATOR__
 
+#include "EvaluateTable.h"
 #include "Value.h"
 #include "core/board/Board.h"
 #include <memory>
@@ -144,6 +145,8 @@ namespace sunfish {
 
 		Table* _t;
 
+		EvaluateTable _hashTable;
+
 		std::shared_ptr<Table> readFvBin();
 
 		void convertFromFvBin(Table* fvbin);
@@ -174,7 +177,7 @@ namespace sunfish {
 		 * 局面の駒割りを除いた評価値を算出します。
 		 * @param board
 		 */
-		Value _evaluate(const Board& board) const;
+		Value _evaluate(const Board& board);
 
 		/**
 		 * 指定した指し手による評価値の変化値を算出します。
@@ -183,7 +186,7 @@ namespace sunfish {
 		 * @param move
 		 */
 		template <bool black>
-		ValuePair _evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move) const;
+		ValuePair _evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move);
                                               
 	public:
 
@@ -238,7 +241,7 @@ namespace sunfish {
 		 * 局面の評価値を算出します。
 		 * @param board
 		 */
-		ValuePair evaluate(const Board& board) const {
+		ValuePair evaluate(const Board& board) {
 			return ValuePair(_evaluateBase(board), _evaluate(board));
 		}
 
@@ -248,7 +251,7 @@ namespace sunfish {
 		 * @param prevValuePair
 		 * @param move
 		 */
-		ValuePair evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move) const {
+		ValuePair evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move) {
 			if (!board.isBlack()) {
 				return _evaluateDiff<true>(board, prevValuePair, move);
 			} else {

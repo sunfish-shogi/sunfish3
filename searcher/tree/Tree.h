@@ -68,7 +68,7 @@ namespace sunfish {
 		virtual ~Tree() {
 		}
 
-		void init(const Board& board, const Evaluator& eval) {
+		void init(const Board& board, Evaluator& eval) {
 			_ply = 0;
 			_board = board;
 #ifndef NDEBUG
@@ -207,7 +207,7 @@ namespace sunfish {
 			return node.valuePair.value();
 		}
 
-		bool makeMove(Move& move, const Evaluator& eval) {
+		bool makeMove(Move& move, Evaluator& eval) {
 			_shekTable.set(_board);
 			if (_board.makeMove(move)) {
 				_ply++;

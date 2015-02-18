@@ -301,13 +301,6 @@ namespace sunfish {
 		/**
 		 * Evaluator を取得します。
 		 */
-		const Evaluator& getEvaluator() const {
-			return _eval;
-		}
-
-		/**
-		 * Evaluator を取得します。
-		 */
 		Evaluator& getEvaluator() {
 			return _eval;
 		}

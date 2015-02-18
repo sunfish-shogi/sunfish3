@@ -164,14 +164,14 @@ namespace sunfish {
 	/**
 	 * 盤面を表示します。
 	 */
-	void ConsoleManager::printBoard(const Board& board) const {
+	void ConsoleManager::printBoard(const Board& board) {
 		std::cout << "'----------------------------\n";
 		std::cout << board.toStringCsa();
 		std::cout << "'----------------------------\n";
 		std::cout << std::endl;
 
 #if 1
-		const auto& evaluator = _searcher.getEvaluator();
+		auto& evaluator = _searcher.getEvaluator();
 		auto valuePair = evaluator.evaluate(board);
 		std::cout << "Evaluator Info\n";
 		std::cout << "  eval: " << valuePair.value().int32() <<

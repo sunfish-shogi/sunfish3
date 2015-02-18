@@ -13,6 +13,7 @@
 
 #define ENABLE_DIFF													1
 #define ENABLE_KPP													1
+#define ENABLE_HASHTABLE										1
 
 namespace {
 
@@ -466,7 +467,7 @@ namespace sunfish {
 	 * 局面の評価値を算出します。
 	 * @param board
 	 */
-	Value Evaluator::_evaluate(const Board& board) const {
+	Value Evaluator::_evaluate(const Board& board) {
 		Value positional = Value::Zero;
 		auto bking = board.getBKingPosition();
 		auto wking = board.getWKingPosition();
@@ -546,6 +547,10 @@ namespace sunfish {
 		}
 #endif // ENABLE_KPP
 
+#if ENABLE_HASHTABLE
+		_hashTable.set(board.getNoTurnHash(), positional);
+#endif
+
 		return positional;
 	}
 
@@ -556,13 +561,35 @@ namespace sunfish {
 	 * @param move
 	 */
 	template <bool black>
-	ValuePair Evaluator::_evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move) const {
+	ValuePair Evaluator::_evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move) {
 
 		Value base = prevValuePair.base();;
+		Value positional;
 		auto piece = move.piece();
 		auto captured = move.captured();
 
 		assert(board.isBlack() != black);
+
+		// ハッシュ表から引く
+#if ENABLE_HASHTABLE
+		if (_hashTable.get(board.getNoTurnHash(), positional)) {
+			if (!captured.isEmpty()) {
+				if (black) {
+  				base += pieceExchange(captured);
+				} else {
+  				base -= pieceExchange(captured);
+				}
+			}
+			if (move.promote()) {
+				if (black) {
+					base += piecePromote(piece);
+				} else {
+					base -= piecePromote(piece);
+				}
+			}
+			return ValuePair(base, positional);
+		}
+#endif
 
 		// 玉の移動の場合は差分計算不可
 		if (!ENABLE_DIFF || piece == Piece::King) {
@@ -585,7 +612,7 @@ namespace sunfish {
 			return ValuePair(base, _evaluate(board));
 		}
 
-		Value positional = prevValuePair.positional();
+		positional = prevValuePair.positional();
 		bool isHand = move.isHand();
 		auto to = move.to();
 		bool isProm = move.promote();
@@ -866,8 +893,8 @@ namespace sunfish {
 		return ValuePair(base, positional);
 
 	}
-	template ValuePair Evaluator::_evaluateDiff<true>(const Board&, const ValuePair&, const Move&) const;
-	template ValuePair Evaluator::_evaluateDiff<false>(const Board&, const ValuePair&, const Move&) const;
+	template ValuePair Evaluator::_evaluateDiff<true>(const Board&, const ValuePair&, const Move&);
+	template ValuePair Evaluator::_evaluateDiff<false>(const Board&, const ValuePair&, const Move&);
 
 	/**
 	 * 盤上の駒の種類から KKP のインデクスを取得します。
