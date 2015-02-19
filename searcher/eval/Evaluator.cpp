@@ -890,6 +890,10 @@ namespace sunfish {
 		}
 #endif // ENABLE_KPP
 
+#if ENABLE_HASHTABLE
+		_hashTable.set(board.getNoTurnHash(), positional);
+#endif
+
 		return ValuePair(base, positional);
 
 	}
