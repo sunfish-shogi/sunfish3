@@ -31,7 +31,7 @@ namespace sunfish {
 				int depth, int ply,
 				const NodeStat& stat, const Move& move) {
 			TTE e;
-			TTEs& entities = _getEntity(hash);
+			TTEs& entities = getEntity(hash);
 			entities.get(hash, e);
 			if (e.update(hash, alpha, beta, value,
 					depth, ply, stat, move, _age)) {
@@ -42,7 +42,7 @@ namespace sunfish {
 		}
 
 		bool get(uint64_t hash, TTE& e) {
-			return _getEntity(hash).get(hash, e) && e.is(hash);
+			return getEntity(hash).get(hash, e) && e.is(hash);
 		}
 
 	};

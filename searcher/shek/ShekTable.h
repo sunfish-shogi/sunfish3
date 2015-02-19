@@ -25,12 +25,12 @@ namespace sunfish {
 		void set(const Board& board) {
 			const Hand& hand = board.isBlack() ? board.getBlackHand() : board.getBlackHand();
 			uint64_t hash = board.getBoardHash();
-			_getEntity(hash).set(hash, HandSet(hand), board.isBlack());
+			getEntity(hash).set(hash, HandSet(hand), board.isBlack());
 		}
 
 		void unset(const Board& board) {
 			uint64_t hash = board.getBoardHash();
-			_getEntity(hash).unset(hash);
+			getEntity(hash).unset(hash);
 		}
 
 		ShekStat check(const Board& board) const {

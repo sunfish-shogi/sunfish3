@@ -26,7 +26,7 @@ namespace sunfish {
 		}
 
 		void set(uint64_t hash, const Value& value) {
-			_getEntity(hash).set(hash, value);
+			getEntity(hash).set(hash, value);
 		}
 	};
 

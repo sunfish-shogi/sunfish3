@@ -22,11 +22,19 @@ namespace sunfish {
 
 	protected:
 
-		E& _getEntity(uint64_t hash) {
+		E& getEntity(uint64_t hash) {
 			return _table[hash&_mask];
 		}
 
-		E& _getEntity(uint32_t index) {
+		E& getEntity(uint32_t index) {
+			return _table[index];
+		}
+
+		const E& getEntity(uint64_t hash) const {
+			return _table[hash&_mask];
+		}
+
+		const E& getEntity(uint32_t index) const {
 			return _table[index];
 		}
 
@@ -58,14 +66,6 @@ namespace sunfish {
 					_table[i].init(i);
 				}
 			}
-		}
-
-		const E& getEntity(uint64_t hash) const {
-			return _table[hash&_mask];
-		}
-
-		const E& getEntity(uint32_t index) const {
-			return _table[index];
 		}
 
 		uint32_t getSize() const {
