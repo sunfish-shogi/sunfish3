@@ -1032,7 +1032,10 @@ namespace sunfish {
 				return _t->horse;
 			case Piece::BDragon: case Piece::WDragon:
 				return _t->dragon;
+			case Piece::BKing: case Piece::WKing:
+				return PieceInf;
 			default:
+				assert(false);
 				return 0;
 		}
 	}
@@ -1068,7 +1071,10 @@ namespace sunfish {
 				return _t->horseEx;
 			case Piece::BDragon: case Piece::WDragon:
 				return _t->dragonEx;
+			case Piece::BKing: case Piece::WKing:
+				return PieceInfEx;
 			default:
+				assert(false);
 				return 0;
 		}
 	}
@@ -1098,6 +1104,7 @@ namespace sunfish {
 			case Piece::BProSilver: case Piece::WProSilver:
 			case Piece::BHorse: case Piece::WHorse:
 			case Piece::BDragon: case Piece::WDragon:
+			case Piece::BKing: case Piece::WKing:
 			default:
 				return 0;
 		}

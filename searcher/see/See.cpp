@@ -235,6 +235,7 @@ namespace sunfish {
 			auto att = _ ## c ## ref[i].attacker; \
 			if (!att->used && (att->dependOn == nullptr || att->dependOn->used)) { \
 				att->used = true; \
+				if (value >= Evaluator::PieceInf) { return Evaluator::PieceInf; } \
 				auto result = Value::max(0, value - search<!black>(att->value)); \
 				att->used = false; \
 				return result; \

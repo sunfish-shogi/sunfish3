@@ -34,7 +34,7 @@ P-\n\
 		std::istringstream iss(src);
 		Board board;
 		CsaReader::readBoard(iss, board);
-		Move move(Piece::BRook, P47, P45, false);
+		Move move(Piece::Rook, P47, P45, false);
 
 		see.generateAttackers(eval, board, move);
 
@@ -63,7 +63,7 @@ P-\n\
 		std::istringstream iss(src);
 		Board board;
 		CsaReader::readBoard(iss, board);
-		Move move(Piece::BPawn, P64, P63, true);
+		Move move(Piece::Pawn, P64, P63, true);
 
 		see.generateAttackers(eval, board, move);
 
@@ -86,7 +86,37 @@ P-\n\
 		ASSERT_EQ(see.getBlackList()[3].attacker->dependOn == see.getBlackList()[4].attacker, true);
 		ASSERT_EQ(see.getBlackList()[4].attacker->dependOn == see.getBlackList()[2].attacker, true);
 		ASSERT_EQ(see.getBlackList()[5].attacker->dependOn == see.getBlackList()[0].attacker, true);
-	}                                 
+	}
+
+	{
+		std::string src = "\
+P1 *  *  *  * -OU-KY *  *  * \n\
+P2 *  *  *  *  *  * -KE *  * \n\
+P3 *  *  *  *  *  *  *  *  * \n\
+P4 *  *  *  *  * -FU *  *  * \n\
+P5 *  *  *  * +OU+KY *  *  * \n\
+P6 *  *  *  *  *  * +KE *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  *  *  *  *  *  * \n\
+P+\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		Move move(Piece::Lance, P45, P44, false);
+
+		see.generateAttackers(eval, board, move);
+
+		ASSERT_EQ(see.getBlackNum(), 2);
+		ASSERT_EQ(see.getWhiteNum(), 2);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().knightEx);
+		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), eval.PieceInfEx);
+		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().lanceEx);
+		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), eval.table().knightEx);
+	}
 
 }
 
@@ -115,7 +145,7 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 
 		// 飛車で歩を取った場合
-		Move capByRook(Piece::BRook, P47, P45, false);
+		Move capByRook(Piece::Rook, P47, P45, false);
 		Value exact = see.search(eval, board, capByRook);
 		Value correct = (+ eval.table().pawnEx
 										 - eval.table().rookEx
@@ -124,10 +154,39 @@ P-\n\
 		ASSERT_EQ(correct.int32(), exact.int32());
 
 		// 桂馬で歩を取った場合
-		Move capByKnight(Piece::BKnight, P37, P45, false);
+		Move capByKnight(Piece::Knight, P37, P45, false);
 		exact = see.search(eval, board, capByKnight);
 		correct = (+ eval.table().pawnEx
 							 - eval.table().knightEx);
+		ASSERT_EQ(correct.int32(), exact.int32());
+	}
+
+	{
+		std::string src = "\
+P1 *  *  *  * -OU-KY *  *  * \n\
+P2 *  *  *  *  *  * -KE *  * \n\
+P3 *  *  *  *  *  *  *  *  * \n\
+P4 *  *  *  *  * -FU *  *  * \n\
+P5 *  *  *  * +OU+KY *  *  * \n\
+P6 *  *  *  *  *  * +KE *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  *  *  *  *  *  * \n\
+P+\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		Move move(Piece::Lance, P45, P44, false);
+		Value exact = see.search(eval, board, move);
+		Value correct = (+ eval.table().pawnEx
+										 - eval.table().lanceEx
+										 + eval.table().lanceEx
+										 - eval.table().knightEx
+										 + eval.table().knightEx);
 		ASSERT_EQ(correct.int32(), exact.int32());
 	}
 
