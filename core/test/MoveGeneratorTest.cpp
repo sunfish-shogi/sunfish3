@@ -77,7 +77,7 @@ TEST(MoveGeneratorTest, testCap) {
 	{
 		// 先手の駒 歩から桂まで
 		std::string src =
-"P1 *  *  *  *  *  *  *  *  * \n"
+"P1 *  *  * -OU *  *  *  *  * \n"
 "P2 * +OU *  * -FU *  *  *  * \n"
 "P3 *  *  * +FU *  *  *  *  * \n"
 "P4 *  * +FU *  *  * -KI+KE * \n"
@@ -101,7 +101,7 @@ TEST(MoveGeneratorTest, testCap) {
 	{
 		// 先手の駒 銀から飛車まで
 		std::string src =
-"P1 *  *  *  *  * +KA *  *  * \n"
+"P1 *  *  *  * -OU+KA *  *  * \n"
 "P2+KI *  *  *  *  *  * +HI * \n"
 "P3 *  * +GI *  *  *  *  *  * \n"
 "P4+GI *  *  *  *  *  *  *  * \n"
@@ -109,7 +109,7 @@ TEST(MoveGeneratorTest, testCap) {
 "P6 *  *  *  *  *  * +HI *  * \n"
 "P7 *  *  *  *  *  *  *  *  * \n"
 "P8 *  *  *  *  *  *  *  *  * \n"
-"P9 *  *  *  *  *  * -TO *  * \n"
+"P9 *  *  *  * +OU * -TO *  * \n"
 "P+\n"
 "P-\n"
 "+\n";
@@ -133,7 +133,7 @@ TEST(MoveGeneratorTest, testCap) {
 "P6 *  * -FU *  *  *  * -KE * \n"
 "P7 *  *  * -FU *  *  *  *  * \n"
 "P8 * -OU *  * +FU *  *  *  * \n"
-"P9 * +KE *  *  *  *  *  *  * \n"
+"P9 * +KE * +OU *  *  *  *  * \n"
 "P+\n"
 "P-\n"
 "-\n";
@@ -149,7 +149,7 @@ TEST(MoveGeneratorTest, testCap) {
 	{
 		// 後手の駒 銀から飛車まで
 		std::string src =
-"P1 *  *  *  *  *  *  *  *  * \n"
+"P1 *  *  *  * -OU *  *  *  * \n"
 "P2 *  *  *  *  *  *  *  *  * \n"
 "P3 *  *  *  *  *  *  *  *  * \n"
 "P4 *  *  *  *  *  * -HI * +KY\n"
@@ -157,7 +157,7 @@ TEST(MoveGeneratorTest, testCap) {
 "P6-GI *  *  *  *  *  *  *  * \n"
 "P7 *  * -GI *  *  *  *  *  * \n"
 "P8-KI *  *  *  *  *  * -HI * \n"
-"P9 * +KE *  *  * -KA *  *  * \n"
+"P9 * +KE *  * +OU-KA *  *  * \n"
 "P+\n"
 "P-\n"
 "-\n";
@@ -227,7 +227,7 @@ TEST(MoveGeneratorTest, testEvasion) {
 	{
 		// 歩による王手
 		std::string src =
-"P1 *  *  *  *  *  *  * +KA * \n"
+"P1 *  *  *  *  * -OU * +KA * \n"
 "P2 *  *  * +RY *  *  *  *  * \n"
 "P3 * +UM *  *  *  *  *  *  * \n"
 "P4 *  *  *  *  *  *  *  *  * \n"
@@ -252,7 +252,7 @@ TEST(MoveGeneratorTest, testEvasion) {
 	{
 		// 香車による王手
 		std::string src =
-"P1 *  *  *  *  *  *  *  *  * \n"
+"P1 *  *  *  * -OU *  *  *  * \n"
 "P2 *  *  * -KY *  *  *  *  * \n"
 "P3 *  *  *  *  *  *  *  *  * \n"
 "P4 *  *  *  *  *  *  *  *  * \n"
@@ -277,7 +277,7 @@ TEST(MoveGeneratorTest, testEvasion) {
 	{
 		// 角による王手
 		std::string src =
-"P1 *  *  *  *  *  *  *  *  * \n"
+"P1 *  *  *  * -OU *  *  *  * \n"
 "P2 *  *  *  *  *  *  *  *  * \n"
 "P3 *  *  *  *  *  *  * -KA * \n"
 "P4 *  *  *  *  *  *  *  *  * \n"
@@ -302,7 +302,7 @@ TEST(MoveGeneratorTest, testEvasion) {
 	{
 		// 竜による王手
 		std::string src =
-"P1 *  *  *  *  *  *  *  *  * \n"
+"P1 *  *  *  * -OU *  *  *  * \n"
 "P2 *  *  *  *  *  *  *  *  * \n"
 "P3 *  *  *  *  *  *  *  *  * \n"
 "P4 *  *  *  *  *  *  *  *  * \n"
@@ -327,7 +327,7 @@ TEST(MoveGeneratorTest, testEvasion) {
 	{
 		// 両王手
 		std::string src =
-"P1-KY *  *  *  *  *  *  *  * \n"
+"P1-KY *  *  * -OU *  *  *  * \n"
 "P2 *  *  *  *  *  *  *  *  * \n"
 "P3 *  *  *  *  *  *  *  *  * \n"
 "P4 *  *  *  *  *  *  *  *  * \n"
@@ -360,7 +360,7 @@ TEST(MoveGeneratorTest, testEvasion) {
 "P6 *  *  *  *  *  *  *  *  * \n"
 "P7 *  *  *  *  *  *  *  *  * \n"
 "P8 *  *  *  *  *  *  *  *  * \n"
-"P9 *  *  *  *  *  *  *  *  * \n"
+"P9 *  *  *  * +OU *  *  *  * \n"
 "P+\n"
 "P-\n"
 "-\n";

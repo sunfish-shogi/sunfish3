@@ -18,7 +18,7 @@ TEST(SeeTest, testGenerateAttackers) {
 
 	{
 		std::string src = "\
-P1 *  *  *  *  *  *  *  *  * \n\
+P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
 P4 *  *  *  *  *  * -GI *  * \n\
@@ -26,7 +26,7 @@ P5 *  *  *  *  * -FU *  *  * \n\
 P6 *  *  *  *  *  *  *  *  * \n\
 P7 *  *  *  *  * +HI+KE *  * \n\
 P8 *  * -UM *  *  *  *  *  * \n\
-P9 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
 P+\n\
 P-\n\
 +\n\
@@ -97,7 +97,7 @@ TEST(SeeTest, testSearch) {
 
 	{
 		std::string src = "\
-P1 *  *  *  *  *  *  *  *  * \n\
+P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
 P4 *  *  *  *  *  * -GI *  * \n\
@@ -105,7 +105,7 @@ P5 *  *  *  *  * -FU *  *  * \n\
 P6 *  *  *  *  *  *  *  *  * \n\
 P7 *  *  *  *  * +HI+KE *  * \n\
 P8 *  * -UM *  *  *  *  *  * \n\
-P9 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
 P+\n\
 P-\n\
 +\n\

@@ -72,7 +72,7 @@ namespace sunfish {
 		while (true) {
 			is.getline(line, sizeof(line));
 			if (is.eof()) {
-				return true;
+				break;
 			}
 			if (is.fail()) {
 				Loggers::warning << "file io error. " << __FILE__ << "(" << __LINE__ << ")";
@@ -83,9 +83,14 @@ namespace sunfish {
 				return false;
 			}
 			if (line[0] == '+' || line[0] == '-') {
-				return true;
+				break;;
 			}
 		}
+
+		assert(board.getBKingPosition() != Position::Invalid);
+		assert(board.getWKingPosition() != Position::Invalid);
+
+		return true;
 	}
 
 	/**
