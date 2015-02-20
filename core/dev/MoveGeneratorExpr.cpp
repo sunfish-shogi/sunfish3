@@ -3,6 +3,8 @@
  * Kubo Ryosuke
  */
 
+#if !defined(NDEBUG)
+
 #include "MoveGeneratorExpr.h"
 #include "../move/MoveGenerator.h"
 #include "../record/CsaReader.h"
@@ -11,7 +13,6 @@
 #include <sstream>
 #include <iomanip>
 
-#if !defined(NDEBUG)
 namespace sunfish {
 
 	void MoveGeneratorExpr::testSpeed() {

@@ -530,11 +530,13 @@ namespace sunfish {
 		bb = black ? board.getBLance() : board.getWLance();
 		bb &= black ? MoveTables::WLance.get(to, occ) : MoveTables::BLance.get(to, occ);
 		BB_EACH_OPE(from, bb,
-			if (to.isLanceSignficant<black>()) {
-				moves.add(Move(Piece::Lance, from, to, false, false));
-			}
 			if (to.isPromotable<black>()) {
 				moves.add(Move(Piece::Lance, from, to, true, false));
+  			if (to.isLanceSignficant<black>()) {
+  				moves.add(Move(Piece::Lance, from, to, false, false));
+				}
+			} else {
+				moves.add(Move(Piece::Lance, from, to, false, false));
 			}
 		);
 
@@ -542,11 +544,11 @@ namespace sunfish {
 		bb = black ? board.getBKnight() : board.getWKnight();
 		bb &= black ? MoveTables::WKnight.get(to) : MoveTables::BKnight.get(to);
 		BB_EACH_OPE(from, bb,
-			if (to.isKnightMovable<black>()) {
-				moves.add(Move(Piece::Knight, from, to, false, false));
-			}
 			if (to.isPromotable<black>()) {
 				moves.add(Move(Piece::Knight, from, to, true, false));
+			}
+			if (to.isKnightMovable<black>()) {
+				moves.add(Move(Piece::Knight, from, to, false, false));
 			}
 		);
 

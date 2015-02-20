@@ -6,6 +6,7 @@
 #include "logger/Logger.h"
 #include "core/dev/MoveGeneratorExpr.h"
 #include "core/dev/CodeGenerator.h"
+#include "core/dev/MoveGenChecker.h"
 #include <fstream>
 
 #if !defined(NDEBUG)
@@ -35,12 +36,17 @@ int exprMoveGenSpeed() {
 
 // ハッシュ表生成
 int generateZobrist() {
-
 	CodeGenerator gen;
-
 	gen.generateZobrist();
 
 	return 0;
+}
+
+int checkMoveGen() {
+	MoveGenChecker checker;
+	bool ok = checker.check();
+
+	return ok ? 0 : 1;
 }
 
 #endif //!defined(NDEBUG)

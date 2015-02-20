@@ -26,6 +26,7 @@ int test();
 // dev.cpp
 int exprMoveGenSpeed();
 int generateZobrist();
+int checkMoveGen();
 
 /**
  * entry point
@@ -40,10 +41,10 @@ int main(int argc, char** argv, char** /*envp*/) {
 	ProgramOptions po;
 	po.addOption("in", "i", "record file name to load", true);
 	po.addOption("out", "o", "record file name to save", true);
-	po.addOption("black", "b", "auto/manual (default: manual)", true);
-	po.addOption("white", "w", "auto/manual (default: auto)", true);
+	po.addOption("black", "b", "[auto/manual]", true);
+	po.addOption("white", "w", "[auto/manual]", true);
 	po.addOption("depth", "d", "max depth (default: 15)", true);
-	po.addOption("time", "t", "max time for 1 move [sec] (default: 3)", true);
+	po.addOption("time", "t", "max time for 1 move (default: 3)", true);
 	po.addOption("network", "n", "network mode");
 	po.addOption("problem", "p", "solve problems");
 	po.addOption("help", "h", "show this help.");
@@ -71,13 +72,16 @@ int main(int argc, char** argv, char** /*envp*/) {
 
 	} else if (po.has("dev")) {
 		// development
-		const std::string code = po.getValue("dev");
+		std::string code = po.getValue("dev");
 
 		if (code == "gen_speed_test") {
 			return exprMoveGenSpeed();
 
 		} else if (code == "zobrist") {
 			return generateZobrist();
+
+		} else if (code == "gen_check") {
+			return checkMoveGen();
 
 		} else {
 			std::cerr << '"' << code << "\" is unknown code." << std::endl;
@@ -105,6 +109,8 @@ int main(int argc, char** argv, char** /*envp*/) {
 	// 起動時に読み込む棋譜ファイル
 	if (po.has("in")) {
 		console.setInFileName(po.getValue("in"));
+		console.setAutoBlack(false);
+		console.setAutoWhite(false);
 	}
 
 	// 自動保存する棋譜ファイル

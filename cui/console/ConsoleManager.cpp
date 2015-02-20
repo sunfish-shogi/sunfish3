@@ -6,6 +6,7 @@
 #include "ConsoleManager.h"
 #include "core/record/CsaWriter.h"
 #include "core/record/CsaReader.h"
+#include "core/move/MoveGenerator.h"
 #include "logger/Logger.h"
 #include <iostream>
 
@@ -33,6 +34,7 @@ namespace {
 		{ "t", "top", Command::Top, "go to top of this record." },
 		{ "e", "end", Command::End, "go to end of this record." },
 		{ "s", "search", Command::Search, "search from current position." },
+		{ "m", "moves", Command::Moves, "show legal moves." },
 	};
 
 }
@@ -78,6 +80,11 @@ namespace sunfish {
 	 * ユーザが入力した指し手を読み込みます。
 	 */
 	bool ConsoleManager::inputMove(const char* str, const Board& board, Move& move) const {
+
+		// CSA形式で読み込んでみる
+		if (CsaReader::readMove(str, _record.getBoard(), move)) {
+			return true;
+		}
 
 		if (strlen(str) < 4) {
 			return false;
@@ -261,6 +268,17 @@ namespace sunfish {
 
 	}
 
+	void ConsoleManager::showMoves() const {
+		Moves moves;
+		MoveGenerator::generate(_record.getBoard(), moves);
+		for (auto ite = moves.begin(); ite != moves.end(); ite++) {
+			if (_record.getBoard().isValidMoveStrict(*ite)) {
+				std::cout << ite->toString() << ' ';
+			}
+		}
+		std::cout << std::endl;
+	}
+
 	/**
 	 * ユーザからのコマンド入力を受け付けます。
 	 */
@@ -291,81 +309,94 @@ namespace sunfish {
 
 		_prevCommand = Command::Empty;
 
-		if (command == Command::Empty) {
-			// 入力なし
-			return CommandResult::None;
+		switch (command) {
+			case Command::Empty:
+				// 入力なし
+				return CommandResult::None;
 
-		} else if (command == Command::Help) {
-			// ヘルプを表示
-			showHelp();
-			return CommandResult::None;
+			case Command::Help:
+				// ヘルプを表示
+				showHelp();
+				return CommandResult::None;
 
-		} else if (command == Command::Prev) {
-			// 1手戻る。
-			if (_record.unmakeMove()) {
+			case Command::Prev:
+				// 1手戻る。
+				if (!_record.unmakeMove()) {
+					std::cout << "There is no previous move.\n";
+					return CommandResult::None;
+				}
+
 				if (_config.autoBlack || _config.autoWhite) {
 					// コンピュータの手番はスキップ
 					_record.unmakeMove();
 				}
 				_prevCommand = Command::Prev;
 				return CommandResult::Changed;
-			}
-			std::cout << "There is no previous move.\n";
-			return CommandResult::None;
 
-		} else if (command == Command::Next) {
-			// 1手進む。
-			if (_record.makeMove()) {
+			case Command::Next:
+				// 1手進む。
+				if (!_record.makeMove()) {
+					std::cout << "There is no next move.\n";
+					return CommandResult::None;
+				}
+
 				if (_config.autoBlack || _config.autoWhite) {
+					// コンピュータの手番はスキップ
 					_record.makeMove();
 				}
 				_prevCommand = Command::Next;
 				return CommandResult::Changed;
-			}
-			std::cout << "There is no next move.\n";
-			return CommandResult::None;
 
-		} else if (command == Command::Top) {
-			// 開始局面に戻る。
-			if (!_record.unmakeMove()) {
-				std::cout << "There is no previous move.\n";
-				return CommandResult::None;
-			}
-			while (_record.unmakeMove())
-				;
-			return CommandResult::Changed;
-
-		} else if (command == Command::End) {
-			// 最終局面まで進む。
-			if (!_record.makeMove()) {
-				std::cout << "There is no next move.\n";
-				return CommandResult::None;
-			}
-			while (_record.makeMove())
-				;
-			return CommandResult::Changed;
-
-		} else if (command == Command::Search) {
-			// 探索
-			search(false);
-			return CommandResult::None;
-
-		} else {
-			// 指し手入力
-			Move move;
-			if (CsaReader::readMove(line, _record.getBoard(), move) ||
-				inputMove(line, _record.getBoard(), move)) {
-				if (_record.makeMove(move)) {
-					std::cout << "Move:\n";
-					std::cout << "  " << move.toString() << '\n';
-					std::cout << std::endl;
-					return CommandResult::Changed;
+			case Command::Top:
+				// 開始局面に戻る。
+				if (!_record.unmakeMove()) {
+					std::cout << "There is no previous move.\n";
+					return CommandResult::None;
 				}
-				std::cout << "illegal move!!\n";
+
+				while (_record.unmakeMove())
+					;
+				return CommandResult::Changed;
+
+			case Command::End:
+				// 最終局面まで進む。
+				if (!_record.makeMove()) {
+					std::cout << "There is no next move.\n";
+					return CommandResult::None;
+				}
+
+				while (_record.makeMove())
+					;
+				return CommandResult::Changed;
+
+			case Command::Search:
+				// 探索
+				search(false);
 				return CommandResult::None;
+
+			case Command::Moves:
+				// 合法手生成
+				showMoves();
+				return CommandResult::None;
+
+			default: {
+				// 指し手入力
+				Move move;
+				if (!inputMove(line, _record.getBoard(), move)) {
+  			std::cout << "unknown command!!\n";
+  			return CommandResult::None;
+				}
+
+				if (!_record.makeMove(move)) {
+					std::cout << "illegal move!!\n";
+					return CommandResult::None;
+				}
+
+				std::cout << "Move:\n";
+				std::cout << "  " << move.toString() << '\n';
+				std::cout << std::endl;
+				return CommandResult::Changed;
 			}
-			std::cout << "unknown command!!\n";
-			return CommandResult::None;
 		}
 
 	}

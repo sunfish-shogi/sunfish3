@@ -15,7 +15,7 @@ namespace sunfish {
 	/**
 	 * コンソールコマンド
 	 */
-	enum class Command {
+	enum class Command : int {
 		Empty = 0,
 		Quit,
 		Help,
@@ -24,6 +24,7 @@ namespace sunfish {
 		Top,
 		End,
 		Search,
+		Moves,
 
 		__num__,
 
@@ -69,6 +70,8 @@ namespace sunfish {
 		}
 
 		bool search(bool withMakeMove);
+
+		void showMoves() const;
 
 		CommandResult inputCommand();
 

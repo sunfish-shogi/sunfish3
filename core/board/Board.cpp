@@ -601,6 +601,7 @@ namespace sunfish {
 
 	/**
 	 * 持駒を打つ手が合法手かどうかチェックします。
+	 * TODO: rename
 	 */
 	template<bool black>
 	inline bool Board::_isValidMove(const Piece& piece, const Position& to) const {
@@ -622,6 +623,7 @@ namespace sunfish {
 
 	/**
 	 * 盤上の駒を移動させる手が合法手かどうかチェックします。
+	 * TODO: rename
 	 */
 	template<bool black>
 	inline bool Board::_isValidMove(const Piece& piece, const Position& from, const Position& to) const {
@@ -697,6 +699,15 @@ namespace sunfish {
 				return false;
 			}
 
+			if (piece == Piece::Pawn) {
+				for (int rank = 1; rank <= Position::RankN; rank++) {
+					auto piece0 = _board[Position(move.to().getFile(), rank)];
+					if (piece0 == (black ? Piece::BPawn : Piece::WPawn)) {
+						return false;
+					}
+				}
+			}
+
 			if (!_isValidMove<black>(piece, to)) {
 				return false;
 			}
@@ -719,6 +730,10 @@ namespace sunfish {
 			}
 
 			if (promote && piece.isPromoted()) {
+				return false;
+			}
+
+			if (promote && (piece == Piece::Gold || piece == Piece::King)) {
 				return false;
 			}
 
@@ -811,10 +826,18 @@ namespace sunfish {
 				return false;
 			}
 
-			if (!_isValidMove<black>(piece, from, to)) {
-				return false;
-			}
+		}
 
+		// 1手進めて次玉が王手になっていないか調べる
+		// TODO: メモリ取らないで計算できるようになおす。
+		Board temp;
+		temp = *this;
+		if (!temp.makeMoveIrr(move)) {
+			return false;
+		}
+		temp._black = black; // 無理やり手番を変更する。
+		if (temp.isChecking()) {
+			return false;
 		}
 
 		return true;

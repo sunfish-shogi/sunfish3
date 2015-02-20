@@ -52,6 +52,7 @@
 		0982DDD91A8B95AA003D8576 /* EvaluatorTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0982DDD71A8B95AA003D8576 /* EvaluatorTest.cpp */; };
 		099DBADA1A8E1F090084CB2E /* ShekEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 099DBAD91A8E1F090084CB2E /* ShekEntity.cpp */; };
 		099DBADC1A8E1F390084CB2E /* ShekTable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 099DBADB1A8E1F390084CB2E /* ShekTable.cpp */; };
+		09E7D1C71A9747EA00C59E80 /* MoveGenChecker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09E7D1C51A9747EA00C59E80 /* MoveGenChecker.cpp */; };
 		09F998A71A4B1C1E00709E58 /* Evaluator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09F998A61A4B1C1E00709E58 /* Evaluator.cpp */; };
 /* End PBXBuildFile section */
 
@@ -163,6 +164,8 @@
 		099DBADD1A8E26300084CB2E /* HandSet.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HandSet.h; path = shek/HandSet.h; sourceTree = "<group>"; };
 		099DBADE1A8E27950084CB2E /* ShekStat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ShekStat.h; path = shek/ShekStat.h; sourceTree = "<group>"; };
 		09D366FE1A41C604002D88B9 /* sunfish3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sunfish3; sourceTree = BUILT_PRODUCTS_DIR; };
+		09E7D1C51A9747EA00C59E80 /* MoveGenChecker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MoveGenChecker.cpp; sourceTree = "<group>"; };
+		09E7D1C61A9747EA00C59E80 /* MoveGenChecker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MoveGenChecker.h; sourceTree = "<group>"; };
 		09F2E63F1A94D7EB006E411C /* EvaluateEntity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EvaluateEntity.h; sourceTree = "<group>"; };
 		09F2E6401A94D928006E411C /* EvaluateTable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EvaluateTable.h; sourceTree = "<group>"; };
 		09F998A61A4B1C1E00709E58 /* Evaluator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Evaluator.cpp; sourceTree = "<group>"; };
@@ -253,6 +256,8 @@
 		0969B6261A41C91200D56A21 /* dev */ = {
 			isa = PBXGroup;
 			children = (
+				09E7D1C51A9747EA00C59E80 /* MoveGenChecker.cpp */,
+				09E7D1C61A9747EA00C59E80 /* MoveGenChecker.h */,
 				0969B6271A41C91200D56A21 /* CodeGenerator.cpp */,
 				0969B6281A41C91200D56A21 /* CodeGenerator.h */,
 				0969B6291A41C91200D56A21 /* MoveGeneratorExpr.cpp */,
@@ -546,6 +551,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0969B69B1A41C91200D56A21 /* MoveTest.cpp in Sources */,
+				09E7D1C71A9747EA00C59E80 /* MoveGenChecker.cpp in Sources */,
 				09F998A71A4B1C1E00709E58 /* Evaluator.cpp in Sources */,
 				094161911A8F606E00E3D250 /* problem.cpp in Sources */,
 				0969B69F1A41C91200D56A21 /* ConsoleManager.cpp in Sources */,
