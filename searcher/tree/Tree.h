@@ -126,11 +126,9 @@ namespace sunfish {
 			return _stack[_ply].ite++;
 		}
 
-		Moves::iterator remove(Moves::iterator ite) {
-			if (ite < _stack[_ply].ite) {
-				_stack[_ply].ite--; // 前方を削除する場合はイテレータを繰り下げる。
-			}
-			return _stack[_ply].moves.remove(ite);
+		void rejectPreviousMove() {
+			_stack[_ply].ite--;
+			_stack[_ply].moves.removeStable(_stack[_ply].ite);
 		}
 
 		void removeAfter(const Moves::iterator ite) {

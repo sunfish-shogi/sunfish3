@@ -41,6 +41,16 @@ namespace sunfish {
 			(*ite) = _moves[--_size];
 			return ite;
 		}
+		void removeStable(int index) {
+			removeStable(begin()+index);
+		}
+		iterator removeStable(iterator ite) {
+			for (auto itmp = ite+1; itmp != end(); itmp++) {
+				*(itmp-1) = *(itmp);
+			}
+			_size--;
+			return ite;
+		}
 		void removeAfter(int index) {
 			_size = index;
 		}

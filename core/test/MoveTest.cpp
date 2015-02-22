@@ -7,7 +7,6 @@
 
 #include "test/Test.h"
 #include "../move/Move.h"
-#include "../board/Board.h"
 
 using namespace sunfish;
 

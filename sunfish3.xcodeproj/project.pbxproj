@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0904956B1A80E4CF0016AC43 /* Tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0904956A1A80E4CF0016AC43 /* Tree.cpp */; };
 		090B23141A87520C00FD67CC /* TreeTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 090B23121A87520C00FD67CC /* TreeTest.cpp */; };
+		09393DB21A99EC5400CCF8A0 /* MovesTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09393DB01A99EC5300CCF8A0 /* MovesTest.cpp */; };
 		094161911A8F606E00E3D250 /* problem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0941618F1A8F606E00E3D250 /* problem.cpp */; };
 		094161951A8F61D700E3D250 /* Solver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 094161931A8F61D700E3D250 /* Solver.cpp */; };
 		0969B6881A41C91200D56A21 /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B6131A41C91200D56A21 /* Config.cpp */; };
@@ -71,6 +72,7 @@
 /* Begin PBXFileReference section */
 		0904956A1A80E4CF0016AC43 /* Tree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Tree.cpp; sourceTree = "<group>"; };
 		090B23121A87520C00FD67CC /* TreeTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TreeTest.cpp; sourceTree = "<group>"; };
+		09393DB01A99EC5300CCF8A0 /* MovesTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MovesTest.cpp; sourceTree = "<group>"; };
 		0941618F1A8F606E00E3D250 /* problem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = problem.cpp; sourceTree = "<group>"; };
 		094161931A8F61D700E3D250 /* Solver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Solver.cpp; path = solve/Solver.cpp; sourceTree = "<group>"; };
 		094161941A8F61D700E3D250 /* Solver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Solver.h; path = solve/Solver.h; sourceTree = "<group>"; };
@@ -305,6 +307,7 @@
 				0969B6421A41C91200D56A21 /* PieceTest.cpp */,
 				0969B6431A41C91200D56A21 /* PositionTest.cpp */,
 				0969B6441A41C91200D56A21 /* ZobristTest.cpp */,
+				09393DB01A99EC5300CCF8A0 /* MovesTest.cpp */,
 			);
 			path = test;
 			sourceTree = "<group>";
@@ -590,6 +593,7 @@
 				099DBADA1A8E1F090084CB2E /* ShekEntity.cpp in Sources */,
 				0969B6881A41C91200D56A21 /* Config.cpp in Sources */,
 				0969B6951A41C91200D56A21 /* Record.cpp in Sources */,
+				09393DB21A99EC5400CCF8A0 /* MovesTest.cpp in Sources */,
 				0969B6981A41C91200D56A21 /* CsaReaderTest.cpp in Sources */,
 				0969B6A01A41C91200D56A21 /* dev.cpp in Sources */,
 				0969B69D1A41C91200D56A21 /* PositionTest.cpp in Sources */,

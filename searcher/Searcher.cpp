@@ -130,11 +130,12 @@ namespace sunfish {
 	/**
 	 * sort moves by see
 	 */
-	void Searcher::sortSee(Tree& tree, bool plusOnly /* = false */, bool exceptSmallCapture /* = false */) {
+	template <bool isQuies, bool exceptSmallCapture>
+	void Searcher::sortSee(Tree& tree, Value standPat, Value alpha) {
 #if ENABLE_SEE
 		const auto& board = tree.getBoard();
 
-		for (auto ite = tree.getNext(); ite != tree.getEnd(); ite++) {
+		for (auto ite = tree.getNext(); ite != tree.getEnd(); ) {
 			const Move& move = *ite;
 
 			if (exceptSmallCapture) {
@@ -145,13 +146,22 @@ namespace sunfish {
 				}
 			}
 
+			// futility pruning
+			if (standPat + estimate(tree, move) + search_param::FUT_MGN <= alpha) {
+				_info.futilityPruning++;
+				ite = tree.getMoves().remove(ite);
+				continue;
+			}
+
 			Value value = _see.search(_eval, board, move);
 			tree.setSortValue(ite, value.int32());
+
+			ite++;
 		}
 
 		tree.sortAfterCurrent();
 
-		if (plusOnly) {
+		if (isQuies) {
 			for (auto ite = tree.getNext(); ite != tree.getEnd(); ite++) {
 				if (tree.getSortValue(ite) < 0) {
 					tree.removeAfter(ite);
@@ -197,9 +207,11 @@ namespace sunfish {
 
 		auto& priorMoves = tree.getPriorMoves();
 
-		for (auto ite = tree.getNext(); ite != tree.getEnd(); ite++) {
+		for (auto ite = tree.getNext(); ite != tree.getEnd();) {
 			if (priorMoves.find(*ite) != priorMoves.end()) {
-				ite = tree.remove(ite) - 1; // Moves::Iterator の -1 は安全
+				ite = tree.getMoves().remove(ite);
+			} else {
+				++ite;
 			}
 		}
 
@@ -314,7 +326,7 @@ namespace sunfish {
 				} else {
 					MoveGenerator::generateCap(board, moves);
 					removePriorMove(tree);
-					sortSee(tree);
+					sortSee<false, false>(tree, Value::Zero, Value::Zero);
 					genPhase = GenPhase::NoCapture;
 					break;
 
@@ -341,7 +353,7 @@ namespace sunfish {
 	/**
 	 * get next move
 	 */
-	bool Searcher::nextMoveQuies(Tree& tree, Move& move, int qply) {
+	bool Searcher::nextMoveQuies(Tree& tree, Move& move, int qply, Value standPat, Value alpha) {
 
 		auto& moves = tree.getMoves();
 		auto& genPhase = tree.getGenPhase();
@@ -370,9 +382,12 @@ namespace sunfish {
 					break;
 
 				} else {
-					bool light = (qply >= 7 ? true : false);
 					MoveGenerator::generateCap(board, moves);
-					sortSee(tree, true, light);
+					if (qply >= 7) {
+  					sortSee<true, true>(tree, standPat, alpha);
+					} else {
+  					sortSee<true, false>(tree, standPat, alpha);
+					}
 					genPhase = GenPhase::End;
 					break;
 
@@ -382,15 +397,6 @@ namespace sunfish {
 				return false;
 			}
 		}
-
-	}
-
-	/**
-	 * reject current move
-	 */
-	void Searcher::rejectMove(Tree& tree) {
-
-		tree.remove(tree.getNext()-1);
 
 	}
 
@@ -434,17 +440,19 @@ namespace sunfish {
 		_info.node++;
 
 		// stand-pat
-		Value value = tree.getValue() * (black ? 1 : -1);
+		Value standPat = tree.getValue() * (black ? 1 : -1);
 
 		// スタックサイズの限界
 		if (tree.isStackFull()) {
-			return value;
+			return standPat;
 		}
 
 		// beta-cut
-		if (value >= beta) {
-			return value;
+		if (standPat >= beta) {
+			return standPat;
 		}
+
+		alpha = Value::max(alpha, standPat);
 
 		// 合法手生成
 		auto& moves = tree.getMoves();
@@ -452,10 +460,7 @@ namespace sunfish {
 		tree.initGenPhase(GenPhase::CaptureOnly);
 
 		Move move;
-		while (nextMoveQuies(tree, move, qply)) {
-			// alpha value
-			Value newAlpha = Value::max(alpha, value);
-
+		while (nextMoveQuies(tree, move, qply, standPat, alpha)) {
 			// make move
 			if (!tree.makeMove(move, _eval)) {
 				continue;
@@ -463,7 +468,7 @@ namespace sunfish {
 
 			// reccursive call
 			Value currval;
-			currval = -qsearch(tree, !black, qply + 1, -beta, -newAlpha);
+			currval = -qsearch(tree, !black, qply + 1, -beta, -alpha);
 
 			// unmake move
 			tree.unmakeMove(move);
@@ -474,8 +479,8 @@ namespace sunfish {
 			}
 
 			// 値更新
-			if (currval > value) {
-				value = currval;
+			if (currval > alpha) {
+				alpha = currval;
 				tree.updatePv(move);
 
 				// beta-cut
@@ -485,7 +490,7 @@ namespace sunfish {
 			}
 		}
 
-		return value;
+		return alpha;
 
 	}
 
@@ -906,7 +911,7 @@ namespace sunfish {
 
 			// make move
 			if (!tree.makeMove(move, _eval)) {
-				rejectMove(tree);
+				tree.rejectPreviousMove();
 				continue;
 			}
 
