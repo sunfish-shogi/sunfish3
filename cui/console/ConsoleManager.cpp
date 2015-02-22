@@ -182,7 +182,7 @@ namespace sunfish {
 		auto valuePair = evaluator.evaluate(board);
 		std::cout << "Evaluator Info\n";
 		std::cout << "  eval: " << valuePair.value().int32() <<
-  		"(" << valuePair.base().int32() << ","
+  		"(" << valuePair.material().int32() << ","
   		" " << valuePair.positional().int32() << ")\n";
 		std::cout << std::endl;
 #endif

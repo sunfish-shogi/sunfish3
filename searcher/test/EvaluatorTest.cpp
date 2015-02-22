@@ -40,7 +40,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		auto valuePair = eval.evaluateDiff(board, prevValuePair, move);
 		auto correctValuePair = eval.evaluate(board);
 
-		ASSERT_EQ(correctValuePair.base().int32(), valuePair.base().int32());
+		ASSERT_EQ(correctValuePair.material().int32(), valuePair.material().int32());
 		ASSERT_EQ(correctValuePair.positional().int32(), valuePair.positional().int32());
 	}
 
@@ -69,7 +69,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		auto valuePair = eval.evaluateDiff(board, prevValuePair, move);
 		auto correctValuePair = eval.evaluate(board);
 
-		ASSERT_EQ(correctValuePair.base().int32(), valuePair.base().int32());
+		ASSERT_EQ(correctValuePair.material().int32(), valuePair.material().int32());
 		ASSERT_EQ(correctValuePair.positional().int32(), valuePair.positional().int32());
 	}
 
@@ -98,7 +98,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		auto valuePair = eval.evaluateDiff(board, prevValuePair, move);
 		auto correctValuePair = eval.evaluate(board);
 
-		ASSERT_EQ(correctValuePair.base().int32(), valuePair.base().int32());
+		ASSERT_EQ(correctValuePair.material().int32(), valuePair.material().int32());
 		ASSERT_EQ(correctValuePair.positional().int32(), valuePair.positional().int32());
 	}
 
@@ -127,7 +127,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		auto valuePair = eval.evaluateDiff(board, prevValuePair, move);
 		auto correctValuePair = eval.evaluate(board);
 
-		ASSERT_EQ(correctValuePair.base().int32(), valuePair.base().int32());
+		ASSERT_EQ(correctValuePair.material().int32(), valuePair.material().int32());
 		ASSERT_EQ(correctValuePair.positional().int32(), valuePair.positional().int32());
 	}
 
@@ -156,7 +156,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		auto valuePair = eval.evaluateDiff(board, prevValuePair, move);
 		auto correctValuePair = eval.evaluate(board);
 
-		ASSERT_EQ(correctValuePair.base().int32(), valuePair.base().int32());
+		ASSERT_EQ(correctValuePair.material().int32(), valuePair.material().int32());
 		ASSERT_EQ(correctValuePair.positional().int32(), valuePair.positional().int32());
 	}
 
@@ -185,7 +185,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		auto valuePair = eval.evaluateDiff(board, prevValuePair, move);
 		auto correctValuePair = eval.evaluate(board);
 
-		ASSERT_EQ(correctValuePair.base().int32(), valuePair.base().int32());
+		ASSERT_EQ(correctValuePair.material().int32(), valuePair.material().int32());
 		ASSERT_EQ(correctValuePair.positional().int32(), valuePair.positional().int32());
 	}
 
@@ -214,7 +214,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		auto valuePair = eval.evaluateDiff(board, prevValuePair, move);
 		auto correctValuePair = eval.evaluate(board);
 
-		ASSERT_EQ(correctValuePair.base().int32(), valuePair.base().int32());
+		ASSERT_EQ(correctValuePair.material().int32(), valuePair.material().int32());
 		ASSERT_EQ(correctValuePair.positional().int32(), valuePair.positional().int32());
 	}
 
@@ -243,7 +243,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		auto valuePair = eval.evaluateDiff(board, prevValuePair, move);
 		auto correctValuePair = eval.evaluate(board);
 
-		ASSERT_EQ(correctValuePair.base().int32(), valuePair.base().int32());
+		ASSERT_EQ(correctValuePair.material().int32(), valuePair.material().int32());
 		ASSERT_EQ(correctValuePair.positional().int32(), valuePair.positional().int32());
 	}
 

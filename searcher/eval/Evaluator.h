@@ -20,16 +20,16 @@ namespace sunfish {
 
 	private:
 
-		Value _base;
+		Value _material;
 		Value _positional;
 
 	public:
 
-		ValuePair() : _base(0), _positional(0) {}
-		ValuePair(const Value& base, const Value& positional) : _base(base), _positional(positional) {}
+		ValuePair() : _material(0), _positional(0) {}
+		ValuePair(const Value& material, const Value& positional) : _material(material), _positional(positional) {}
 
-		Value base() const {
-			return _base;
+		Value material() const {
+			return _material;
 		}
 
 		Value positional() const {
@@ -37,11 +37,11 @@ namespace sunfish {
 		}
 
 		Value value() const {
-			return _base + _positional / PositionalScale;
+			return _material + _positional / PositionalScale;
 		}
 
 		ValuePair operator+(const ValuePair& right) const {
-			return ValuePair(_base + right._base, _positional + right._positional);
+			return ValuePair(_material + right._material, _positional + right._positional);
 		}
 
 	};
@@ -174,7 +174,7 @@ namespace sunfish {
 		 * 局面の駒割りを算出します。
 		 * @param board
 		 */
-		Value _evaluateBase(const Board& board) const;
+		Value _evaluateMaterial(const Board& board) const;
 
 		/**
 		 * 局面の駒割りを除いた評価値を算出します。
@@ -190,6 +190,9 @@ namespace sunfish {
 		 */
 		template <bool black>
 		ValuePair _evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move);
+
+		template <bool black, bool isKing>
+		Value _estimate(const Board& board, const Move& move);
 
 	public:
 
@@ -245,7 +248,7 @@ namespace sunfish {
 		 * @param board
 		 */
 		ValuePair evaluate(const Board& board) {
-			return ValuePair(_evaluateBase(board), _evaluate(board));
+			return ValuePair(_evaluateMaterial(board), _evaluate(board));
 		}
 
 		/**
@@ -259,6 +262,18 @@ namespace sunfish {
 				return _evaluateDiff<true>(board, prevValuePair, move);
 			} else {
 				return _evaluateDiff<false>(board, prevValuePair, move);
+			}
+		}
+
+		Value estimate(const Board& board, const Move& move) {
+			if (board.isBlack()) {
+				return (move.piece() == Piece::King ?
+								_estimate<true, true>(board, move):
+								_estimate<true, false>(board, move));
+			} else {
+				return (move.piece() == Piece::King ?
+								_estimate<false, true>(board, move):
+								_estimate<false, false>(board, move));
 			}
 		}
 

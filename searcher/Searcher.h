@@ -185,11 +185,6 @@ namespace sunfish {
 		void rejectMove(Tree& tree);
 
 		/**
-		 * get estimated value
-		 */
-		Value estimate(Tree& tree, const Move& move);
-
-		/**
 		 * quiesence search
 		 */
 		Value qsearch(Tree& tree, bool black, int qply, Value alpha, Value beta);

@@ -19,8 +19,17 @@ namespace {
 
 	using namespace sunfish;
 
+	namespace eval_param {
+		CONSTEXPR int FUT_KING_MGN = 1000;
+		CONSTEXPR int FUT_MGN = 800;
+	}
+
 	inline int kpp_index(int x, int y) {
 		return x*(x+1)/2+y;
+	}
+
+	inline int kpp_index(int x) {
+		return x*(x+1)/2+x;
 	}
 
 	inline int kpp_index_safe(int x, int y) {
@@ -413,54 +422,54 @@ namespace sunfish {
 	 * 局面の駒割りを算出します。
 	 * @param board
 	 */
-	Value Evaluator::_evaluateBase(const Board& board) const {
-		Value base = Value::Zero;
+	Value Evaluator::_evaluateMaterial(const Board& board) const {
+		Value material = Value::Zero;
 
-		base += _t->pawn * board.getBPawn().count();
-		base += _t->lance * board.getBLance().count();
-		base += _t->knight * board.getBKnight().count();
-		base += _t->silver * board.getBSilver().count();
-		base += _t->gold * board.getBGold().count();
-		base += _t->bishop * board.getBBishop().count();
-		base += _t->rook * board.getBRook().count();
-		base += _t->tokin * board.getBTokin().count();
-		base += _t->pro_lance * board.getBProLance().count();
-		base += _t->pro_knight * board.getBProKnight().count();
-		base += _t->pro_silver * board.getBProSilver().count();
-		base += _t->horse * board.getBHorse().count();
-		base += _t->dragon * board.getBDragon().count();
+		material += _t->pawn * board.getBPawn().count();
+		material += _t->lance * board.getBLance().count();
+		material += _t->knight * board.getBKnight().count();
+		material += _t->silver * board.getBSilver().count();
+		material += _t->gold * board.getBGold().count();
+		material += _t->bishop * board.getBBishop().count();
+		material += _t->rook * board.getBRook().count();
+		material += _t->tokin * board.getBTokin().count();
+		material += _t->pro_lance * board.getBProLance().count();
+		material += _t->pro_knight * board.getBProKnight().count();
+		material += _t->pro_silver * board.getBProSilver().count();
+		material += _t->horse * board.getBHorse().count();
+		material += _t->dragon * board.getBDragon().count();
 
-		base -= _t->pawn * board.getWPawn().count();
-		base -= _t->lance * board.getWLance().count();
-		base -= _t->knight * board.getWKnight().count();
-		base -= _t->silver * board.getWSilver().count();
-		base -= _t->gold * board.getWGold().count();
-		base -= _t->bishop * board.getWBishop().count();
-		base -= _t->rook * board.getWRook().count();
-		base -= _t->tokin * board.getWTokin().count();
-		base -= _t->pro_lance * board.getWProLance().count();
-		base -= _t->pro_knight * board.getWProKnight().count();
-		base -= _t->pro_silver * board.getWProSilver().count();
-		base -= _t->horse * board.getWHorse().count();
-		base -= _t->dragon * board.getWDragon().count();
+		material -= _t->pawn * board.getWPawn().count();
+		material -= _t->lance * board.getWLance().count();
+		material -= _t->knight * board.getWKnight().count();
+		material -= _t->silver * board.getWSilver().count();
+		material -= _t->gold * board.getWGold().count();
+		material -= _t->bishop * board.getWBishop().count();
+		material -= _t->rook * board.getWRook().count();
+		material -= _t->tokin * board.getWTokin().count();
+		material -= _t->pro_lance * board.getWProLance().count();
+		material -= _t->pro_knight * board.getWProKnight().count();
+		material -= _t->pro_silver * board.getWProSilver().count();
+		material -= _t->horse * board.getWHorse().count();
+		material -= _t->dragon * board.getWDragon().count();
 
-		base += _t->pawn * board.getBlackHand(Piece::Pawn);
-		base += _t->lance * board.getBlackHand(Piece::Lance);
-		base += _t->knight * board.getBlackHand(Piece::Knight);
-		base += _t->silver * board.getBlackHand(Piece::Silver);
-		base += _t->gold * board.getBlackHand(Piece::Gold);
-		base += _t->bishop * board.getBlackHand(Piece::Bishop);
-		base += _t->rook * board.getBlackHand(Piece::Rook);
+		material += _t->pawn * board.getBlackHand(Piece::Pawn);
+		material += _t->lance * board.getBlackHand(Piece::Lance);
+		material += _t->knight * board.getBlackHand(Piece::Knight);
+		material += _t->silver * board.getBlackHand(Piece::Silver);
+		material += _t->gold * board.getBlackHand(Piece::Gold);
+		material += _t->bishop * board.getBlackHand(Piece::Bishop);
+		material += _t->rook * board.getBlackHand(Piece::Rook);
 
-		base -= _t->pawn * board.getWhiteHand(Piece::Pawn);
-		base -= _t->lance * board.getWhiteHand(Piece::Lance);
-		base -= _t->knight * board.getWhiteHand(Piece::Knight);
-		base -= _t->silver * board.getWhiteHand(Piece::Silver);
-		base -= _t->gold * board.getWhiteHand(Piece::Gold);
-		base -= _t->bishop * board.getWhiteHand(Piece::Bishop);
-		base -= _t->rook * board.getWhiteHand(Piece::Rook);
+		material -= _t->pawn * board.getWhiteHand(Piece::Pawn);
+		material -= _t->lance * board.getWhiteHand(Piece::Lance);
+		material -= _t->knight * board.getWhiteHand(Piece::Knight);
+		material -= _t->silver * board.getWhiteHand(Piece::Silver);
+		material -= _t->gold * board.getWhiteHand(Piece::Gold);
+		material -= _t->bishop * board.getWhiteHand(Piece::Bishop);
+		material -= _t->rook * board.getWhiteHand(Piece::Rook);
 
-		return base;
+		return material;
 	}
 
 	/**
@@ -563,7 +572,7 @@ namespace sunfish {
 	template <bool black>
 	ValuePair Evaluator::_evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move) {
 
-		Value base = prevValuePair.base();;
+		Value material = prevValuePair.material();;
 		Value positional;
 		auto piece = move.piece();
 		auto captured = move.captured();
@@ -575,19 +584,19 @@ namespace sunfish {
 		if (_hashTable.get(board.getNoTurnHash(), positional)) {
 			if (!captured.isEmpty()) {
 				if (black) {
-  				base += pieceExchange(captured);
+  				material += pieceExchange(captured);
 				} else {
-  				base -= pieceExchange(captured);
+  				material -= pieceExchange(captured);
 				}
 			}
 			if (move.promote()) {
 				if (black) {
-					base += piecePromote(piece);
+					material += piecePromote(piece);
 				} else {
-					base -= piecePromote(piece);
+					material -= piecePromote(piece);
 				}
 			}
-			return ValuePair(base, positional);
+			return ValuePair(material, positional);
 		}
 #endif
 
@@ -595,21 +604,21 @@ namespace sunfish {
 		if (!ENABLE_DIFF || piece == Piece::King) {
 			if (!captured.isEmpty()) {
 				if (black) {
-  				base += pieceExchange(captured);
+  				material += pieceExchange(captured);
 				} else {
-  				base -= pieceExchange(captured);
+  				material -= pieceExchange(captured);
 				}
 			}
 #if !ENABLE_DIFF
 			if (move.promote()) {
 				if (black) {
-					base += piecePromote(piece);
+					material += piecePromote(piece);
 				} else {
-					base -= piecePromote(piece);
+					material -= piecePromote(piece);
 				}
 			}
 #endif
-			return ValuePair(base, _evaluate(board));
+			return ValuePair(material, _evaluate(board));
 		}
 
 		positional = prevValuePair.positional();
@@ -669,13 +678,13 @@ namespace sunfish {
 		if (isProm) {
 			// 駒が成った場合
 			if (black) {
-				base += piecePromote(piece);
+				material += piecePromote(piece);
 				auto promoted = piece.promote();
 				positional += _t->kkp[bking][wking][kkpBoardIndex(promoted, to)];
 				kppIndexToB = kppBoardIndex<true>(promoted, to);
 				kppIndexToW = kppBoardIndex<false>(promoted, to.reverse());
 			} else {
-				base -= piecePromote(piece);
+				material -= piecePromote(piece);
 				auto promoted = piece.promote();
 				positional -= _t->kkp[wkingR][bkingR][kkpBoardIndex(promoted, to.reverse())];
 				kppIndexToB = kppBoardIndex<false>(promoted, to);
@@ -697,12 +706,12 @@ namespace sunfish {
 		// 駒を取った場合
 		if (!captured.isEmpty()) {
 			if (black) {
-				base += pieceExchange(captured);
+				material += pieceExchange(captured);
 				positional += _t->kkp[wkingR][bkingR][kkpBoardIndex(captured, to.reverse())];
 				kppIndexCapturedB = kppBoardIndex<false>(captured, to);
 				kppIndexCapturedW = kppBoardIndex<true>(captured, to.reverse());
 			} else {
-				base -= pieceExchange(captured);
+				material -= pieceExchange(captured);
 				positional -= _t->kkp[bking][wking][kkpBoardIndex(captured, to)];
 				kppIndexCapturedB = kppBoardIndex<true>(captured, to);
 				kppIndexCapturedW = kppBoardIndex<false>(captured, to.reverse());
@@ -894,11 +903,183 @@ namespace sunfish {
 		_hashTable.set(board.getNoTurnHash(), positional);
 #endif
 
-		return ValuePair(base, positional);
+		return ValuePair(material, positional);
 
 	}
 	template ValuePair Evaluator::_evaluateDiff<true>(const Board&, const ValuePair&, const Move&);
 	template ValuePair Evaluator::_evaluateDiff<false>(const Board&, const ValuePair&, const Move&);
+
+	/**
+	 * 評価値の変化を推定します。
+	 * @param board
+	 * @param move
+	 */
+	template <bool black, bool isKing>
+	Value Evaluator::_estimate(const Board& board, const Move& move) {
+
+		Value material = 0;
+		Value positional = 0;
+		auto piece = move.piece();
+		auto captured = move.captured();
+
+		assert(board.isBlack() == black);
+
+		bool isHand = move.isHand();
+		auto to = move.to();
+		bool isProm = move.promote();
+
+		auto bking = board.getBKingPosition();
+		auto wking = board.getWKingPosition();
+		auto bkingR = bking.reverse();
+		auto wkingR = wking.reverse();
+
+		// 移動元
+		if (!isKing && isHand) {
+			// 持ち駒を打った場合
+			if (black) {
+				int num = board.getBlackHand(piece);
+				int kkpIndex = kkpHandIndex(piece) + num;
+				positional += _t->kkp[bking][wking][kkpIndex];
+				positional -= _t->kkp[bking][wking][kkpIndex+1];
+				int kppIndexB = kppHandIndex<true>(piece) + num;
+				positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+				positional -= _t->kpp[bking][kpp_index(kppIndexB+1, kppIndexB+1)];
+				int kppIndexW = kppHandIndex<false>(piece) + num;
+				positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+				positional += _t->kpp[wkingR][kpp_index(kppIndexW+1, kppIndexW+1)];
+			} else {
+				int num = board.getWhiteHand(piece);
+				int kkpIndex = kkpHandIndex(piece) + num;
+				positional -= _t->kkp[wkingR][bkingR][kkpIndex];
+				positional += _t->kkp[wkingR][bkingR][kkpIndex+1];
+				int kppIndexB = kppHandIndex<false>(piece) + num;
+				positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+				positional -= _t->kpp[bking][kpp_index(kppIndexB+1, kppIndexB+1)];
+				int kppIndexW = kppHandIndex<true>(piece) + num;
+				positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+				positional += _t->kpp[wkingR][kpp_index(kppIndexW+1, kppIndexW+1)];
+			}
+		} else {
+			// 盤上の駒を動かした場合
+			auto from = move.from();
+			if (black) {
+				if (!isKing) {
+					positional -= _t->kkp[bking][wking][kkpBoardIndex(piece, from)];
+					int kppIndexB = kppBoardIndex<true>(piece, from);
+					positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+					int kppIndexW = kppBoardIndex<false>(piece, from.reverse());
+					positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+				}
+			} else {
+				if (!isKing) {
+					positional += _t->kkp[wkingR][bkingR][kkpBoardIndex(piece, from.reverse())];
+					int kppIndexB = kppBoardIndex<false>(piece, from);
+					positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+					int kppIndexW = kppBoardIndex<true>(piece, from.reverse());
+					positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+				}
+			} 
+		}
+
+		// 移動先
+		if (!isKing && isProm) {
+			// 駒が成った場合
+			if (black) {
+				material += piecePromote(piece);
+				auto promoted = piece.promote();
+				positional += _t->kkp[bking][wking][kkpBoardIndex(promoted, to)];
+				int kppIndexB = kppBoardIndex<true>(promoted, to);
+				positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+				int kppIndexW = kppBoardIndex<false>(promoted, to.reverse());
+				positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+			} else {
+				material -= piecePromote(piece);
+				auto promoted = piece.promote();
+				positional -= _t->kkp[wkingR][bkingR][kkpBoardIndex(promoted, to.reverse())];
+				int kppIndexB = kppBoardIndex<false>(promoted, to);
+				positional -= _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+				int kppIndexW = kppBoardIndex<true>(promoted, to.reverse());
+				positional += _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+			} 
+		} else {
+			// 成らなかった場合
+			if (black) {
+				if (!isKing) {
+					positional += _t->kkp[bking][wking][kkpBoardIndex(piece, to)];
+					int kppIndexB = kppBoardIndex<true>(piece, to);
+					positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+					int kppIndexW = kppBoardIndex<false>(piece, to.reverse());
+					positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+				}
+			} else {
+				if (!isKing) {
+					positional -= _t->kkp[wkingR][bkingR][kkpBoardIndex(piece, to.reverse())];
+					int kppIndexB = kppBoardIndex<false>(piece, to);
+					positional -= _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+					int kppIndexW = kppBoardIndex<true>(piece, to.reverse());
+					positional += _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+				}
+			} 
+		}
+
+		// 駒を取った場合
+		if (!captured.isEmpty()) {
+			if (black) {
+				material += pieceExchange(captured);
+				positional += _t->kkp[wkingR][bkingR][kkpBoardIndex(captured, to.reverse())];
+				int kppIndexB = kppBoardIndex<false>(captured, to);
+				positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+				int kppIndexW = kppBoardIndex<true>(captured, to.reverse());
+				positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+			} else {
+				material -= pieceExchange(captured);
+				positional -= _t->kkp[bking][wking][kkpBoardIndex(captured, to)];
+				int kppIndexB = kppBoardIndex<true>(captured, to);
+				positional -= _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+				int kppIndexW = kppBoardIndex<false>(captured, to.reverse());
+				positional += _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+			} 
+			auto hand = captured.hand();
+			if (black) {
+				int num = board.getBlackHand(hand);
+				int kkpIndex = kkpHandIndex(hand) + num;
+				positional += _t->kkp[bking][wking][kkpIndex];
+				positional -= _t->kkp[bking][wking][kkpIndex-1];
+				int kppIndexB = kppHandIndex<true>(hand) + num;
+				positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+				positional -= _t->kpp[bking][kpp_index(kppIndexB-1, kppIndexB-1)];
+				int kppIndexW = kppHandIndex<false>(hand) + num;
+				positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+				positional += _t->kpp[wkingR][kpp_index(kppIndexW-1, kppIndexW-1)];
+			} else {
+				int num = board.getWhiteHand(hand);
+				int kkpIndex = kkpHandIndex(hand) + num;
+				positional -= _t->kkp[wkingR][bkingR][kkpIndex];
+				positional += _t->kkp[wkingR][bkingR][kkpIndex-1];
+				int kppIndexB = kppHandIndex<false>(hand) + num;
+				positional -= _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+				positional += _t->kpp[bking][kpp_index(kppIndexB-1, kppIndexB-1)];
+				int kppIndexW = kppHandIndex<true>(hand) + num;
+				positional += _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+				positional -= _t->kpp[wkingR][kpp_index(kppIndexW-1, kppIndexW-1)];
+			} 
+		}
+
+		auto valuePair = ValuePair(material, positional);
+		auto value = black ? valuePair.value() : -valuePair.value();
+
+		if (isKing) {
+			value += eval_param::FUT_KING_MGN;
+		} else {
+			value += eval_param::FUT_MGN;
+		}
+
+		return value;
+	}
+	template Value Evaluator::_estimate<true, true>(const Board& board, const Move& move);
+	template Value Evaluator::_estimate<true, false>(const Board& board, const Move& move);
+	template Value Evaluator::_estimate<false, true>(const Board& board, const Move& move);
+	template Value Evaluator::_estimate<false, false>(const Board& board, const Move& move);
 
 	/**
 	 * 盤上の駒の種類から KKP のインデクスを取得します。
@@ -1035,7 +1216,6 @@ namespace sunfish {
 			case Piece::BKing: case Piece::WKing:
 				return PieceInf;
 			default:
-				assert(false);
 				return 0;
 		}
 	}
@@ -1074,7 +1254,6 @@ namespace sunfish {
 			case Piece::BKing: case Piece::WKing:
 				return PieceInfEx;
 			default:
-				assert(false);
 				return 0;
 		}
 	}

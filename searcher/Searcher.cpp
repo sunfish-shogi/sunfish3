@@ -20,7 +20,8 @@
 namespace sunfish {
 
 	namespace search_param {
-		CONSTEXPR int FUT_MGN = 400;
+		CONSTEXPR int EFUT_MGN1 = 800;
+		CONSTEXPR int EFUT_MGN2 = 800;
 		CONSTEXPR int EXT_CHECK = Searcher::Depth1Ply;
 		CONSTEXPR int EXT_ONEREP = Searcher::Depth1Ply * 1 / 2;
 		CONSTEXPR int EXT_RECAP = Searcher::Depth1Ply * 1 / 4;
@@ -147,7 +148,7 @@ namespace sunfish {
 			}
 
 			// futility pruning
-			if (standPat + estimate(tree, move) + search_param::FUT_MGN <= alpha) {
+			if (standPat + tree.estimate(move, _eval) <= alpha) {
 				_info.futilityPruning++;
 				ite = tree.getMoves().remove(ite);
 				continue;
@@ -397,29 +398,6 @@ namespace sunfish {
 				return false;
 			}
 		}
-
-	}
-
-	/**
-	 * get estimated value
-	 */
-	Value Searcher::estimate(Tree& tree, const Move& move) {
-
-		const auto& board = tree.getBoard();
-		Position to = move.to();
-		bool promote = move.promote();
-		Piece captured = board.getBoardPiece(to);
-		Value est = 0;
-
-		if (promote) {
-			est += _eval.piecePromote(move.piece());
-		}
-
-		if (!captured.isEmpty()) {
-			est += _eval.pieceExchange(captured);
-		}
-
-		return est;
 
 	}
 
@@ -717,10 +695,15 @@ namespace sunfish {
 #endif // ENABLE_LMR
 
 			// futility pruning
-			if (!isCheck && standPat + estimate(tree, move) + search_param::FUT_MGN <= newAlpha) {
-				value = newAlpha;
-				_info.futilityPruning++;
-				continue;
+			if (!isCheck && newDepth < Depth1Ply * 3 && newAlpha > -Value::Mate) {
+				Value futAlpha = newAlpha;
+				if (newDepth >= Depth1Ply * 2) { futAlpha -= search_param::EFUT_MGN2; }
+				else if (newDepth >= Depth1Ply) { futAlpha -= search_param::EFUT_MGN1; }
+				if (standPat + tree.estimate(move, _eval) <= futAlpha) {
+					value = newAlpha;
+					_info.futilityPruning++;
+					continue;
+				}
 			}
 
 			// make move
@@ -731,11 +714,15 @@ namespace sunfish {
 			Value newStandPat = tree.getValue() * (black ? 1 : -1);
 
 			// extended futility pruning
-			if (!isCheck && newStandPat + search_param::FUT_MGN <= newAlpha) {
-				tree.unmakeMove(move);
-				value = newAlpha;
-				_info.extendedFutilityPruning++;
-				continue;
+			if (!isCheck && newAlpha > -Value::Mate) {
+				if ((newDepth < Depth1Ply && newStandPat <= newAlpha) ||
+						(newDepth < Depth1Ply * 2 && newStandPat + search_param::EFUT_MGN1 <= newAlpha) ||
+						(newDepth < Depth1Ply * 3 && newStandPat + search_param::EFUT_MGN2 <= newAlpha)) {
+					tree.unmakeMove(move);
+					value = newAlpha;
+					_info.extendedFutilityPruning++;
+					continue;
+				}
 			}
 
 			// reccursive call

@@ -205,6 +205,10 @@ namespace sunfish {
 			return node.valuePair.value();
 		}
 
+		Value estimate(const Move& move, Evaluator& eval) {
+			return eval.estimate(_board, move);
+		}
+
 		bool makeMove(Move& move, Evaluator& eval) {
 			_shekTable.set(_board);
 			if (_board.makeMove(move)) {
