@@ -9,7 +9,7 @@ namespace sunfish {
 
 	bool TTE::update(uint64_t newHash,
 			Value newValue,
-			int newValueType,
+			ValueType newValueType,
 			int newDepth, int ply,
 			const NodeStat& newStat,
 			const Move& move,
@@ -17,7 +17,7 @@ namespace sunfish {
 
 		assert(newAge < AgeMax);
 		assert(newDepth < (1<<20));
-		assert(newValueType < (1<<2));
+		assert(newValueType < (ValueType)4);
 		assert((uint32_t)newStat < (1<<4));
 
 		if (newDepth < 0) {
@@ -68,40 +68,43 @@ namespace sunfish {
 	}
 
 	void TTEs::set(const TTE& entity) {
-
-		uint32_t l = lastAccess;
+		// ハッシュ値が一致するスロットを探す
+		uint32_t l = _lastAccess % Size;
 		for (uint32_t i = 0; i < Size; i++) {
 			const uint32_t index = (l + i) % Size;
-			if (list[index].getHash() == entity.getHash()) {
-				list[index] = entity;
-				lastAccess = index;
+			if (_list[index].getHash() == entity.getHash()) {
+				_list[index] = entity;
+				_lastAccess = index;
 				return;
 			}
 		}
+
+		// 壊れているスロットを探す
 		l++;
 		for (uint32_t i = 0; i < Size; i++) {
 			const uint32_t index = (l + i) % Size;
-			if (list[index].isBroken() ||
-					list[index].getAge() != entity.getAge()) {
-				list[index] = entity;
-				lastAccess = index;
+			if (_list[index].isBroken() || _list[index].getAge() != entity.getAge()) {
+				_list[index] = entity;
+				_lastAccess = index;
 				return;
 			}
 		}
+
+		// 上書きする
 		const uint32_t index = l % Size;
-		list[index] = entity;
-		lastAccess = index;
+		_list[index] = entity;
+		_lastAccess = index;
 
 	}
 
 	bool TTEs::get(uint64_t hash, TTE& entity) {
 
-		uint32_t l = lastAccess;
+		uint32_t l = _lastAccess % Size;
 		for (uint32_t i = 0; i < Size; i++) {
 			const uint32_t index = (l + i) % Size;
-			if (list[index].getHash() == hash) {
-				entity = list[index];
-				lastAccess = index;
+			if (_list[index].getHash() == hash) {
+				entity = _list[index];
+				_lastAccess = index;
 				return true;
 			}
 		}

@@ -14,7 +14,7 @@ namespace sunfish {
 	class TT : public HashTable<TTEs> {
 	private:
 
-		unsigned _age;
+		uint32_t _age;
 
 	public:
 

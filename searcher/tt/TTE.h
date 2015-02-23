@@ -15,10 +15,19 @@
 namespace sunfish {
 
 	class TTE {
+	public:
+		static CONSTEXPR uint32_t AgeMax = 0x01 << 8;
+
+		enum ValueType : int {
+			Exact = 0,
+			Upper, /* = 1 */
+			Lower, /* = 2 */
+		};
+
 	private:
 
-		uint32_t _checkSum;
 		uint64_t _hash;
+		uint32_t _checkSum;
 		Value _value;
 		TTMoves _moves;
 		struct {
@@ -42,21 +51,13 @@ namespace sunfish {
 
 		bool update(uint64_t newHash,
 				Value newValue,
-				int newValueType,
+				ValueType newValueType,
 				int newDepth, int ply,
 				const NodeStat& newStat,
 				const Move& move,
 				uint32_t newAge);
 
 	public:
-		static CONSTEXPR uint32_t AgeMax = 0x01 << 8;
-
-		enum {
-			Exact = 0,
-			Upper, /* = 1 */
-			Lower, /* = 2 */
-		};
-
 		TTE() {
 			init();
 		}
@@ -74,7 +75,7 @@ namespace sunfish {
 				const Move& move,
 				uint32_t newAge) {
 
-			int newValueType;
+			ValueType newValueType;
 			if (newValue >= beta) {
 				newValueType = Lower;
 			} else if (newValue <= alpha) {
@@ -152,17 +153,17 @@ namespace sunfish {
 	private:
 
 		static CONSTEXPR uint32_t Size = 4;
-		TTE list[Size];
-		volatile uint32_t lastAccess;
+		TTE _list[Size];
+		volatile uint32_t _lastAccess;
 
 	public:
 
-		TTEs() : lastAccess(0) {
+		TTEs() : _lastAccess(0) {
 		}
 
 		void init(uint32_t) {
 			for (uint32_t i = 0; i < Size; i++) {
-				list[i].init();
+				_list[i].init();
 			}
 		}
 
