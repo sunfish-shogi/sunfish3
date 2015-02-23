@@ -67,7 +67,7 @@ namespace sunfish {
 
 		void reduce() {
 			for (int i = 0; i < Size; i++) {
-				hist[i] = (hist[i] >> 3) & ~0xe0000000ull;
+				hist[i] = (hist[i] >> 8) & ~0xff000000ull;
 			}
 		}
 
