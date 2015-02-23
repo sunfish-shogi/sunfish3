@@ -14,9 +14,7 @@ namespace sunfish {
 
 	class EvaluateTable : public HashTable<EvaluateEntity> {
 	public:
-		static const int Bits = 21; // TODO: fix magic number
-
-		EvaluateTable() : HashTable<EvaluateEntity>(Bits) {
+		EvaluateTable() : HashTable<EvaluateEntity>(EvaluateEntity::KeyLength) {
 		}
 		EvaluateTable(const EvaluateTable&) = delete;
 		EvaluateTable(EvaluateTable&&) = delete;

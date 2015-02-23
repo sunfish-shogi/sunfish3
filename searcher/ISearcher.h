@@ -11,7 +11,11 @@
 namespace sunfish {
 
 	class ISearcher {
-	private:
+	protected:
+		ISearcher() = default;
+		ISearcher(const ISearcher&) = delete;
+		ISearcher(ISearcher&&) = delete;
+		~ISearcher() = default;
 
 	public:
 

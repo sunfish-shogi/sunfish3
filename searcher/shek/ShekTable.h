@@ -39,6 +39,15 @@ namespace sunfish {
 			return getEntity(hash).check(hash, HandSet(hand), board.isBlack());
 		}
 
+		bool isAllCleared() const {
+			for (uint32_t i = 0; i < getSize(); i++) {
+				if (!getEntity(i).isCleared()) {
+					return false;
+				}
+			}
+			return true;
+		}
+
 	};
 
 }

@@ -35,6 +35,8 @@ namespace {
 		{ "e", "end", Command::End, "go to end of this record." },
 		{ "s", "search", Command::Search, "search from current position." },
 		{ "m", "moves", Command::Moves, "show legal moves." },
+		{ nullptr, "clear-tt", Command::ClearTT, "clear TT." },
+		{ nullptr, "clear-history", Command::ClearHistory, "clear history." },
 	};
 
 }
@@ -68,8 +70,8 @@ namespace sunfish {
 		for (int i = 0; i < COMMAND_NUM; i++) {
 			const char* s = commandSet[i].shortStr;
 			const char* l = commandSet[i].longStr;
-			if ((s != NULL && 0 == strcmp(str, s)) ||
-					(l != NULL && 0 == strcmp(str, l))) {
+			if ((s != nullptr && 0 == strcmp(str, s)) ||
+					(l != nullptr && 0 == strcmp(str, l))) {
 				return commandSet[i].command;
 			}
 		}
@@ -159,11 +161,11 @@ namespace sunfish {
 			const char* l = commandSet[i].longStr;
 			const char* s = commandSet[i].shortStr;
 			const char* d = commandSet[i].description;
-			if (l != NULL) { std::cout << l; }
+			if (l != nullptr) { std::cout << l; }
 			std::cout << '\t';
-			if (s != NULL) { std::cout << s; }
+			if (s != nullptr) { std::cout << s; }
 			std::cout << '\t';
-			if (d != NULL) { std::cout << d; }
+			if (d != nullptr) { std::cout << d; }
 			std::cout << std::endl;
 		}
 	}
@@ -377,6 +379,16 @@ namespace sunfish {
 			case Command::Moves:
 				// 合法手生成
 				showMoves();
+				return CommandResult::None;
+
+			case Command::ClearTT:
+				// TTクリア
+				_searcher.clearTT();
+				return CommandResult::None;
+
+			case Command::ClearHistory:
+				// Historyクリア
+				_searcher.clearHistory();
 				return CommandResult::None;
 
 			default: {

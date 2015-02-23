@@ -25,6 +25,8 @@ namespace sunfish {
 		End,
 		Search,
 		Moves,
+		ClearTT,
+		ClearHistory,
 
 		__num__,
 

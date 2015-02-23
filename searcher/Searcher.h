@@ -301,6 +301,20 @@ namespace sunfish {
 			return _eval;
 		}
 
+		/**
+		 * TT をクリアします。
+		 */
+		void clearTT() {
+			_tt.init();
+		}
+
+		/**
+		 * historyをクリアします。
+		 */
+		void clearHistory() {
+			_history.init();
+		}
+
 	};
 
 }

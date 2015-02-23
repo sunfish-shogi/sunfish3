@@ -87,6 +87,17 @@ namespace sunfish {
 		}
 #endif
 
+#ifndef NDEBUG
+		{
+			// SHEK のテーブルが元に戻っているかチェックする。
+			for (int ti = 0; ti < _config.treeSize; ti++) {
+				if (!_trees[ti].getShekTable().isAllCleared()) {
+					std::cout << "SHEK table has some pending record. (" << ti << ")" << std::endl;
+				}
+			}
+		}
+#endif
+
 		_isRunning = false;
 		_forceInterrupt = false;
 
@@ -264,6 +275,8 @@ namespace sunfish {
 		auto data = _history.getData(key);
 		auto good = History::getGoodCount(data);
 		auto appear = History::getAppearCount(data);
+
+		assert(good < appear);
 
 		if (!isNullWindow) {
 			if (good * 20 < appear) {

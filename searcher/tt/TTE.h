@@ -9,6 +9,7 @@
 #include "TTMoves.h"
 #include "../eval/Value.h"
 #include "../tree/NodeStat.h"
+#include "core/def.h"
 #include <cassert>
 
 namespace sunfish {
@@ -48,7 +49,7 @@ namespace sunfish {
 				uint32_t newAge);
 
 	public:
-		static const uint32_t AgeMax = 0x01 << 8;
+		static CONSTEXPR uint32_t AgeMax = 0x01 << 8;
 
 		enum {
 			Exact = 0,
@@ -150,7 +151,7 @@ namespace sunfish {
 	class TTEs {
 	private:
 
-		static const uint32_t Size = 4;
+		static CONSTEXPR uint32_t Size = 4;
 		TTE list[Size];
 		volatile uint32_t lastAccess;
 

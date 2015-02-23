@@ -120,6 +120,15 @@ namespace sunfish {
 			assert(false);
 		}
 
+		bool isCleared() const {
+			for (uint32_t i = 0; i < Size; i++) {
+				if (_entities[i].getHash() != _invalidKey) {
+					return false;
+				}
+			}
+			return true;
+		}
+
 	};
 
 }
