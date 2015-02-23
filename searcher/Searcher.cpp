@@ -25,6 +25,15 @@ namespace sunfish {
 		CONSTEXPR int EXT_CHECK = Searcher::Depth1Ply;
 		CONSTEXPR int EXT_ONEREP = Searcher::Depth1Ply * 1 / 2;
 		CONSTEXPR int EXT_RECAP = Searcher::Depth1Ply * 1 / 4;
+		CONSTEXPR int REC_THRESHOLD = Searcher::Depth1Ply * 3;
+	}
+
+	namespace search_func {
+		inline int recDepth(int depth) {
+			return (depth < Searcher::Depth1Ply * 9 / 2 ?
+							Searcher::Depth1Ply * 3 / 2 :
+							depth - Searcher::Depth1Ply * 3);
+		}
 	}
 
 	/**
@@ -548,40 +557,40 @@ namespace sunfish {
 		uint64_t hash = board.getHash();
 
 		// transposition table
-		TTE tte;
 		bool hashOk = false;
 		Move hash1 = Move::empty();
 		Move hash2 = Move::empty();
-		_info.hashProbed++;
-		if (_tt.get(hash, tte)) {
-			Value ttv = tte.getValue(tree.getPly());
-			switch (tte.getValueType()) {
-			case TTE::Exact: // 確定
-				if (!pvNode && stat.isHashCut() && tte.isSuperior(depth)) {
-					_info.hashExact++;
-					return ttv;
+		{
+			TTE tte;
+			_info.hashProbed++;
+			if (_tt.get(hash, tte)) {
+				Value ttv = tte.getValue(tree.getPly());
+				switch (tte.getValueType()) {
+					case TTE::Exact: // 確定
+						if (!pvNode && stat.isHashCut() && tte.isSuperior(depth)) {
+							_info.hashExact++;
+							return ttv;
+						}
+						break;
+					case TTE::Lower: // 下界値
+						if (!pvNode && stat.isHashCut() && ttv >= beta && tte.isSuperior(depth)) {
+							_info.hashLower++;
+							return ttv;
+						}
+						break;
+					case TTE::Upper: // 上界値
+						if (!pvNode && stat.isHashCut() && ttv <= alpha && tte.isSuperior(depth)) {
+							_info.hashUpper++;
+							return ttv;
+						}
+						break;
 				}
+			}
+			if (depth < search_param::REC_THRESHOLD ||
+					tte.getDepth() >= search_func::recDepth(depth)) {
+				hashOk = true;
 				hash1 = tte.getMoves().getMove1();
 				hash2 = tte.getMoves().getMove2();
-				hashOk = true;
-				break;
-			case TTE::Lower: // 下界値
-				if (ttv >= beta) {
-					if (!pvNode && stat.isHashCut() && tte.isSuperior(depth)) {
-						_info.hashLower++;
-						return ttv;
-					}
-					hash1 = tte.getMoves().getMove1();
-					hash2 = tte.getMoves().getMove2();
-					hashOk = true;
-				}
-				break;
-			case TTE::Upper: // 上界値
-				if (!pvNode && stat.isHashCut() && ttv <= alpha && tte.isSuperior(depth)) {
-					_info.hashUpper++;
-					return ttv;
-				}
-				break;
 			}
 		}
 
@@ -626,9 +635,9 @@ namespace sunfish {
 		}
 
 		// recursive iterative-deepening search
-		if (!hashOk && depth >= Depth1Ply * 3) {
+		if (!hashOk && depth >= search_param::REC_THRESHOLD) {
 			auto newStat = NodeStat(stat).unsetNullMove().unsetMate().unsetHashCut();
-			searchr<pvNode>(tree, black, depth - Depth1Ply, alpha, beta, newStat);
+			searchr<pvNode>(tree, black, search_func::recDepth(depth), alpha, beta, newStat);
 
 			// 中断判定
 			if (isInterrupted()) {
@@ -636,7 +645,9 @@ namespace sunfish {
 			}
 
 			// ハッシュ表から前回の最善手を取得
+			TTE tte;
 			if (_tt.get(hash, tte)) {
+				hashOk = true;
 				hash1 = tte.getMoves().getMove1();
 				hash2 = tte.getMoves().getMove2();
 			}
@@ -651,8 +662,10 @@ namespace sunfish {
 		best.setEmpty();
 		tree.initGenPhase();
 #if ENABLE_HASH_MOVE
-		addPriorMove(tree, hash1);
-		addPriorMove(tree, hash2);
+		if (hashOk) {
+  		addPriorMove(tree, hash1);
+  		addPriorMove(tree, hash2);
+		}
 #endif // ENABLE_HASH_MOVE
 		while (nextMove(tree, move)) {
 

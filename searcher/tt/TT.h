@@ -33,8 +33,7 @@ namespace sunfish {
 			TTE e;
 			TTEs& entities = getEntity(hash);
 			entities.get(hash, e);
-			if (e.update(hash, alpha, beta, value,
-					depth, ply, stat, move, _age)) {
+			if (e.update(hash, alpha, beta, value, depth, ply, stat, move, _age)) {
 				entities.set(e);
 				return true;
 			}
