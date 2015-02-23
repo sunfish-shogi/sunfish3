@@ -273,8 +273,8 @@ namespace sunfish {
 	int Searcher::getReductionDepth(const Move& move, bool isNullWindow) {
 		auto key = History::getKey(move);
 		auto data = _history.getData(key);
-		auto good = History::getGoodCount(data);
-		auto appear = History::getAppearCount(data);
+		auto good = History::getGoodCount(data) + 1;
+		auto appear = History::getAppearCount(data) + 2;
 
 		assert(good < appear);
 
