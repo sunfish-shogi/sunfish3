@@ -67,6 +67,31 @@ namespace sunfish {
 
 	}
 
+	void TTE::updatePv(uint64_t newHash, int newDepth, const Move& move, uint32_t newAge) {
+		if (newDepth < 0) {
+			newDepth = 0;
+		}
+
+		if (isOk()) {
+			assert(_hash == newHash);
+			if (newDepth >= (int)_.depth || _.age != newAge) {
+				_.valueType = None;
+				_.depth = (uint32_t)newDepth;
+			}
+		} else {
+			_hash = newHash;
+			_moves.init();
+			_.valueType = None;
+			_.depth = (uint32_t)newDepth;
+		}
+
+		if (!move.isEmpty()) {
+			_moves.update(move);
+		}
+		_.age = newAge;
+		_checkSum = generateCheckSum();
+	}
+
 	void TTEs::set(const TTE& entity) {
 		// ハッシュ値が一致するスロットを探す
 		uint32_t l = _lastAccess % Size;

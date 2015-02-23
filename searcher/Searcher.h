@@ -126,7 +126,7 @@ namespace sunfish {
 		/**
 		 * 後処理
 		 */
-		void after(const Board& initialBoard);
+		void after();
 
 		/**
 		 * 探索中断判定
@@ -180,9 +180,9 @@ namespace sunfish {
 		bool nextMoveQuies(Tree& tree, Move& move, int ply, Value standPat, Value alpha);
 
 		/**
-		 * reject current move
+		 * store PV-nodes to TT
 		 */
-		void rejectMove(Tree& tree);
+		void storePv(Tree& tree, const Pv& pv, int ply);
 
 		/**
 		 * quiesence search

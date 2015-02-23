@@ -209,7 +209,7 @@ namespace sunfish {
 			return eval.estimate(_board, move);
 		}
 
-		bool makeMove(Move& move, Evaluator& eval) {
+		bool makeMove(Move move, Evaluator& eval) {
 			_shekTable.set(_board);
 			if (_board.makeMove(move)) {
 				_ply++;
@@ -225,9 +225,10 @@ namespace sunfish {
 			return false;
 		}
 
-		void unmakeMove(const Move& move) {
+		void unmakeMove() {
+			auto& curr = _stack[_ply];
 			_ply--;
-			_board.unmakeMove(move);
+			_board.unmakeMove(curr.move);
 			_shekTable.unset(_board);
 		}
 
@@ -246,16 +247,26 @@ namespace sunfish {
 			_board.unmakeNullMove();
 		}
 
-		void updatePv() {
-			auto& curr = _stack[_ply];
-			auto& next = _stack[_ply+1];
-			curr.pv.set(Move::empty(), next.pv);
+		bool makeMoveFast(Move move) {
+			if (_board.makeMove(move)) {
+				_ply++;
+				auto& curr = _stack[_ply];
+				curr.move = move;
+				return true;
+			}
+			return false;
 		}
 
-		void updatePv(const Move& move) {
+		void unmakeMoveFast() {
+			auto& curr = _stack[_ply];
+			_ply--;
+			_board.unmakeMove(curr.move);
+		}
+
+		void updatePv(const Move& move, int depth) {
 			auto& curr = _stack[_ply];
 			auto& next = _stack[_ply+1];
-			curr.pv.set(move, next.pv);
+			curr.pv.set(move, depth, next.pv);
 		}
 
 		const Pv& getPv() {

@@ -6,6 +6,7 @@
 #ifndef __SUNFISH_PV__
 #define __SUNFISH_PV__
 
+#include "core/def.h"
 #include "core/move/Move.h"
 #include <cstring>
 #include <iostream>
@@ -15,11 +16,16 @@
 namespace sunfish {
 
 	class Pv {
+	public:
+		static CONSTEXPR int MaxDepth = 64;
+
+		struct PvMove {
+			Move move;
+			int depth;
+		};
+
 	private:
-
-		static const int MaxDepth = 64;
-
-		Move _moves[MaxDepth];
+		PvMove _moves[MaxDepth];
 		int _num;
 
 	public:
@@ -33,7 +39,7 @@ namespace sunfish {
 
 		void copy(const Pv& pv) {
 			_num = pv._num;
-			memcpy(_moves, pv._moves, sizeof(Move) * _num);
+			memcpy(_moves, pv._moves, sizeof(PvMove) * _num);
 		}
 
 		void init() {
@@ -44,20 +50,22 @@ namespace sunfish {
 			return _num;
 		}
 
-		int set(const Move& move, const Pv& pv) {
-			_moves[0] = move;
+		int set(const Move& move, int depth, const Pv& pv) {
+			_moves[0].move = move;
+			_moves[0].depth = depth;
 			_num = std::min(pv._num + 1, int(MaxDepth));
-			memcpy(&_moves[1], pv._moves, sizeof(Move) * (_num - 1));
+			memcpy(&_moves[1], pv._moves, sizeof(PvMove) * (_num - 1));
 			return _num;
 		}
 
-		int set(const Move& move) {
-			_moves[0] = move;
+		int set(const Move& move, int depth) {
+			_moves[0].move = move;
+			_moves[0].depth = depth;
 			_num = 1;
 			return _num;
 		}
 
-		const Move* getTop() const {
+		const PvMove* getTop() const {
 			if (_num > 0) {
 				return &_moves[0];
 			} else {
@@ -65,14 +73,14 @@ namespace sunfish {
 			}
 		}
 
-		const Move& get(int depth) const {
+		const PvMove& get(int depth) const {
 			return _moves[depth];
 		}
 
 		std::string toString(int beginIndex = 0) const {
 			std::ostringstream oss;
 			for (int i = beginIndex; i < _num; i++) {
-				oss << _moves[i].toString() << ' ';
+				oss << _moves[i].move.toString() << ' ';
 			}
 			return oss.str();
 		}
@@ -80,7 +88,7 @@ namespace sunfish {
 		std::string toStringCsa(bool black, int beginIndex = 0) const {
 			std::ostringstream oss;
 			for (int i = beginIndex; i < _num; i++) {
-				oss << _moves[i].toStringCsa((i%2)^black) << ' ';
+				oss << _moves[i].move.toStringCsa((i%2)^black) << ' ';
 			}
 			return oss.str();
 		}

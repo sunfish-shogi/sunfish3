@@ -14,6 +14,7 @@
 #define ENABLE_HASH_MOVE							1
 #define ENABLE_SHEK_PRESET						1
 #define ENABLE_SHEK										1
+#define ENABLE_STORE_PV								1
 #define DEBUG_ROOT_MOVES							0
 #define DEBUG_TREE										0
 
@@ -41,6 +42,10 @@ namespace sunfish {
 	 */
 	void Searcher::before(const Board& initialBoard) {
 
+		// ツリーの初期化
+		auto& tree = _trees[0];
+		tree.init(initialBoard, _eval);
+
 		// 探索情報収集準備
 		memset(&_info, 0, sizeof(_info));
 		_timer.set();
@@ -56,7 +61,7 @@ namespace sunfish {
 			// SHEK
 			auto& tree = _trees[0];
 			auto& shekTable = tree.getShekTable();
-			Board board = initialBoard;
+			Board board = tree.getBoard();
 			for (int i = (int)_record.size()-1; i >= 0; i--) {
 				bool ok = board.unmakeMove(_record[i]);
 				assert(ok);
@@ -73,21 +78,21 @@ namespace sunfish {
 	/**
 	 * 後処理
 	 */
-	void Searcher::after(const Board& initialBoard) {
+	void Searcher::after() {
 
 		auto& tree = _trees[0];
 
 		// 探索情報収集
 		_info.time = _timer.get();
 		_info.nps = _info.node / _info.time;
-		_info.move = tree.getPv().get(0);
+		_info.move = tree.getPv().get(0).move;
 
 #if ENABLE_SHEK_PRESET
 		{
 			// SHEK
 			auto& tree = _trees[0];
 			auto& shekTable = tree.getShekTable();
-			Board board = initialBoard;
+			Board board = tree.getBoard();
 			for (int i = (int)_record.size()-1; i >= 0; i--) {
 				bool ok = board.unmakeMove(_record[i]);
 				assert(ok);
@@ -424,6 +429,33 @@ namespace sunfish {
 	}
 
 	/**
+	 * store PV-nodes to TT
+	 */
+	void Searcher::storePv(Tree& tree, const Pv& pv, int ply) {
+		if (ply >= pv.size()) {
+			return;
+		}
+
+		int depth = pv.get(ply).depth;
+		if (depth <= 0) {
+			return;
+		}
+
+		const auto& move = pv.get(ply).move;
+		if (move.isEmpty()) {
+			return;
+		}
+
+		if (tree.makeMoveFast(move)) {
+			storePv(tree, pv, ply + 1);
+			tree.unmakeMoveFast();
+		}
+
+		auto hash = tree.getBoard().getHash();
+		_tt.entryPv(hash, depth, move);
+	}
+
+	/**
 	 * quiesence search
 	 */
 	Value Searcher::qsearch(Tree& tree, bool black, int qply, Value alpha, Value beta) {
@@ -471,7 +503,7 @@ namespace sunfish {
 			currval = -qsearch(tree, !black, qply + 1, -beta, -alpha);
 
 			// unmake move
-			tree.unmakeMove(move);
+			tree.unmakeMove();
 
 			// 中断判定
 			if (isInterrupted()) {
@@ -481,7 +513,7 @@ namespace sunfish {
 			// 値更新
 			if (currval > alpha) {
 				alpha = currval;
-				tree.updatePv(move);
+				tree.updatePv(move, 0);
 
 				// beta-cut
 				if (currval >= beta) {
@@ -626,7 +658,7 @@ namespace sunfish {
 
 				// beta-cut
 				if (currval >= beta) {
-					tree.updatePv();
+					tree.updatePv(Move::empty(), depth);
 					_info.nullMovePruning++;
 					return beta;
 				}
@@ -744,7 +776,7 @@ namespace sunfish {
 				if ((newDepth < Depth1Ply && newStandPat <= newAlpha) ||
 						(newDepth < Depth1Ply * 2 && newStandPat + search_param::EFUT_MGN1 <= newAlpha) ||
 						(newDepth < Depth1Ply * 3 && newStandPat + search_param::EFUT_MGN2 <= newAlpha)) {
-					tree.unmakeMove(move);
+					tree.unmakeMove();
 					value = newAlpha;
 					_info.extendedFutilityPruning++;
 					continue;
@@ -768,7 +800,7 @@ namespace sunfish {
 			}
 
 			// unmake move
-			tree.unmakeMove(move);
+			tree.unmakeMove();
 
 			// 中断判定
 			if (isInterrupted()) {
@@ -779,7 +811,7 @@ namespace sunfish {
 			if (currval > value) {
 				value = currval;
 				best = move;
-				tree.updatePv(move);
+				tree.updatePv(move, depth);
 
 				// beta-cut
 				if (currval >= beta) {
@@ -949,7 +981,7 @@ namespace sunfish {
 			}
 
 			// unmake move
-			tree.unmakeMove(move);
+			tree.unmakeMove();
 
 			// 中断判定
 			if (isInterrupted()) {
@@ -964,7 +996,7 @@ namespace sunfish {
 			if (currval > value) {
 				best = move;
 				value = currval;
-				tree.updatePv(move);
+				tree.updatePv(move, depth);
 			}
 		}
 
@@ -1027,6 +1059,10 @@ namespace sunfish {
 			Loggers::debug << oss.str();
 #endif
 
+#if ENABLE_STORE_PV
+			storePv(tree, tree.getPv(), 0);
+#endif // ENABLE_STORE_PV
+
 			showPv(depth, tree.getPv(), black ? value : -value);
 
 			if (!ok) {
@@ -1062,14 +1098,10 @@ namespace sunfish {
 		// 最大深さ
 		int depth = _config.maxDepth * Depth1Ply;
 
-		// ツリーの初期化
-		auto& tree = _trees[0];
-		tree.init(initialBoard, _eval);
-
 		bool result = search(depth, best);
 
 		// 後処理
-		after(initialBoard);
+		after();
 
 		return result;
 
@@ -1084,14 +1116,10 @@ namespace sunfish {
 		// 前処理
 		before(initialBoard);
 
-		// ツリーの初期化
-		auto& tree = _trees[0];
-		tree.init(initialBoard, _eval);
-
 		bool result = idsearch(best);
 
 		// 後処理
-		after(initialBoard);
+		after();
 
 		return result;
 

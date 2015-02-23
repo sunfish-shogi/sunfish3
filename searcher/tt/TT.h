@@ -40,6 +40,14 @@ namespace sunfish {
 			return false;
 		}
 
+		void entryPv(uint64_t hash, int depth, const Move& move) {
+			TTE e;
+			TTEs& entities = getEntity(hash);
+			entities.get(hash, e);
+			e.updatePv(hash, depth, move, _age);
+			entities.set(e);
+		}
+
 		bool get(uint64_t hash, TTE& e) {
 			return getEntity(hash).get(hash, e) && e.is(hash);
 		}

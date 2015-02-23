@@ -22,6 +22,7 @@ namespace sunfish {
 			Exact = 0,
 			Upper, /* = 1 */
 			Lower, /* = 2 */
+			None, /* = 3 */
 		};
 
 	private:
@@ -88,6 +89,8 @@ namespace sunfish {
 					newDepth, ply, newStat, move, newAge);
 
 		}
+
+		void updatePv(uint64_t newHash, int newDepth, const Move& move, uint32_t newAge);
 
 		bool isOk() const {
 			return _checkSum == generateCheckSum();
