@@ -564,33 +564,33 @@ namespace sunfish {
 			TTE tte;
 			_info.hashProbed++;
 			if (_tt.get(hash, tte)) {
-				Value ttv = tte.getValue(tree.getPly());
-				switch (tte.getValueType()) {
-					case TTE::Exact: // 確定
-						if (!pvNode && stat.isHashCut() && tte.isSuperior(depth)) {
-							_info.hashExact++;
-							return ttv;
-						}
-						break;
-					case TTE::Lower: // 下界値
-						if (!pvNode && stat.isHashCut() && ttv >= beta && tte.isSuperior(depth)) {
-							_info.hashLower++;
-							return ttv;
-						}
-						break;
-					case TTE::Upper: // 上界値
-						if (!pvNode && stat.isHashCut() && ttv <= alpha && tte.isSuperior(depth)) {
-							_info.hashUpper++;
-							return ttv;
-						}
-						break;
+				auto ttv = tte.getValue(tree.getPly());
+				auto valueType = tte.getValueType();
+
+				// 前回の結果で枝刈り
+				if (!pvNode && stat.isHashCut() && tte.isSuperior(depth)) {
+					if (valueType == TTE::Exact) {
+						// 確定値
+						_info.hashExact++;
+						return ttv;
+					} else if (valueType == TTE::Lower && ttv >= beta) {
+						// 下界値                              
+						_info.hashLower++;
+						return ttv;
+					} else if (valueType == TTE::Upper && ttv <= alpha) {
+						// 上界値
+						_info.hashUpper++;
+						return ttv;
+					}
 				}
-			}
-			if (depth < search_param::REC_THRESHOLD ||
-					tte.getDepth() >= search_func::recDepth(depth)) {
-				hashOk = true;
-				hash1 = tte.getMoves().getMove1();
-				hash2 = tte.getMoves().getMove2();
+
+				// 前回の最善手を取得
+				if (depth < search_param::REC_THRESHOLD ||
+						tte.getDepth() >= search_func::recDepth(depth)) {
+					hashOk = true;
+					hash1 = tte.getMoves().getMove1();
+					hash2 = tte.getMoves().getMove2();
+				}
 			}
 		}
 

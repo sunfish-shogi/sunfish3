@@ -105,11 +105,11 @@ namespace sunfish {
 			if ((int)_.depth >= curDepth) {
 				return true;
 			}
-			if (_value >= Value::Mate && _.valueType == Lower) {
+			if (_value >= Value::Mate && (_.valueType == Lower || _.valueType == Exact)) {
 				return true;
 			}
-			if (_value <= -Value::Mate && _.valueType == Upper) {
-				return true;
+			if (_value <= -Value::Mate && (_.valueType == Upper || _.valueType == Exact)) {
+				return true;                                    
 			}
 			return false;
 		}
