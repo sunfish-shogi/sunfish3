@@ -169,6 +169,7 @@ namespace sunfish {
 				if ((captured == Piece::Pawn && !move.promote()) ||
 						(captured.isEmpty() && move.piece() != Piece::Pawn)) {
 					tree.setSortValue(ite, -Value::Inf);
+					continue;
 				}
 			}
 
