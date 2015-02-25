@@ -61,6 +61,7 @@ namespace sunfish {
 			uint64_t onerepExtension;
 			uint64_t recapExtension;
 			uint64_t node;
+			uint64_t qnode;
 			double time;
 			double nps;
 			Move move;

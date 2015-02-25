@@ -9,6 +9,7 @@
 #include "core/move/MoveGenerator.h"
 #include "logger/Logger.h"
 #include <iostream>
+#include <cmath>
 
 #define COMMAND_NUM							((int)Command::__num__)
 
@@ -211,9 +212,11 @@ namespace sunfish {
 	<< " (" << std::setw(5) << std::fixed << std::setprecision(1)<< ((double)(value) / ((total)!=0?(total):1) * 100.0) << "%)\n")
 		const auto& info = _searcher.getInfo();
 		std::cout << "Search Info:\n";
-		PRINT_INFO ("  node           : ", info.node);
+		PRINT_INFO ("  nodes          : ", info.node);
+		PRINT_INFO ("  quies-nodes    : ", info.qnode);
+		PRINT_INFO ("  all-nodes      : ", (info.node + info.qnode));
 		PRINT_INFO ("  time           : ", info.time);
-		PRINT_INFO ("  nps            : ", (int)info.nps);
+		PRINT_INFO ("  nps            : ", std::ceil(info.nps));
 		PRINT_INFO ("  eval           : ", info.eval.int32());
 		PRINT_INFO2("  fail high first: ", info.failHighFirst, info.failHigh);
 		PRINT_INFO2("  hash extract   : ", info.hashExact, info.hashProbed);

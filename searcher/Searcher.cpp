@@ -84,7 +84,7 @@ namespace sunfish {
 
 		// 探索情報収集
 		_info.time = _timer.get();
-		_info.nps = _info.node / _info.time;
+		_info.nps = (_info.node + _info.qnode) / _info.time;
 		_info.move = tree.getPv().get(0).move;
 
 #if ENABLE_SHEK_PRESET
@@ -471,7 +471,7 @@ namespace sunfish {
 		}
 #endif
 
-		_info.node++;
+		_info.qnode++;
 
 		// stand-pat
 		Value standPat = tree.getValue() * (black ? 1 : -1);
@@ -1020,7 +1020,7 @@ namespace sunfish {
 
 	void Searcher::showPv(int depth, const Pv& pv, const Value& value) {
 		double seconds = _timer.get();
-		uint64_t node = _info.node;
+		uint64_t node = _info.node + _info.qnode;
 
 		std::ostringstream oss;
 		oss << std::setw(2) << depth;
