@@ -625,6 +625,8 @@ namespace sunfish {
 					hash1 = tte.getMoves().getMove1();
 					hash2 = tte.getMoves().getMove2();
 				}
+
+				_info.hashHit++;
 			}
 		}
 
@@ -833,7 +835,15 @@ namespace sunfish {
 			}
 
 			// TODO: GHI対策
-			_tt.entry(hash, alpha, beta, value, depth, tree.getPly(), stat, best);
+			TTStatus status = _tt.entry(hash, alpha, beta, value, depth, tree.getPly(), stat, best);
+			switch (status) {
+				case TTStatus::New: _info.hashNew++; break;
+				case TTStatus::Update: _info.hashUpdate++; break;
+				case TTStatus::Collide: _info.hashCollision++; break;
+				case TTStatus::Reject: _info.hashReject++; break;
+				default: break;
+			}
+			_info.hashStore++;
 		}
 
 		return value;

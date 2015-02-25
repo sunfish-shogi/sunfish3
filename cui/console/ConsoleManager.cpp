@@ -219,9 +219,14 @@ namespace sunfish {
 		PRINT_INFO ("  nps            : ", std::ceil(info.nps));
 		PRINT_INFO ("  eval           : ", info.eval.int32());
 		PRINT_INFO2("  fail high first: ", info.failHighFirst, info.failHigh);
+		PRINT_INFO2("  hash hit       : ", info.hashHit, info.hashProbed);
 		PRINT_INFO2("  hash extract   : ", info.hashExact, info.hashProbed);
 		PRINT_INFO2("  hash lower     : ", info.hashLower, info.hashProbed);
 		PRINT_INFO2("  hash upper     : ", info.hashUpper, info.hashProbed);
+		PRINT_INFO2("  hash new       : ", info.hashNew, info.hashStore);
+		PRINT_INFO2("  hash update    : ", info.hashUpdate, info.hashStore);
+		PRINT_INFO2("  hash collide   : ", info.hashCollision, info.hashStore);
+		PRINT_INFO2("  hash reject    : ", info.hashReject, info.hashStore);
 		PRINT_INFO2("  shek superior  : ", info.shekSuperior, info.shekProbed);
 		PRINT_INFO2("  shek inferior  : ", info.shekInferior, info.shekProbed);
 		PRINT_INFO2("  shek equal     : ", info.shekEqual, info.shekProbed);

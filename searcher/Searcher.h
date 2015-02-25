@@ -45,9 +45,15 @@ namespace sunfish {
 			uint64_t failHigh;
 			uint64_t failHighFirst;
 			uint64_t hashProbed;
+			uint64_t hashHit;
 			uint64_t hashExact;
 			uint64_t hashLower;
 			uint64_t hashUpper;
+			uint64_t hashStore;
+			uint64_t hashNew;
+			uint64_t hashUpdate;
+			uint64_t hashCollision;
+			uint64_t hashReject;
 			uint64_t shekProbed;
 			uint64_t shekSuperior;
 			uint64_t shekInferior;

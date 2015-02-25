@@ -26,7 +26,7 @@ namespace sunfish {
 			_age = (_age + 1) % TTE::AgeMax;
 		}
 
-		bool entry(uint64_t hash,
+		TTStatus entry(uint64_t hash,
 				Value alpha, Value beta, Value value,
 				int depth, int ply,
 				const NodeStat& stat, const Move& move) {
@@ -34,18 +34,17 @@ namespace sunfish {
 			TTEs& entities = getEntity(hash);
 			entities.get(hash, e);
 			if (e.update(hash, alpha, beta, value, depth, ply, stat, move, _age)) {
-				entities.set(e);
-				return true;
+				return entities.set(e);
 			}
-			return false;
+			return TTStatus::Reject;
 		}
 
-		void entryPv(uint64_t hash, int depth, const Move& move) {
+		TTStatus entryPv(uint64_t hash, int depth, const Move& move) {
 			TTE e;
 			TTEs& entities = getEntity(hash);
 			entities.get(hash, e);
 			e.updatePv(hash, depth, move, _age);
-			entities.set(e);
+			return entities.set(e);
 		}
 
 		bool get(uint64_t hash, TTE& e) {

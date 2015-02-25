@@ -92,7 +92,7 @@ namespace sunfish {
 		_checkSum = generateCheckSum();
 	}
 
-	void TTEs::set(const TTE& entity) {
+	TTStatus TTEs::set(const TTE& entity) {
 		// ハッシュ値が一致するスロットを探す
 		uint32_t l = _lastAccess % Size;
 		for (uint32_t i = 0; i < Size; i++) {
@@ -100,7 +100,7 @@ namespace sunfish {
 			if (_list[index].getHash() == entity.getHash()) {
 				_list[index] = entity;
 				_lastAccess = index;
-				return;
+				return TTStatus::Update;
 			}
 		}
 
@@ -111,7 +111,7 @@ namespace sunfish {
 			if (_list[index].isBroken() || _list[index].getAge() != entity.getAge()) {
 				_list[index] = entity;
 				_lastAccess = index;
-				return;
+				return TTStatus::New;
 			}
 		}
 
@@ -119,6 +119,7 @@ namespace sunfish {
 		const uint32_t index = l % Size;
 		_list[index] = entity;
 		_lastAccess = index;
+		return TTStatus::Collide;
 
 	}
 

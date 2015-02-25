@@ -14,6 +14,14 @@
 
 namespace sunfish {
 
+	enum class TTStatus : int {
+		None,
+		Reject,
+		New,
+		Update,
+		Collide,
+	};
+
 	class TTE {
 	public:
 		static CONSTEXPR uint32_t AgeMax = 0x01 << 8;
@@ -170,7 +178,7 @@ namespace sunfish {
 			}
 		}
 
-		void set(const TTE& entity);
+		TTStatus set(const TTE& entity);
 		bool get(uint64_t hash, TTE& entity);
 
 	};
