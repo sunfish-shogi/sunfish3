@@ -2,6 +2,9 @@
 
 my $emp_line_cnt = 0;
 my %result;
+
+my $namespace_filter = @ARGV >= 1 ? $ARGV[0] : 0;
+
 while (<STDIN>) {
 	my $line = $_;
 	chomp($line);
@@ -17,15 +20,24 @@ while (<STDIN>) {
 		}
 		my $name = $2;
 		my $namespace = 'none';
-		$name =~ s/^((<[^>]+>)|([^()]))+ +//;
-		if ($name =~ s/^(((<[^>]+>)|([^<>()]))+):://) {
+		$name =~ s/const\s*$//;
+		$name =~ s/\(([^()]++|(?R))\)//g;
+		$name =~ s/<([^<>]++|(?R))>//g;
+		$name =~ s/ *$//g;
+		$name =~ s/^[^ ]* //g;
+		if ($name =~ s/(.*):://) {
 			$namespace = $1;
 			$namespace =~ s/<.*$//;
 		}
 		$result{$namespace} = ($result{$namespace} or 0) + $percentage;
+		if ($namespace_filter and ($namespace eq $namespace_filter)) {
+			printf "%s\n", $line;
+		}
 	}
 }
 
-foreach my $key (keys(%result)) {
-	printf "%2.2f %s\n", $result{$key}, $key;
+if (!$namespace_filter) {
+	foreach my $key (keys(%result)) {
+		printf "%2.2f %s\n", $result{$key}, $key;
+	}
 }
