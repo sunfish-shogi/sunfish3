@@ -25,8 +25,8 @@ namespace sunfish {
 	public:
 
 		static const int32_t Zero = 0;
-		static const int32_t Inf = INT_MAX;
-		static const int32_t Mate = INT_MAX / 2;
+		static const int32_t Inf = INT_MAX / 2;
+		static const int32_t Mate = INT_MAX / 4;
 
 		Value() {
 		}

@@ -59,11 +59,11 @@ namespace sunfish {
 		void generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos);
 
 		template <bool black>
-		Value search(Value value);
+		Value search(Value value, Value alpha, Value beta);
 
 	public:
 
-		Value search(const Evaluator& eval, const Board& board, const Move& move);
+		Value search(const Evaluator& eval, const Board& board, const Move& move, Value alpha, Value beta);
 
 		void generateAttackers(const Evaluator& eval, const Board& board, const Move& move) {
 			auto from = move.from();

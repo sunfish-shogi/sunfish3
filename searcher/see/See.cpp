@@ -229,14 +229,15 @@ namespace sunfish {
 	}
 
 	template <bool black>
-	Value See::search(Value value) {
+	Value See::search(Value value, Value alpha, Value beta) {
 
 #define SEARCH(i, c) if (i < _ ## c ## num) { \
 			auto att = _ ## c ## ref[i].attacker; \
 			if (!att->used && (att->dependOn == nullptr || att->dependOn->used)) { \
+				if (value - att->value >= beta) { return beta; } \
 				att->used = true; \
 				if (value >= Evaluator::PieceInf) { return Evaluator::PieceInf; } \
-				auto result = Value::max(0, value - search<!black>(att->value)); \
+				auto result = Value::max(0, value - search<!black>(att->value, -beta+value, -alpha+value)); \
 				att->used = false; \
 				return result; \
 			} \
@@ -257,10 +258,7 @@ namespace sunfish {
 
 	}
 
-	Value See::search(const Evaluator& eval, const Board& board, const Move& move) {
-
-		// 移動可能な駒を列挙する。
-		generateAttackers(eval, board, move);
+	Value See::search(const Evaluator& eval, const Board& board, const Move& move, Value alpha, Value beta) {
 
 		// 取った駒の価値
 		Value captured = eval.pieceExchange(board.getBoardPiece(move.to()));
@@ -272,10 +270,21 @@ namespace sunfish {
 		}
 		Value attacker = eval.pieceExchange(piece);
 
+		if (captured <= alpha) {
+			return alpha;
+		}
+
+		if (captured - attacker >= beta) {
+			return beta;
+		}
+
+		// 移動可能な駒を列挙する。
+		generateAttackers(eval, board, move);
+
 		if (board.isBlack()) {
-			return captured - search<false>(attacker);
+			return captured - search<false>(attacker, -beta+captured, -alpha+captured);
 		} else {
-			return captured - search<true>(attacker);
+			return captured - search<true>(attacker, -beta+captured, -alpha+captured);
 		}
 
 	}

@@ -181,7 +181,7 @@ namespace sunfish {
 				continue;
 			}
 
-			Value value = _see.search(_eval, board, move);
+			Value value = _see.search(_eval, board, move, -1, Value::Inf);
 			tree.setSortValue(ite, value.int32());
 
 			ite++;
@@ -589,6 +589,7 @@ namespace sunfish {
 		_info.node++;
 
 		uint64_t hash = board.getHash();
+		bool isNullWindow = (beta == alpha + 1);
 
 		// transposition table
 		bool hashOk = false;
@@ -602,7 +603,7 @@ namespace sunfish {
 				auto valueType = tte.getValueType();
 
 				// 前回の結果で枝刈り
-				if (!pvNode && stat.isHashCut() && tte.isSuperior(depth)) {
+				if (!pvNode && stat.isHashCut() && isNullWindow && tte.isSuperior(depth)) {
 					if (valueType == TTE::Exact) {
 						// 確定値
 						_info.hashExact++;
@@ -635,7 +636,7 @@ namespace sunfish {
 		if (!tree.isChecking()) {
 
 			// null move pruning
-			if (!pvNode && stat.isNullMove() && beta <= standPat && depth >= Depth1Ply * 2) {
+			if (!pvNode && isNullWindow && stat.isNullMove() && beta <= standPat && depth >= Depth1Ply * 2) {
 				auto newStat = NodeStat().unsetNullMove();
 #if 0
 				// same to bonanza
@@ -750,7 +751,7 @@ namespace sunfish {
 					(!move.promote() || move.piece() != Piece::Silver) &&
 					!isPriorMove(tree, move)) {
 
-				reduced = getReductionDepth(move, beta == newAlpha + 1);
+				reduced = getReductionDepth(move, isNullWindow);
 				newDepth -= reduced;
 
 			}
@@ -764,6 +765,15 @@ namespace sunfish {
 				if (standPat + tree.estimate(move, _eval) <= futAlpha) {
 					value = newAlpha;
 					_info.futilityPruning++;
+					continue;
+				}
+			}
+
+			if (newDepth < Depth1Ply * 2 && isNullWindow && !isCheck &&
+					move.captured().isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
+					!isPriorMove(tree, move)) {
+				if (_see.search(_eval, tree.getBoard(), move, -1, 0) < Value::Zero) {
+					value = newAlpha;
 					continue;
 				}
 			}
@@ -796,10 +806,21 @@ namespace sunfish {
 				// nega-scout
 				currval = -searchr<false>(tree, !black, newDepth, -newAlpha-1, -newAlpha, newStat);
 
+#if 1
+				if (!isInterrupted() && currval > newAlpha && currval < beta && reduced > 0) {
+					newDepth += reduced;
+					currval = -searchr<pvNode>(tree, !black, newDepth, -newAlpha-1, -newAlpha, newStat);
+				}
+
+				if (!isInterrupted() && currval > newAlpha && currval < beta) {
+					currval = -searchr<pvNode>(tree, !black, newDepth, -beta, -newAlpha, newStat);
+				}
+#else
 				if (!isInterrupted() && currval > newAlpha &&  currval < beta) {
 					newDepth += reduced;
 					currval = -searchr<pvNode>(tree, !black, newDepth, -beta, -newAlpha, newStat);
 				}
+#endif
 
 			}
 
@@ -815,7 +836,9 @@ namespace sunfish {
 			if (currval > value) {
 				value = currval;
 				best = move;
-				tree.updatePv(move, depth);
+				if (!isNullWindow) {
+					tree.updatePv(move, depth);
+				}
 
 				// beta-cut
 				if (currval >= beta) {
@@ -830,7 +853,7 @@ namespace sunfish {
 		}
 
 		if (!best.isEmpty()) {
-			if (value > alpha) {
+			if (!isNullWindow && value > alpha) {
 				updateHistory(tree, depth, best);
 			}
 
