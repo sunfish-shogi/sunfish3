@@ -12,7 +12,7 @@ namespace sunfish {
 	class CsaClientConfig : public Config {
 	private:
 
-		ConfigItem _items[15];
+		ConfigItem _items[16];
 
 		std::string _host;
 		int _port;
