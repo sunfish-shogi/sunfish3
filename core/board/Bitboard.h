@@ -9,6 +9,7 @@
 #include "../def.h"
 #include "../base/Position.h"
 #include "../util/StringUtil.h"
+#include <cstdint>
 
 #if __SSE2__
 # define USE_SSE2 1

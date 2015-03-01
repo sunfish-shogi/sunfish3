@@ -172,16 +172,33 @@ lab_end:
 	 * 自分の手番
 	 */
 	bool CsaClient::myTurn() {
-		// 探索設定
-		auto searchConfig = _searchConfigBase;
-		buildSearchConfig(searchConfig);
-		_searcher.setConfig(searchConfig);
 
-		// 探索
-		Loggers::message << "begin search: limit(sec)=" << searchConfig.limitSeconds;
+		bool ok = false;
 		Move move;
-		bool ok = _searcher.idsearch(_record.getBoard(), move);
-		Loggers::message << "end search";
+
+		// 定跡検索
+		if (!ok) {
+  		const auto& board = _record.getBoard();
+  		uint64_t hash = board.getHash();
+  		BookResult bookResult = _book.selectRandom(hash);
+  		if (!bookResult.move.isEmpty() && board.isValidMove(bookResult.move)) {
+				move = bookResult.move;
+				Loggers::message << "book hit: " << move.toString() << " (" << bookResult.count << "/" << bookResult.total << ")";
+				ok = true;
+  		}
+		}
+
+		// 探索設定
+		if (!ok) {
+  		auto searchConfig = _searchConfigBase;
+  		buildSearchConfig(searchConfig);
+  		_searcher.setConfig(searchConfig);
+
+  		// 探索
+  		Loggers::message << "begin search: limit(sec)=" << searchConfig.limitSeconds;
+  		ok = _searcher.idsearch(_record.getBoard(), move);
+  		Loggers::message << "end search";
+		}
 
 		SendingMove sendingMove;
 		if (ok) {

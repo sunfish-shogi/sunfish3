@@ -8,7 +8,7 @@
 #include <fstream>
 #include <cstdlib>
 
-#define DEFAULT_FV_FILENAME									"evdata"
+#define DEFAULT_FV_FILENAME									"eval.bin"
 #define FVBIN_FILENAME											"fv.bin"
 
 #define ENABLE_DIFF													1
@@ -28,9 +28,9 @@ namespace {
 		return x*(x+1)/2+y;
 	}
 
-	inline int kpp_index(int x) {
-		return x*(x+1)/2+x;
-	}
+//	inline int kpp_index(int x) {
+//		return x*(x+1)/2+x;
+//	}
 
 	inline int kpp_index_safe(int x, int y) {
 		return x >= y ? kpp_index(x, y) : kpp_index(y, x);

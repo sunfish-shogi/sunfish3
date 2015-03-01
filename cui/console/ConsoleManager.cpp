@@ -8,7 +8,9 @@
 #include "core/record/CsaReader.h"
 #include "core/move/MoveGenerator.h"
 #include "logger/Logger.h"
+#include <algorithm>
 #include <iostream>
+#include <iomanip>
 #include <cmath>
 
 #define COMMAND_NUM							((int)Command::__num__)
@@ -36,6 +38,7 @@ namespace {
 		{ "e", "end", Command::End, "go to end of this record." },
 		{ "s", "search", Command::Search, "search from current position." },
 		{ "m", "moves", Command::Moves, "show legal moves." },
+		{ "b", "book", Command::Book, "probe book." },
 		{ nullptr, "clear-tt", Command::ClearTT, "clear TT." },
 		{ nullptr, "clear-history", Command::ClearHistory, "clear history." },
 	};
@@ -196,49 +199,66 @@ namespace sunfish {
 	 */
 	bool ConsoleManager::search(bool withMakeMove) {
 
+		bool ok = false;
+		Move move = Move::empty();
+
+		// 定跡検索
+		if (!ok) {
+  		const auto& board = _record.getBoard();
+  		uint64_t hash = board.getHash();
+  		BookResult bookResult = _book.selectRandom(hash);
+  		if (!bookResult.move.isEmpty() && board.isValidMove(bookResult.move)) {
+				move = bookResult.move;
+				std::cout << "book hit: " << move.toString() << " (" << bookResult.count << "/" << bookResult.total << ")\n";
+				std::cout << std::endl;
+				ok = true;
+  		}
+		}
+
 		// 探索
-		Move move;
-		std::cout << "searching..\n";
-		_searcher.setRecord(_record);
-		bool ok = _searcher.idsearch(_record.getBoard(), move);
-		_searcher.clearRecord();
-		std::cout << "done.\n";
-		std::cout << std::endl;
+		if (move.isEmpty()) {
+			std::cout << "searching..\n";
+			_searcher.setRecord(_record);
+			ok = _searcher.idsearch(_record.getBoard(), move);
+			_searcher.clearRecord();
+			std::cout << "done.\n";
+			std::cout << std::endl;
 
 #define PRINT_INFO(key, value) \
-	(std::cout << (key) << std::setw(8) << (value) << '\n')
+(std::cout << (key) << std::setw(8) << (value) << '\n')
 #define PRINT_INFO2(key, value, total) \
-	(std::cout << (key) << std::setw(8) << (value) << " / " << std::setw(8) << (total) \
-	<< " (" << std::setw(5) << std::fixed << std::setprecision(1)<< ((double)(value) / ((total)!=0?(total):1) * 100.0) << "%)\n")
-		const auto& info = _searcher.getInfo();
-		std::cout << "Search Info:\n";
-		PRINT_INFO ("  nodes          : ", info.node);
-		PRINT_INFO ("  quies-nodes    : ", info.qnode);
-		PRINT_INFO ("  all-nodes      : ", (info.node + info.qnode));
-		PRINT_INFO ("  time           : ", info.time);
-		PRINT_INFO ("  nps            : ", std::ceil(info.nps));
-		PRINT_INFO ("  eval           : ", info.eval.int32());
-		PRINT_INFO2("  fail high first: ", info.failHighFirst, info.failHigh);
-		PRINT_INFO2("  hash hit       : ", info.hashHit, info.hashProbed);
-		PRINT_INFO2("  hash extract   : ", info.hashExact, info.hashProbed);
-		PRINT_INFO2("  hash lower     : ", info.hashLower, info.hashProbed);
-		PRINT_INFO2("  hash upper     : ", info.hashUpper, info.hashProbed);
-		PRINT_INFO2("  hash new       : ", info.hashNew, info.hashStore);
-		PRINT_INFO2("  hash update    : ", info.hashUpdate, info.hashStore);
-		PRINT_INFO2("  hash collide   : ", info.hashCollision, info.hashStore);
-		PRINT_INFO2("  hash reject    : ", info.hashReject, info.hashStore);
-		PRINT_INFO2("  shek superior  : ", info.shekSuperior, info.shekProbed);
-		PRINT_INFO2("  shek inferior  : ", info.shekInferior, info.shekProbed);
-		PRINT_INFO2("  shek equal     : ", info.shekEqual, info.shekProbed);
-		PRINT_INFO2("  null mv pruning: ", info.nullMovePruning, info.nullMovePruningTried);
-		PRINT_INFO ("  fut pruning    : ", info.futilityPruning);
-		PRINT_INFO ("  ext fut pruning: ", info.extendedFutilityPruning);
-		PRINT_INFO2("  check extension: ", info.checkExtension, info.expanded);
-		PRINT_INFO2("  1rep extension : ", info.onerepExtension, info.expanded);
-		PRINT_INFO2("  recap extension: ", info.recapExtension, info.expanded);
-		std::cout << std::endl;
+(std::cout << (key) << std::setw(8) << (value) << " / " << std::setw(8) << (total) \
+<< " (" << std::setw(5) << std::fixed << std::setprecision(1)<< ((double)(value) / ((total)!=0?(total):1) * 100.0) << "%)\n")
+			const auto& info = _searcher.getInfo();
+			std::cout << "Search Info:\n";
+			PRINT_INFO ("  nodes          : ", info.node);
+			PRINT_INFO ("  quies-nodes    : ", info.qnode);
+			PRINT_INFO ("  all-nodes      : ", (info.node + info.qnode));
+			PRINT_INFO ("  time           : ", info.time);
+			PRINT_INFO ("  nps            : ", std::ceil(info.nps));
+			PRINT_INFO ("  eval           : ", info.eval.int32());
+			PRINT_INFO2("  fail high first: ", info.failHighFirst, info.failHigh);
+			PRINT_INFO2("  hash hit       : ", info.hashHit, info.hashProbed);
+			PRINT_INFO2("  hash extract   : ", info.hashExact, info.hashProbed);
+			PRINT_INFO2("  hash lower     : ", info.hashLower, info.hashProbed);
+			PRINT_INFO2("  hash upper     : ", info.hashUpper, info.hashProbed);
+			PRINT_INFO2("  hash new       : ", info.hashNew, info.hashStore);
+			PRINT_INFO2("  hash update    : ", info.hashUpdate, info.hashStore);
+			PRINT_INFO2("  hash collide   : ", info.hashCollision, info.hashStore);
+			PRINT_INFO2("  hash reject    : ", info.hashReject, info.hashStore);
+			PRINT_INFO2("  shek superior  : ", info.shekSuperior, info.shekProbed);
+			PRINT_INFO2("  shek inferior  : ", info.shekInferior, info.shekProbed);
+			PRINT_INFO2("  shek equal     : ", info.shekEqual, info.shekProbed);
+			PRINT_INFO2("  null mv pruning: ", info.nullMovePruning, info.nullMovePruningTried);
+			PRINT_INFO ("  fut pruning    : ", info.futilityPruning);
+			PRINT_INFO ("  ext fut pruning: ", info.extendedFutilityPruning);
+			PRINT_INFO2("  check extension: ", info.checkExtension, info.expanded);
+			PRINT_INFO2("  1rep extension : ", info.onerepExtension, info.expanded);
+			PRINT_INFO2("  recap extension: ", info.recapExtension, info.expanded);
+			std::cout << std::endl;
 #undef PRINT_INFO
 #undef PRINT_INFO2
+		}
 
 		if (ok) {
 
@@ -285,6 +305,35 @@ namespace sunfish {
 			if (_record.getBoard().isValidMoveStrict(*ite)) {
 				std::cout << ite->toString() << ' ';
 			}
+		}
+		std::cout << std::endl;
+	}
+
+	void ConsoleManager::probeBook() const {
+		uint64_t hash = _record.getBoard().getHash();
+		auto p = _book.find(hash);
+		if (p == nullptr) {
+			std::cout << "(empty)" << std::endl;
+			return;
+		}
+
+		uint32_t totalCount = p->getCount();
+		const auto& bookMoves = p->getMoves();
+
+		struct Element {
+			Move move;
+			uint32_t count;
+		};
+		std::vector<Element> moves;
+		for (const auto& bookMove : bookMoves) {
+			moves.push_back({ bookMove.move, bookMove.count });
+		}
+		std::sort(moves.begin(), moves.end(), [](const Element& l, const Element& r) {
+			return l.count > r.count;
+		});
+		for (const auto& element : moves) {
+			float percentage = (float)element.count / totalCount * 100.0f;
+			std::cout << element.move.toString() << "(" << std::fixed << std::setprecision(1) << percentage << "%) ";
 		}
 		std::cout << std::endl;
 	}
@@ -389,6 +438,11 @@ namespace sunfish {
 				showMoves();
 				return CommandResult::None;
 
+			case Command::Book:
+				// 定跡検索
+				probeBook();
+				return CommandResult::None;
+
 			case Command::ClearTT:
 				// TTクリア
 				_searcher.clearTT();
@@ -425,6 +479,11 @@ namespace sunfish {
 	 * コンソール上で対局を行います。
 	 */
 	bool ConsoleManager::play() {
+
+		// 定跡の読み込み
+		if (!_book.readFile()) {
+			Loggers::warning << "Could not read book.";
+		}
 
 		_record.init(Board::Handicap::Even);
 

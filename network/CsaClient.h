@@ -12,6 +12,7 @@
 #include "core/record/Record.h"
 #include "core/util/StringUtil.h"
 #include "searcher/Searcher.h"
+#include "book/Book.h"
 #include <iomanip>
 #include <queue>
 #include <regex>
@@ -118,6 +119,9 @@ namespace sunfish {
 
 		/** 思考部 */
 		Searcher _searcher;
+
+		/** 定跡 */
+		Book _book;
 
 		/** サーバとのコネクション */
 		Connection _con;

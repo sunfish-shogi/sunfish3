@@ -9,6 +9,7 @@
 
 #include "core/record/Record.h"
 #include "searcher/Searcher.h"
+#include "book/Book.h"
 
 namespace sunfish {
 
@@ -25,6 +26,7 @@ namespace sunfish {
 		End,
 		Search,
 		Moves,
+		Book,
 		ClearTT,
 		ClearHistory,
 
@@ -53,6 +55,7 @@ namespace sunfish {
 		} _config;
 
 		Searcher _searcher;
+		Book _book;
 		Record _record;
 		Command _prevCommand;
 
@@ -74,6 +77,8 @@ namespace sunfish {
 		bool search(bool withMakeMove);
 
 		void showMoves() const;
+
+		void probeBook() const;
 
 		CommandResult inputCommand();
 

@@ -20,6 +20,9 @@ namespace sunfish {
 		static bool _readBoard(const char* line, Board& board);
 		static bool _readBoardPieces(const char* line, Board& board);
 		static bool _readHand(const char* line, Board& board, bool black);
+		static bool _readComment(const char* line);
+		static bool _readTime(const char* line);
+		static bool _readCommand(const char* line);
 
 	public:
 

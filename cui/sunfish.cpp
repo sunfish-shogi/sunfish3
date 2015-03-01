@@ -14,6 +14,9 @@
 
 using namespace sunfish;
 
+// book
+int generateBook(const std::string& directory);
+
 // network
 int network();
 
@@ -45,6 +48,7 @@ int main(int argc, char** argv, char** /*envp*/) {
 	po.addOption("white", "w", "[auto/manual]", true);
 	po.addOption("depth", "d", "max depth (default: 15)", true);
 	po.addOption("time", "t", "max time for 1 move (default: 3)", true);
+	po.addOption("book", "generate book", true);
 	po.addOption("network", "n", "network mode");
 	po.addOption("problem", "p", "solve problems");
 	po.addOption("help", "h", "show this help.");
@@ -58,6 +62,10 @@ int main(int argc, char** argv, char** /*envp*/) {
 		// show help
 		std::cerr << po.help() << std::endl;
 		return 0;
+
+	} else if (po.has("book")) {
+		std::string directory = po.getValue("book");
+		return generateBook(directory);
 
 	} else if (po.has("network")) {
 		return network();

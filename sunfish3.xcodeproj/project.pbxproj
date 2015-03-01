@@ -51,6 +51,10 @@
 		0969B6AD1A41C91200D56A21 /* TT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B67D1A41C91200D56A21 /* TT.cpp */; };
 		0969B6AE1A41C91200D56A21 /* TTE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B67F1A41C91200D56A21 /* TTE.cpp */; };
 		0982DDD91A8B95AA003D8576 /* EvaluatorTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0982DDD71A8B95AA003D8576 /* EvaluatorTest.cpp */; };
+		099B2B7A1AA2D76200EED5FF /* Book.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 099B2B781AA2D76200EED5FF /* Book.cpp */; };
+		099B2B7D1AA2F04C00EED5FF /* BookGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 099B2B7B1AA2F04C00EED5FF /* BookGenerator.cpp */; };
+		099B2B801AA2F1EB00EED5FF /* FileList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 099B2B7E1AA2F1EB00EED5FF /* FileList.cpp */; };
+		099B2B831AA2F78600EED5FF /* book.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 099B2B811AA2F78600EED5FF /* book.cpp */; };
 		099DBADA1A8E1F090084CB2E /* ShekEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 099DBAD91A8E1F090084CB2E /* ShekEntity.cpp */; };
 		099DBADC1A8E1F390084CB2E /* ShekTable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 099DBADB1A8E1F390084CB2E /* ShekTable.cpp */; };
 		09E7D1C71A9747EA00C59E80 /* MoveGenChecker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09E7D1C51A9747EA00C59E80 /* MoveGenChecker.cpp */; };
@@ -160,6 +164,13 @@
 		0969B6871A41C91200D56A21 /* Test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Test.h; sourceTree = "<group>"; };
 		09761B391A9392E400193EA8 /* ProgramOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ProgramOptions.h; path = program_options/ProgramOptions.h; sourceTree = "<group>"; };
 		0982DDD71A8B95AA003D8576 /* EvaluatorTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EvaluatorTest.cpp; sourceTree = "<group>"; };
+		099B2B781AA2D76200EED5FF /* Book.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Book.cpp; path = book/Book.cpp; sourceTree = "<group>"; };
+		099B2B791AA2D76200EED5FF /* Book.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Book.h; path = book/Book.h; sourceTree = "<group>"; };
+		099B2B7B1AA2F04C00EED5FF /* BookGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BookGenerator.cpp; path = book/BookGenerator.cpp; sourceTree = "<group>"; };
+		099B2B7C1AA2F04C00EED5FF /* BookGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BookGenerator.h; path = book/BookGenerator.h; sourceTree = "<group>"; };
+		099B2B7E1AA2F1EB00EED5FF /* FileList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileList.cpp; sourceTree = "<group>"; };
+		099B2B7F1AA2F1EB00EED5FF /* FileList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileList.h; sourceTree = "<group>"; };
+		099B2B811AA2F78600EED5FF /* book.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = book.cpp; sourceTree = "<group>"; };
 		099DBAD81A8E1E840084CB2E /* ShekTable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ShekTable.h; path = shek/ShekTable.h; sourceTree = "<group>"; };
 		099DBAD91A8E1F090084CB2E /* ShekEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShekEntity.cpp; path = shek/ShekEntity.cpp; sourceTree = "<group>"; };
 		099DBADB1A8E1F390084CB2E /* ShekTable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShekTable.cpp; path = shek/ShekTable.cpp; sourceTree = "<group>"; };
@@ -315,6 +326,8 @@
 		0969B6451A41C91200D56A21 /* util */ = {
 			isa = PBXGroup;
 			children = (
+				099B2B7E1AA2F1EB00EED5FF /* FileList.cpp */,
+				099B2B7F1AA2F1EB00EED5FF /* FileList.h */,
 				0969B6461A41C91200D56A21 /* Random.h */,
 				0969B6471A41C91200D56A21 /* StringUtil.h */,
 				0969B6481A41C91200D56A21 /* Timer.h */,
@@ -329,6 +342,7 @@
 				094161921A8F61B800E3D250 /* solve */,
 				0969B64A1A41C91200D56A21 /* console */,
 				0969B64D1A41C91200D56A21 /* dev.cpp */,
+				099B2B811AA2F78600EED5FF /* book.cpp */,
 				0969B64E1A41C91200D56A21 /* network.cpp */,
 				0969B64F1A41C91200D56A21 /* sunfish.cpp */,
 				0969B6501A41C91200D56A21 /* sunfish.h */,
@@ -476,6 +490,17 @@
 			name = program_options;
 			sourceTree = "<group>";
 		};
+		099B2B771AA2D74600EED5FF /* book */ = {
+			isa = PBXGroup;
+			children = (
+				099B2B781AA2D76200EED5FF /* Book.cpp */,
+				099B2B791AA2D76200EED5FF /* Book.h */,
+				099B2B7B1AA2F04C00EED5FF /* BookGenerator.cpp */,
+				099B2B7C1AA2F04C00EED5FF /* BookGenerator.h */,
+			);
+			name = book;
+			sourceTree = "<group>";
+		};
 		09D366F51A41C603002D88B9 = {
 			isa = PBXGroup;
 			children = (
@@ -486,6 +511,7 @@
 				0969B6571A41C91200D56A21 /* network */,
 				0969B6611A41C91200D56A21 /* network.conf */,
 				0969B6621A41C91200D56A21 /* searcher */,
+				099B2B771AA2D74600EED5FF /* book */,
 				0969B6821A41C91200D56A21 /* test */,
 				09D366FF1A41C604002D88B9 /* Products */,
 			);
@@ -559,6 +585,7 @@
 				094161911A8F606E00E3D250 /* problem.cpp in Sources */,
 				0969B69F1A41C91200D56A21 /* ConsoleManager.cpp in Sources */,
 				0969B6A11A41C91200D56A21 /* network.cpp in Sources */,
+				099B2B7A1AA2D76200EED5FF /* Book.cpp in Sources */,
 				0969B6AA1A41C91200D56A21 /* Searcher.cpp in Sources */,
 				0969B6A61A41C91200D56A21 /* CsaClient.cpp in Sources */,
 				0969B6A91A41C91200D56A21 /* RandomSearcher.cpp in Sources */,
@@ -573,6 +600,7 @@
 				0969B6A41A41C91200D56A21 /* Logger.cpp in Sources */,
 				0969B68B1A41C91200D56A21 /* Bitboard.cpp in Sources */,
 				0969B68E1A41C91200D56A21 /* CodeGenerator.cpp in Sources */,
+				099B2B801AA2F1EB00EED5FF /* FileList.cpp in Sources */,
 				099DBADC1A8E1F390084CB2E /* ShekTable.cpp in Sources */,
 				0982DDD91A8B95AA003D8576 /* EvaluatorTest.cpp in Sources */,
 				0969B6AD1A41C91200D56A21 /* TT.cpp in Sources */,
@@ -595,7 +623,9 @@
 				0969B6951A41C91200D56A21 /* Record.cpp in Sources */,
 				09393DB21A99EC5400CCF8A0 /* MovesTest.cpp in Sources */,
 				0969B6981A41C91200D56A21 /* CsaReaderTest.cpp in Sources */,
+				099B2B831AA2F78600EED5FF /* book.cpp in Sources */,
 				0969B6A01A41C91200D56A21 /* dev.cpp in Sources */,
+				099B2B7D1AA2F04C00EED5FF /* BookGenerator.cpp in Sources */,
 				0969B69D1A41C91200D56A21 /* PositionTest.cpp in Sources */,
 				0969B68C1A41C91200D56A21 /* Board.cpp in Sources */,
 				0969B6AE1A41C91200D56A21 /* TTE.cpp in Sources */,

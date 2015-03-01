@@ -186,6 +186,9 @@ namespace sunfish {
 				Loggers::warning << "file io error. " << __FILE__ << "(" << __LINE__ << ")";
 				return false;
 			}
+			if (_readComment(line) || _readCommand(line) || _readTime(line)) {
+				continue;
+			}
 			if (!readMove(line, record.getBoard(), move)) {
 				Loggers::warning << "invalid move format. " << __FILE__ << "(" << __LINE__ << ")";
 				Loggers::warning << "> " << line;
@@ -195,22 +198,31 @@ namespace sunfish {
 		}
 	}
 
+	bool CsaReader::_readComment(const char* line) {
+		if (line[0] == '\0' || line[0] == '\'') {
+			return true;
+		}
+		return false;
+	}
+
+	bool CsaReader::_readTime(const char* line) {
+		if (line[0] == 'T') {
+			return true;
+		}
+		return false;
+	}
+
+	bool CsaReader::_readCommand(const char* line) {
+		if (line[0] == '%') {
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * 指し手の読み込み
 	 */
 	bool CsaReader::readMove(const char* line, const Board& board, Move& move) {
-		if (line[0] == '\0' || line[0] == '\'') {
-			return true;
-		}
-
-		if (line[0] == 'T') {
-			return true;
-		}
-
-		if (line[0] == '%') {
-			return true;
-		}
-
 		if (strlen(line) < 7) {
 			return false;
 		}
