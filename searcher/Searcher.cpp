@@ -812,7 +812,7 @@ namespace sunfish {
 					currval = -searchr<pvNode>(tree, !black, newDepth, -newAlpha-1, -newAlpha, newStat);
 				}
 
-				if (!isInterrupted() && currval > newAlpha && currval < beta) {
+				if (!isInterrupted() && currval > newAlpha && currval < beta && !isNullWindow) {
 					currval = -searchr<pvNode>(tree, !black, newDepth, -beta, -newAlpha, newStat);
 				}
 #else
