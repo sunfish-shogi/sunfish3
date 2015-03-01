@@ -75,17 +75,9 @@ namespace sunfish {
 			std::string str;
 		};
 
-		struct SendingMove {
+		struct MyMove {
 			Move move;
 			Value value;
-			void set(const Move& move) {
-				this->move = move;
-				this->value = 0;
-			}
-			void set(const Searcher::Info& info) {
-				this->move = info.move;
-				this->value = info.eval;
-			}
 		};
 
 		struct ReceiveFlagSet {
@@ -199,7 +191,7 @@ namespace sunfish {
 
 		bool agree();
 
-		bool sendMove(const SendingMove& move, bool black, std::string* str);
+		bool sendMove(const MyMove& move, bool black, std::string* str);
 
 		bool sendResign();
 

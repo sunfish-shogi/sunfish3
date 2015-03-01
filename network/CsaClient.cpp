@@ -82,6 +82,9 @@ namespace sunfish {
 		// 初期化
 		init();
 
+		// 定跡読み込み
+		_book.readFile();
+
 		// 受信スレッドを開始
 		std::thread receiverThread([this]() {
 			receiver();
@@ -174,7 +177,7 @@ lab_end:
 	bool CsaClient::myTurn() {
 
 		bool ok = false;
-		Move move;
+		MyMove myMove;
 
 		// 定跡検索
 		if (!ok) {
@@ -182,8 +185,8 @@ lab_end:
   		uint64_t hash = board.getHash();
   		BookResult bookResult = _book.selectRandom(hash);
   		if (!bookResult.move.isEmpty() && board.isValidMove(bookResult.move)) {
-				move = bookResult.move;
-				Loggers::message << "book hit: " << move.toString() << " (" << bookResult.count << "/" << bookResult.total << ")";
+				myMove.move = bookResult.move;
+				Loggers::message << "book hit: " << myMove.move.toString() << " (" << bookResult.count << "/" << bookResult.total << ")";
 				ok = true;
   		}
 		}
@@ -196,19 +199,18 @@ lab_end:
 
   		// 探索
   		Loggers::message << "begin search: limit(sec)=" << searchConfig.limitSeconds;
-  		ok = _searcher.idsearch(_record.getBoard(), move);
+  		ok = _searcher.idsearch(_record.getBoard(), myMove.move);
   		Loggers::message << "end search";
+
+			if (ok) {
+				myMove.value = _searcher.getInfo().eval;
+			}
 		}
 
-		SendingMove sendingMove;
-		if (ok) {
-			sendingMove.set(_searcher.getInfo());
-		}
-
-		if (ok && _record.makeMove(move)) {
+		if (ok && _record.makeMove(myMove.move)) {
 			// 指し手を送信
 			std::string recvStr;
-			if (!sendMove(sendingMove, !_record.getBoard().isBlack(), &recvStr)) {
+			if (!sendMove(myMove, !_record.getBoard().isBlack(), &recvStr)) {
 				// TODO: エラーの詳細を出力
 				Loggers::error << "ERROR:could not send a move";
 				return false;
@@ -350,15 +352,15 @@ lab_end:
 		return (response & RECV_START) != 0U;
 	}
 
-	bool CsaClient::sendMove(const SendingMove& sendingMove, bool black, std::string* str) {
+	bool CsaClient::sendMove(const MyMove& myMove, bool black, std::string* str) {
 		std::ostringstream oss;
-		oss << sendingMove.move.toStringCsa(black);
+		oss << myMove.move.toStringCsa(black);
 		if (_config.getFloodgate()) {
 			// 評価値
 			int sign = gameSummary.black ? 1 : -1;
-			oss << ",\'* " << (sendingMove.value * sign).int32();
+			oss << ",\'* " << (myMove.value * sign).int32();
 			// TODO: 読み筋
-			//oss << ' ' << sendingMove.pv;
+			//oss << ' ' << myMove.pv;
 		}
 		if (!send(oss.str().c_str())) {
 			return false;
