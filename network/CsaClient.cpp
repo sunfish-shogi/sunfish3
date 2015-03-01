@@ -144,9 +144,9 @@ lab_end:
 	 * 対局を進める
 	 */
 	bool CsaClient::nextTurn() {
-#ifndef NDEBUG
-		CsaWriter::write("debug.csa", _record);
-#endif
+		if (!_config.getMonitor().empty()) {
+			CsaWriter::write(_config.getMonitor(), _record);
+		}
 
 		// 残り時間を表示
 		Loggers::message << "Time(Black):" << _blackTime.toString();

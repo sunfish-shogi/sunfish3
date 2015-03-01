@@ -25,6 +25,7 @@ namespace sunfish {
 		_items[i++] = ConfigItem("keepcnt", INTEGER, &_keepcnt, "10");
 		_items[i++] = ConfigItem("floodgate", BOOL, &_floodgate, "0");
 		_items[i++] = ConfigItem("kifu", STRING, &_kifu, "Kifu");
+		_items[i++] = ConfigItem("monitor", STRING, &_monitor, "");
 
 		if (filename != NULL) {
 			read(filename);

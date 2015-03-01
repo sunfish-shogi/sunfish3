@@ -57,11 +57,7 @@ namespace sunfish {
 		_config.maxDepth = 15;
 		_config.limitSeconds = 3;
 		_config.inFileName = "";
-#ifndef NDEBUG
-		_config.outFileName = ".debug.csa"; // debug build only
-#else
-		_config.outFileName = "";
-#endif
+		_config.outFileName = "console.csa";
 	}
 
 	/**

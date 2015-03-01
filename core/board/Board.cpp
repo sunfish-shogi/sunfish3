@@ -1481,23 +1481,34 @@ namespace sunfish {
 		}
 		oss << '\n';
 
-		oss << "P+";
+		bool existsBlackHand = false;
+		bool existsWhiteHand = false;
 		HAND_EACH(piece) {
-			int count = _blackHand.get(piece);
-			for (int i = 0; i < count; i++) {
-				oss << "00" << piece.toStringCsa(true);
-			}
+			existsBlackHand |= _blackHand.get(piece) != 0;
+			existsWhiteHand |= _whiteHand.get(piece) != 0;
 		}
-		oss << '\n';
 
-		oss << "P-";
-		HAND_EACH(piece) {
-			int count = _whiteHand.get(piece);
-			for (int i = 0; i < count; i++) {
-				oss << "00" << piece.toStringCsa(true);
-			}
+		if (existsBlackHand) {
+  		oss << "P+";
+  		HAND_EACH(piece) {
+  			int count = _blackHand.get(piece);
+  			for (int i = 0; i < count; i++) {
+  				oss << "00" << piece.toStringCsa(true);
+  			}
+  		}
+  		oss << '\n';
 		}
-		oss << '\n';
+
+		if (existsWhiteHand) {
+  		oss << "P-";
+  		HAND_EACH(piece) {
+  			int count = _whiteHand.get(piece);
+  			for (int i = 0; i < count; i++) {
+  				oss << "00" << piece.toStringCsa(true);
+  			}
+  		}
+  		oss << '\n';
+		}
 
 		// 手番
 		oss << (isBlack() ? '+' : '-') << '\n';

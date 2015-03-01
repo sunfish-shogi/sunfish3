@@ -33,6 +33,7 @@ namespace sunfish {
 		bool _floodgate;
 
 		std::string _kifu;
+		std::string _monitor;
 
 	protected:
 
@@ -112,6 +113,10 @@ namespace sunfish {
 			} else {
 				return _kifu + '/';
 			}
+		}
+
+		const std::string& getMonitor() const {
+			return _monitor;
 		}
 
 	};
