@@ -9,8 +9,18 @@
 #include "../board/Board.h"
 #include "../move/Move.h"
 #include <vector>
+#include <string>
 
 namespace sunfish {
+
+	struct RecordInfo {
+		std::string title;
+		std::string blackName;
+		std::string whiteName;
+		int timeLimitHour;
+		int timeLimitMinutes;
+		int timeLimitReadoff;
+	};
 
 	class Record {
 	private:

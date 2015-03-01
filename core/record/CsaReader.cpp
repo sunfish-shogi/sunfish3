@@ -6,30 +6,32 @@
 #include "CsaReader.h"
 #include "logger/Logger.h"
 #include <fstream>
+#include <string>
+#include <cstring>
 
 #define LINE_BUFFER_SIZE							1024
 
 namespace sunfish {
 
-	bool CsaReader::read(const char* filename, Record& record) {
+	bool CsaReader::read(const char* filename, Record& record, RecordInfo* info/* = nullptr*/) {
 
 		std::ifstream file(filename);
 		if (!file) {
 			return false;
 		}
 
-		bool ok = read(file, record);
+		bool ok = read(file, record, info);
 
 		file.close();
 		return ok;
 
 	}
 
-	bool CsaReader::read(std::istream& is, Record& record) {
+	bool CsaReader::read(std::istream& is, Record& record, RecordInfo* info/* = nullptr*/) {
 		Board board;
 
 		// 局面の読み込み
-		if (!readBoard(is, board)) {
+		if (!readBoard(is, board, info)) {
 			return false;
 		}
 
@@ -46,8 +48,8 @@ namespace sunfish {
 	/**
 	 * 局面の読み込み
 	 */
-	bool CsaReader::readBoard(std::istream& is, Board& board) {
-		bool ok = _readBoard(is, board);
+	bool CsaReader::readBoard(std::istream& is, Board& board, RecordInfo* info/* = nullptr*/) {
+		bool ok = _readBoard(is, board, info);
 		board.refreshHash();
 		return ok;
 	}
@@ -55,8 +57,8 @@ namespace sunfish {
 	/**
 	 * 局面の読み込み
 	 */
-	bool CsaReader::readBoard(const char* line, Board& board) {
-		bool ok = _readBoard(line, board);
+	bool CsaReader::readBoard(const char* line, Board& board, RecordInfo* info/* = nullptr*/) {
+		bool ok = _readBoard(line, board, info);
 		board.refreshHash();
 		return ok;
 	}
@@ -64,7 +66,7 @@ namespace sunfish {
 	/**
 	 * 局面の読み込み
 	 */
-	bool CsaReader::_readBoard(std::istream& is, Board& board) {
+	bool CsaReader::_readBoard(std::istream& is, Board& board, RecordInfo* info/* = nullptr*/) {
 		char line[LINE_BUFFER_SIZE];
 
 		board.init();
@@ -78,12 +80,12 @@ namespace sunfish {
 				Loggers::warning << "file io error. " << __FILE__ << "(" << __LINE__ << ")";
 				return false;
 			}
-			if (!_readBoard(line, board)) {
+			if (!_readBoard(line, board, info)) {
 				Loggers::warning << "invalid board format. " << __FILE__ << "(" << __LINE__ << ")";
 				return false;
 			}
 			if (line[0] == '+' || line[0] == '-') {
-				break;;
+				break;
 			}
 		}
 
@@ -96,7 +98,7 @@ namespace sunfish {
 	/**
 	 * 局面の読み込み
 	 */
-	bool CsaReader::_readBoard(const char* line, Board& board) {
+	bool CsaReader::_readBoard(const char* line, Board& board, RecordInfo* info/* = nullptr*/) {
 		switch (line[0]) {
 		case 'P':
 			if (line[1] >= '1' && line[1] <= '9') {
@@ -115,7 +117,9 @@ namespace sunfish {
 		case '-':
 			board.setWhite();
 			return true;
-		case 'V': case 'N': case '$': case '\'': case '\0':
+		case '$':
+			return info != nullptr ? _readInfo(line, *info) : true;
+		case 'V': case 'N': case '\'': case '\0':
 			return true;
 		default:
 			Loggers::warning << __THIS__ << ": unknown command";
@@ -137,6 +141,29 @@ namespace sunfish {
 			Piece piece = Piece::parseCsa(line + 2 + 3 * (9 - file));
 			board.setBoardPiece(Position(file, rank), piece);
 		}
+		return true;
+	}
+
+	bool CsaReader::_readInfo(const char* line, RecordInfo& info) {
+		if (strncmp(line, "$EVENT:", 7) == 0) {
+			info.title = &line[7];
+
+		} else if (strncmp(line, "N+", 2) == 0) {
+			info.blackName = &line[2];
+
+		} else if (strncmp(line, "N-", 2) == 0) {
+			info.whiteName = &line[2];
+
+		} else if (strncmp(line, "$TIME_LIMIT:", 12) == 0 && strlen(line) >= 20) {
+			info.timeLimitHour = std::stoi(&line[12]);
+			info.timeLimitMinutes = std::stoi(&line[15]);
+			info.timeLimitReadoff = std::stoi(&line[18]);
+
+		} else {
+			Loggers::warning << "unknown command: [" << line << "]: " << __FILE__ << "(" << __LINE__ << ")";
+
+		}
+
 		return true;
 	}
 

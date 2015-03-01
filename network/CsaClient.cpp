@@ -55,7 +55,10 @@ namespace sunfish {
 		_con.setHost(_config.getHost());
 		_con.setPort(_config.getPort());
 		_con.setKeepalive(_config.getKeepalive(), _config.getKeepidle(),
-			_config.getKeepintvl(), _config.getKeepcnt());
+		_config.getKeepintvl(), _config.getKeepcnt());
+
+		// 定跡読み込み
+		_book.readFile();
 
 		// 連続対局
 		for (int i = 0; i < _config.getRepeat(); i++) {
@@ -81,9 +84,6 @@ namespace sunfish {
 
 		// 初期化
 		init();
-
-		// 定跡読み込み
-		_book.readFile();
 
 		// 受信スレッドを開始
 		std::thread receiverThread([this]() {
@@ -117,8 +117,8 @@ namespace sunfish {
 			_searchConfigBase.limitSeconds = _config.getLimit();
 
 			// 残り時間の初期化
-			_blackTime.init(gameSummary.totalTime, gameSummary.readoff);
-			_whiteTime.init(gameSummary.totalTime, gameSummary.readoff);
+			_blackTime.init(_gameSummary.totalTime, _gameSummary.readoff);
+			_whiteTime.init(_gameSummary.totalTime, _gameSummary.readoff);
 
 			while (1) {
 				bool ok = nextTurn();
@@ -127,7 +127,7 @@ namespace sunfish {
 				}
 			}
 			// 対局結果の記録
-			writeResult(_record);
+			writeResult();
 		}
 
 		// logout
@@ -145,7 +145,15 @@ lab_end:
 	 */
 	bool CsaClient::nextTurn() {
 		if (!_config.getMonitor().empty()) {
-			CsaWriter::write(_config.getMonitor(), _record);
+			RecordInfo info{
+				_gameSummary.gameId,
+				_gameSummary.blackName,
+				_gameSummary.whiteName,
+				0,
+				_gameSummary.totalTime,
+				_gameSummary.readoff,
+			};
+			CsaWriter::write(_config.getMonitor(), _record, &info);
 		}
 
 		// 残り時間を表示
@@ -153,7 +161,7 @@ lab_end:
 		Loggers::message << "Time(White):" << _whiteTime.toString();
 
 		bool ok;
-		if (gameSummary.black == _record.isBlack()) {
+		if (_gameSummary.black == _record.isBlack()) {
 			// 自分の手番
 			ok = myTurn();
 		} else {
@@ -218,7 +226,7 @@ lab_end:
 
 			// 消費時間の読み込み
 			int usedTime = getUsedTime(recvStr);
-			if (gameSummary.black) {
+			if (_gameSummary.black) {
 				_blackTime.use(usedTime);
 			} else {
 				_whiteTime.use(usedTime);
@@ -246,7 +254,7 @@ lab_end:
 
 		// 相手番の指し手を受信
 		std::string recvStr;
-		unsigned mask = gameSummary.black ? RECV_MOVE_W : RECV_MOVE_B;
+		unsigned mask = _gameSummary.black ? RECV_MOVE_W : RECV_MOVE_B;
 		unsigned flags = waitReceive(mask | RECV_END_MSK, &recvStr);
 
 		// 探索が開始されていることを確認
@@ -269,7 +277,7 @@ lab_end:
 
 			// 消費時間の読み込み
 			int usedTime = getUsedTime(recvStr);
-			if (gameSummary.black) {
+			if (_gameSummary.black) {
 				_whiteTime.use(usedTime);
 			} else {
 				_blackTime.use(usedTime);
@@ -316,7 +324,7 @@ lab_end:
 	void CsaClient::buildSearchConfig(Searcher::Config& searchConfig) {
 		// 思考時間設定
 		if (searchConfig.limitEnable) {
-			const auto& myTime = gameSummary.black ? _blackTime : _whiteTime;
+			const auto& myTime = _gameSummary.black ? _blackTime : _whiteTime;
 
 			// 次の一手で利用可能な最大時間
 			int usableTime = myTime.usable();
@@ -357,7 +365,7 @@ lab_end:
 		oss << myMove.move.toStringCsa(black);
 		if (_config.getFloodgate()) {
 			// 評価値
-			int sign = gameSummary.black ? 1 : -1;
+			int sign = _gameSummary.black ? 1 : -1;
 			oss << ",\'* " << (myMove.value * sign).int32();
 			// TODO: 読み筋
 			//oss << ' ' << myMove.pv;
@@ -365,7 +373,7 @@ lab_end:
 		if (!send(oss.str().c_str())) {
 			return false;
 		}
-		unsigned mask = gameSummary.black ? RECV_MOVE_B : RECV_MOVE_W;
+		unsigned mask = _gameSummary.black ? RECV_MOVE_B : RECV_MOVE_W;
 		unsigned response = waitReceive(mask | RECV_END_MSK, str);
 		return (response & mask) != 0U;
 	}
@@ -468,19 +476,19 @@ lab_end:
 
 		if (key == "Your_Turn") {
 			if (value == "+") {
-				gameSummary.black = true;
+				_gameSummary.black = true;
 			} else if (value == "-") {
-				gameSummary.black = false;
+				_gameSummary.black = false;
 			} else {
 				Loggers::warning << __THIS__ << ": unknown value [" << value << "]";
 				return false;
 			}
 		} else if (key == "Game_ID") {
-			gameSummary.gameId = value;
+			_gameSummary.gameId = value;
 		} else if (key == "Name+") {
-			gameSummary.blackName = value;
+			_gameSummary.blackName = value;
 		} else if (key == "Name-") {
-			gameSummary.whiteName = value;
+			_gameSummary.whiteName = value;
 		} else if (key == "Protocol_Version") {
 			// TODO
 			WARN_IGNORED(key, value);
@@ -542,10 +550,10 @@ lab_end:
 			WARN_IGNORED(key, value);
 		} else if (key == "Total_Time") {
 			// 持ち時間(省略時無制限)
-			gameSummary.totalTime = std::stoi(value);
+			_gameSummary.totalTime = std::stoi(value);
 		} else if (key == "Byoyomi") {
 			// 秒読み
-			gameSummary.readoff = std::stoi(value);
+			_gameSummary.readoff = std::stoi(value);
 		} else {
 			Loggers::warning << __THIS__ << ": unknown key [" << key << "]";
 			return false;
@@ -587,7 +595,7 @@ lab_end:
 		return CsaReader::readBoard(recvStr.c_str(), _board);
 	}
 
-	void CsaClient::writeResult(const Record& record) {
+	void CsaClient::writeResult() {
 		// 結果の保存
 		// TODO: ファイル名を指定可能に
 		std::ofstream fout("csaClient.csv", std::ios::out | std::ios::app);
@@ -597,17 +605,17 @@ lab_end:
 				endStatus << FlagSets[i].name << ' ';
 			}
 		}
-		fout << gameSummary.gameId << ','
-				<< gameSummary.blackName << ','
-				<< gameSummary.whiteName << ','
+		fout << _gameSummary.gameId << ','
+				<< _gameSummary.blackName << ','
+				<< _gameSummary.whiteName << ','
 				<< endStatus.str() << '\n';
 		fout.close();
 
 		// 棋譜の保存
 		std::ostringstream path;
 		path << _config.getKifu();
-		path << gameSummary.gameId << ".csa";
-		CsaWriter::write(path.str().c_str(), record);
+		path << _gameSummary.gameId << ".csa";
+		CsaWriter::write(path.str().c_str(), _record);
 	}
 
 }

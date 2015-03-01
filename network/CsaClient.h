@@ -138,17 +138,17 @@ namespace sunfish {
 			int totalTime;
 			/** 秒読み */
 			int readoff;
-		} gameSummary;
+		} _gameSummary;
 
 		void init() {
 			while (!_recvQueue.empty()) {
 				_recvQueue.pop();
 			}
 			_endFlags = RECV_NULL;
-			gameSummary.gameId = "";
-			gameSummary.blackName = "";
-			gameSummary.whiteName = "";
-			gameSummary.totalTime = 0;
+			_gameSummary.gameId = "";
+			_gameSummary.blackName = "";
+			_gameSummary.whiteName = "";
+			_gameSummary.totalTime = 0;
 		}
 
 		/**
@@ -236,7 +236,7 @@ namespace sunfish {
 			Loggers::receive << '>' << StringUtil::chomp(recvStr);
 		}
 
-		void writeResult(const Record& record);
+		void writeResult();
 
 		void printSearchInfo(Value value,
 				uint64_t nodes, int depth, double seconds) {

@@ -20,11 +20,12 @@ namespace sunfish {
 
 	public:
 
-		static bool write(const char* filename, const Record& record);
-		static bool write(const std::string& filename, const Record& record) {
-			return write(filename.c_str(), record);
+		static bool write(const char* filename, const Record& record, const RecordInfo* info = nullptr);
+		static bool write(const std::string& filename, const Record& record, const RecordInfo* info = nullptr) {
+			return write(filename.c_str(), record, info);
 		}
-		static void write(std::ostream& os, const Record& record);
+		static void write(std::ostream& os, const Record& record, const RecordInfo* info = nullptr);
+		static void writeInfo(std::ostream& os, const RecordInfo& info);
 		static void writeBoard(std::ostream& os, const Board& board);
 
 	};
