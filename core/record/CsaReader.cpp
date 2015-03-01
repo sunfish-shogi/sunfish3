@@ -117,9 +117,9 @@ namespace sunfish {
 		case '-':
 			board.setWhite();
 			return true;
-		case '$':
+		case '$': case 'N':
 			return info != nullptr ? _readInfo(line, *info) : true;
-		case 'V': case 'N': case '\'': case '\0':
+		case 'V': case '\'': case '\0':
 			return true;
 		default:
 			Loggers::warning << __THIS__ << ": unknown command";

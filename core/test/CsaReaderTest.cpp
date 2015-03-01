@@ -58,4 +58,35 @@ next: black\n\
 	ASSERT_EQ(correct, record.getBoard().toString(false));
 }
 
+TEST(CsaReaderTest, testInfo) {
+	std::string src = "\
+N+Sunfish\n\
+N-Firefly\n\
+$EVENT:WCSC_TEST\n\
+$TIME_LIMIT:01:30+60\n\
+P1-KY-KE-GI-KI-OU-KI-GI-KE-KY\n\
+P2 * -HI *  *  *  *  * -KA * \n\
+P3-FU-FU-FU-FU-FU-FU-FU-FU-FU\n\
+P4 *  *  *  *  *  *  *  *  * \n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n\
+P8 * +KA *  *  *  *  * +HI * \n\
+P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n\
++\n";
+	std::istringstream iss(src);
+	Record record;
+	RecordInfo info;
+
+	bool result = CsaReader::read(iss, record, &info);
+
+	ASSERT_EQ(true, result);
+	ASSERT_EQ("Sunfish", info.blackName);
+	ASSERT_EQ("Firefly", info.whiteName);
+	ASSERT_EQ("WCSC_TEST", info.title);
+	ASSERT_EQ(1, info.timeLimitHour);
+	ASSERT_EQ(30, info.timeLimitMinutes);
+	ASSERT_EQ(60, info.timeLimitReadoff);
+}
+
 #endif // !defined(NDEBUG)
