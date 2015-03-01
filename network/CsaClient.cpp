@@ -145,14 +145,7 @@ lab_end:
 	 */
 	bool CsaClient::nextTurn() {
 		if (!_config.getMonitor().empty()) {
-			RecordInfo info{
-				_gameSummary.gameId,
-				_gameSummary.blackName,
-				_gameSummary.whiteName,
-				0,
-				_gameSummary.totalTime,
-				_gameSummary.readoff,
-			};
+			RecordInfo info = getRecordInfo();
 			CsaWriter::write(_config.getMonitor(), _record, &info);
 		}
 
@@ -595,6 +588,17 @@ lab_end:
 		return CsaReader::readBoard(recvStr.c_str(), _board);
 	}
 
+	RecordInfo CsaClient::getRecordInfo() const {
+		return RecordInfo{
+			_gameSummary.gameId,
+			_gameSummary.blackName,
+			_gameSummary.whiteName,
+			_gameSummary.totalTime / 60 / 60,
+			_gameSummary.totalTime / 60 % 60,
+			_gameSummary.readoff,
+		};
+	}
+
 	void CsaClient::writeResult() {
 		// 結果の保存
 		// TODO: ファイル名を指定可能に
@@ -615,7 +619,8 @@ lab_end:
 		std::ostringstream path;
 		path << _config.getKifu();
 		path << _gameSummary.gameId << ".csa";
-		CsaWriter::write(path.str().c_str(), _record);
+		RecordInfo info = getRecordInfo();
+		CsaWriter::write(path.str().c_str(), _record, &info);
 	}
 
 }

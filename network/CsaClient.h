@@ -236,6 +236,8 @@ namespace sunfish {
 			Loggers::receive << '>' << StringUtil::chomp(recvStr);
 		}
 
+		RecordInfo getRecordInfo() const;
+
 		void writeResult();
 
 		void printSearchInfo(Value value,
