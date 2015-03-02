@@ -35,12 +35,6 @@ namespace sunfish {
 
 	private:
 
-		enum class Direction : int {
-			Up, Down, Left, Right,
-			LeftUp, LeftDown,
-			RightUp, RightDown,
-		};
-
 		// 8(近接) + 4(香) + 2(角/馬) + 2(飛/竜)
 		Attacker _b[16];
 		Attacker _w[16];
@@ -50,12 +44,12 @@ namespace sunfish {
 		int _wnum;
 
 		template <bool black, Direction dir, bool isFirst>
-		void generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Attacker* dependOn);
+		void generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn);
 
 		template <bool black>
-		void generateKnightAttacker(const Evaluator& eval, const Board& board, const Position& from, const Position& exceptPos);
+		void generateKnightAttacker(const Evaluator& eval, const Board& board, const Position& from);
 
-		template <bool black>
+		template <bool black, Direction exceptDir>
 		void generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos);
 
 		template <bool black>
@@ -70,8 +64,28 @@ namespace sunfish {
 			auto to = move.to();
 			auto exceptMask = ~Bitboard::mask(from);
 			auto occ = (board.getBOccupy() | board.getWOccupy()) & exceptMask;
-			generateAttackers<true>(eval, board, to, occ, from);
-			generateAttackers<false>(eval, board, to, occ, from);
+			Direction exceptDir = to.dir(from);
+			switch (exceptDir) {
+#define ___SUNFISH_SEE_CASE_DIR___(dirname) \
+				case Direction::dirname: \
+					generateAttackers<true, Direction::dirname>(eval, board, to, occ, from); \
+					generateAttackers<false, Direction::dirname>(eval, board, to, occ, from); \
+					return;
+				___SUNFISH_SEE_CASE_DIR___(Up)
+				___SUNFISH_SEE_CASE_DIR___(Down)
+				___SUNFISH_SEE_CASE_DIR___(Left)
+				___SUNFISH_SEE_CASE_DIR___(Right)
+				___SUNFISH_SEE_CASE_DIR___(LeftUp)
+				___SUNFISH_SEE_CASE_DIR___(LeftDown)
+				___SUNFISH_SEE_CASE_DIR___(RightUp)
+				___SUNFISH_SEE_CASE_DIR___(RightDown)
+				___SUNFISH_SEE_CASE_DIR___(LeftUpKnight)
+				___SUNFISH_SEE_CASE_DIR___(LeftDownKnight)
+				___SUNFISH_SEE_CASE_DIR___(RightUpKnight)
+				___SUNFISH_SEE_CASE_DIR___(RightDownKnight)
+				default: assert(false);
+#undef ___SUNFISH_SEE_CASE_DIR___
+			}
 		}
 
 		const AttackerRef* getBlackList() const {

@@ -56,8 +56,8 @@ namespace sunfish {
 		{ false, false, false, false, false, false, false, false }, // n/a
 	};
 
-	template <bool black, See::Direction dir, bool isFirst>
-	void See::generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Attacker* dependOn) {
+	template <bool black, Direction dir, bool isFirst>
+	void See::generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn) {
 
 		auto& num = black ? _bnum : _wnum;
 		auto list = black ? _b : _w;
@@ -77,12 +77,8 @@ namespace sunfish {
 						 dir == Direction::LeftDown ? MovableTable[piece].rightUp :
 						 dir == Direction::RightUp ? MovableTable[piece].leftDown :
 						 MovableTable[piece].leftUp)) {
-					if (from != exceptPos) {
-						list[num++] = { eval.pieceExchange(piece), dependOn, false };
-						generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
-					} else {
-						generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
-					}
+					list[num++] = { eval.pieceExchange(piece), dependOn, false };
+					generateAttackers<black, dir, false>(eval, board, from, occ, &list[num-1]);
 					return;
 				}
 			}
@@ -92,25 +88,21 @@ namespace sunfish {
 								 dir == Direction::LeftDown ? MoveTables::LeftDown.get(to, occ) :
 								 dir == Direction::RightUp ? MoveTables::RightUp.get(to, occ) :
 								 MoveTables::RightDown.get(to, occ));
-			auto result = bb & (black ? board.getBBishop() : board.getWBishop());
-			if (result) {
-				auto from = result.pickFirst();
-				if (from != exceptPos) {
+			if (bb) {
+  			auto result = bb & (black ? board.getBBishop() : board.getWBishop());
+  			if (result) {
+  				auto from = result.pickFirst();
 					list[num++] = { eval.table().bishopEx, dependOn, false };
-					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
-				} else {
-					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
-				}
-			}
-			result = bb & (black ? board.getBHorse() : board.getWHorse());
-			if (result) {
-				auto from = result.pickFirst();
-				if (from != exceptPos) {
+					generateAttackers<black, dir, false>(eval, board, from, occ, &list[num-1]);
+					return;
+  			}
+  			result = bb & (black ? board.getBHorse() : board.getWHorse());
+  			if (result) {
+  				auto from = result.pickFirst();
 					list[num++] = { eval.table().horseEx, dependOn, false };
-					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
-				} else {
-					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
-				}
+					generateAttackers<black, dir, false>(eval, board, from, occ, &list[num-1]);
+					return;
+  			}
 			}
 		}
 
@@ -129,12 +121,8 @@ namespace sunfish {
 						 dir == Direction::Down ? MovableTable[piece].up :
 						 dir == Direction::Left ? MovableTable[piece].right :
 						 MovableTable[piece].left)) {
-					if (from != exceptPos) {
-						list[num++] = { eval.pieceExchange(piece), dependOn, false };
-						generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
-					} else {
-						generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
-					}
+					list[num++] = { eval.pieceExchange(piece), dependOn, false };
+					generateAttackers<black, dir, false>(eval, board, from, occ, &list[num-1]);
 					return;
 				}
 			}
@@ -147,33 +135,24 @@ namespace sunfish {
 			auto result = bb & (black ? board.getBRook() : board.getWRook());
 			if (result) {
 				auto from = result.pickFirst();
-				if (from != exceptPos) {
-					list[num++] = { eval.table().rookEx, dependOn, false };
-					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
-				} else {
-					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
-				}
+				list[num++] = { eval.table().rookEx, dependOn, false };
+				generateAttackers<black, dir, false>(eval, board, from, occ, &list[num-1]);
+				return;
 			}
 			result = bb & (black ? board.getBDragon() : board.getWDragon());
 			if (result) {
 				auto from = result.pickFirst();
-				if (from != exceptPos) {
-					list[num++] = { eval.table().dragonEx, dependOn, false };
-					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
-				} else {
-					generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
-				}
+				list[num++] = { eval.table().dragonEx, dependOn, false };
+				generateAttackers<black, dir, false>(eval, board, from, occ, &list[num-1]);
+				return;
 			}
 			if ((black && dir == Direction::Down) || (!black && dir == Direction::Up)) {
 				result = bb & (black ? board.getBLance() : board.getWLance());
 				if (result) {
 					auto from = result.pickFirst();
-					if (from != exceptPos) {
-						list[num++] = { eval.table().lanceEx, dependOn, false };
-						generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, &list[num-1]);
-					} else {
-						generateAttackers<black, dir, false>(eval, board, from, occ, exceptPos, nullptr);
-					}
+					list[num++] = { eval.table().lanceEx, dependOn, false };
+					generateAttackers<black, dir, false>(eval, board, from, occ, &list[num-1]);
+  				return;
 				}
 			}
 		}
@@ -181,18 +160,18 @@ namespace sunfish {
 	}
 
 	template <bool black>
-	void See::generateKnightAttacker(const Evaluator& eval, const Board& board, const Position& from, const Position& exceptPos) {
+	void See::generateKnightAttacker(const Evaluator& eval, const Board& board, const Position& from) {
 		auto& num = black ? _bnum : _wnum;
 		auto list = black ? _b : _w;
 
 		auto piece = board.getBoardPiece(from);
 		if ((black && piece == Piece::BKnight) || (!black && piece == Piece::WKnight)) {
-			if (from != exceptPos) { list[num++] = { eval.pieceExchange(piece), nullptr, false }; }
+			list[num++] = { eval.pieceExchange(piece), nullptr, false };
 			return;
 		}
 	}
 
-	template <bool black>
+	template <bool black, Direction exceptDir>
 	void See::generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos) {
 
 		auto& num = black ? _bnum : _wnum;
@@ -201,20 +180,38 @@ namespace sunfish {
 
 		num = 0;
 
-		generateAttackers<black, Direction::Up, true>(eval, board, to, occ, exceptPos, nullptr);
-		generateAttackers<black, Direction::Down, true>(eval, board, to, occ, exceptPos, nullptr);
-		generateAttackers<black, Direction::Left, true>(eval, board, to, occ, exceptPos, nullptr);
-		generateAttackers<black, Direction::Right, true>(eval, board, to, occ, exceptPos, nullptr);
-		generateAttackers<black, Direction::LeftUp, true>(eval, board, to, occ, exceptPos, nullptr);
-		generateAttackers<black, Direction::RightUp, true>(eval, board, to, occ, exceptPos, nullptr);
-		generateAttackers<black, Direction::LeftDown, true>(eval, board, to, occ, exceptPos, nullptr);
-		generateAttackers<black, Direction::RightDown, true>(eval, board, to, occ, exceptPos, nullptr);
+#define GEN(dirname) \
+		if (exceptDir != Direction::dirname) { \
+  		generateAttackers<black, Direction::dirname, true>(eval, board, to, occ, nullptr); \
+		} else { \
+  		generateAttackers<black, Direction::dirname, true>(eval, board, exceptPos, occ, nullptr); \
+		}
+		GEN(Up);
+		GEN(Down);
+		GEN(Left);
+		GEN(Right);
+		GEN(LeftUp);
+		GEN(RightUp);
+		GEN(LeftDown);
+		GEN(RightDown);
 
 		// 桂馬
-		auto from = black ? to.down(2).right() : to.up(2).left();
-		generateKnightAttacker<black>(eval, board, from, exceptPos);
-		from = black ? to.down(2).left() : to.up(2).right();
-		generateKnightAttacker<black>(eval, board, from, exceptPos);
+		if (black && exceptDir != Direction::RightDownKnight) {
+			auto from = to.right().down(2);
+			generateKnightAttacker<true>(eval, board, from);
+		}
+		if (black && exceptDir != Direction::LeftDownKnight) {
+			auto from = to.left().down(2);
+			generateKnightAttacker<true>(eval, board, from);
+		}
+		if (!black && exceptDir != Direction::LeftUpKnight) {
+			auto from = to.left().up(2);
+			generateKnightAttacker<false>(eval, board, from);
+		}
+		if (!black && exceptDir != Direction::RightUpKnight) {
+			auto from = to.right().up(2);
+			generateKnightAttacker<false>(eval, board, from);
+		}
 
 		assert(num < (int)(sizeof(_b) / sizeof(_b[0])));
 

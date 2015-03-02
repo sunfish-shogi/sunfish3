@@ -23,20 +23,31 @@ namespace sunfish {
 		P11, P12, P13, P14, P15, P16, P17, P18, P19,
 	};
 
+	enum class Direction : int {
+		None,
+		Up, Down, Left, Right,
+		LeftUp, LeftDown,
+		RightUp, RightDown,
+		LeftUpKnight, LeftDownKnight,
+		RightUpKnight, RightDownKnight,
+	};
+
 	class Position {
 	private:
+
+		static const Direction DirectionTable[17][17];
 
 		int _index;
 
 	public:
 
-		static const int Invalid = -1;
-		static const int N = 81;
-		static const int RankN = 9;
-		static const int FileN = 9;
-		static const int Begin = 0;
-		static const int End = N + Begin;
-
+		static CONSTEXPR int Invalid = -1;
+		static CONSTEXPR int N = 81;
+		static CONSTEXPR int RankN = 9;
+		static CONSTEXPR int FileN = 9;
+		static CONSTEXPR int Begin = 0;
+		static CONSTEXPR int End = N + Begin;
+                
 		Position() : _index(Invalid) {
 		}
 		Position(int index) : _index(index) {
@@ -203,6 +214,11 @@ namespace sunfish {
 				return _index - (FileN - 1) * RankN + 1;
 			}
 			return _index + RankN;
+		}
+		Direction dir(const Position& to) const {
+			int rank = to._index % RankN - _index % RankN + 8;
+			int file = to._index / RankN - _index / RankN + 8;
+			return DirectionTable[rank][file];
 		}
 
 		std::string toString() const;
