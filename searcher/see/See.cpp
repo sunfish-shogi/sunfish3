@@ -72,13 +72,15 @@ namespace sunfish {
 										 dir == Direction::RightUp ? to.rightUp() :
 										 to.rightDown());
 				auto piece = board.getBoardPiece(from);
-				if (((black && piece.isBlack()) || (!black && piece.isWhite())) &&
-						(dir == Direction::LeftUp ? MovableTable[piece].rightDown :
-						 dir == Direction::LeftDown ? MovableTable[piece].rightUp :
-						 dir == Direction::RightUp ? MovableTable[piece].leftDown :
-						 MovableTable[piece].leftUp)) {
-					list[num++] = { eval.pieceExchange(piece), dependOn, false };
-					if (!shallow) { generateAttackers<black, false, dir, false>(eval, board, from, occ, &list[num-1]); }
+				if (!piece.isEmpty()) {
+  				if (((black && piece.isBlack()) || (!black && piece.isWhite())) &&
+  						(dir == Direction::LeftUp ? MovableTable[piece].rightDown :
+  						 dir == Direction::LeftDown ? MovableTable[piece].rightUp :
+  						 dir == Direction::RightUp ? MovableTable[piece].leftDown :
+  						 MovableTable[piece].leftUp)) {
+  					list[num++] = { eval.pieceExchange(piece), dependOn, false };
+  					if (!shallow) { generateAttackers<black, false, dir, false>(eval, board, from, occ, &list[num-1]); }
+  				}
 					return;
 				}
 			}
@@ -116,13 +118,15 @@ namespace sunfish {
 										 dir == Direction::Left ? to.left() :
 										 to.right());
 				auto piece = board.getBoardPiece(from);
-				if (((black && piece.isBlack()) || (!black && piece.isWhite())) &&
-						(dir == Direction::Up ? MovableTable[piece].down :
-						 dir == Direction::Down ? MovableTable[piece].up :
-						 dir == Direction::Left ? MovableTable[piece].right :
-						 MovableTable[piece].left)) {
-					list[num++] = { eval.pieceExchange(piece), dependOn, false };
-					if (!shallow) { generateAttackers<black, false, dir, false>(eval, board, from, occ, &list[num-1]); }
+				if (!piece.isEmpty()) {
+  				if (((black && piece.isBlack()) || (!black && piece.isWhite())) &&
+  						(dir == Direction::Up ? MovableTable[piece].down :
+  						 dir == Direction::Down ? MovableTable[piece].up :
+  						 dir == Direction::Left ? MovableTable[piece].right :
+  						 MovableTable[piece].left)) {
+  					list[num++] = { eval.pieceExchange(piece), dependOn, false };
+  					if (!shallow) { generateAttackers<black, false, dir, false>(eval, board, from, occ, &list[num-1]); }
+  				}
 					return;
 				}
 			}
