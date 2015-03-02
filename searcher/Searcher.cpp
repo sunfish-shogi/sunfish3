@@ -15,6 +15,7 @@
 #define ENABLE_SHEK_PRESET						1
 #define ENABLE_SHEK										1
 #define ENABLE_STORE_PV								1
+#define SHALLOW_SEE                   0
 #define DEBUG_ROOT_MOVES							0
 #define DEBUG_TREE										0
 
@@ -181,7 +182,11 @@ namespace sunfish {
 				continue;
 			}
 
-			Value value = _see.search(_eval, board, move, -1, Value::Inf);
+#if SHALLOW_SEE
+			Value value = _see.search<true>(_eval, board, move, -1, Evaluator::PieceInf);
+#else
+			Value value = _see.search(_eval, board, move, -1, Evaluator::PieceInf);
+#endif
 			tree.setSortValue(ite, value.int32());
 
 			ite++;
@@ -772,7 +777,7 @@ namespace sunfish {
 			if (newDepth < Depth1Ply * 2 && isNullWindow && !isCheck &&
 					move.captured().isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
 					!isPriorMove(tree, move)) {
-				if (_see.search(_eval, tree.getBoard(), move, -1, 0) < Value::Zero) {
+				if (_see.search<true>(_eval, tree.getBoard(), move, -1, 0) < Value::Zero) {
 					value = newAlpha;
 					continue;
 				}

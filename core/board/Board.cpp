@@ -449,6 +449,49 @@ namespace sunfish {
 
 	}
 
+	template<bool black, Direction dir>
+	bool Board::_isDiscoveredCheck(const Position& king, const Bitboard& occ) const {
+		if (black) {
+			if (dir == Direction::Down) {
+				if (MoveTables::WLance.get(king, occ) & (_bbBLance | _bbBRook | _bbBDragon)) {
+					return true;
+				}
+			} else if (dir == Direction::Up || dir == Direction::Left || dir == Direction::Right) {
+				if (MoveTables::Rook.get(king, occ) & (_bbBRook | _bbBDragon)) {
+					return true;
+				}
+			} else {
+				assert(dir == Direction::LeftUp ||
+							 dir == Direction::LeftDown ||
+							 dir == Direction::RightUp ||
+							 dir == Direction::RightDown);
+				if (MoveTables::Bishop.get(king, occ) & (_bbBBishop | _bbBHorse)) {
+					return true;
+				}
+			}
+		} else {
+			if (dir == Direction::Up) {
+				if (MoveTables::BLance.get(king, occ) & (_bbWLance | _bbWRook | _bbWDragon)) {
+					return true;
+				}
+			} else if (dir == Direction::Down || dir == Direction::Left || dir == Direction::Right) {
+				if (MoveTables::Rook.get(king, occ) & (_bbWRook | _bbWDragon)) {
+					return true;
+				}
+			} else {
+				assert(dir == Direction::LeftUp ||
+							 dir == Direction::LeftDown ||
+							 dir == Direction::RightUp ||
+							 dir == Direction::RightDown);
+				if (MoveTables::Bishop.get(king, occ) & (_bbWBishop | _bbWHorse)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	template<bool black>
 	bool Board::_isDiscoveredCheck(const Move& move) const {
 
@@ -459,10 +502,34 @@ namespace sunfish {
 		auto to = move.to();
 		auto from = move.from();
 		auto king = black ? _posWKing : _posBKing;
-		auto occ = getBOccupy() | getWOccupy();
-		occ.set(to).unset(from);
 
-		return _isChecking<!black>(king, occ);
+		auto dir = king.dir(from);
+		auto dir0 = to.dir(from);
+		if (dir == Direction::None ||
+				dir == Direction::LeftUpKnight ||
+				dir == Direction::LeftDownKnight ||
+				dir == Direction::RightUpKnight ||
+				dir == Direction::RightDownKnight ||
+				dir == dir0 || dir == getReversedDir(dir0)) {
+			return false;
+		}
+
+		auto occ = getBOccupy() | getWOccupy();
+		occ.unset(from);
+
+		switch (dir) {
+#define AS_DIR(dirname) \
+			case Direction::dirname: return _isDiscoveredCheck<black, Direction::dirname>(king, occ);
+			AS_DIR(Up)
+			AS_DIR(Down)
+			AS_DIR(Left)
+			AS_DIR(Right)
+			AS_DIR(LeftUp)
+			AS_DIR(LeftDown)
+			AS_DIR(RightUp)
+			AS_DIR(RightDown)
+			default: assert(false); return false;
+		}
 
 	}
 

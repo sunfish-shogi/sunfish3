@@ -32,6 +32,24 @@ namespace sunfish {
 		RightUpKnight, RightDownKnight,
 	};
 
+	inline Direction getReversedDir(Direction dir) {
+		switch (dir) {
+			case Direction::Up:              return Direction::Down;
+			case Direction::Down:            return Direction::Up;
+			case Direction::Left:            return Direction::Right;
+			case Direction::Right:           return Direction::Left;
+			case Direction::LeftUp:          return Direction::RightDown;
+			case Direction::LeftDown:        return Direction::RightUp;
+			case Direction::RightUp:         return Direction::LeftDown;
+			case Direction::RightDown:       return Direction::LeftUp;
+			case Direction::LeftUpKnight:    return Direction::RightDownKnight;
+			case Direction::LeftDownKnight:  return Direction::RightUpKnight;
+			case Direction::RightUpKnight:   return Direction::LeftDownKnight;
+			case Direction::RightDownKnight: return Direction::LeftUpKnight;
+			default: return Direction::None;
+		}
+	}
+
 	class Position {
 	private:
 

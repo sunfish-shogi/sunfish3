@@ -73,6 +73,7 @@ namespace sunfish {
 			return _isChecking<black>(black ? _posBKing : _posWKing, occ);
 		}
 		template<bool black> bool _isDirectCheck(const Move& move) const;
+		template<bool black, Direction dir> bool _isDiscoveredCheck(const Position& king, const Bitboard& occ) const;
 		template<bool black> bool _isDiscoveredCheck(const Move& move) const;
 		template<bool black> bool _isCheck(const Move& move) const;
 		template<bool black> bool _isPawnDropMate() const;

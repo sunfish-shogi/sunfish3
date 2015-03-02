@@ -211,13 +211,15 @@ namespace sunfish {
 
 		bool makeMove(Move move, Evaluator& eval) {
 			_shekTable.set(_board);
+			bool checking = _board.isCheck(move);
 			if (_board.makeMove(move)) {
 				_ply++;
 				auto& curr = _stack[_ply];
 				auto& front = _stack[_ply-1];
 				curr.move = move;
 				curr.valuePair = eval.evaluateDiff(_board, front.valuePair, move);
-				curr.checking = _board.isChecking();
+				curr.checking = checking;
+				assert(checking == _board.isChecking());
 				curr.pv.init();
 				return true;
 			}
