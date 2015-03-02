@@ -753,12 +753,10 @@ namespace sunfish {
 			int reduced = 0;
 #if ENABLE_LMR
 			if (newDepth >= Depth1Ply && count != 1 && !isCheck &&
-					(!move.promote() || move.piece() != Piece::Silver) &&
+					move.captured().isEmpty() && (!move.promote() || move.piece() != Piece::Silver) &&
 					!isPriorMove(tree, move)) {
-
 				reduced = getReductionDepth(move, isNullWindow);
 				newDepth -= reduced;
-
 			}
 #endif // ENABLE_LMR
 
@@ -776,11 +774,10 @@ namespace sunfish {
 
 			if (newDepth < Depth1Ply * 2 && isNullWindow && !isCheck &&
 					move.captured().isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
-					!isPriorMove(tree, move)) {
-				if (_see.search<true>(_eval, tree.getBoard(), move, -1, 0) < Value::Zero) {
-					value = newAlpha;
-					continue;
-				}
+					!isPriorMove(tree, move) &&
+					_see.search<true>(_eval, tree.getBoard(), move, -1, 0) < Value::Zero) {
+				value = newAlpha;
+				continue;
 			}
 
 			// make move
