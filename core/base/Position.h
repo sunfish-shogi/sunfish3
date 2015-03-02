@@ -183,6 +183,18 @@ namespace sunfish {
 		Position rightDown(int distance = 1) const {
 			return (*this).right(distance).down(distance);
 		}
+		Position leftUpKnight() const {
+			return (*this).left().up(2);
+		}
+		Position leftDownKnight() const {
+			return (*this).left().down(2);
+		}
+		Position rightUpKnight() const {
+			return (*this).right().up(2);
+		}
+		Position rightDownKnight() const {
+			return (*this).right().down(2);
+		}
 		Position safetyUp(int distance = 1) const {
 			if (isInvalid()) { return Position(Invalid); }
 			int file = getFile();
