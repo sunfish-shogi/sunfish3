@@ -19,6 +19,8 @@
 #define DEBUG_ROOT_MOVES							0
 #define DEBUG_TREE										0
 
+#define ITERATE_INFO_THRESHOLD        3
+
 namespace sunfish {
 
 	namespace search_param {
@@ -1034,7 +1036,14 @@ namespace sunfish {
 				best = move;
 				value = currval;
 				tree.updatePv(move, depth);
+				if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD) {
+					showPv(depth / Depth1Ply, tree.getPv(), black ? value : -value, count == 1);
+				}
 			}
+		}
+
+		if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD) {
+			showEndOfIterate();
 		}
 
 		tree.setSortValues(sortValues);
@@ -1053,16 +1062,30 @@ namespace sunfish {
 
 	}
 
-	void Searcher::showPv(int depth, const Pv& pv, const Value& value) {
-		double seconds = _timer.get();
+	void Searcher::showPv(int depth, const Pv& pv, const Value& value, bool isFirst) {
 		uint64_t node = _info.node + _info.qnode;
 
 		std::ostringstream oss;
-		oss << std::setw(2) << depth;
-		oss << ": " << std::setw(10) << node;
-		oss << ": " << pv.toString();
-		oss << ": " << value.int32();
-		oss << " (" << seconds << "sec)";
+		if (isFirst) {
+			oss << std::setw(2) << depth << ": ";
+		} else {
+			oss << "    ";
+		}
+		oss << std::setw(10) << node << ": ";
+		oss << pv.toString() << ": ";
+		oss << value.int32();
+
+		Loggers::message << oss.str();
+
+	}
+
+	void Searcher::showEndOfIterate() {
+		uint64_t node = _info.node + _info.qnode;
+		double seconds = _timer.get();
+
+		std::ostringstream oss;
+		oss << "    " << std::setw(10) << node;
+		oss << ": " << seconds << "sec";
 
 		Loggers::message << oss.str();
 
@@ -1075,8 +1098,6 @@ namespace sunfish {
 	bool Searcher::idsearch(Move& best) {
 
 		auto& tree = _trees[0];
-		const auto& board = tree.getBoard();
-		bool black = board.isBlack();
 		bool result = false;
 		bool gen = true;
 
@@ -1099,8 +1120,6 @@ namespace sunfish {
 #if ENABLE_STORE_PV
 			storePv(tree, tree.getPv(), 0);
 #endif // ENABLE_STORE_PV
-
-			showPv(depth, tree.getPv(), black ? value : -value);
 
 			if (!ok) {
 				break;

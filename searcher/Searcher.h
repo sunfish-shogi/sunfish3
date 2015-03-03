@@ -213,7 +213,9 @@ namespace sunfish {
 		 */
 		bool search(int depth, Move& best, bool gen = true, Value* prevval = nullptr);
 
-		void showPv(int depth, const Pv& pv, const Value& value);
+		void showPv(int depth, const Pv& pv, const Value& value, bool isFirst);
+
+		void showEndOfIterate();
 
 		/**
 		 * iterative deepening search from root node
