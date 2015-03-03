@@ -182,6 +182,10 @@ namespace sunfish {
 			return _stack[_ply].checking;
 		}
 
+		bool isCheckingOnFrontier() {
+			return _ply >= 1 ? _stack[_ply-1].checking : false;
+		}
+
 		const Board& getBoard() const {
 			return _board;
 		}

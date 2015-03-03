@@ -38,6 +38,15 @@ namespace sunfish {
 							Searcher::Depth1Ply * 3 / 2 :
 							depth - Searcher::Depth1Ply * 3);
 		}
+		inline int nullDepth(int depth) {
+#if 1
+			// same to bonanza
+			return (depth < Searcher::Depth1Ply * 26 / 4 ? depth - Searcher::Depth1Ply * 12 / 4 :
+							(depth <= Searcher::Depth1Ply * 30 / 4 ? Searcher::Depth1Ply * 14 / 4 : depth - Searcher::Depth1Ply * 16 / 4));
+#else
+			return depth - Searcher::Depth1Ply * 7 / 2;
+#endif
+		}
 	}
 
 	/**
@@ -550,8 +559,6 @@ namespace sunfish {
 		}
 #endif
 
-		const auto& board = tree.getBoard();
-
 		// distance pruning
 		Value maxv = Value::Inf - tree.getPly();
 		if (alpha >= maxv) {
@@ -595,7 +602,7 @@ namespace sunfish {
 
 		_info.node++;
 
-		uint64_t hash = board.getHash();
+		uint64_t hash = tree.getBoard().getHash();
 		bool isNullWindow = (beta == alpha + 1);
 
 		// transposition table
@@ -610,28 +617,52 @@ namespace sunfish {
 				auto valueType = tte.getValueType();
 
 				// 前回の結果で枝刈り
-				if (!pvNode && stat.isHashCut() && isNullWindow && tte.isSuperior(depth)) {
-					if (valueType == TTE::Exact) {
-						// 確定値
-						_info.hashExact++;
-						return ttv;
-					} else if (valueType == TTE::Lower && ttv >= beta) {
-						// 下界値                              
-						_info.hashLower++;
-						return ttv;
-					} else if (valueType == TTE::Upper && ttv <= alpha) {
-						// 上界値
-						_info.hashUpper++;
-						return ttv;
+				if (!pvNode && stat.isHashCut() && isNullWindow) {
+					// 現在のノードに対して優位な条件の場合
+					if (tte.isSuperior(depth)) {
+						if (valueType == TTE::Exact) {
+							// 確定値
+							_info.hashExact++;
+							return ttv;
+						} else if (valueType == TTE::Lower && ttv >= beta) {
+							// 下界値
+							_info.hashLower++;
+							return ttv;
+						} else if (valueType == TTE::Upper && ttv <= alpha) {
+							// 上界値
+							_info.hashUpper++;
+							return ttv;
+						}
+					}
+					// 十分なマージンを加味して beta 値を超える場合
+					if ((valueType == TTE::Lower || valueType == TTE::Exact) &&
+							tree.isChecking() && tree.isCheckingOnFrontier()) {
+						if ((depth <= Depth1Ply * 2 && ttv >= beta + search_param::EFUT_MGN1) ||
+								(depth <= Depth1Ply * 3 && ttv >= beta + search_param::EFUT_MGN2)) {
+							return beta;
+						}
+					}
+				}
+
+				if (valueType == TTE::Upper || valueType == TTE::Exact) {
+					// alpha 値を割るなら recursion 不要
+					if (ttv <= alpha && tte.getDepth() >= search_func::recDepth(depth)) {
+						stat.unsetRecursion();
+					}
+					// beta を超えないなら null move pruning を省略
+					if (ttv < beta && tte.getDepth() >= search_func::nullDepth(depth)) {
+						stat.unsetNullMove();
 					}
 				}
 
 				// 前回の最善手を取得
 				if (depth < search_param::REC_THRESHOLD ||
 						tte.getDepth() >= search_func::recDepth(depth)) {
-					hashOk = true;
 					hash1 = tte.getMoves().getMove1();
 					hash2 = tte.getMoves().getMove2();
+					if (!hash1.isEmpty()) {
+  					hashOk = true;
+					}
 				}
 
 				_info.hashHit++;
@@ -645,13 +676,7 @@ namespace sunfish {
 			// null move pruning
 			if (!pvNode && isNullWindow && stat.isNullMove() && beta <= standPat && depth >= Depth1Ply * 2) {
 				auto newStat = NodeStat().unsetNullMove();
-#if 0
-				// same to bonanza
-				int newDepth = (depth < Depth1Ply * 26 / 4 ? depth - Depth1Ply * 12 / 4 :
-												(depth <= Depth1Ply * 30 / 4 ? Depth1Ply * 14 / 4 : depth - Depth1Ply * 16 / 4));
-#else
-				int newDepth = depth - Depth1Ply * 7 / 2;
-#endif
+				int newDepth = search_func::nullDepth(depth);
 
 				_info.nullMovePruningTried++;
 
@@ -679,7 +704,7 @@ namespace sunfish {
 		}
 
 		// recursive iterative-deepening search
-		if (!hashOk && depth >= search_param::REC_THRESHOLD) {
+		if (!hashOk && stat.isRecursion() && depth >= search_param::REC_THRESHOLD) {
 			auto newStat = NodeStat(stat).unsetNullMove().unsetMate().unsetHashCut();
 			searchr<pvNode>(tree, black, search_func::recDepth(depth), alpha, beta, newStat);
 
@@ -726,7 +751,7 @@ namespace sunfish {
 			// alpha value
 			Value newAlpha = Value::max(alpha, value);
 
-			bool isCheckCurr = board.isCheck(move);
+			bool isCheckCurr = tree.getBoard().isCheck(move);
 			bool isCheckPrev = tree.isChecking();
 			bool isCheck = isCheckCurr || isCheckPrev;
 

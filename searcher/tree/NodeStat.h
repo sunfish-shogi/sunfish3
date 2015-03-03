@@ -17,8 +17,9 @@ namespace sunfish {
 			Recapture = 0x02,
 			Mate      = 0x04,
 			HashCut   = 0x08,
+			Recursion = 0x10,
 
-			Default = NullMove | Recapture | Mate | HashCut,
+			Default = NullMove | Recapture | Mate | HashCut | Recursion,
 		};
 
 	private:
@@ -64,6 +65,7 @@ namespace sunfish {
 		__METHOD__(Recapture);
 		__METHOD__(Mate);
 		__METHOD__(HashCut);
+		__METHOD__(Recursion);
 
 		operator unsigned() const {
 			return _stat;
