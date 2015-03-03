@@ -82,6 +82,40 @@ namespace sunfish {
 		{ E18, E00, E00, E00, E00, E00, E00, E00, E14, E00, E00, E00, E00, E00, E00, E00, E20, },
 	};  
 
+#define HNN HSideType::None
+#define TP1 HSideType::Top
+#define BM1 HSideType::Bottom
+#define TP2 HSideType::Top2
+#define BM2 HSideType::Bottom2
+	const HSideType Position::HSideTypeTable[81] = {
+		TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
+		TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
+		TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
+		TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
+		TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
+		TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
+		TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
+		TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
+		TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
+	};
+
+#define VNN VSideType::None
+#define LT1 VSideType::Left
+#define RT1 VSideType::Right
+#define LT2 VSideType::Left2
+#define RT2 VSideType::Right2
+	const VSideType Position::VSideTypeTable[81] = {
+		LT1, LT1, LT1, LT1, LT1, LT1, LT1, LT1, LT1,
+		LT2, LT2, LT2, LT2, LT2, LT2, LT2, LT2, LT2,
+		VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN,
+		VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN,
+		VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN,
+		VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN,
+		VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN,
+		RT2, RT2, RT2, RT2, RT2, RT2, RT2, RT2, RT2,
+		RT1, RT1, RT1, RT1, RT1, RT1, RT1, RT1, RT1,
+	};    
+
 	std::string Position::toString() const {
 		std::ostringstream oss;
 

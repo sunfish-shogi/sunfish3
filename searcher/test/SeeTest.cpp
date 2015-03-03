@@ -218,6 +218,33 @@ P-\n\
 
 	{
 		std::string src = "\
+P1 * -FU *  * -OU *  *  *  * \n\
+P2+GI * +GI *  *  *  *  *  * \n\
+P3 *  *  *  *  *  *  *  *  * \n\
+P4 *  *  *  *  *  *  *  *  * \n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9-KI *  *  * +OU *  *  *  * \n\
+P+\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		Move move(Piece::Silver, P72, P81, false);
+
+		see.generateAttackers(eval, board, move);
+
+		ASSERT_EQ(see.getBlackNum(), 1);
+		ASSERT_EQ(see.getWhiteNum(), 0);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().silverEx);
+	}
+
+	{
+		std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  * -KA * \n\

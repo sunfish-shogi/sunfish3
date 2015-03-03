@@ -8,6 +8,7 @@
 
 #include "../def.h"
 #include <string>
+#include <cassert>
 
 namespace sunfish {
 
@@ -44,6 +45,22 @@ namespace sunfish {
 		LongRightUp, LongRightDown,
 	};
 
+	enum class HSideType : int {
+		None,
+		Top,
+		Bottom,
+		Top2,
+		Bottom2,
+	};
+
+	enum class VSideType : int {
+		None,
+		Left,
+		Right,
+		Left2,
+		Right2,
+	};
+
 	inline Direction getReversedDir(Direction dir) {
 		switch (dir) {
 			case Direction::Up:              return Direction::Down;
@@ -67,6 +84,8 @@ namespace sunfish {
 
 		static const Direction DirectionTable[17][17];
 		static const DirectionEx DirectionTableEx[17][17];
+		static const HSideType HSideTypeTable[81];
+		static const VSideType VSideTypeTable[81];
 
 		int _index;
 
@@ -173,39 +192,59 @@ namespace sunfish {
 			return N - 1 - _index;
 		}
 		Position up(int distance = 1) const {
+			assert(getRank() != 1);
 			return _index - distance;
 		}
 		Position down(int distance = 1) const {
+			assert(getRank() != 9);
 			return _index + distance;
 		}
 		Position left(int distance = 1) const {
+			assert(getFile() != 9);
 			return _index - distance * RankN;
 		}
 		Position right(int distance = 1) const {
+			assert(getFile() != 1);
 			return _index + distance * RankN;
 		}
 		Position leftUp(int distance = 1) const {
+			assert(getRank() != 1);
+			assert(getFile() != 9);
 			return (*this).left(distance).up(distance);
 		}
 		Position leftDown(int distance = 1) const {
+			assert(getRank() != 9);
+			assert(getFile() != 9);
 			return (*this).left(distance).down(distance);
 		}
 		Position rightUp(int distance = 1) const {
+			assert(getRank() != 1);
+			assert(getFile() != 1);
 			return (*this).right(distance).up(distance);
 		}
 		Position rightDown(int distance = 1) const {
+			assert(getRank() != 9);
+			assert(getFile() != 1);
 			return (*this).right(distance).down(distance);
 		}
 		Position leftUpKnight() const {
+			assert(getRank() >= 3);
+			assert(getFile() != 9);
 			return (*this).left().up(2);
 		}
 		Position leftDownKnight() const {
+			assert(getRank() <= 7);
+			assert(getFile() != 9);
 			return (*this).left().down(2);
 		}
 		Position rightUpKnight() const {
+			assert(getRank() >= 3);
+			assert(getFile() != 1);
 			return (*this).right().up(2);
 		}
 		Position rightDownKnight() const {
+			assert(getRank() <= 7);
+			assert(getFile() != 1);
 			return (*this).right().down(2);
 		}
 		Position safetyUp(int distance = 1) const {
@@ -267,6 +306,14 @@ namespace sunfish {
 			int rank = to._index % RankN - _index % RankN + 8;
 			int file = to._index / RankN - _index / RankN + 8;
 			return DirectionTableEx[rank][file];
+		}
+		HSideType sideTypeH() const {
+			assert(_index != Invalid);
+			return HSideTypeTable[_index];
+		}
+		VSideType sideTypeV() const {
+			assert(_index != Invalid);
+			return VSideTypeTable[_index];
 		}
 
 		std::string toString() const;

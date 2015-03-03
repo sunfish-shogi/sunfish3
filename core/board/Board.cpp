@@ -727,11 +727,11 @@ namespace sunfish {
 	template<bool black>
 	inline bool Board::_isValidMove(const Piece& piece, const Position& to) const {
 		// 打ち歩詰め判定
-		if (black && piece == Piece::Pawn && to == _posWKing.down()) {
+		if (black && piece == Piece::Pawn && to.up() == _posWKing) {
 			if (_isPawnDropMate<true>()) {
 				return false;
 			}
-		} else if (!black && piece == Piece::Pawn && to == _posBKing.up()) {
+		} else if (!black && piece == Piece::Pawn && to.down() == _posBKing) {
 			if (_isPawnDropMate<false>()) {
 				return false;
 			}
