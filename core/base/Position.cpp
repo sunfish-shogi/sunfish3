@@ -41,6 +41,47 @@ namespace sunfish {
 		{ D06, D00, D00, D00, D00, D00, D00, D00, D02, D00, D00, D00, D00, D00, D00, D00, D08, },
 	};  
 
+#define E00 DirectionEx::None
+#define E01 DirectionEx::Up
+#define E02 DirectionEx::Down
+#define E03 DirectionEx::Left
+#define E04 DirectionEx::Right
+#define E05 DirectionEx::LeftUp
+#define E06 DirectionEx::LeftDown
+#define E07 DirectionEx::RightUp
+#define E08 DirectionEx::RightDown
+#define E09 DirectionEx::LeftUpKnight
+#define E10 DirectionEx::LeftDownKnight
+#define E11 DirectionEx::RightUpKnight
+#define E12 DirectionEx::RightDownKnight
+#define E13 DirectionEx::LongUp
+#define E14 DirectionEx::LongDown
+#define E15 DirectionEx::LongLeft
+#define E16 DirectionEx::LongRight
+#define E17 DirectionEx::LongLeftUp
+#define E18 DirectionEx::LongLeftDown
+#define E19 DirectionEx::LongRightUp
+#define E20 DirectionEx::LongRightDown
+	const DirectionEx Position::DirectionTableEx[17][17] = {
+		{ E17, E00, E00, E00, E00, E00, E00, E00, E13, E00, E00, E00, E00, E00, E00, E00, E19, },
+		{ E00, E17, E00, E00, E00, E00, E00, E00, E13, E00, E00, E00, E00, E00, E00, E19, E00, },
+		{ E00, E00, E17, E00, E00, E00, E00, E00, E13, E00, E00, E00, E00, E00, E19, E00, E00, },
+		{ E00, E00, E00, E17, E00, E00, E00, E00, E13, E00, E00, E00, E00, E19, E00, E00, E00, },
+		{ E00, E00, E00, E00, E17, E00, E00, E00, E13, E00, E00, E00, E19, E00, E00, E00, E00, },
+		{ E00, E00, E00, E00, E00, E17, E00, E00, E13, E00, E00, E19, E00, E00, E00, E00, E00, },
+		{ E00, E00, E00, E00, E00, E00, E17, E09, E13, E11, E19, E00, E00, E00, E00, E00, E00, },
+		{ E00, E00, E00, E00, E00, E00, E00, E05, E01, E07, E00, E00, E00, E00, E00, E00, E00, },
+		{ E15, E15, E15, E15, E15, E15, E15, E03, E00, E04, E16, E16, E16, E16, E16, E16, E16, },
+		{ E00, E00, E00, E00, E00, E00, E00, E06, E02, E08, E00, E00, E00, E00, E00, E00, E00, },
+		{ E00, E00, E00, E00, E00, E00, E18, E10, E14, E12, E20, E00, E00, E00, E00, E00, E00, },
+		{ E00, E00, E00, E00, E00, E18, E00, E00, E14, E00, E00, E20, E00, E00, E00, E00, E00, },
+		{ E00, E00, E00, E00, E18, E00, E00, E00, E14, E00, E00, E00, E20, E00, E00, E00, E00, },
+		{ E00, E00, E00, E18, E00, E00, E00, E00, E14, E00, E00, E00, E00, E20, E00, E00, E00, },
+		{ E00, E00, E18, E00, E00, E00, E00, E00, E14, E00, E00, E00, E00, E00, E20, E00, E00, },
+		{ E00, E18, E00, E00, E00, E00, E00, E00, E14, E00, E00, E00, E00, E00, E00, E20, E00, },
+		{ E18, E00, E00, E00, E00, E00, E00, E00, E14, E00, E00, E00, E00, E00, E00, E00, E20, },
+	};  
+
 	std::string Position::toString() const {
 		std::ostringstream oss;
 

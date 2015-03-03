@@ -395,46 +395,47 @@ namespace sunfish {
 	template bool Board::_isChecking<true>(const Position& king, const Bitboard& occ) const;
 	template bool Board::_isChecking<false>(const Position& king, const Bitboard& occ) const;
 
-	template<bool black, Direction dir>
+	/**
+	 * 移動する駒による王手かどうかチェック
+	 */
+	template<bool black, DirectionEx dir>
 	bool Board::_isDirectCheck(const Move& move) const {
 
-		auto promote = move.promote();
-		auto piece = promote ? move.piece().promote() : move.piece();
-		auto to = move.to();
-		auto king = black ? _posWKing : _posBKing;
-		auto occ = getBOccupy() | getWOccupy();
+#define SHORT_ATTACK_CHECK ((black ? _posWKing : _posBKing) == \
+		(dir == DirectionEx::Up ? move.to().up() : \
+		dir == DirectionEx::Down ? move.to().down() : \
+		dir == DirectionEx::Left ? move.to().left() : \
+		dir == DirectionEx::Right ? move.to().right() : \
+		dir == DirectionEx::LeftUp ? move.to().leftUp() : \
+		dir == DirectionEx::LeftDown ? move.to().leftDown() : \
+		dir == DirectionEx::RightUp ? move.to().rightUp() : \
+		dir == DirectionEx::RightDown ? move.to().rightDown() : \
+		dir == DirectionEx::LeftUpKnight ? move.to().leftUpKnight() : \
+		dir == DirectionEx::LeftDownKnight ? move.to().leftDownKnight() : \
+		dir == DirectionEx::RightUpKnight ? move.to().rightUpKnight() : move.to().rightDownKnight()))
+#define LONG_ATTACK_CHECK(PieceType) (MoveTables::PieceType.get(move.to(), getBOccupy() | getWOccupy()).check(black ? _posWKing : _posBKing))
+#define LONG_ATTACK_CHECK_LANCE ((black ? MoveTables::BLance.get(move.to(), getBOccupy() | getWOccupy()) : MoveTables::WLance.get(move.to(), getBOccupy() | getWOccupy())).check(black ? _posWKing : _posBKing))
 
-#define ATTACK_TO \
-		(dir == Direction::Up ? to.up() : \
-		dir == Direction::Down ? to.down() : \
-		dir == Direction::Left ? to.left() : \
-		dir == Direction::Right ? to.right() : \
-		dir == Direction::LeftUp ? to.leftUp() : \
-		dir == Direction::LeftDown ? to.leftDown() : \
-		dir == Direction::RightUp ? to.rightUp() : \
-		dir == Direction::RightDown ? to.rightDown() : \
-		dir == Direction::LeftUpKnight ? to.leftUpKnight() : \
-		dir == Direction::LeftDownKnight ? to.leftDownKnight() : \
-		dir == Direction::RightUpKnight ? to.rightUpKnight() : to.rightDownKnight())
+		auto piece = move.promote() ? move.piece().promote() : move.piece();
 
 		switch(piece) {
 		case Piece::Pawn: {
-			if ((black && dir == Direction::Up) || (!black && dir == Direction::Down)) {
-				return king == ATTACK_TO;
+			if ((black && dir == DirectionEx::Up) || (!black && dir == DirectionEx::Down)) {
+				return SHORT_ATTACK_CHECK;
 			}
 			break;
 		}
 		case Piece::Knight: {
-			if ((black && dir == Direction::LeftUpKnight) || (black && dir == Direction::RightUpKnight) ||
-					(!black && dir == Direction::LeftDownKnight) || (!black && dir == Direction::RightDownKnight)) {
-				return king == ATTACK_TO;
+			if ((black && dir == DirectionEx::LeftUpKnight) || (black && dir == DirectionEx::RightUpKnight) ||
+					(!black && dir == DirectionEx::LeftDownKnight) || (!black && dir == DirectionEx::RightDownKnight)) {
+				return SHORT_ATTACK_CHECK;
 			}
 			break;
 		}
 		case Piece::Silver: {
-			if (dir == Direction::LeftUp || dir == Direction::LeftDown || dir == Direction::RightUp || dir == Direction::RightDown ||
-					(black && dir == Direction::Up) || (!black && dir == Direction::Down)) {
-				return king == ATTACK_TO;
+			if (dir == DirectionEx::LeftUp || dir == DirectionEx::LeftDown || dir == DirectionEx::RightUp || dir == DirectionEx::RightDown ||
+					(black && dir == DirectionEx::Up) || (!black && dir == DirectionEx::Down)) {
+				return SHORT_ATTACK_CHECK;
 			}
 			break;
 		}
@@ -443,61 +444,73 @@ namespace sunfish {
 		case Piece::ProLance:
 		case Piece::ProKnight:
 		case Piece::ProSilver: {
-			if (dir == Direction::Up || dir == Direction::Down || dir == Direction::Left || dir == Direction::Right ||
-					(black && dir == Direction::LeftUp) || (black && dir == Direction::RightUp) ||
-					(!black && dir == Direction::LeftDown) || (!black && dir == Direction::RightDown)) {
-				return king == ATTACK_TO;
+			if (dir == DirectionEx::Up || dir == DirectionEx::Down || dir == DirectionEx::Left || dir == DirectionEx::Right ||
+					(black && dir == DirectionEx::LeftUp) || (black && dir == DirectionEx::RightUp) ||
+					(!black && dir == DirectionEx::LeftDown) || (!black && dir == DirectionEx::RightDown)) {
+				return SHORT_ATTACK_CHECK;
 			}
 			break;
 		}
 		case Piece::Lance: {
-			if ((black && dir == Direction::Up) || (!black && dir == Direction::Down)) {
-  			Bitboard bb = black ? MoveTables::BLance.get(to, occ) : MoveTables::WLance.get(to, occ);
-  			return bb.check(king);
+			if ((black && dir == DirectionEx::LongUp) || (!black && dir == DirectionEx::LongDown)) {
+				return LONG_ATTACK_CHECK_LANCE;
+			} else if ((black && dir == DirectionEx::Up) || (!black && dir == DirectionEx::Down)) {
+				return SHORT_ATTACK_CHECK;
 			}
 			break;
 		}
 		case Piece::Bishop: {
-			if (dir == Direction::LeftUp || dir == Direction::LeftDown || dir == Direction::RightUp || dir == Direction::RightDown) {
-				Bitboard bb = MoveTables::Bishop.get(to, occ);
-				return bb.check(king);
+			if (dir == DirectionEx::LongLeftUp || dir == DirectionEx::LongLeftDown || dir == DirectionEx::LongRightUp || dir == DirectionEx::LongRightDown) {
+				return LONG_ATTACK_CHECK(Bishop);
+			} else if (dir == DirectionEx::LeftUp || dir == DirectionEx::LeftDown || dir == DirectionEx::RightUp || dir == DirectionEx::RightDown) {
+				return SHORT_ATTACK_CHECK;
 			}
 			break;
 		}
 		case Piece::Rook: {
-			if (dir == Direction::Up || dir == Direction::Down || dir == Direction::Left || dir == Direction::Right) {
-				Bitboard bb = MoveTables::Rook.get(to, occ);
-				return bb.check(king);
+			if (dir == DirectionEx::LongUp || dir == DirectionEx::LongDown || dir == DirectionEx::LongLeft || dir == DirectionEx::LongRight) {
+				return LONG_ATTACK_CHECK(Rook);
+			} else if (dir == DirectionEx::Up || dir == DirectionEx::Down || dir == DirectionEx::Left || dir == DirectionEx::Right) {
+				return SHORT_ATTACK_CHECK;
 			}
 			break;
 		}
 		case Piece::Horse: {
-			if (dir == Direction::LeftUp || dir == Direction::LeftDown || dir == Direction::RightUp || dir == Direction::RightDown) {
-				Bitboard bb = MoveTables::Horse.get(to, occ);
-				return bb.check(king);
-			} else if (dir == Direction::Up || dir == Direction::Down || dir == Direction::Left || dir == Direction::Right) {
-				return king == ATTACK_TO;
+			if (dir == DirectionEx::LongLeftUp || dir == DirectionEx::LongLeftDown || dir == DirectionEx::LongRightUp || dir == DirectionEx::LongRightDown) {
+				return LONG_ATTACK_CHECK(Bishop);
+			} else if (dir == DirectionEx::Up || dir == DirectionEx::Down || dir == DirectionEx::Left || dir == DirectionEx::Right ||
+								 dir == DirectionEx::LeftUp || dir == DirectionEx::LeftDown || dir == DirectionEx::RightUp || dir == DirectionEx::RightDown) {
+				return SHORT_ATTACK_CHECK;
 			}
 			break;
 		}
 		case Piece::Dragon: {
-			if (dir == Direction::Up || dir == Direction::Down || dir == Direction::Left || dir == Direction::Right) {
-				Bitboard bb = MoveTables::Dragon.get(to, occ);
-				return bb.check(king);
-			} else if (dir == Direction::LeftUp || dir == Direction::LeftDown || dir == Direction::RightUp || dir == Direction::RightDown) {
-				return king == ATTACK_TO;
+			if (dir == DirectionEx::LongUp || dir == DirectionEx::LongDown || dir == DirectionEx::LongLeft || dir == DirectionEx::LongRight) {
+				return LONG_ATTACK_CHECK(Rook);
+			} else if (dir == DirectionEx::Up || dir == DirectionEx::Down || dir == DirectionEx::Left || dir == DirectionEx::Right ||
+								 dir == DirectionEx::LeftUp || dir == DirectionEx::LeftDown || dir == DirectionEx::RightUp || dir == DirectionEx::RightDown) {
+				return SHORT_ATTACK_CHECK;
 			}
 			break;
 		}
 		}
-#undef ATTACK_TO
+
+#undef SHORT_ATTACK_CHECK
+#undef LONG_ATTACK_CHECK
+#undef LONG_ATTACK_CHECK_LANCE
 
 		return false;
 
 	}
 
+	/**
+	 * 開き王手かどうかチェック
+	 */
 	template<bool black, Direction dir>
-	bool Board::_isDiscoveredCheck(const Position& king, const Bitboard& occ) const {
+	bool Board::_isDiscoveredCheck(const Position& king, const Position& from) const {
+		auto occ = getBOccupy() | getWOccupy();
+		occ.unset(from);
+
 		if (black) {
 			if (dir == Direction::Down) {
 				if (MoveTables::WLance.get(king, occ) & (_bbBLance | _bbBRook | _bbBDragon)) {
@@ -508,10 +521,7 @@ namespace sunfish {
 					return true;
 				}
 			} else {
-				assert(dir == Direction::LeftUp ||
-							 dir == Direction::LeftDown ||
-							 dir == Direction::RightUp ||
-							 dir == Direction::RightDown);
+				assert(dir == Direction::LeftUp || dir == Direction::LeftDown || dir == Direction::RightUp || dir == Direction::RightDown);
 				if (MoveTables::Bishop.get(king, occ) & (_bbBBishop | _bbBHorse)) {
 					return true;
 				}
@@ -526,10 +536,7 @@ namespace sunfish {
 					return true;
 				}
 			} else {
-				assert(dir == Direction::LeftUp ||
-							 dir == Direction::LeftDown ||
-							 dir == Direction::RightUp ||
-							 dir == Direction::RightDown);
+				assert(dir == Direction::LeftUp || dir == Direction::LeftDown || dir == Direction::RightUp || dir == Direction::RightDown);
 				if (MoveTables::Bishop.get(king, occ) & (_bbWBishop | _bbWHorse)) {
 					return true;
 				}
@@ -545,25 +552,18 @@ namespace sunfish {
 		// 1. 動かした駒による王手を調べる
 		auto to = move.to();
 		auto king = black ? _posWKing : _posBKing;
-		auto dirT = to.dir(king);
 
-		switch (dirT) {
-#define AS_DIR(dirname) \
-			case Direction::dirname: if (_isDirectCheck<black, Direction::dirname>(move)) { return true; } break;
-			AS_DIR(Up)
-			AS_DIR(Down)
-			AS_DIR(Left)
-			AS_DIR(Right)
-			AS_DIR(LeftUp)
-			AS_DIR(LeftDown)
-			AS_DIR(RightUp)
-			AS_DIR(RightDown)
-			AS_DIR(LeftUpKnight)
-			AS_DIR(LeftDownKnight)
-			AS_DIR(RightUpKnight)
-			AS_DIR(RightDownKnight)
+		if (move.piece() != Piece::King) {
+  		switch (to.dirEx(king)) {
+#define AS_DIR(dirname) case DirectionEx::dirname: if (_isDirectCheck<black, DirectionEx::dirname>(move)) { return true; } break;
+  			AS_DIR(Up) AS_DIR(Down) AS_DIR(Left) AS_DIR(Right)
+  			AS_DIR(LeftUp) AS_DIR(LeftDown) AS_DIR(RightUp) AS_DIR(RightDown)
+  			AS_DIR(LeftUpKnight) AS_DIR(LeftDownKnight) AS_DIR(RightUpKnight) AS_DIR(RightDownKnight)
+  			AS_DIR(LongUp) AS_DIR(LongDown) AS_DIR(LongLeft) AS_DIR(LongRight)
+  			AS_DIR(LongLeftUp) AS_DIR(LongLeftDown) AS_DIR(LongRightUp) AS_DIR(LongRightDown)
 #undef AS_DIR
-			default: break;
+  			default: break;
+  		}
 		}
 
 		// 2. 開き王手を調べる
@@ -572,6 +572,7 @@ namespace sunfish {
 		}
 
 		auto from = move.from();
+		auto dirT = to.dir(king);
 		auto dirF = king.dir(from);
 		if (dirF == Direction::None ||
 				dirF == Direction::LeftUpKnight ||
@@ -582,20 +583,11 @@ namespace sunfish {
 			return false;
 		}
 
-		auto occ = getBOccupy() | getWOccupy();
-		occ.unset(from);
-
 		switch (dirF) {
 #define AS_DIR(dirname) \
-			case Direction::dirname: return _isDiscoveredCheck<black, Direction::dirname>(king, occ);
-			AS_DIR(Up)
-			AS_DIR(Down)
-			AS_DIR(Left)
-			AS_DIR(Right)
-			AS_DIR(LeftUp)
-			AS_DIR(LeftDown)
-			AS_DIR(RightUp)
-			AS_DIR(RightDown)
+			case Direction::dirname: return _isDiscoveredCheck<black, Direction::dirname>(king, from);
+			AS_DIR(Up) AS_DIR(Down) AS_DIR(Left) AS_DIR(Right)
+			AS_DIR(LeftUp) AS_DIR(LeftDown) AS_DIR(RightUp) AS_DIR(RightDown)
 #undef AS_DIR
 			default: assert(false); return false;
 		}

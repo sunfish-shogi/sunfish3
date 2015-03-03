@@ -32,6 +32,18 @@ namespace sunfish {
 		RightUpKnight, RightDownKnight,
 	};
 
+	enum class DirectionEx : int {
+		None,
+		Up, Down, Left, Right,
+		LeftUp, LeftDown,
+		RightUp, RightDown,
+		LeftUpKnight, LeftDownKnight,
+		RightUpKnight, RightDownKnight,
+		LongUp, LongDown, LongLeft, LongRight,
+		LongLeftUp, LongLeftDown,
+		LongRightUp, LongRightDown,
+	};
+
 	inline Direction getReversedDir(Direction dir) {
 		switch (dir) {
 			case Direction::Up:              return Direction::Down;
@@ -54,6 +66,7 @@ namespace sunfish {
 	private:
 
 		static const Direction DirectionTable[17][17];
+		static const DirectionEx DirectionTableEx[17][17];
 
 		int _index;
 
@@ -249,6 +262,11 @@ namespace sunfish {
 			int rank = to._index % RankN - _index % RankN + 8;
 			int file = to._index / RankN - _index / RankN + 8;
 			return DirectionTable[rank][file];
+		}
+		DirectionEx dirEx(const Position& to) const {
+			int rank = to._index % RankN - _index % RankN + 8;
+			int file = to._index / RankN - _index / RankN + 8;
+			return DirectionTableEx[rank][file];
 		}
 
 		std::string toString() const;
