@@ -281,8 +281,8 @@ namespace sunfish {
 	Value See::search(const Evaluator& eval, const Board& board, const Move& move, Value alpha, Value beta) {
 
 		assert(shallow || !move.isHand());
-		assert(beta <= Evaluator::PieceInf);
-		assert(alpha >= -Evaluator::PieceInf);
+		assert(beta <= Value::PieceInf);
+		assert(alpha >= -Value::PieceInf);
 
 		// 取った駒の価値
 		Value captured = eval.pieceExchange(board.getBoardPiece(move.to()));

@@ -18,28 +18,29 @@ namespace sunfish {
 
 	public:
 
-		TT() : HashTable<TTEs>() {}
+		TT() : HashTable<TTEs>(TT_INDEX_WIDTH), _age(1) {}
 		TT(const TT&) = delete;
 		TT(TT&&) = delete;
 
 		void evolve() {
-			_age = (_age + 1) % TTE::AgeMax;
+			_age = _age % (TTE::AgeMax-1) + 1;
+			assert(_age != TTE::InvalidAge);
 		}
 
 		TTStatus entry(uint64_t hash,
 				Value alpha, Value beta, Value value,
 				int depth, int ply,
-				const NodeStat& stat, const Move& move) {
+				const NodeStat& stat, uint16_t move) {
 			TTE e;
 			TTEs& entities = getEntity(hash);
 			entities.get(hash, e);
-			if (e.update(hash, alpha, beta, value, depth, ply, stat, move, _age)) {
+			if (e.update(hash, alpha, beta, value, depth, ply, move, _age)) {
 				return entities.set(e);
 			}
 			return TTStatus::Reject;
 		}
 
-		TTStatus entryPv(uint64_t hash, int depth, const Move& move) {
+		TTStatus entryPv(uint64_t hash, int depth, uint16_t move) {
 			TTE e;
 			TTEs& entities = getEntity(hash);
 			entities.get(hash, e);
@@ -48,7 +49,7 @@ namespace sunfish {
 		}
 
 		bool get(uint64_t hash, TTE& e) {
-			return getEntity(hash).get(hash, e) && e.is(hash);
+			return getEntity(hash).get(hash, e) && e.checkHash(hash);
 		}
 
 	};

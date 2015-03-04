@@ -4,6 +4,7 @@
  */
 
 #include "TTE.h"
+#include "core/move/Move.h"
 
 namespace sunfish {
 
@@ -11,85 +12,92 @@ namespace sunfish {
 			Value newValue,
 			ValueType newValueType,
 			int newDepth, int ply,
-			const NodeStat& newStat,
-			const Move& move,
+			uint16_t move,
 			uint32_t newAge) {
 
 		assert(newAge < AgeMax);
-		assert(newDepth < (1<<20));
-		assert(newValueType < (ValueType)4);
-		assert((uint32_t)newStat < (1<<4));
+		assert(newValueType < (ValueType)(1<<TT_VTYPE_WIDTH));
 
 		if (newDepth < 0) {
 			newDepth = 0;
+		} else if (newDepth > (1<<TT_DEPTH_WIDTH)-1) {
+			newDepth = (1<<TT_DEPTH_WIDTH)-1;
 		}
 
-		if (isOk()) {
-			assert(_hash == newHash);
+		if (checkHash(newHash)) {
 			// 深さが劣るものは登録させない。
 			if (newDepth < (int)_.depth && _.age == newAge) {
 				return false;
 			}
 		} else {
-			_hash = newHash;
-			_moves.init();
+			_.hash = TT_ENC_HASH(newHash);
+			_.move1 = Move::S16_EMPTY;
+			_.move2 = Move::S16_EMPTY;
 		}
 
-		if (_value >= Value::Mate) {
+		if (newValue >= Value::Mate) {
 			if (newValueType == Lower) {
-				if (_value < Value::Inf - ply) {
-					_value += ply;
+				if (newValue < Value::Inf - ply) {
+					newValue += ply;
 				} else {
-					_value = Value::Inf;
+					newValue = Value::Inf;
 				}
 			}
-		} else if (_value <= -Value::Mate) {
+		} else if (newValue <= -Value::Mate) {
 			if (newValueType == Upper) {
-				if (_value > -Value::Inf + ply) {
-					_value -= ply;
+				if (newValue > -Value::Inf + ply) {
+					newValue -= ply;
 				} else {
-					_value = -Value::Inf;
+					newValue = -Value::Inf;
 				}
 			}
 		}
 
-		_value = newValue;
+		assert(newValue >= -Value::Inf);
+		assert(newValue <= Value::Inf);
+		int32_t value = TT_ENC_VALUE(newValue);
+		assert(value >= 0);
+		assert(value < (1<<TT_VALUE_WIDTH));
+		_.value = value;
 		_.valueType = newValueType;
 		_.depth = (uint32_t)newDepth;
-		_.stat = (uint32_t)newStat;
-		if (!move.isEmpty()) {
-			_moves.update(move);
+		if (move != Move::S16_EMPTY && _.move1 != move) {
+			_.move2 = _.move1;
+			_.move1 = move;
+			assert(_.move1 != 0x8c11);
+			assert(_.move2 != 0x8c11);
 		}
 		_.age = newAge;
-		_checkSum = generateCheckSum();
 
 		return true;
 
 	}
 
-	void TTE::updatePv(uint64_t newHash, int newDepth, const Move& move, uint32_t newAge) {
+	void TTE::updatePv(uint64_t newHash, int newDepth, uint16_t move, uint32_t newAge) {
 		if (newDepth < 0) {
 			newDepth = 0;
 		}
 
-		if (isOk()) {
-			assert(_hash == newHash);
+		if (checkHash(newHash)) {
 			if (newDepth >= (int)_.depth || _.age != newAge) {
 				_.valueType = None;
 				_.depth = (uint32_t)newDepth;
 			}
 		} else {
-			_hash = newHash;
-			_moves.init();
+			_.hash = TT_ENC_HASH(newHash);
+			_.move1 = Move::S16_EMPTY;
+			_.move2 = Move::S16_EMPTY;
 			_.valueType = None;
 			_.depth = (uint32_t)newDepth;
 		}
 
-		if (!move.isEmpty()) {
-			_moves.update(move);
+		if (move != Move::S16_EMPTY && _.move1 != move) {
+			_.move2 = _.move1;
+			_.move1 = move;
+			assert(_.move1 != 0x8c11);
+			assert(_.move2 != 0x8c11);
 		}
 		_.age = newAge;
-		_checkSum = generateCheckSum();
 	}
 
 	TTStatus TTEs::set(const TTE& entity) {
@@ -97,19 +105,19 @@ namespace sunfish {
 		uint32_t l = _lastAccess % Size;
 		for (uint32_t i = 0; i < Size; i++) {
 			const uint32_t index = (l + i) % Size;
-			if (_list[index].getHash() == entity.getHash()) {
-				_list[index] = entity;
+			if (_slots[index].getHash() == entity.getHash()) {
+				_slots[index] = entity;
 				_lastAccess = index;
 				return TTStatus::Update;
 			}
 		}
 
-		// 壊れているスロットを探す
+		// 空きスロットを探す
 		l++;
 		for (uint32_t i = 0; i < Size; i++) {
 			const uint32_t index = (l + i) % Size;
-			if (_list[index].isBroken() || _list[index].getAge() != entity.getAge()) {
-				_list[index] = entity;
+			if (_slots[index].getAge() != entity.getAge()) {
+				_slots[index] = entity;
 				_lastAccess = index;
 				return TTStatus::New;
 			}
@@ -117,7 +125,7 @@ namespace sunfish {
 
 		// 上書きする
 		const uint32_t index = l % Size;
-		_list[index] = entity;
+		_slots[index] = entity;
 		_lastAccess = index;
 		return TTStatus::Collide;
 
@@ -128,8 +136,8 @@ namespace sunfish {
 		uint32_t l = _lastAccess % Size;
 		for (uint32_t i = 0; i < Size; i++) {
 			const uint32_t index = (l + i) % Size;
-			if (_list[index].getHash() == hash) {
-				entity = _list[index];
+			if (_slots[index].checkHash(hash)) {
+				entity = _slots[index];
 				_lastAccess = index;
 				return true;
 			}

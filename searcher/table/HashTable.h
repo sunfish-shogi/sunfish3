@@ -40,7 +40,7 @@ namespace sunfish {
 
 	public:
 
-		static const uint32_t DefaultBits = 21;
+		static CONSTEXPR uint32_t DefaultBits = 18;
 
 		HashTable(uint32_t bits = DefaultBits) : _size(0), _table(nullptr) {
 			init(bits);

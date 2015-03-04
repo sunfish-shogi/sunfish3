@@ -196,7 +196,7 @@ namespace sunfish {
 #if SHALLOW_SEE
 			Value value = _see.search<true>(_eval, board, move, -1, Evaluator::PieceInf);
 #else
-			Value value = _see.search(_eval, board, move, -1, Evaluator::PieceInf);
+			Value value = _see.search(_eval, board, move, -1, Value::PieceInf);
 #endif
 			tree.setSortValue(ite, value.int32());
 
@@ -470,7 +470,7 @@ namespace sunfish {
 		}
 
 		auto hash = tree.getBoard().getHash();
-		_tt.entryPv(hash, depth, move);
+		_tt.entryPv(hash, depth, Move::serialize16(move));
 	}
 
 	/**
@@ -619,7 +619,9 @@ namespace sunfish {
 				// 前回の結果で枝刈り
 				if (!pvNode && stat.isHashCut() && isNullWindow) {
 					// 現在のノードに対して優位な条件の場合
-					if (tte.isSuperior(depth)) {
+					if (tte.getDepth() >= depth ||
+							(ttv >= Value::Mate && (valueType == TTE::Lower || valueType == TTE::Exact)) ||
+							(ttv <= -Value::Mate && (valueType == TTE::Upper || valueType == TTE::Exact))) {
 						if (valueType == TTE::Exact) {
 							// 確定値
 							_info.hashExact++;
@@ -658,8 +660,8 @@ namespace sunfish {
 				// 前回の最善手を取得
 				if (depth < search_param::REC_THRESHOLD ||
 						tte.getDepth() >= search_func::recDepth(depth)) {
-					hash1 = tte.getMoves().getMove1();
-					hash2 = tte.getMoves().getMove2();
+					hash1 = Move::deserialize16(tte.getMove1(), tree.getBoard());
+					hash2 = Move::deserialize16(tte.getMove2(), tree.getBoard());
 					if (!hash1.isEmpty()) {
   					hashOk = true;
 					}
@@ -716,9 +718,11 @@ namespace sunfish {
 			// ハッシュ表から前回の最善手を取得
 			TTE tte;
 			if (_tt.get(hash, tte)) {
-				hashOk = true;
-				hash1 = tte.getMoves().getMove1();
-				hash2 = tte.getMoves().getMove2();
+				hash1 = Move::deserialize16(tte.getMove1(), tree.getBoard());
+				hash2 = Move::deserialize16(tte.getMove2(), tree.getBoard());
+				if (!hash1.isEmpty()) {
+					hashOk = true;
+				}
 			}
 		}
 
@@ -887,7 +891,7 @@ namespace sunfish {
 			}
 
 			// TODO: GHI対策
-			TTStatus status = _tt.entry(hash, alpha, beta, value, depth, tree.getPly(), stat, best);
+			TTStatus status = _tt.entry(hash, alpha, beta, value, depth, tree.getPly(), stat, Move::serialize16(best));
 			switch (status) {
 				case TTStatus::New: _info.hashNew++; break;
 				case TTStatus::Update: _info.hashUpdate++; break;

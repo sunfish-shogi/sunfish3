@@ -17,7 +17,7 @@ namespace sunfish {
 
 	public:
 
-		ShekTable() : HashTable<ShekEntities>() {
+		ShekTable() : HashTable<ShekEntities>(SHEK_INDEX_WIDTH) {
 		}
 		ShekTable(const ShekTable&) = delete;
 		ShekTable(ShekTable&&) = delete;

@@ -10,27 +10,39 @@
 #include "HandSet.h"
 #include <cstdint>
 
+#define SHEK_INDEX_WIDTH 18
+
+#define SHEK_HASH_WIDTH  54
+#define SHEK_COUNT_WIDTH 5
+#define SHEK_TURN_WIDTH  1
+
+#define SHEK_ENC_HASH(hash) ((hash) >> (64 - SHEK_HASH_WIDTH))
+
+static_assert((SHEK_INDEX_WIDTH > 64 - SHEK_HASH_WIDTH), "invalid hash length");
+
 namespace sunfish {
 
 	class ShekEntity {
 	private:
 
 		HandSet _handSet;
-		uint64_t _hash;
-		int32_t _count;
-		bool _blackTurn;
+		struct {
+			uint64_t hash : SHEK_HASH_WIDTH;
+			int32_t count : SHEK_COUNT_WIDTH;
+			bool blackTurn : SHEK_TURN_WIDTH;
+		} _;
 
 	public:
 
 		void init(uint64_t invalidKey) {
-			_hash = invalidKey;
+			_.hash = SHEK_ENC_HASH(invalidKey);
 		}
 
 		ShekStat check(const HandSet& handSet, bool blackTurn) const {
 			// 持ち駒をチェックする
 			ShekStat stat = handSet.compareTo(_handSet, blackTurn);
 
-			if (_blackTurn != blackTurn) {
+			if (_.blackTurn != blackTurn) {
 				if (stat == ShekStat::Equal) {
 					// 手番が逆で持ち駒が等しい => 優越
 					stat = ShekStat::Superior;
@@ -44,26 +56,27 @@ namespace sunfish {
 		}
 
 		void set(uint64_t hash, const HandSet& handSet, bool blackTurn) {
-			_hash = hash;
+			_.hash = SHEK_ENC_HASH(hash);
 			_handSet = handSet;
-			_blackTurn = blackTurn;
-			_count = 0;
+			_.blackTurn = blackTurn;
+			_.count = 0;
 		}
 
 		void retain() {
-			_count++;
+			assert(_.count < (1 << SHEK_COUNT_WIDTH) - 1);
+			_.count++;
 		}
 
 		void release(uint64_t invalidKey) {
-			_count--;
-			if (_count == 0) {
-				_hash = invalidKey;
+			assert(_.count != 0);
+			_.count--;
+			if (_.count == 0) {
+				_.hash = SHEK_ENC_HASH(invalidKey);
 			}
-			assert(_count >= 0);
 		}
 
-		uint64_t getHash() const {
-			return _hash;
+		bool checkHash(uint64_t hash) const {
+			return _.hash == SHEK_ENC_HASH(hash);
 		}
 
 	};
@@ -79,7 +92,7 @@ namespace sunfish {
 	public:
 
 		void init(uint32_t key) {
-			_invalidKey = key+1; // _entities のどのハッシュ値とも一致しない値
+			_invalidKey = ~key;
 			for (uint32_t i = 0; i < Size; i++) {
 				_entities[i].init(_invalidKey);
 			}
@@ -87,7 +100,7 @@ namespace sunfish {
 
 		ShekStat check(uint64_t hash, const HandSet& handSet, bool blackTurn) const {
 			for (uint32_t i = 0; i < Size; i++) {
-				if (_entities[i].getHash() == hash) {
+				if (_entities[i].checkHash(hash)) {
 					return _entities[i].check(handSet, blackTurn);
 				}
 			}
@@ -96,13 +109,13 @@ namespace sunfish {
 
 		void set(uint64_t hash, const HandSet& handSet, bool blackTurn) {
 			for (uint32_t i = 0; i < Size; i++) {
-				if (_entities[i].getHash() == hash) {
+				if (_entities[i].checkHash(hash)) {
 					_entities[i].retain();
 					return;
 				}
 			}
 			for (uint32_t i = 0; i < Size; i++) {
-				if (_entities[i].getHash() == _invalidKey) {
+				if (_entities[i].checkHash(_invalidKey)) {
 					_entities[i].set(hash, handSet, blackTurn);
 					_entities[i].retain();
 					return;
@@ -112,7 +125,7 @@ namespace sunfish {
 
 		void unset(uint64_t hash) {
 			for (uint32_t i = 0; i < Size; i++) {
-				if (_entities[i].getHash() == hash) {
+				if (_entities[i].checkHash(hash)) {
 					_entities[i].release(_invalidKey);
 					return;
 				}
@@ -122,7 +135,7 @@ namespace sunfish {
 
 		bool isCleared() const {
 			for (uint32_t i = 0; i < Size; i++) {
-				if (_entities[i].getHash() != _invalidKey) {
+				if (!_entities[i].checkHash(_invalidKey)) {
 					return false;
 				}
 			}

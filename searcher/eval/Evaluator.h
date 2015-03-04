@@ -49,9 +49,6 @@ namespace sunfish {
 	class Evaluator {
 	public:
 
-		static CONSTEXPR int16_t PieceInf = 10000;
-		static CONSTEXPR int16_t PieceInfEx = PieceInf * 2;
-
 		enum {
 
 			KPP_HBPAWN   = 0,

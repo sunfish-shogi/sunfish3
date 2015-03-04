@@ -11,7 +11,6 @@ namespace sunfish {
 	class NodeStat {
 	public:
 
-		// 項目の数が変わった場合 => TTE::_
 		enum {
 			NullMove  = 0x01,
 			Recapture = 0x02,

@@ -25,6 +25,7 @@ namespace {
 	}
 
 	inline int kpp_index(int x, int y) {
+		assert(x >= y);
 		return x*(x+1)/2+y;
 	}
 
@@ -811,13 +812,13 @@ namespace sunfish {
 			positional -= _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexToB)];
 			positional += _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexToW)];
 			// 前の局面に存在しなかった特徴の組み合わせ(ループ内で引きすぎている分を足す)
-			positional += _t->kpp[bking][kpp_index_safe(kppIndexFromB+1, kppIndexFromB)];
+			positional += _t->kpp[bking][kpp_index(kppIndexFromB+1, kppIndexFromB)];
 			positional += _t->kpp[bking][kpp_index_safe(kppIndexFromB+1, kppIndexToB)];
-			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexFromW+1, kppIndexFromW)];
+			positional -= _t->kpp[wkingR][kpp_index(kppIndexFromW+1, kppIndexFromW)];
 			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexFromW+1, kppIndexToW)];
 			// 前の局面にしか存在しない特徴の組み合わせ(現局面には存在しないので引く)
-			positional -= _t->kpp[bking][kpp_index_safe(kppIndexFromB+1, kppIndexFromB+1)];
-			positional += _t->kpp[wkingR][kpp_index_safe(kppIndexFromW+1, kppIndexFromW+1)];
+			positional -= _t->kpp[bking][kpp_index(kppIndexFromB+1, kppIndexFromB+1)];
+			positional += _t->kpp[wkingR][kpp_index(kppIndexFromW+1, kppIndexFromW+1)];
 		} else if (captured.isEmpty()) {
 			// 駒を取らずに盤上の駒を移動した場合
 			for (int i = 0; i < num; i++) {
@@ -837,8 +838,8 @@ namespace sunfish {
 			positional += _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexToB)];
 			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexToW)];
 			// 前の局面にしか存在しない特徴の組み合わせ(現局面には存在しないので引く)
-			positional -= _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexFromB)];
-			positional += _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexFromW)];
+			positional -= _t->kpp[bking][kpp_index(kppIndexFromB, kppIndexFromB)];
+			positional += _t->kpp[wkingR][kpp_index(kppIndexFromW, kppIndexFromW)];
 		} else {
 			// 駒を取った場合
 			for (int i = 0; i < num; i++) {
@@ -876,26 +877,26 @@ namespace sunfish {
 			positional += _t->kpp[bking][kpp_index_safe(kppIndexCapturedB, kppIndexToB)];
 			positional += _t->kpp[bking][kpp_index_safe(kppIndexCapturedB, kppIndexCapHandB)];
 			positional += _t->kpp[bking][kpp_index_safe(kppIndexCapHandB-1, kppIndexToB)];
-			positional += _t->kpp[bking][kpp_index_safe(kppIndexCapHandB-1, kppIndexCapHandB)];
-			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexToW)];
+			positional += _t->kpp[bking][kpp_index(kppIndexCapHandB, kppIndexCapHandB-1)];
+			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexToW)];    
 			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexCapHandW)];
 			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexCapturedW, kppIndexToW)];
 			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexCapturedW, kppIndexCapHandW)];
 			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexCapHandW-1, kppIndexToW)];
-			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexCapHandW-1, kppIndexCapHandW)];
-			// 前の局面にしか存在しない特徴の組み合わせ(現局面には存在しないので引く)
+			positional -= _t->kpp[wkingR][kpp_index(kppIndexCapHandW, kppIndexCapHandW-1)];
+			// 前の局面にしか存在しない特徴の組み合わせ(現局面には存在しないので引く)                                   
 			positional -= _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexFromB)];
 			positional -= _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexCapturedB)];
 			positional -= _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexCapHandB-1)];
-			positional -= _t->kpp[bking][kpp_index_safe(kppIndexCapturedB, kppIndexCapturedB)];
+			positional -= _t->kpp[bking][kpp_index(kppIndexCapturedB, kppIndexCapturedB)];
 			positional -= _t->kpp[bking][kpp_index_safe(kppIndexCapturedB, kppIndexCapHandB-1)];
-			positional -= _t->kpp[bking][kpp_index_safe(kppIndexCapHandB-1, kppIndexCapHandB-1)];
-			positional += _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexFromW)];
+			positional -= _t->kpp[bking][kpp_index(kppIndexCapHandB-1, kppIndexCapHandB-1)];
+			positional += _t->kpp[wkingR][kpp_index(kppIndexFromW, kppIndexFromW)];
 			positional += _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexCapturedW)];
 			positional += _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexCapHandW-1)];
-			positional += _t->kpp[wkingR][kpp_index_safe(kppIndexCapturedW, kppIndexCapturedW)];
+			positional += _t->kpp[wkingR][kpp_index(kppIndexCapturedW, kppIndexCapturedW)];
 			positional += _t->kpp[wkingR][kpp_index_safe(kppIndexCapturedW, kppIndexCapHandW-1)];
-			positional += _t->kpp[wkingR][kpp_index_safe(kppIndexCapHandW-1, kppIndexCapHandW-1)];
+			positional += _t->kpp[wkingR][kpp_index(kppIndexCapHandW-1, kppIndexCapHandW-1)];
 		}
 #endif // ENABLE_KPP
 
@@ -1214,7 +1215,7 @@ namespace sunfish {
 			case Piece::BDragon: case Piece::WDragon:
 				return _t->dragon;
 			case Piece::BKing: case Piece::WKing:
-				return PieceInf;
+				return Value::PieceInf;
 			default:
 				return 0;
 		}
@@ -1252,7 +1253,7 @@ namespace sunfish {
 			case Piece::BDragon: case Piece::WDragon:
 				return _t->dragonEx;
 			case Piece::BKing: case Piece::WKing:
-				return PieceInfEx;
+				return Value::PieceInfEx;
 			default:
 				return 0;
 		}

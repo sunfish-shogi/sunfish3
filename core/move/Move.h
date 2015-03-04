@@ -18,19 +18,25 @@ namespace sunfish {
 	class Board;
 
 	class Move {
+	public:
+
+		static CONSTEXPR uint16_t S16_HAND   = 0x8000;
+		static CONSTEXPR uint16_t S16_EMPTY  = 0xffff;
+		static CONSTEXPR uint32_t S16_HAND_SHIFT = 7;
+
+		static CONSTEXPR uint32_t FROM       = 0x0000007f;
+		static CONSTEXPR uint32_t TO         = 0x00003f80;
+		static CONSTEXPR uint32_t PROMOTE    = 0x00004000;
+		static CONSTEXPR uint32_t PIECE      = 0x00078000;
+		static CONSTEXPR uint32_t CAP        = 0x00f80000;
+		static CONSTEXPR uint32_t UNUSED     = 0xff000000;
+		static CONSTEXPR uint32_t EMPTY      = 0xffffffff;
+
+		static CONSTEXPR uint32_t TO_SHIFT = 7;
+		static CONSTEXPR uint32_t PIECE_SHIFT = 15;
+		static CONSTEXPR uint32_t CAP_SHIFT = 19;
+
 	private:
-
-		static const uint32_t FROM       = 0x0000007f;
-		static const uint32_t TO         = 0x00003f80;
-		static const uint32_t PROMOTE    = 0x00004000;
-		static const uint32_t PIECE      = 0x00078000;
-		static const uint32_t CAP        = 0x00f80000;
-		static const uint32_t UNUSED     = 0xff000000;
-		static const uint32_t EMPTY      = 0xffffffff;
-
-		static const uint32_t TO_SHIFT = 7;
-		static const uint32_t PIECE_SHIFT = 15;
-		static const uint32_t CAP_SHIFT = 19;
 
 		uint32_t _move;
 
@@ -68,6 +74,8 @@ namespace sunfish {
 			move._move = value;
 			return move;
 		}
+		static uint16_t serialize16(const Move& obj);
+		static Move deserialize16(uint16_t value, const Board& board);
 
 		// move from board
 	private:

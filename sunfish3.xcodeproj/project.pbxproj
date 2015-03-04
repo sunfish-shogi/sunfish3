@@ -160,7 +160,6 @@
 		0969B67E1A41C91200D56A21 /* TT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TT.h; sourceTree = "<group>"; };
 		0969B67F1A41C91200D56A21 /* TTE.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TTE.cpp; sourceTree = "<group>"; };
 		0969B6801A41C91200D56A21 /* TTE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTE.h; sourceTree = "<group>"; };
-		0969B6811A41C91200D56A21 /* TTMoves.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTMoves.h; sourceTree = "<group>"; };
 		0969B6871A41C91200D56A21 /* Test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Test.h; sourceTree = "<group>"; };
 		09761B391A9392E400193EA8 /* ProgramOptions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ProgramOptions.h; path = program_options/ProgramOptions.h; sourceTree = "<group>"; };
 		0982DDD71A8B95AA003D8576 /* EvaluatorTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EvaluatorTest.cpp; sourceTree = "<group>"; };
@@ -469,7 +468,6 @@
 				0969B67E1A41C91200D56A21 /* TT.h */,
 				0969B67F1A41C91200D56A21 /* TTE.cpp */,
 				0969B6801A41C91200D56A21 /* TTE.h */,
-				0969B6811A41C91200D56A21 /* TTMoves.h */,
 			);
 			path = tt;
 			sourceTree = "<group>";

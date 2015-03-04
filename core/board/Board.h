@@ -240,7 +240,7 @@ namespace sunfish {
 
 		/**
 		 * 任意の手が合法手であるか厳密なチェックをします。
-		 * 低速な処理のため探索中で使用すべきではありません。
+		 * MoveGenerator で生成した手に対しては isValidMove を使用してください。
 		 * @param move
 		 */
 		bool isValidMoveStrict(const Move& move) const {

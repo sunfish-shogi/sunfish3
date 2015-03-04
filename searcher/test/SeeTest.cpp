@@ -342,7 +342,7 @@ P-\n\
 		ASSERT_EQ(see.getBlackNum(), 2);
 		ASSERT_EQ(see.getWhiteNum(), 2);
 		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().knightEx);
-		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), eval.PieceInfEx);
+		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), Value::PieceInfEx);
 		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().lanceEx);
 		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), eval.table().knightEx);
 	}
@@ -375,7 +375,7 @@ P-\n\
 
 		// 飛車で歩を取った場合
 		Move capByRook(Piece::Rook, P47, P45, false);
-		Value exact = see.search(eval, board, capByRook, -Evaluator::PieceInf, Evaluator::PieceInf);
+		Value exact = see.search(eval, board, capByRook, -Value::PieceInf, Value::PieceInf);
 		Value correct = (+ eval.table().pawnEx
 										 - eval.table().rookEx
 										 + eval.table().silverEx
@@ -384,7 +384,7 @@ P-\n\
 
 		// 桂馬で歩を取った場合
 		Move capByKnight(Piece::Knight, P37, P45, false);
-		exact = see.search(eval, board, capByKnight, -Evaluator::PieceInf, Evaluator::PieceInf);
+		exact = see.search(eval, board, capByKnight, -Value::PieceInf, Value::PieceInf);
 		correct = (+ eval.table().pawnEx
 							 - eval.table().knightEx);
 		ASSERT_EQ(correct.int32(), exact.int32());
@@ -410,7 +410,7 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 
 		Move move(Piece::Lance, P45, P44, false);
-		Value exact = see.search(eval, board, move, -Evaluator::PieceInf, Evaluator::PieceInf);
+		Value exact = see.search(eval, board, move, -Value::PieceInf, Value::PieceInf);
 		Value correct = (+ eval.table().pawnEx
 										 - eval.table().lanceEx
 										 + eval.table().lanceEx

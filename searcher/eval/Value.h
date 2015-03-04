@@ -6,6 +6,7 @@
 #ifndef __SUNFISH_VALUE__
 #define __SUNFISH_VALUE__
 
+#include "core/def.h"
 #include <cstdint>
 #include <cstdlib>
 #include <climits>
@@ -24,9 +25,11 @@ namespace sunfish {
 
 	public:
 
-		static const int32_t Zero = 0;
-		static const int32_t Inf = INT_MAX / 2;
-		static const int32_t Mate = INT_MAX / 4;
+		static CONSTEXPR int32_t Zero = 0;
+		static CONSTEXPR int32_t Inf = 20000;
+		static CONSTEXPR int32_t Mate = 15000;
+		static CONSTEXPR int32_t PieceInf = 5000;
+		static CONSTEXPR int32_t PieceInfEx = 10000;
 
 		Value() {
 		}
