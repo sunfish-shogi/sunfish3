@@ -869,33 +869,33 @@ namespace sunfish {
 				assert(w != kppIndexCapHandW-1);
 			}
 			// 2重に足している特徴の組み合わせ(ループ内で足しすぎているので引く)
-			positional -= _t->kpp[bking][kpp_index_safe(kppIndexToB, kppIndexCapHandB)];
-			positional += _t->kpp[wkingR][kpp_index_safe(kppIndexToW, kppIndexCapHandW)];
+			positional -= _t->kpp[bking][kpp_index(kppIndexToB, kppIndexCapHandB)];
+			positional += _t->kpp[wkingR][kpp_index(kppIndexToW, kppIndexCapHandW)];
 			// 前の局面に存在しなかった特徴の組み合わせ(ループ内で引きすぎている分を足す)
 			positional += _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexToB)];
-			positional += _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexCapHandB)];
+			positional += _t->kpp[bking][kpp_index(kppIndexFromB, kppIndexCapHandB)];
 			positional += _t->kpp[bking][kpp_index_safe(kppIndexCapturedB, kppIndexToB)];
-			positional += _t->kpp[bking][kpp_index_safe(kppIndexCapturedB, kppIndexCapHandB)];
-			positional += _t->kpp[bking][kpp_index_safe(kppIndexCapHandB-1, kppIndexToB)];
+			positional += _t->kpp[bking][kpp_index(kppIndexCapturedB, kppIndexCapHandB)];
+			positional += _t->kpp[bking][kpp_index(kppIndexToB, kppIndexCapHandB-1)];
 			positional += _t->kpp[bking][kpp_index(kppIndexCapHandB, kppIndexCapHandB-1)];
 			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexToW)];    
-			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexCapHandW)];
+			positional -= _t->kpp[wkingR][kpp_index(kppIndexFromW, kppIndexCapHandW)];
 			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexCapturedW, kppIndexToW)];
-			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexCapturedW, kppIndexCapHandW)];
-			positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexCapHandW-1, kppIndexToW)];
+			positional -= _t->kpp[wkingR][kpp_index(kppIndexCapturedW, kppIndexCapHandW)];
+			positional -= _t->kpp[wkingR][kpp_index(kppIndexToW, kppIndexCapHandW-1)];
 			positional -= _t->kpp[wkingR][kpp_index(kppIndexCapHandW, kppIndexCapHandW-1)];
 			// 前の局面にしか存在しない特徴の組み合わせ(現局面には存在しないので引く)                                   
-			positional -= _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexFromB)];
+			positional -= _t->kpp[bking][kpp_index(kppIndexFromB, kppIndexFromB)];
 			positional -= _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexCapturedB)];
-			positional -= _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexCapHandB-1)];
+			positional -= _t->kpp[bking][kpp_index(kppIndexFromB, kppIndexCapHandB-1)];
 			positional -= _t->kpp[bking][kpp_index(kppIndexCapturedB, kppIndexCapturedB)];
-			positional -= _t->kpp[bking][kpp_index_safe(kppIndexCapturedB, kppIndexCapHandB-1)];
+			positional -= _t->kpp[bking][kpp_index(kppIndexCapturedB, kppIndexCapHandB-1)];
 			positional -= _t->kpp[bking][kpp_index(kppIndexCapHandB-1, kppIndexCapHandB-1)];
 			positional += _t->kpp[wkingR][kpp_index(kppIndexFromW, kppIndexFromW)];
 			positional += _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexCapturedW)];
-			positional += _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexCapHandW-1)];
+			positional += _t->kpp[wkingR][kpp_index(kppIndexFromW, kppIndexCapHandW-1)];
 			positional += _t->kpp[wkingR][kpp_index(kppIndexCapturedW, kppIndexCapturedW)];
-			positional += _t->kpp[wkingR][kpp_index_safe(kppIndexCapturedW, kppIndexCapHandW-1)];
+			positional += _t->kpp[wkingR][kpp_index(kppIndexCapturedW, kppIndexCapHandW-1)];
 			positional += _t->kpp[wkingR][kpp_index(kppIndexCapHandW-1, kppIndexCapHandW-1)];
 		}
 #endif // ENABLE_KPP
