@@ -9,6 +9,7 @@
 #include "ISearcher.h"
 #include "see/See.h"
 #include "tree/Tree.h"
+#include "tree/NodeStat.h"
 #include "history/History.h"
 #include "tt/TT.h"
 #include "core/record/Record.h"

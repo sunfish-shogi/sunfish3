@@ -68,43 +68,24 @@ namespace sunfish {
 		template <bool black>
 		void generateKnightAttacker(const Evaluator& eval, const Board& board, const Position& from);
 
-		template <bool black, bool shallow, Direction exceptDir, HSideType sideTypeH, VSideType sideTypeV>
-		void generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos);
+		template <bool black, bool shallow, HSideType sideTypeH, VSideType sideTypeV>
+		void generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Direction exceptDir);
 
 		template <bool shallow, HSideType sideTypeH, VSideType sideTypeV>
 		void generateAttackers(const Evaluator& eval, const Board& board, const Move& move) {
 			if (move.isHand()) {
   			auto to = move.to();
   			auto occ = board.getBOccupy() | board.getWOccupy();
-				generateAttackers<true, shallow, Direction::None, sideTypeH, sideTypeV>(eval, board, to, occ, Position::Invalid);
-				generateAttackers<false, shallow, Direction::None, sideTypeH, sideTypeV>(eval, board, to, occ, Position::Invalid);
+				generateAttackers<true, shallow, sideTypeH, sideTypeV>(eval, board, to, occ, Position::Invalid, Direction::None);
+				generateAttackers<false, shallow, sideTypeH, sideTypeV>(eval, board, to, occ, Position::Invalid, Direction::None);
 			} else {
   			auto to = move.to();
   			auto from = move.from();
   			auto exceptMask = ~Bitboard::mask(from);
   			auto occ = (board.getBOccupy() | board.getWOccupy()) & exceptMask;
   			Direction exceptDir = to.dir(from);
-  			switch (exceptDir) {
-#define ___SUNFISH_SEE_CASE_DIR___(dirname) \
-  				case Direction::dirname: \
-  					generateAttackers<true, shallow, Direction::dirname, sideTypeH, sideTypeV>(eval, board, to, occ, from); \
-  					generateAttackers<false, shallow, Direction::dirname, sideTypeH, sideTypeV>(eval, board, to, occ, from); \
-  					return;
-  				___SUNFISH_SEE_CASE_DIR___(Up)
-  				___SUNFISH_SEE_CASE_DIR___(Down)
-  				___SUNFISH_SEE_CASE_DIR___(Left)
-  				___SUNFISH_SEE_CASE_DIR___(Right)
-  				___SUNFISH_SEE_CASE_DIR___(LeftUp)
-  				___SUNFISH_SEE_CASE_DIR___(LeftDown)
-  				___SUNFISH_SEE_CASE_DIR___(RightUp)
-  				___SUNFISH_SEE_CASE_DIR___(RightDown)
-  				___SUNFISH_SEE_CASE_DIR___(LeftUpKnight)
-  				___SUNFISH_SEE_CASE_DIR___(LeftDownKnight)
-  				___SUNFISH_SEE_CASE_DIR___(RightUpKnight)
-  				___SUNFISH_SEE_CASE_DIR___(RightDownKnight)
-  				default: assert(false);
-#undef ___SUNFISH_SEE_CASE_DIR___
-				}
+				generateAttackers<true, shallow, sideTypeH, sideTypeV>(eval, board, to, occ, from, exceptDir);
+				generateAttackers<false, shallow, sideTypeH, sideTypeV>(eval, board, to, occ, from, exceptDir);
 			}
 		}
 

@@ -179,8 +179,8 @@ namespace sunfish {
 		}
 	}
 
-	template <bool black, bool shallow, Direction exceptDir, HSideType sideTypeH, VSideType sideTypeV>
-	void See::generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos) {
+	template <bool black, bool shallow, HSideType sideTypeH, VSideType sideTypeV>
+	void See::generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Direction exceptDir) {
 
 		auto& num = black ? _bnum : _wnum;
 		auto list = black ? _b : _w;

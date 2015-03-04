@@ -29,8 +29,7 @@ namespace sunfish {
 
 		TTStatus entry(uint64_t hash,
 				Value alpha, Value beta, Value value,
-				int depth, int ply,
-				const NodeStat& stat, uint16_t move) {
+				int depth, int ply, uint16_t move) {
 			TTE e;
 			TTEs& entities = getEntity(hash);
 			entities.get(hash, e);

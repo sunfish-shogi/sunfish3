@@ -891,7 +891,7 @@ namespace sunfish {
 			}
 
 			// TODO: GHI対策
-			TTStatus status = _tt.entry(hash, alpha, beta, value, depth, tree.getPly(), stat, Move::serialize16(best));
+			TTStatus status = _tt.entry(hash, alpha, beta, value, depth, tree.getPly(), Move::serialize16(best));
 			switch (status) {
 				case TTStatus::New: _info.hashNew++; break;
 				case TTStatus::Update: _info.hashUpdate++; break;

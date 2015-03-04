@@ -7,7 +7,6 @@
 #define __SUNFISH_TTE__
 
 #include "../eval/Value.h"
-#include "../tree/NodeStat.h"
 #include "core/def.h"
 #include <cassert>
 

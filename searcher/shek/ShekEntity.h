@@ -28,7 +28,7 @@ namespace sunfish {
 		HandSet _handSet;
 		struct {
 			uint64_t hash : SHEK_HASH_WIDTH;
-			int32_t count : SHEK_COUNT_WIDTH;
+			uint32_t count : SHEK_COUNT_WIDTH;
 			bool blackTurn : SHEK_TURN_WIDTH;
 		} _;
 
@@ -63,7 +63,7 @@ namespace sunfish {
 		}
 
 		void retain() {
-			assert(_.count < (1 << SHEK_COUNT_WIDTH) - 1);
+			assert(_.count < ((0x01 << SHEK_COUNT_WIDTH) - 1));
 			_.count++;
 		}
 
