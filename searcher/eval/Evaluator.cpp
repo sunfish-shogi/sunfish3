@@ -29,9 +29,9 @@ namespace {
 		return x*(x+1)/2+y;
 	}
 
-//	inline int kpp_index(int x) {
-//		return x*(x+1)/2+x;
-//	}
+	inline int kpp_index(int x) {
+		return x*(x+1)/2+x;
+	}
 
 	inline int kpp_index_safe(int x, int y) {
 		return x >= y ? kpp_index(x, y) : kpp_index(y, x);
@@ -921,7 +921,7 @@ namespace sunfish {
 		Value material = 0;
 		Value positional = 0;
 		auto piece = move.piece();
-		auto captured = move.captured();
+		auto captured = board.getBoardPiece(move.to());
 
 		assert(board.isBlack() == black);
 
@@ -943,22 +943,22 @@ namespace sunfish {
 				positional += _t->kkp[bking][wking][kkpIndex];
 				positional -= _t->kkp[bking][wking][kkpIndex+1];
 				int kppIndexB = kppHandIndex<true>(piece) + num;
-				positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
-				positional -= _t->kpp[bking][kpp_index(kppIndexB+1, kppIndexB+1)];
+				positional += _t->kpp[bking][kpp_index(kppIndexB)];
+				positional -= _t->kpp[bking][kpp_index(kppIndexB+1)];
 				int kppIndexW = kppHandIndex<false>(piece) + num;
-				positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
-				positional += _t->kpp[wkingR][kpp_index(kppIndexW+1, kppIndexW+1)];
+				positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
+				positional += _t->kpp[wkingR][kpp_index(kppIndexW+1)];
 			} else {
 				int num = board.getWhiteHand(piece);
 				int kkpIndex = kkpHandIndex(piece) + num;
 				positional -= _t->kkp[wkingR][bkingR][kkpIndex];
 				positional += _t->kkp[wkingR][bkingR][kkpIndex+1];
 				int kppIndexB = kppHandIndex<false>(piece) + num;
-				positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
-				positional -= _t->kpp[bking][kpp_index(kppIndexB+1, kppIndexB+1)];
+				positional += _t->kpp[bking][kpp_index(kppIndexB)];
+				positional -= _t->kpp[bking][kpp_index(kppIndexB+1)];
 				int kppIndexW = kppHandIndex<true>(piece) + num;
-				positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
-				positional += _t->kpp[wkingR][kpp_index(kppIndexW+1, kppIndexW+1)];
+				positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
+				positional += _t->kpp[wkingR][kpp_index(kppIndexW+1)];
 			}
 		} else {
 			// 盤上の駒を動かした場合
@@ -967,17 +967,17 @@ namespace sunfish {
 				if (!isKing) {
 					positional -= _t->kkp[bking][wking][kkpBoardIndex(piece, from)];
 					int kppIndexB = kppBoardIndex<true>(piece, from);
-					positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+					positional += _t->kpp[bking][kpp_index(kppIndexB)];
 					int kppIndexW = kppBoardIndex<false>(piece, from.reverse());
-					positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+					positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
 				}
 			} else {
 				if (!isKing) {
 					positional += _t->kkp[wkingR][bkingR][kkpBoardIndex(piece, from.reverse())];
 					int kppIndexB = kppBoardIndex<false>(piece, from);
-					positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+					positional += _t->kpp[bking][kpp_index(kppIndexB)];
 					int kppIndexW = kppBoardIndex<true>(piece, from.reverse());
-					positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+					positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
 				}
 			} 
 		}
@@ -990,17 +990,17 @@ namespace sunfish {
 				auto promoted = piece.promote();
 				positional += _t->kkp[bking][wking][kkpBoardIndex(promoted, to)];
 				int kppIndexB = kppBoardIndex<true>(promoted, to);
-				positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+				positional += _t->kpp[bking][kpp_index(kppIndexB)];
 				int kppIndexW = kppBoardIndex<false>(promoted, to.reverse());
-				positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+				positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
 			} else {
 				material -= piecePromote(piece);
 				auto promoted = piece.promote();
 				positional -= _t->kkp[wkingR][bkingR][kkpBoardIndex(promoted, to.reverse())];
 				int kppIndexB = kppBoardIndex<false>(promoted, to);
-				positional -= _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+				positional -= _t->kpp[bking][kpp_index(kppIndexB)];
 				int kppIndexW = kppBoardIndex<true>(promoted, to.reverse());
-				positional += _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+				positional += _t->kpp[wkingR][kpp_index(kppIndexW)];
 			} 
 		} else {
 			// 成らなかった場合
@@ -1008,17 +1008,17 @@ namespace sunfish {
 				if (!isKing) {
 					positional += _t->kkp[bking][wking][kkpBoardIndex(piece, to)];
 					int kppIndexB = kppBoardIndex<true>(piece, to);
-					positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+					positional += _t->kpp[bking][kpp_index(kppIndexB)];
 					int kppIndexW = kppBoardIndex<false>(piece, to.reverse());
-					positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+					positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
 				}
 			} else {
 				if (!isKing) {
 					positional -= _t->kkp[wkingR][bkingR][kkpBoardIndex(piece, to.reverse())];
 					int kppIndexB = kppBoardIndex<false>(piece, to);
-					positional -= _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+					positional -= _t->kpp[bking][kpp_index(kppIndexB)];
 					int kppIndexW = kppBoardIndex<true>(piece, to.reverse());
-					positional += _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+					positional += _t->kpp[wkingR][kpp_index(kppIndexW)];
 				}
 			} 
 		}
@@ -1029,16 +1029,16 @@ namespace sunfish {
 				material += pieceExchange(captured);
 				positional += _t->kkp[wkingR][bkingR][kkpBoardIndex(captured, to.reverse())];
 				int kppIndexB = kppBoardIndex<false>(captured, to);
-				positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+				positional += _t->kpp[bking][kpp_index(kppIndexB)];
 				int kppIndexW = kppBoardIndex<true>(captured, to.reverse());
-				positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+				positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
 			} else {
 				material -= pieceExchange(captured);
 				positional -= _t->kkp[bking][wking][kkpBoardIndex(captured, to)];
 				int kppIndexB = kppBoardIndex<true>(captured, to);
-				positional -= _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
+				positional -= _t->kpp[bking][kpp_index(kppIndexB)];
 				int kppIndexW = kppBoardIndex<false>(captured, to.reverse());
-				positional += _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
+				positional += _t->kpp[wkingR][kpp_index(kppIndexW)];
 			} 
 			auto hand = captured.hand();
 			if (black) {
@@ -1047,22 +1047,22 @@ namespace sunfish {
 				positional += _t->kkp[bking][wking][kkpIndex];
 				positional -= _t->kkp[bking][wking][kkpIndex-1];
 				int kppIndexB = kppHandIndex<true>(hand) + num;
-				positional += _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
-				positional -= _t->kpp[bking][kpp_index(kppIndexB-1, kppIndexB-1)];
+				positional += _t->kpp[bking][kpp_index(kppIndexB)];
+				positional -= _t->kpp[bking][kpp_index(kppIndexB-1)];
 				int kppIndexW = kppHandIndex<false>(hand) + num;
-				positional -= _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
-				positional += _t->kpp[wkingR][kpp_index(kppIndexW-1, kppIndexW-1)];
+				positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
+				positional += _t->kpp[wkingR][kpp_index(kppIndexW-1)];
 			} else {
 				int num = board.getWhiteHand(hand);
 				int kkpIndex = kkpHandIndex(hand) + num;
 				positional -= _t->kkp[wkingR][bkingR][kkpIndex];
 				positional += _t->kkp[wkingR][bkingR][kkpIndex-1];
 				int kppIndexB = kppHandIndex<false>(hand) + num;
-				positional -= _t->kpp[bking][kpp_index(kppIndexB, kppIndexB)];
-				positional += _t->kpp[bking][kpp_index(kppIndexB-1, kppIndexB-1)];
+				positional -= _t->kpp[bking][kpp_index(kppIndexB)];
+				positional += _t->kpp[bking][kpp_index(kppIndexB-1)];
 				int kppIndexW = kppHandIndex<true>(hand) + num;
-				positional += _t->kpp[wkingR][kpp_index(kppIndexW, kppIndexW)];
-				positional -= _t->kpp[wkingR][kpp_index(kppIndexW-1, kppIndexW-1)];
+				positional += _t->kpp[wkingR][kpp_index(kppIndexW)];
+				positional -= _t->kpp[wkingR][kpp_index(kppIndexW-1)];
 			} 
 		}
 
