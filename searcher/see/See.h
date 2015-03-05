@@ -43,11 +43,11 @@ namespace sunfish {
 		int _bnum;
 		int _wnum;
 
-		template <bool black, bool shallow, Direction dir, bool isFirst, bool shortOnly>
-		void generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn);
+		template <bool black, bool shallow, Direction dir, bool isFirst>
+		void generateAttacker(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn, bool shortOnly);
 
 		template <bool black, bool shallow, Direction dir, bool isFirst = false>
-		void generateAttackersR(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn) {
+		void generateAttackerR(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn) {
 			HSideType sideTypeH = to.sideTypeH();
 			VSideType sideTypeV = to.sideTypeV();
 			if ((sideTypeH == HSideType::Top && (dir == Direction::Up || dir == Direction::LeftUp || dir == Direction::RightUp)) ||
@@ -59,46 +59,33 @@ namespace sunfish {
 								 (sideTypeH == HSideType::Bottom2 && (dir == Direction::Down || dir == Direction::LeftDown || dir == Direction::RightDown)) ||
 								 (sideTypeV == VSideType::Left2 && (dir == Direction::Left || dir == Direction::LeftUp || dir == Direction::LeftDown)) ||
 								 (sideTypeV == VSideType::Right2 && (dir == Direction::Right || dir == Direction::RightUp || dir == Direction::RightDown))) {
-				generateAttackers<black, shallow, dir, false, true>(eval, board, to, occ, dependOn); // short only
+				generateAttacker<black, shallow, dir, false>(eval, board, to, occ, dependOn, true); // short only
 			} else {
-				generateAttackers<black, shallow, dir, false, false>(eval, board, to, occ, dependOn);
+				generateAttacker<black, shallow, dir, false>(eval, board, to, occ, dependOn, false);
 			}
 		}
 
 		template <bool black>
 		void generateKnightAttacker(const Evaluator& eval, const Board& board, const Position& from);
 
-		template <bool black, bool shallow, HSideType sideTypeH, VSideType sideTypeV>
-		void generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Direction exceptDir);
+		template <bool black, bool shallow>
+		void generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Direction exceptDir, HSideType sideTypeH, VSideType sideTypeV);
 
-		template <bool shallow, HSideType sideTypeH, VSideType sideTypeV>
-		void generateAttackers(const Evaluator& eval, const Board& board, const Move& move) {
+		template <bool shallow>
+		void generateAttackers(const Evaluator& eval, const Board& board, const Move& move, HSideType sideTypeH, VSideType sideTypeV) {
 			if (move.isHand()) {
   			auto to = move.to();
   			auto occ = board.getBOccupy() | board.getWOccupy();
-				generateAttackers<true, shallow, sideTypeH, sideTypeV>(eval, board, to, occ, Position::Invalid, Direction::None);
-				generateAttackers<false, shallow, sideTypeH, sideTypeV>(eval, board, to, occ, Position::Invalid, Direction::None);
+				generateAttackers<true, shallow>(eval, board, to, occ, Position::Invalid, Direction::None, sideTypeH, sideTypeV);
+				generateAttackers<false, shallow>(eval, board, to, occ, Position::Invalid, Direction::None, sideTypeH, sideTypeV);
 			} else {
   			auto to = move.to();
   			auto from = move.from();
   			auto exceptMask = ~Bitboard::mask(from);
   			auto occ = (board.getBOccupy() | board.getWOccupy()) & exceptMask;
   			Direction exceptDir = to.dir(from);
-				generateAttackers<true, shallow, sideTypeH, sideTypeV>(eval, board, to, occ, from, exceptDir);
-				generateAttackers<false, shallow, sideTypeH, sideTypeV>(eval, board, to, occ, from, exceptDir);
-			}
-		}
-
-		template <bool shallow, HSideType sideTypeH>
-		void generateAttackers(const Evaluator& eval, const Board& board, const Move& move) {
-			switch (move.to().sideTypeV()) {
-#define ___SUNFISH_AT_CASE_ST___(st) case VSideType::st: generateAttackers<shallow, sideTypeH, VSideType::st>(eval, board, move); break;
-					___SUNFISH_AT_CASE_ST___(None)
-					___SUNFISH_AT_CASE_ST___(Left)
-					___SUNFISH_AT_CASE_ST___(Right)
-					___SUNFISH_AT_CASE_ST___(Left2)
-					___SUNFISH_AT_CASE_ST___(Right2)
-#undef ___SUNFISH_AT_CASE_ST___
+				generateAttackers<true, shallow>(eval, board, to, occ, from, exceptDir, sideTypeH, sideTypeV);
+				generateAttackers<false, shallow>(eval, board, to, occ, from, exceptDir, sideTypeH, sideTypeV);
 			}
 		}
 
@@ -112,15 +99,7 @@ namespace sunfish {
 
 		template <bool shallow = false>
 		void generateAttackers(const Evaluator& eval, const Board& board, const Move& move) {
-			switch (move.to().sideTypeH()) {
-#define ___SUNFISH_AT_CASE_ST___(st) case HSideType::st: generateAttackers<shallow, HSideType::st>(eval, board, move); break;
-					___SUNFISH_AT_CASE_ST___(None)
-					___SUNFISH_AT_CASE_ST___(Top)
-					___SUNFISH_AT_CASE_ST___(Bottom)
-					___SUNFISH_AT_CASE_ST___(Top2)
-					___SUNFISH_AT_CASE_ST___(Bottom2)
-#undef ___SUNFISH_AT_CASE_ST___
-			}
+			generateAttackers<shallow>(eval, board, move, move.to().sideTypeH(), move.to().sideTypeV());
 		}
 
 		const AttackerRef* getBlackList() const {
