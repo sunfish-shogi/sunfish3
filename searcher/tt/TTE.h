@@ -15,13 +15,13 @@
 // 1st word
 #define TT_HASH_WIDTH  54
 #define TT_AGE_WIDTH   3  // 2^3 = 8 [0, 7]
-#define TT_DEPTH_WIDTH 7  // 2^7 = 128 [0, 127]
 
 // 2nd word
-#define TT_VALUE_WIDTH 16 // 2^16
-#define TT_VTYPE_WIDTH 2  // 2^2 = 4 [0, 3]
 #define TT_MOVE1_WIDTH 16
 #define TT_MOVE2_WIDTH 16
+#define TT_DEPTH_WIDTH 10 // 2^10 = 1024
+#define TT_VALUE_WIDTH 16 // 2^16
+#define TT_VTYPE_WIDTH 2  // 2^2 = 4 [0, 3]
 
 #define TT_VALUE_OFFSET ((1<<TT_VALUE_WIDTH)/2)
 #define TT_ENC_VALUE(value) ((value.int32()) + TT_VALUE_OFFSET)
@@ -57,12 +57,18 @@ namespace sunfish {
 		struct {
 			uint64_t hash : TT_HASH_WIDTH;
 			uint32_t age : TT_AGE_WIDTH;
+		} _1;
+
+		struct {
+			uint16_t move1 : TT_MOVE1_WIDTH;
+			uint16_t move2 : TT_MOVE2_WIDTH;
 			uint32_t depth : TT_DEPTH_WIDTH;
 			uint32_t value : TT_VALUE_WIDTH;
 			uint32_t valueType : TT_VTYPE_WIDTH;
-			uint16_t move1 : TT_MOVE1_WIDTH;
-			uint16_t move2 : TT_MOVE2_WIDTH;
-		} _;
+		} _2;
+
+		static_assert(sizeof(_1) == 8, "invalid struct size");
+		static_assert(sizeof(_2) == 8, "invalid struct size");
 
 		bool update(uint64_t newHash,
 				Value newValue,
@@ -77,7 +83,7 @@ namespace sunfish {
 		}
 
 		void init() {
-			_.age = InvalidAge;
+			_1.age = InvalidAge;
 		}
 
 		bool update(uint64_t newHash,
@@ -105,43 +111,43 @@ namespace sunfish {
 		void updatePv(uint64_t newHash, int newDepth, uint16_t move, uint32_t newAge);
 
 		bool checkHash(uint64_t hash) const {
-			return _.hash == TT_ENC_HASH(hash);
+			return _1.hash == TT_ENC_HASH(hash);
 		}
 
 		uint64_t getHash() const {
-			return _.hash;
+			return _1.hash;
 		}
 
 		Value getValue(int ply) const {
-			Value value = TT_DEC_VALUE(_.value);
+			Value value = TT_DEC_VALUE(_2.value);
 			assert(value >= -Value::Inf);
 			assert(value <= Value::Inf);
 			if (value >= Value::Mate) {
-				if (_.valueType == Lower) { return value - ply; }
+				if (_2.valueType == Lower) { return value - ply; }
 			} else if (value <= -Value::Mate) {
-				if (_.valueType == Upper) { return value + ply; }
+				if (_2.valueType == Upper) { return value + ply; }
 			}
 			return value;
 		}
 
 		uint32_t getValueType() const {
-			return _.valueType;
+			return _2.valueType;
 		}
 
 		int getDepth() const {
-			return (int)_.depth;
+			return (int)_2.depth;
 		}
 
 		uint16_t getMove1() const {
-			return _.move1;
+			return _2.move1;
 		}
 
 		uint16_t getMove2() const {
-			return _.move2;
+			return _2.move2;
 		}
 
 		uint32_t getAge() const {
-			return _.age;
+			return _1.age;
 		}
 
 	};

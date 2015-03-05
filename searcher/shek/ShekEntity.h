@@ -32,6 +32,8 @@ namespace sunfish {
 			bool blackTurn : SHEK_TURN_WIDTH;
 		} _;
 
+		static_assert(sizeof(_) == 8, "invalid struct size");
+
 	public:
 
 		void init(uint64_t invalidKey) {

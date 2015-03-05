@@ -26,13 +26,13 @@ namespace sunfish {
 
 		if (checkHash(newHash)) {
 			// 深さが劣るものは登録させない。
-			if (newDepth < (int)_.depth && _.age == newAge) {
+			if (newDepth < (int)_2.depth && _1.age == newAge) {
 				return false;
 			}
 		} else {
-			_.hash = TT_ENC_HASH(newHash);
-			_.move1 = Move::S16_EMPTY;
-			_.move2 = Move::S16_EMPTY;
+			_1.hash = TT_ENC_HASH(newHash);
+			_2.move1 = Move::S16_EMPTY;
+			_2.move2 = Move::S16_EMPTY;
 		}
 
 		if (newValue >= Value::Mate) {
@@ -58,16 +58,16 @@ namespace sunfish {
 		int32_t value = TT_ENC_VALUE(newValue);
 		assert(value >= 0);
 		assert(value < (1<<TT_VALUE_WIDTH));
-		_.value = value;
-		_.valueType = newValueType;
-		_.depth = (uint32_t)newDepth;
-		if (move != Move::S16_EMPTY && _.move1 != move) {
-			_.move2 = _.move1;
-			_.move1 = move;
-			assert(_.move1 != 0x8c11);
-			assert(_.move2 != 0x8c11);
+		_2.value = value;
+		_2.valueType = newValueType;
+		_2.depth = (uint32_t)newDepth;
+		if (move != Move::S16_EMPTY && _2.move1 != move) {
+			_2.move2 = _2.move1;
+			_2.move1 = move;
+			assert(_2.move1 != 0x8c11);
+			assert(_2.move2 != 0x8c11);
 		}
-		_.age = newAge;
+		_1.age = newAge;
 
 		return true;
 
@@ -79,25 +79,25 @@ namespace sunfish {
 		}
 
 		if (checkHash(newHash)) {
-			if (newDepth >= (int)_.depth || _.age != newAge) {
-				_.valueType = None;
-				_.depth = (uint32_t)newDepth;
+			if (newDepth >= (int)_2.depth || _1.age != newAge) {
+				_2.valueType = None;
+				_2.depth = (uint32_t)newDepth;
 			}
 		} else {
-			_.hash = TT_ENC_HASH(newHash);
-			_.move1 = Move::S16_EMPTY;
-			_.move2 = Move::S16_EMPTY;
-			_.valueType = None;
-			_.depth = (uint32_t)newDepth;
+			_1.hash = TT_ENC_HASH(newHash);
+			_2.move1 = Move::S16_EMPTY;
+			_2.move2 = Move::S16_EMPTY;
+			_2.valueType = None;
+			_2.depth = (uint32_t)newDepth;
 		}
 
-		if (move != Move::S16_EMPTY && _.move1 != move) {
-			_.move2 = _.move1;
-			_.move1 = move;
-			assert(_.move1 != 0x8c11);
-			assert(_.move2 != 0x8c11);
+		if (move != Move::S16_EMPTY && _2.move1 != move) {
+			_2.move2 = _2.move1;
+			_2.move1 = move;
+			assert(_2.move1 != 0x8c11);
+			assert(_2.move2 != 0x8c11);
 		}
-		_.age = newAge;
+		_1.age = newAge;
 	}
 
 	TTStatus TTEs::set(const TTE& entity) {
