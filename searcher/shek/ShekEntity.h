@@ -10,9 +10,9 @@
 #include "HandSet.h"
 #include <cstdint>
 
-#define SHEK_INDEX_WIDTH 18
+#define SHEK_INDEX_WIDTH 16
 
-#define SHEK_HASH_WIDTH  54
+#define SHEK_HASH_WIDTH  56
 #define SHEK_COUNT_WIDTH 5
 #define SHEK_TURN_WIDTH  1
 

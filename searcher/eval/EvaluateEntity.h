@@ -14,7 +14,7 @@ namespace sunfish {
 
 	class EvaluateEntity {
 	public:
-		static CONSTEXPR int KeyLength = 18;
+		static CONSTEXPR int KeyLength = 21;
 
 	private:
 		static CONSTEXPR int ValueInf = 1U << (KeyLength - 1);

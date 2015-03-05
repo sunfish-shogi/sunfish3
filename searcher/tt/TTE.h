@@ -10,7 +10,7 @@
 #include "core/def.h"
 #include <cassert>
 
-#define TT_INDEX_WIDTH 18
+#define TT_INDEX_WIDTH 20
 
 // 1st word
 #define TT_HASH_WIDTH  54

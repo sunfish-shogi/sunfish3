@@ -111,8 +111,8 @@ namespace sunfish {
 		}
 
 		// 縦と横
-		if (dir == Direction::Up || dir == Direction::Down ||
-				dir == Direction::Left || dir == Direction::Right) {
+		else if (dir == Direction::Up || dir == Direction::Down ||
+						 dir == Direction::Left || dir == Direction::Right) {
 			// 距離1
 			if (isFirst) {
 				auto from = (dir == Direction::Up ? to.up() :
