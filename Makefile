@@ -5,7 +5,7 @@ SOURCES:=$(shell find . -name "*.cpp")
 OBJECTS:=$(SOURCES:.cpp=.o)
 DEPENDS:=$(SOURCES:.cpp=.d)
 
-OPT:=-std=c++11 -DUNIX -Wall -W -msse2 -fno-rtti -I .
+OPT:=-std=c++11 -DUNIX -Wall -W -msse2 -fno-rtti -pthread -I .
 RELEASE_OPT:=-O2 -DNDEBUG -DNLEARN
 DEBUG_OPT:=-g -DNLEARN
 PROFILE_OPT:=-pg -DNLEARN
@@ -34,7 +34,7 @@ $(SUNFISH): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(LIBS) -o $@ $^
 
 .cpp.o:
-	$(CXX) $(CXXFLAGS) -pthread -o $@ -c $<
+	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 %.d: %.cpp
 	@$(SHELL) -c '$(CXX) -MM $(CXXFLAGS) $< | sed "s|^.*:|$*.o $@:|g" > $@; [ -s $@ ] || rm -f $@'
