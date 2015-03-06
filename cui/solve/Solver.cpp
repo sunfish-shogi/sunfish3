@@ -30,15 +30,16 @@ namespace sunfish {
 		}
 
 		double correctRatio = (double)_summary.correct / _summary.total;
+		double incorrectRatio = (double)_summary.incorrect / _summary.total;
+		double ignoreRatio = (double)_summary.ignore / _summary.total;
 
 		Loggers::message << "Complete!!";
 		Loggers::message << "";
 		Loggers::message << "Summary:";
-		Loggers::message << "  correct   : " << _summary.correct;
-		Loggers::message << "  correct(%): " << correctRatio * 100.0;
-		Loggers::message << "  incorrect : " << _summary.incorrect;
 		Loggers::message << "  total     : " << _summary.total;
-		Loggers::message << "  ignore    : " << _summary.ignore;
+		Loggers::message << "  correct   : " << _summary.correct << " (" << correctRatio * 100.0 << "%)";
+		Loggers::message << "  incorrect : " << _summary.incorrect << " (" << incorrectRatio * 100.0 << "%)";
+		Loggers::message << "  ignore    : " << _summary.ignore << " (" << ignoreRatio * 100.0 << "%)";
 	}
 
 	void Solver::solve(const std::string& problem) {
