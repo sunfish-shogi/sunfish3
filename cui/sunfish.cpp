@@ -103,7 +103,7 @@ int main(int argc, char** argv, char** /*envp*/) {
 #endif
 	}
 
-	ConsoleManager::Config config;
+	auto config = ConsoleManager::getDefaultConfig();
 
 	// 起動時に読み込む棋譜ファイル
 	if (po.has("in")) {
@@ -161,6 +161,9 @@ int main(int argc, char** argv, char** /*envp*/) {
 	return play(config);
 }
 
+/**
+ * コンソール上での対局を行います。
+ */
 int play(const ConsoleManager::Config& config) {
 
 	// init loggers

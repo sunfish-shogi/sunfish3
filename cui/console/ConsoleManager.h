@@ -62,8 +62,6 @@ namespace sunfish {
 		Command _prevCommand;
 		Config _config;
 
-		void initConfig();
-
 		void showHelp();
 
 		Command parseCommand(const char* str);
@@ -88,7 +86,7 @@ namespace sunfish {
 	public:
 
 		ConsoleManager() {
-			initConfig();
+			_config = getDefaultConfig();
 			_prevCommand = Command::Empty;
 		}
 		ConsoleManager(const ConsoleManager&) = delete;
@@ -142,6 +140,7 @@ namespace sunfish {
 		const Config& getConfig() const {
 			return _config;
 		}
+		static Config getDefaultConfig();
 		static Searcher::Config buildSearcherConfig(Searcher::Config searcherConfigOrg, const Config& config) {
 			Searcher::Config searcherConfig = std::move(searcherConfigOrg);
 			searcherConfig.maxDepth = config.maxDepth;

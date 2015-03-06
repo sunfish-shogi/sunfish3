@@ -48,16 +48,17 @@ namespace {
 namespace sunfish {
 
 	/**
-	 * 設定の初期化
+	 * デフォルト設定
 	 */
-	void ConsoleManager::initConfig() {
-		// default settings
-		_config.autoBlack = false;
-		_config.autoWhite = true;
-		_config.maxDepth = 15;
-		_config.limitSeconds = 3;
-		_config.inFileName = "";
-		_config.outFileName = "console.csa";
+	ConsoleManager::Config ConsoleManager::getDefaultConfig() {
+		Config config;
+		config.autoBlack = false;
+		config.autoWhite = true;
+		config.maxDepth = 15;
+		config.limitSeconds = 3;
+		config.inFileName = "";
+		config.outFileName = "console.csa";
+		return config;
 	}
 
 	/**
