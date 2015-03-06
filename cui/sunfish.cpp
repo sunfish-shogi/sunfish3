@@ -58,6 +58,10 @@ int main(int argc, char** argv, char** /*envp*/) {
 #endif
 	po.parse(argc, argv);
 
+	for (const auto& invalidArg : po.getInvalidArgs()) {
+		std::cerr << "WARNING: `" << invalidArg.arg << "' is invalid argument: " << invalidArg.reason << std::endl;
+	}
+
 	if (po.has("help")) {
 		// show help
 		std::cerr << po.help() << std::endl;

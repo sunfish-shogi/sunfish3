@@ -20,8 +20,14 @@ namespace sunfish {
 			std::string value;
 		};
 
+		struct InvalidArg {
+			std::string arg;
+			std::string reason;
+		};
+
 		std::vector<Option> _options;
 		std::vector<std::string> _stdArgs;
+		std::vector<InvalidArg> _invalidArgs;
 
 		void setValue(const char* key, const char* value) {
 			for (auto& option : _options) {
@@ -57,26 +63,45 @@ namespace sunfish {
 		}
 
 		void parse(int argc, char** argv) {
-			const char* key = nullptr;
+			const char* lastKeyFull = nullptr;
+			const char* lastKey = nullptr;
+
 			for (int i = 1; i <= argc; i++) {
 				bool isLast = (i == argc);
 				const char* arg = !isLast ? argv[i] : "";
+
 				if (arg[0] == '-') {
+					// option key
 					bool isFullSpell = (arg[1] == '-');
-					if (key != nullptr) {
-						setValue(key, "");
+					if (lastKey != nullptr) {
+						_invalidArgs.push_back({ lastKeyFull, "value is required" });
+						lastKey = nullptr;
 					}
-					key = &arg[isFullSpell?2:1];
-					auto opt = getOption(key);
-					if (opt == nullptr || !opt->arg) {
-						setValue(key, "");
-						key = nullptr;
+					lastKey = &arg[isFullSpell?2:1];
+					lastKeyFull = arg;
+					auto opt = getOption(lastKey);
+					if (opt == nullptr) {
+						_invalidArgs.push_back({ lastKeyFull, "unknown key name" });
+						lastKey = nullptr;
+					} else if (!opt->arg) {
+						setValue(lastKey, "");
+						lastKey = nullptr;
 					}
-				} else if (key != nullptr) {
-					setValue(key, arg);
-					key = nullptr;
+
+				} else if (lastKey != nullptr) {
+					// has last key
+					if (!isLast) {
+  					setValue(lastKey, arg);
+  					lastKey = nullptr;
+					} else {
+						_invalidArgs.push_back({ lastKeyFull, "value is required" });
+						lastKey = nullptr;
+					}
+
 				} else if (!isLast) {
+					// normal argument
 					_stdArgs.push_back(arg);
+
 				}
 			}
 		}
@@ -103,8 +128,12 @@ namespace sunfish {
 			return "";
 		}
 
-		const std::vector<std::string> getStdArgs() const {
+		const std::vector<std::string>& getStdArgs() const {
 			return _stdArgs;
+		}
+
+		const std::vector<InvalidArg>& getInvalidArgs() const {
+			return _invalidArgs;
 		}
 
 		std::string help() const {
