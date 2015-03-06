@@ -6,6 +6,7 @@
 #ifndef __SUNFISH_SOLVER__
 #define __SUNFISH_SOLVER__
 
+#include "../console/ConsoleManager.h"
 #include "searcher/Searcher.h"
 #include "core/record/Record.h"
 #include <vector>
@@ -74,6 +75,11 @@ namespace sunfish {
 
 		const Summary& getSummary() const {
 			return _summary;
+		}
+
+		void setConfig(const ConsoleManager::Config& config) {
+			auto searcherConfig = ConsoleManager::buildSearcherConfig(_searcher.getConfig(), config);
+			_searcher.setConfig(searcherConfig);
 		}
 
 	};

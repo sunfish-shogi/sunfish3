@@ -5,12 +5,13 @@
 
 #include "logger/Logger.h"
 #include "solve/Solver.h"
+#include "console/ConsoleManager.h"
 #include <vector>
 #include <fstream>
 
 using namespace sunfish;
 
-int solve(const std::vector<std::string>& problems) {
+int solve(const std::vector<std::string>& problems, const ConsoleManager::Config& config) {
 
 	// logger settings
 	std::ofstream fout("problem.log", std::ios::out);
@@ -30,6 +31,7 @@ int solve(const std::vector<std::string>& problems) {
 
 	Solver solver;
 	solver.setProblems(problems);
+	solver.setConfig(config);
 	solver.solve();
 
 	return solver.hasError() ? 1 : 0;

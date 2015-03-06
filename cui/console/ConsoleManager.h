@@ -39,11 +39,7 @@ namespace sunfish {
 	 * ConsoleManager
 	 */
 	class ConsoleManager {
-	private:
-
-		enum class CommandResult {
-			Quit, Changed, None
-		};
+	public:
 
 		struct Config {
 			bool autoBlack;
@@ -52,12 +48,19 @@ namespace sunfish {
 			int limitSeconds;
 			std::string inFileName;
 			std::string outFileName;
-		} _config;
+		};
+
+	private:
+
+		enum class CommandResult {
+			Quit, Changed, None
+		};
 
 		Searcher _searcher;
 		Book _book;
 		Record _record;
 		Command _prevCommand;
+		Config _config;
 
 		void initConfig();
 
@@ -131,6 +134,21 @@ namespace sunfish {
 		}
 		const std::string& getOutFileName() const {
 			return _config.outFileName;
+		}
+
+		void setConfig(Config config) {
+			_config = std::move(config);
+		}
+		const Config& getConfig() const {
+			return _config;
+		}
+		static Searcher::Config buildSearcherConfig(Searcher::Config searcherConfigOrg, const Config& config) {
+			Searcher::Config searcherConfig = std::move(searcherConfigOrg);
+			searcherConfig.maxDepth = config.maxDepth;
+			searcherConfig.limitSeconds = config.limitSeconds;
+			searcherConfig.treeSize = 1;
+			searcherConfig.wokerSize = 1;
+			return searcherConfig;
 		}
 
 		bool play();

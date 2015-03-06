@@ -14,6 +14,8 @@
 
 using namespace sunfish;
 
+int play(const ConsoleManager::Config&);
+
 // book
 int generateBook(const std::string& directory);
 
@@ -21,7 +23,7 @@ int generateBook(const std::string& directory);
 int network();
 
 // solve
-int solve(const std::vector<std::string>& problems);
+int solve(const std::vector<std::string>& problems, const ConsoleManager::Config&);
 
 // test.cpp
 int test();
@@ -74,9 +76,6 @@ int main(int argc, char** argv, char** /*envp*/) {
 	} else if (po.has("network")) {
 		return network();
 
-	} else if (po.has("problem")) {
-		return solve(po.getStdArgs());
-
 #ifndef NDEBUG
 	} else if (po.has("test")) {
 		// unit test
@@ -104,6 +103,66 @@ int main(int argc, char** argv, char** /*envp*/) {
 #endif
 	}
 
+	ConsoleManager::Config config;
+
+	// 起動時に読み込む棋譜ファイル
+	if (po.has("in")) {
+		config.inFileName = po.getValue("in");
+		config.autoBlack = false;
+		config.autoWhite = false;
+	}
+
+	// 自動保存する棋譜ファイル
+	if (po.has("out")) {
+		config.outFileName = po.getValue("out");
+	}
+
+	// 先手番自動対局 or マニュアル
+	if (po.has("black")) {
+		std::string value = po.getValue("black");
+		if (value == "auto") {
+			config.autoBlack = true;
+		} else if (value == "manual") {
+			config.autoBlack = false;
+		} else {
+			std::cerr << value << " is unknown value for --black option." << std::endl;
+		}
+	}
+
+	// 後手番自動対局 or マニュアル
+	if (po.has("white")) {
+		std::string value = po.getValue("white");
+		if (value == "auto") {
+			config.autoWhite = true;
+		} else if (value == "manual") {
+			config.autoWhite = false;
+		} else {
+			std::cerr << value << " is unknown value for --white option." << std::endl;
+		}
+	}
+
+	// 最大探索深さ
+	if (po.has("depth")) {
+		int depth = std::stoi(po.getValue("depth"));
+		config.maxDepth = depth;
+	}
+
+	// 最大思考時間
+	if (po.has("time")) {
+		int time = std::stoi(po.getValue("time"));
+		config.limitSeconds = time;
+	}
+
+	if (po.has("problem")) {
+		// 問題解答
+		return solve(po.getStdArgs(), config);
+	}
+
+	return play(config);
+}
+
+int play(const ConsoleManager::Config& config) {
+
 	// init loggers
 	Loggers::error.addStream(std::cerr, "\x1b[31m", "\x1b[39m");
 	Loggers::warning.addStream(std::cerr, "\x1b[33m", "\x1b[39m");
@@ -117,54 +176,7 @@ int main(int argc, char** argv, char** /*envp*/) {
 #endif
 
 	ConsoleManager console;
-
-	// 起動時に読み込む棋譜ファイル
-	if (po.has("in")) {
-		console.setInFileName(po.getValue("in"));
-		console.setAutoBlack(false);
-		console.setAutoWhite(false);
-	}
-
-	// 自動保存する棋譜ファイル
-	if (po.has("out")) {
-		console.setOutFileName(po.getValue("out"));
-	}
-
-	// 先手番自動対局 or マニュアル
-	if (po.has("black")) {
-		std::string value = po.getValue("black");
-		if (value == "auto") {
-			console.setAutoBlack(true);
-		} else if (value == "manual") {
-			console.setAutoBlack(false);
-		} else {
-			Loggers::warning << value << " is unknown value for --black option.";
-		}
-	}
-
-	// 後手番自動対局 or マニュアル
-	if (po.has("white")) {
-		std::string value = po.getValue("white");
-		if (value == "auto") {
-			console.setAutoWhite(true);
-		} else if (value == "manual") {
-			console.setAutoWhite(false);
-		} else {
-			Loggers::warning << value << " is unknown value for --white option.";
-		}
-	}
-
-    // 最大探索深さ
-	if (po.has("depth")) {
-		int depth = std::stoi(po.getValue("depth"));
-		console.setMaxDepth(depth);
-	}
-
-    // 最大思考時間
-    if (po.has("time")) {
-        int time = std::stoi(po.getValue("time"));
-        console.setLimitSeconds(time);
-    }
+	console.setConfig(config);
 
 	bool ok = console.play();
 

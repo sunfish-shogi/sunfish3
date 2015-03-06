@@ -16,13 +16,6 @@ namespace sunfish {
 	}
 
 	void Solver::solve() {
-		auto searchConfig = _searcher.getConfig();
-		searchConfig.maxDepth = 10;
-		searchConfig.limitSeconds = 1;
-		searchConfig.treeSize = 1;
-		searchConfig.wokerSize = 1;
-		_searcher.setConfig(searchConfig);
-
 		_searcher.init();
 
 		for (const auto& problem : _problems) {

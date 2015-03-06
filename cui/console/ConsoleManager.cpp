@@ -488,12 +488,8 @@ namespace sunfish {
 			CsaReader::read(_config.inFileName, _record);
 		}
 
-		auto searchConfig = _searcher.getConfig();
-		searchConfig.maxDepth = _config.maxDepth;
-		searchConfig.limitSeconds = _config.limitSeconds;
-		searchConfig.treeSize = 1;
-		searchConfig.wokerSize = 1;
-		_searcher.setConfig(searchConfig);
+		auto searcherConfig = buildSearcherConfig(_searcher.getConfig(), _config);
+		_searcher.setConfig(searcherConfig);
 		_searcher.init();
 
 		printBoard(_record.getBoard());
