@@ -45,7 +45,7 @@ namespace sunfish {
 		const BookMoves getMoves() const {
 			return _moves;
 		}
-		BookResult selectRandom(uint64_t hash, Random& random) const;
+		BookResult selectRandom(Random& random) const;
 		template <class Filter>
 		void filter(Filter filterFunc) {
 			for (auto ite = _moves.begin(); ite != _moves.end(); ) {

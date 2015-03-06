@@ -24,7 +24,7 @@ namespace sunfish {
 		return true;
 	}
 
-	BookResult BookElement::selectRandom(uint64_t hash, Random& random) const {
+	BookResult BookElement::selectRandom(Random& random) const {
 		assert(_count != 0);
 		if (_count == 0) {
 			return BookResult{ Move::empty(), 0, 0 };
@@ -70,7 +70,7 @@ namespace sunfish {
 		auto ite = _map.find(hash);
 
 		if (ite != _map.end()) {
-			return ite->second.selectRandom(hash, random);
+			return ite->second.selectRandom(random);
 		}
 
 		return BookResult{ Move::empty(), 0, 0 };

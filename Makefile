@@ -1,41 +1,45 @@
-GPP:=g++
-GCC:=gcc
 RM:=rm
 
-PROGRAM:=sunfish
+SUNFISH:=sunfish
 SOURCES:=$(shell find . -name "*.cpp")
 OBJECTS:=$(SOURCES:.cpp=.o)
 DEPENDS:=$(SOURCES:.cpp=.d)
 
-override CFLAGS+=-std=c++11
-override CFLAGS+=-DPOSIX
-override CFLAGS+=-Wall
-override CFLAGS+=-W
-override CFLAGS+=-O2
-#override CFLAGS+=-O3
-override CFLAGS+=-DNDEBUG
-override CFLAGS+=-DNLEARN
-override CFLAGS+=-I .
-#override CFLAGS+=-g
-#override CFLAGS+=-pg
-override CFLAGS+=-msse2
-override CFLAGS+=-pthread
-override LIBS+=-lrt
+OPT:=-std=c++11 -DUNIX -Wall -W -msse2 -fno-rtti -I .
+RELEASE_OPT:=-O2 -DNDEBUG -DNLEARN
+DEBUG_OPT:=-g -DNLEARN
+PROFILE_OPT:=-pg -DNLEARN
+LEARN_OPT:=-O2 -DNDEBUG
 
-.PHONY: all pgo
+override CXXFLAGS+=$(OPT)
 
-all: $(PROGRAM)
+.PHONY: release release-pgo debug profile learn clean
 
-$(PROGRAM): $(OBJECTS)
-	$(GPP) -o $(PROGRAM) $(CFLAGS) $^ $(LIBS)
+release:
+	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(RELEASE_OPT)' $(SUNFISH)
+
+release-pgo:
+# TODO
+
+debug:
+	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(DEBUG_OPT)' $(SUNFISH)
+
+profile:
+	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(PROFILE_OPT)' $(SUNFISH)
+
+learn:
+	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(LEARN_OPT)' $(SUNFISH)
+
+$(SUNFISH): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(LIBS) -o $@ $^
 
 .cpp.o:
-	$(GPP) $(CFLAGS) -o $@ -c $<
+	$(CXX) $(CXXFLAGS) -pthread -o $@ -c $<
 
 %.d: %.cpp
-	@$(SHELL) -c '$(CC) -MM $(CFLAGS) $< | sed "s|^.*:|$*.o $@:|g" > $@; [ -s $@ ] || rm -f $@'
+	@$(SHELL) -c '$(CXX) -MM $(CXXFLAGS) $< | sed "s|^.*:|$*.o $@:|g" > $@; [ -s $@ ] || rm -f $@'
 
 clean:
-	$(RM) $(PROGRAM) $(OBJECTS) $(DEPENDS)
+	$(RM) $(SUNFISH) $(OBJECTS) $(DEPENDS)
 
 -include $(DEPENDS)

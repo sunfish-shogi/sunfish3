@@ -28,14 +28,21 @@ namespace sunfish {
 		if (-1 == (_sock = socket(AF_INET, SOCK_STREAM, 0))) {
 			return false;
 		}
-#ifdef POSIX
+#ifdef UNIX
 		// keep-alive
 		if (0 != setsockopt(_sock, SOL_SOCKET, SO_KEEPALIVE,
 				(void*)&_keepalive, sizeof(_keepalive))) {
 		}
+# ifdef BSD
+		int keepon = _keepidle != 0 ? 1 : 0;
+		if (0 != setsockopt(_sock, SOL_SOCKET,  SO_KEEPALIVE,
+				(void*)&keepon, sizeof(keepon))) {
+		}
+# else
 		if (0 != setsockopt(_sock, IPPROTO_TCP, TCP_KEEPIDLE,
 				(void*)&_keepidle, sizeof(_keepidle))) {
 		}
+# endif
 		if (0 != setsockopt(_sock, IPPROTO_TCP, TCP_KEEPINTVL,
 				(void*)&_keepintvl, sizeof(_keepintvl))) {
 		}

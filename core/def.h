@@ -13,8 +13,8 @@
 # endif
 // gcc family
 #elif defined(__GNUC__) && ( defined(__i386__) || defined(__x86_64__) ) && !defined(__MINGW32__)
-# ifndef POSIX
-#  define POSIX 1
+# ifndef UNIX
+#  define UNIX 1
 # endif
 // unknown
 #else

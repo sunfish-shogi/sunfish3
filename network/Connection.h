@@ -5,6 +5,8 @@
 #ifndef __SUNFISH_CONNECTION__
 #define __SUNFISH_CONNECTION__
 
+#include "core/def.h"
+
 #if WIN32
 # include "windows.h" // Fix for C2146
 #endif
@@ -24,6 +26,7 @@
 #	include <sched.h>
 #	include <sys/types.h>
 #	include <sys/socket.h>
+# include <sys/param.h>
 #	include <netinet/in.h>
 #	include <netinet/tcp.h>
 #	include <netdb.h>
