@@ -39,6 +39,8 @@ namespace sunfish {
 		{ std::regex("^#TIME_UP$"), RECV_TIME_UP, NULL, "time up" },
 		{ std::regex("^#RESIGN$"), RECV_RESIGN, NULL, "resign" },
 		{ std::regex("^#JISHOGI$"), RECV_JISHOGI, NULL, "jishogi" },
+		{ std::regex("^#MAX_MOVES$"), RECV_MAX_MOVE, NULL, "max move" },
+		{ std::regex("^#CENSORED$"), RECV_CENSORED, NULL, "censored" },
 	};
 
 	/**

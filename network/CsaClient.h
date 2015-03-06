@@ -55,19 +55,17 @@ namespace sunfish {
 			RECV_TIME_UP   = 0x010000,
 			RECV_RESIGN    = 0x020000,
 			RECV_JISHOGI   = 0x040000,
+			RECV_MAX_MOVE  = 0x080000,
+			RECV_CENSORED  = 0x100000,
 
 			RECV_WIN_LOSE  = RECV_WIN | RECV_LOSE, // CSA将棋付属の簡易サーバ用
 
 			RECV_END_MSK   = RECV_WIN | RECV_LOSE
-					| RECV_DRAW | RECV_INTERRUPT
-					//| RECV_REPEAT | RECV_CHECK_REP
-					//| RECV_ILLEGAL | RECV_TIME_UP
-					//| RECV_RESIGN | RECV_JISHOGI
-					,
+					| RECV_DRAW | RECV_INTERRUPT | RECV_CENSORED,
 
 			RECV_ERROR     = 0x800000,
 
-			RECV_NUM       = 20,
+			RECV_NUM       = 22,
 		};
 
 		struct RECV_DATA {
