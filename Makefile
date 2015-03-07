@@ -15,6 +15,15 @@ override CXXFLAGS+=$(OPT)
 
 .PHONY: release release-pgo debug profile learn clean
 
+help:
+	@echo 'usage:'
+	@echo '  make release'
+	@echo '  make release-pgo'
+	@echo '  make debug'
+	@echo '  make profile'
+	@echo '  make learn'
+	@echo '  make clean'
+
 release:
 	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(RELEASE_OPT)' $(SUNFISH)
 
