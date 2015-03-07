@@ -6,7 +6,7 @@
 #define __SUNFISH_CSACLIENT__
 
 #include "RemainingTime.h"
-#include "CsaClientConfig.h"
+#include "config/Config.h"
 #include "Connection.h"
 #include "logger/Logger.h"
 #include "core/record/Record.h"
@@ -96,7 +96,7 @@ namespace sunfish {
 		const char* _configFilename;
 
 		/** 通信設定 */
-		CsaClientConfig _config;
+		Config _config;
 
 		/** 探索設定 */
 		Searcher::Config _searchConfigBase;
@@ -247,14 +247,10 @@ namespace sunfish {
 	public:
 		static const char* DEFAULT_CONFIG_FILE;
 
-		CsaClient() {
-			_configFilename = DEFAULT_CONFIG_FILE;
-		}
+		CsaClient();
 		CsaClient(const CsaClient&) = delete;
 		CsaClient(CsaClient&&) = delete;
-
-		~CsaClient() {
-		}
+		~CsaClient() = default;
 
 		void setConfigFile(const char* filename) {
 			_configFilename = filename;

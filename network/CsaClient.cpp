@@ -14,9 +14,47 @@
 
 #define WARN_IGNORED(key, value) Loggers::warning << __THIS__ << ": not supported: key=[" << (key) << "] value=[" << (value) << "]"
 
+#define CONF_HOST      "host"
+#define CONF_PORT      "port"
+#define CONF_USER      "user"
+#define CONF_PASS      "pass"
+#define CONF_DEPTH     "depth"
+#define CONF_LIMIT     "limit"
+#define CONF_REPEAT    "repeat"
+#define CONF_WORKER    "worker"
+#define CONF_PONDER    "ponder"
+#define CONF_KEEPALIVE "keepalive"
+#define CONF_KEEPIDLE  "keepidle"
+#define CONF_KEEPINTVL "keepintvl"
+#define CONF_KEEPCNT   "keepcnt"
+#define CONF_FLOODGATE "floodgate"
+#define CONF_KIFU      "kifu"
+#define CONF_MONITOR   "monitor"
+
 namespace sunfish {
 
 	const char* CsaClient::DEFAULT_CONFIG_FILE = "network.conf";
+
+	CsaClient::CsaClient() {
+		_configFilename = DEFAULT_CONFIG_FILE;
+
+		_config.addDef(CONF_HOST, "localhost");
+		_config.addDef(CONF_PORT, "4081");
+		_config.addDef(CONF_USER, "test");
+		_config.addDef(CONF_PASS, "");
+		_config.addDef(CONF_DEPTH, "32");
+		_config.addDef(CONF_LIMIT, "10");
+		_config.addDef(CONF_REPEAT, "1");
+		_config.addDef(CONF_WORKER, "1");
+		_config.addDef(CONF_PONDER, "1");
+		_config.addDef(CONF_KEEPALIVE, "1");
+		_config.addDef(CONF_KEEPIDLE, "120");
+		_config.addDef(CONF_KEEPINTVL, "60");
+		_config.addDef(CONF_KEEPCNT, "10");
+		_config.addDef(CONF_FLOODGATE, "0");
+		_config.addDef(CONF_KIFU, "Kifu");
+		_config.addDef(CONF_MONITOR, "");
+	}
 
 	const CsaClient::ReceiveFlagSet CsaClient::FlagSets[RECV_NUM] = {
 		{ std::regex("^LOGIN:.* OK$"), RECV_LOGIN_OK, NULL, NULL },
@@ -54,16 +92,17 @@ namespace sunfish {
 		Loggers::message << _config.toString();
 
 		// 通信設定
-		_con.setHost(_config.getHost());
-		_con.setPort(_config.getPort());
-		_con.setKeepalive(_config.getKeepalive(), _config.getKeepidle(),
-		_config.getKeepintvl(), _config.getKeepcnt());
+		_con.setHost(_config.getString(CONF_HOST));
+		_con.setPort(_config.getInt(CONF_PORT));
+		_con.setKeepalive(_config.getInt(CONF_KEEPALIVE), _config.getInt(CONF_KEEPIDLE),
+		_config.getInt(CONF_KEEPINTVL), _config.getInt(CONF_KEEPCNT));
 
 		// 定跡読み込み
 		_book.readFile();
 
 		// 連続対局
-		for (int i = 0; i < _config.getRepeat(); i++) {
+		int repeatCount = _config.getInt(CONF_REPEAT);
+		for (int i = 0; i < repeatCount; i++) {
 			bool noError = game();
 			if (!noError) {
 				return false;
@@ -79,8 +118,8 @@ namespace sunfish {
 	bool CsaClient::game() {
 		// 接続を確立
 		if (!_con.connect()) {
-			Loggers::error << "ERROR: can not connect to " << _config.getHost()
-					<< ':' << _config.getPort();
+			Loggers::error << "ERROR: can not connect to " << _config.getString(CONF_HOST)
+					<< ':' << _config.getInt(CONF_PORT);
 			return false;
 		}
 
@@ -114,9 +153,9 @@ namespace sunfish {
 
 			// 探索設定
 			_searchConfigBase = _searcher.getConfig();
-			_searchConfigBase.maxDepth = _config.getDepth();
-			_searchConfigBase.limitEnable = _config.getLimit() != 0;
-			_searchConfigBase.limitSeconds = _config.getLimit();
+			_searchConfigBase.maxDepth = _config.getInt(CONF_DEPTH);
+			_searchConfigBase.limitEnable = _config.getInt(CONF_LIMIT) != 0;
+			_searchConfigBase.limitSeconds = _config.getInt(CONF_LIMIT);
 
 			// 残り時間の初期化
 			_blackTime.init(_gameSummary.totalTime, _gameSummary.readoff);
@@ -146,9 +185,10 @@ lab_end:
 	 * 対局を進める
 	 */
 	bool CsaClient::nextTurn() {
-		if (!_config.getMonitor().empty()) {
+		std::string monitor = _config.getString(CONF_MONITOR);
+		if (!monitor.empty()) {
 			RecordInfo info = getRecordInfo();
-			CsaWriter::write(_config.getMonitor(), _record, &info);
+			CsaWriter::write(monitor, _record, &info);
 		}
 
 		// 残り時間を表示
@@ -241,11 +281,17 @@ lab_end:
 	 * 相手の手番
 	 */
 	bool CsaClient::enemyTurn() {
+		bool enablePonder = _config.getBool(CONF_PONDER);
+
+		std::thread ponderThread;
+
 		// 相手番中の思考開始
-		_ponderCompleted = false;
-		std::thread th([this]() {
-			ponder();
-		});
+		if (enablePonder) {
+			_ponderCompleted = false;
+			ponderThread = std::thread([this]() {
+				ponder();
+			});
+		}
 
 		// 相手番の指し手を受信
 		std::string recvStr;
@@ -253,13 +299,15 @@ lab_end:
 		unsigned flags = waitReceive(mask | RECV_END_MSK, &recvStr);
 
 		// 探索が開始されていることを確認
-		while (!_searcher.isRunning() && !_ponderCompleted) {
-			std::this_thread::yield();
-		}
+		if (enablePonder) {
+			while (!_searcher.isRunning() && !_ponderCompleted) {
+				std::this_thread::yield();
+			}
 
-		// 相手番中の思考終了
-		_searcher.forceInterrupt();
-		th.join();
+			// 相手番中の思考終了
+			_searcher.forceInterrupt();
+			ponderThread.join();
+		}
 
 		if (flags & mask) {
 			// 受信した指し手の読み込み
@@ -332,7 +380,7 @@ lab_end:
 
 	bool CsaClient::login() {
 		std::ostringstream os;
-		os << "LOGIN " << _config.getUser() << ' ' << _config.getPass();
+		os << "LOGIN " << _config.getString(CONF_USER) << ' ' << _config.getString(CONF_PASS);
 		if (!send(os.str().c_str())) { return false; }
 		unsigned response = waitReceive(RECV_LOGIN_MSK);
 		return (response & RECV_LOGIN_OK) != 0U;
@@ -358,7 +406,7 @@ lab_end:
 	bool CsaClient::sendMove(const MyMove& myMove, bool black, std::string* str) {
 		std::ostringstream oss;
 		oss << myMove.move.toStringCsa(black);
-		if (_config.getFloodgate()) {
+		if (_config.getBool(CONF_FLOODGATE)) {
 			// 評価値
 			int sign = _gameSummary.black ? 1 : -1;
 			oss << ",\'* " << (myMove.value * sign).int32();
@@ -619,7 +667,7 @@ lab_end:
 
 		// 棋譜の保存
 		std::ostringstream path;
-		path << _config.getKifu();
+		path << _config.getString(CONF_KIFU);
 		path << _gameSummary.gameId << ".csa";
 		RecordInfo info = getRecordInfo();
 		CsaWriter::write(path.str().c_str(), _record, &info);

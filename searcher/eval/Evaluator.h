@@ -195,7 +195,7 @@ namespace sunfish {
 
 		Evaluator();
 
-		virtual ~Evaluator();
+		~Evaluator();
 
 		/**
 		 * ファイルからパラメータを読み込みます。

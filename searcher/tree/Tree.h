@@ -65,7 +65,7 @@ namespace sunfish {
 		Tree() : _ply(0) {
 		}
 
-		virtual ~Tree() {
+		~Tree() {
 		}
 
 		void init(const Board& board, Evaluator& eval) {

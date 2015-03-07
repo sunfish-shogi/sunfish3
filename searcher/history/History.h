@@ -57,7 +57,7 @@ namespace sunfish {
 			assert(hist != NULL);
 		}
 
-		virtual ~History() {
+		~History() {
 			delete[] hist;
 		}
 

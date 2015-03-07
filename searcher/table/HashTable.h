@@ -7,6 +7,7 @@
 #define __SUNFISH_HASHTABLE__
 
 #include "core/def.h"
+#include <cstdint>
 
 namespace sunfish {
 
@@ -48,7 +49,7 @@ namespace sunfish {
 		HashTable(const HashTable&) = delete;
 		HashTable(HashTable&&) = delete;
 
-		virtual ~HashTable() {
+		~HashTable() {
 			delete [] _table;
 		}
 
