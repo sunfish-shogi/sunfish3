@@ -8,7 +8,7 @@ DEPENDS:=$(SOURCES:.cpp=.d)
 OPT:=-std=c++11 -DUNIX -Wall -W -msse2 -fno-rtti -pthread -I .
 RELEASE_OPT:=-O2 -DNDEBUG -DNLEARN
 DEBUG_OPT:=-g -DNLEARN
-PROFILE_OPT:=-pg -DNLEARN
+PROFILE_OPT:=-pg -O2 -DNDEBUG -DNLEARN
 LEARN_OPT:=-O2 -DNDEBUG
 
 override CXXFLAGS+=$(OPT)
