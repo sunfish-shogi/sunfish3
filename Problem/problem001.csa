@@ -1,0 +1,16 @@
+N+gps500
+N-Sunfish3
+$EVENT:wdoor+floodgate-600-10+gps500+Sunfish3+20150304190003
+P1-KY-HI *  *  *  *  * -KE-OU
+P2 *  *  *  *  *  * -KI-GI-KY
+P3 *  * +KA * -GI-KI * -FU-FU
+P4 * -FU-FU-FU *  * -FU *  * 
+P5-FU-KE *  * +GI+FU * +FU+FU
+P6 * +GI+FU+FU *  * +FU *  * 
+P7+FU+FU * +KI * -FU+KE *  * 
+P8 * +OU+KI *  *  *  * +HI * 
+P9+KY+KE *  *  * -KA *  * +KY
+P+00FU
+P-00FU
+-
+-0054FU

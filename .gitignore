@@ -2,12 +2,13 @@ sunfish
 sunfish-debug
 evdata
 Kifu
+*.csa
+!Problem/*.csa
 *.out
 *.d
 *.o
 *.log
 *~
-*.csa
 *.csv
 *.bin
 *.txt
