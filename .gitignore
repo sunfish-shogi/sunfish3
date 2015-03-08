@@ -7,6 +7,7 @@ Kifu
 *.out
 *.d
 *.o
+*.gcda
 *.log
 *~
 *.csv

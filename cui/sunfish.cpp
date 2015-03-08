@@ -16,14 +16,17 @@ using namespace sunfish;
 
 int play(const ConsoleManager::Config&);
 
-// book
+// book.cpp
 int generateBook(const std::string& directory);
 
-// network
+// network.cpp
 int network();
 
-// solve
+// solve.cpp
 int solve(const std::vector<std::string>& problems, const ConsoleManager::Config&);
+
+// profile.cpp
+int profile(const ConsoleManager::Config&);
 
 // test.cpp
 int test();
@@ -53,11 +56,12 @@ int main(int argc, char** argv, char** /*envp*/) {
 	po.addOption("book", "generate book", true);
 	po.addOption("network", "n", "network mode");
 	po.addOption("problem", "p", "solve problems");
-	po.addOption("help", "h", "show this help.");
+	po.addOption("profile", "solve problems");
 #ifndef NDEBUG
 	po.addOption("test", "unit test");
 	po.addOption("dev", "development method", true);
 #endif
+	po.addOption("help", "h", "show this help.");
 	po.parse(argc, argv);
 
 	for (const auto& invalidArg : po.getInvalidArgs()) {
@@ -156,6 +160,11 @@ int main(int argc, char** argv, char** /*envp*/) {
 	if (po.has("problem")) {
 		// 問題解答
 		return solve(po.getStdArgs(), config);
+	}
+
+	if (po.has("profile")) {
+		// profiling
+		return profile(config);
 	}
 
 	return play(config);

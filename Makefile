@@ -13,7 +13,7 @@ LEARN_OPT:=-O2 -DNDEBUG
 
 override CXXFLAGS+=$(OPT)
 
-.PHONY: release release-pgo debug profile learn clean
+.PHONY: release release-pgo debug profile learn clean run-prof
 
 help:
 	@echo 'usage:'
@@ -28,7 +28,9 @@ release:
 	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(RELEASE_OPT)' $(SUNFISH)
 
 release-pgo:
-# TODO
+	$(MAKE) clean; $(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(RELEASE_OPT) -fprofile-generate' $(SUNFISH)
+	$(MAKE) run-prof
+	$(MAKE) clean; $(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(RELEASE_OPT) -fprofile-use' $(SUNFISH)
 
 debug:
 	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(DEBUG_OPT)' $(SUNFISH)
@@ -50,5 +52,8 @@ $(SUNFISH): $(OBJECTS)
 
 clean:
 	$(RM) $(SUNFISH) $(OBJECTS) $(DEPENDS)
+
+run-prof:
+	@./$(SUNFISH) --profile -d 30 -t 10
 
 -include $(DEPENDS)
