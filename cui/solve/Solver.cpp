@@ -55,7 +55,11 @@ namespace sunfish {
 			return;
 		}
 
-		while (_record.unmakeMove())
+		// 序盤30手を飛ばす
+		int size = (int)_record.getTotalCount();
+		int startPos = std::max(0, std::min(30, size-30));
+
+		while (_record.getCount() > startPos && _record.unmakeMove())
 			;
 
 		while (true) {
