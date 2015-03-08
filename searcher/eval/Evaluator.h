@@ -49,8 +49,13 @@ namespace sunfish {
 	class Evaluator {
 	public:
 
-		enum {
+		enum class InitType : int {
+			File,
+			Zero,
+			Random,
+		};
 
+		enum {
 			KPP_HBPAWN   = 0,
 			KPP_HWPAWN   = KPP_HBPAWN   + 19,
 			KPP_HBLANCE  = KPP_HWPAWN   + 19,
@@ -105,7 +110,6 @@ namespace sunfish {
 			KKP_BDRAGON = KKP_BROOK   + 81,
 			KKP_MAX     = KKP_BDRAGON + 81,
 			KKP_ALL     = 81 * 81 * KKP_MAX,
-
 		};
 
 		struct Table {
@@ -146,6 +150,12 @@ namespace sunfish {
 		Table* _t;
 
 		EvaluateTable _hashTable;
+
+		void alloc();
+		void free();
+		void initMaterial();
+		void initPositional();
+		void initPositionalRandom();
 
 		std::shared_ptr<Table> readFvBin();
 
@@ -193,7 +203,7 @@ namespace sunfish {
 
 	public:
 
-		Evaluator();
+		Evaluator(InitType initType = InitType::File);
 
 		~Evaluator();
 

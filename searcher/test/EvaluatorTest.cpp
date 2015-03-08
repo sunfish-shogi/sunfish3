@@ -1,4 +1,4 @@
-/* Evaluator.cpp
+/* EvaluatorTest.cpp
  *
  * Kubo Ryosuke
  */
@@ -11,9 +11,9 @@
 
 using namespace sunfish;
 
-TEST(SeeTest, testEvaluateDiff) {
+TEST(EvaluatorTest, testEvaluateDiff) {
 
-	Evaluator eval;
+	Evaluator eval(Evaluator::InitType::Random);
 
 	{
 		// 盤上の駒を動かす先手の手
@@ -33,7 +33,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		std::istringstream iss(src);
 		Board board;
 		CsaReader::readBoard(iss, board);
-		Move move(Piece::BPawn, P27, P26, false);
+		Move move(Piece::Pawn, P27, P26, false);
 
 		auto prevValuePair = eval.evaluate(board);
 		board.makeMove(move);
@@ -62,7 +62,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		std::istringstream iss(src);
 		Board board;
 		CsaReader::readBoard(iss, board);
-		Move move(Piece::BPawn, P87);
+		Move move(Piece::Pawn, P87);
 
 		auto prevValuePair = eval.evaluate(board);
 		board.makeMove(move);
@@ -91,7 +91,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		std::istringstream iss(src);
 		Board board;
 		CsaReader::readBoard(iss, board);
-		Move move(Piece::BRook, P28, P24, false);
+		Move move(Piece::Rook, P28, P24, false);
 
 		auto prevValuePair = eval.evaluate(board);
 		board.makeMove(move);
@@ -120,7 +120,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		std::istringstream iss(src);
 		Board board;
 		CsaReader::readBoard(iss, board);
-		Move move(Piece::BPawn, P74, P73, true);
+		Move move(Piece::Pawn, P74, P73, true);
 
 		auto prevValuePair = eval.evaluate(board);
 		board.makeMove(move);
@@ -149,7 +149,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		std::istringstream iss(src);
 		Board board;
 		CsaReader::readBoard(iss, board);
-		Move move(Piece::BDragon, P87, P84, false);
+		Move move(Piece::Dragon, P87, P84, false);
 
 		auto prevValuePair = eval.evaluate(board);
 		board.makeMove(move);
@@ -178,7 +178,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		std::istringstream iss(src);
 		Board board;
 		CsaReader::readBoard(iss, board);
-		Move move(Piece::BBishop, P65);
+		Move move(Piece::Bishop, P65);
 
 		auto prevValuePair = eval.evaluate(board);
 		board.makeMove(move);
@@ -207,7 +207,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		std::istringstream iss(src);
 		Board board;
 		CsaReader::readBoard(iss, board);
-		Move move(Piece::BKnight, P45, P57, false);
+		Move move(Piece::Knight, P45, P57, false);
 
 		auto prevValuePair = eval.evaluate(board);
 		board.makeMove(move);
@@ -236,7 +236,7 @@ TEST(SeeTest, testEvaluateDiff) {
 		std::istringstream iss(src);
 		Board board;
 		CsaReader::readBoard(iss, board);
-		Move move(Piece::BRook, P22, P28, true);
+		Move move(Piece::Rook, P22, P28, true);
 
 		auto prevValuePair = eval.evaluate(board);
 		board.makeMove(move);
@@ -245,6 +245,54 @@ TEST(SeeTest, testEvaluateDiff) {
 
 		ASSERT_EQ(correctValuePair.material().int32(), valuePair.material().int32());
 		ASSERT_EQ(correctValuePair.positional().int32(), valuePair.positional().int32());
+	}
+
+}
+
+TEST(EvaluatorTest, testEstimate) {
+
+	Evaluator eval(Evaluator::InitType::Zero);
+
+	{
+		std::string src =
+"P1-KY-KE-GI-KI-OU-KI-GI * -KY\n"
+"P2 *  *  *  *  *  *  * -HI * \n"
+"P3-FU-FU-FU-FU-FU+UM * -FU-FU\n"
+"P4 *  *  *  *  *  * -FU *  * \n"
+"P5 *  *  *  *  * -KE * +FU * \n"
+"P6 *  * +FU *  *  *  *  *  * \n"
+"P7+FU+FU * +FU+FU+FU+FU * +FU\n"
+"P8 *  *  *  *  *  *  * +HI * \n"
+"P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n"
+"P+00FU\n"
+"P-00KA\n"
+"-\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		// 57桂不成
+		Move move(Piece::Knight, P45, P57, false);
+		Value value = eval.estimate(board, move);
+		ASSERT_EQ(value.int32(), eval.table().pawnEx + 800);
+
+		// 57桂成
+		move = Move(Piece::Knight, P45, P57, true);
+		value = eval.estimate(board, move);
+		ASSERT_EQ(value.int32(),
+				eval.table().pawnEx
+				+ eval.table().pro_knight
+				- eval.table().knight + 800);
+
+		// 55角
+		move = Move(Piece::Bishop, P55);
+		value = eval.estimate(board, move);
+		ASSERT_EQ(value.int32(), 800);
+
+		// 62玉
+		move = Move(Piece::King, P51, P62, false);
+		value = eval.estimate(board, move);
+		ASSERT_EQ(value.int32(), 1000);
 	}
 
 }

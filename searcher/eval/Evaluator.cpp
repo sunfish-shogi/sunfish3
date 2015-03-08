@@ -4,6 +4,7 @@
  */
 
 #include "Evaluator.h"
+#include "core/util/Random.h"
 #include "logger/Logger.h"
 #include <fstream>
 #include <cstdlib>
@@ -109,13 +110,52 @@ namespace {
 
 namespace sunfish {
 
-	Evaluator::Evaluator() : _t(nullptr) {
+	Evaluator::Evaluator(InitType initType /*= InitType::File*/) : _t(nullptr) {
+		alloc();
+
+		initMaterial();
+
+		switch (initType) {
+		case InitType::File:
+			initPositional();
+			if (!readFile()) {
+				if (convertFromFvBin()) {
+					writeFile();
+				}
+			}
+			break;
+
+		case InitType::Zero:
+			initPositional();
+			break;
+
+		case InitType::Random:
+			initPositionalRandom();
+			break;
+
+		default:
+			assert(false);
+			break;
+		}
+	}
+
+	Evaluator::~Evaluator() {
+		free();
+	}
+
+	void Evaluator::alloc() {
 		_t = new Table();
-
 		assert(_t != nullptr);
+	}
 
-		memset(_t, 0, sizeof(*_t));
+	void Evaluator::free() {
+		if (_t != nullptr) {
+			delete _t;
+			_t = nullptr;
+		}
+	}
 
+	void Evaluator::initMaterial() {
 		_t->pawn = 100;
 		_t->lance = 300;
 		_t->knight = 400;
@@ -143,17 +183,20 @@ namespace sunfish {
 		_t->pro_silverEx = _t->pro_silver + _t->silver;
 		_t->horseEx = _t->horse + _t->bishop;
 		_t->dragonEx = _t->dragon + _t->rook;
-
-		if (!readFile()) {
-			if (convertFromFvBin()) {
-				writeFile();
-			}
-		}
 	}
 
-	Evaluator::~Evaluator() {
-		if (_t != nullptr) {
-			delete _t;
+	void Evaluator::initPositional() {
+		memset(_t->kpp, 0, sizeof(_t->kpp));
+		memset(_t->kkp, 0, sizeof(_t->kkp));
+	}
+
+	void Evaluator::initPositionalRandom() {
+		Random random;
+		for (int i = 0; i < KPP_SIZE; i++) {
+			_t->kpp[0][i] = random.getInt16();
+		}
+		for (int i = 0; i < KKP_MAX; i++) {
+			_t->kkp[0][0][i] = random.getInt16();
 		}
 	}
 

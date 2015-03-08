@@ -13,7 +13,7 @@ using namespace sunfish;
 
 TEST(SeeTest, testGenerateAttackers) {
 
-	Evaluator eval;
+	Evaluator eval(Evaluator::InitType::Random);
 	See see;
 
 	{
@@ -351,7 +351,7 @@ P-\n\
 
 TEST(SeeTest, testSearch) {
 
-	Evaluator eval;
+	Evaluator eval(Evaluator::InitType::Random);
 	See see;
 
 	{
