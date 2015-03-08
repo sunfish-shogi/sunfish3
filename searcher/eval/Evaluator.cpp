@@ -156,33 +156,49 @@ namespace sunfish {
 	}
 
 	void Evaluator::initMaterial() {
-		_t->pawn = 100;
-		_t->lance = 300;
-		_t->knight = 400;
-		_t->silver = 600;
-		_t->gold = 700;
-		_t->bishop = 800;
-		_t->rook = 1000;
-		_t->tokin = 800;
-		_t->pro_lance = 700;
-		_t->pro_knight = 700;
-		_t->pro_silver = 600;
-		_t->horse = 1200;
-		_t->dragon = 1300;
+#if 1
+		_t->pawn       = 113;
+		_t->lance      = 265;
+		_t->knight     = 269;
+		_t->silver     = 411;
+		_t->gold       = 509;
+		_t->bishop     = 651;
+		_t->rook       = 711;
+		_t->tokin      = 513;
+		_t->pro_lance  = 371;
+		_t->pro_knight = 450;
+		_t->pro_silver = 448;
+		_t->horse      = 807;
+		_t->dragon     = 882;
+#else
+		_t->pawn       = 87;
+		_t->lance      = 232;
+		_t->knight     = 257;
+		_t->silver     = 369;
+		_t->gold       = 444;
+		_t->bishop     = 569;
+		_t->rook       = 642;
+		_t->tokin      = 534;
+		_t->pro_lance  = 489;
+		_t->pro_knight = 510;
+		_t->pro_silver = 495;
+		_t->horse      = 827;
+		_t->dragon     = 945;
+#endif
 
-		_t->pawnEx = _t->pawn * 2;
-		_t->lanceEx = _t->lance * 2;
-		_t->knightEx = _t->knight * 2;
-		_t->silverEx = _t->silver * 2;
-		_t->goldEx = _t->gold * 2;
-		_t->bishopEx = _t->bishop * 2;
-		_t->rookEx = _t->rook * 2;
-		_t->tokinEx = _t->tokin + _t->pawn;
-		_t->pro_lanceEx = _t->pro_lance + _t->lance;
+		_t->pawnEx       = _t->pawn * 2;
+		_t->lanceEx      = _t->lance * 2;
+		_t->knightEx     = _t->knight * 2;
+		_t->silverEx     = _t->silver * 2;
+		_t->goldEx       = _t->gold * 2;
+		_t->bishopEx     = _t->bishop * 2;
+		_t->rookEx       = _t->rook * 2;
+		_t->tokinEx      = _t->tokin + _t->pawn;
+		_t->pro_lanceEx  = _t->pro_lance + _t->lance;
 		_t->pro_knightEx = _t->pro_knight + _t->knight;
 		_t->pro_silverEx = _t->pro_silver + _t->silver;
-		_t->horseEx = _t->horse + _t->bishop;
-		_t->dragonEx = _t->dragon + _t->rook;
+		_t->horseEx      = _t->horse + _t->bishop;
+		_t->dragonEx     = _t->dragon + _t->rook;
 	}
 
 	void Evaluator::initPositional() {
