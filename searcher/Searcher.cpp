@@ -623,7 +623,9 @@ namespace sunfish {
 		{
 			TTE tte;
 			_info.hashProbed++;
-			if (_tt.get(hash, tte)) {
+			if (_tt.get(hash, tte) &&
+					(depth < search_param::REC_THRESHOLD ||
+					 tte.getDepth() >= search_func::recDepth(depth))) {
 				auto ttv = tte.getValue(tree.getPly());
 				auto valueType = tte.getValueType();
 
@@ -676,6 +678,10 @@ namespace sunfish {
 					if (!hash1.isEmpty()) {
   					hashOk = true;
 					}
+				}
+
+				if (tte.isMateThreat()) {
+					stat.setMateThreat();
 				}
 
 				_info.hashHit++;
@@ -907,7 +913,7 @@ namespace sunfish {
 			}
 
 			// TODO: GHI対策
-			TTStatus status = _tt.entry(hash, alpha, beta, value, depth, tree.getPly(), Move::serialize16(best));
+			TTStatus status = _tt.entry(hash, alpha, beta, value, depth, tree.getPly(), Move::serialize16(best), stat);
 			switch (status) {
 				case TTStatus::New: _info.hashNew++; break;
 				case TTStatus::Update: _info.hashUpdate++; break;

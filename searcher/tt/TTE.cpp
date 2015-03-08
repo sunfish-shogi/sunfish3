@@ -13,7 +13,8 @@ namespace sunfish {
 			ValueType newValueType,
 			int newDepth, int ply,
 			uint16_t move,
-			uint32_t newAge) {
+			uint32_t newAge,
+			const NodeStat& stat) {
 
 		assert(newAge < AgeMax);
 		assert(newValueType < (ValueType)(1<<TT_VTYPE_WIDTH));
@@ -67,6 +68,7 @@ namespace sunfish {
 			assert(_2.move1 != 0x8c11);
 			assert(_2.move2 != 0x8c11);
 		}
+		_1.mateThreat = stat.isMateThreat();
 		_1.age = newAge;
 
 		return true;
@@ -97,6 +99,7 @@ namespace sunfish {
 			assert(_2.move1 != 0x8c11);
 			assert(_2.move2 != 0x8c11);
 		}
+		_1.mateThreat = false;
 		_1.age = newAge;
 	}
 

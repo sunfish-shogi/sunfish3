@@ -7,6 +7,7 @@
 #define __SUNFISH_TTE__
 
 #include "../eval/Value.h"
+#include "../tree/NodeStat.h"
 #include "core/def.h"
 #include <cassert>
 
@@ -15,6 +16,7 @@
 // 1st word
 #define TT_HASH_WIDTH  54
 #define TT_AGE_WIDTH   3  // 2^3 = 8 [0, 7]
+#define TT_MATE_WIDTH  1
 
 // 2nd word
 #define TT_MOVE1_WIDTH 16
@@ -57,6 +59,7 @@ namespace sunfish {
 		struct {
 			uint64_t hash : TT_HASH_WIDTH;
 			uint32_t age : TT_AGE_WIDTH;
+			bool mateThreat : TT_MATE_WIDTH;
 		} _1;
 
 		struct {
@@ -75,7 +78,8 @@ namespace sunfish {
 				ValueType newValueType,
 				int newDepth, int ply,
 				uint16_t move,
-				uint32_t newAge);
+				uint32_t newAge,
+				const NodeStat& stat);
 
 	public:
 		TTE() {
@@ -92,7 +96,8 @@ namespace sunfish {
 				Value newValue,
 				int newDepth, int ply,
 				uint16_t move,
-				uint32_t newAge) {
+				uint32_t newAge,
+				const NodeStat& stat) {
 
 			ValueType newValueType;
 			if (newValue >= beta) {
@@ -104,7 +109,7 @@ namespace sunfish {
 			}
 
 			return update(newHash, newValue, newValueType,
-					newDepth, ply, move, newAge);
+					newDepth, ply, move, newAge, stat);
 
 		}
 
@@ -116,6 +121,10 @@ namespace sunfish {
 
 		uint64_t getHash() const {
 			return _1.hash;
+		}
+
+		bool isMateThreat() const {
+			return _1.mateThreat;
 		}
 
 		Value getValue(int ply) const {

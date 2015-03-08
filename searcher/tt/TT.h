@@ -29,11 +29,12 @@ namespace sunfish {
 
 		TTStatus entry(uint64_t hash,
 				Value alpha, Value beta, Value value,
-				int depth, int ply, uint16_t move) {
+				int depth, int ply, uint16_t move,
+				const NodeStat& stat) {
 			TTE e;
 			TTEs& entities = getEntity(hash);
 			entities.get(hash, e);
-			if (e.update(hash, alpha, beta, value, depth, ply, move, _age)) {
+			if (e.update(hash, alpha, beta, value, depth, ply, move, _age, stat)) {
 				return entities.set(e);
 			}
 			return TTStatus::Reject;
