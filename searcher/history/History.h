@@ -26,9 +26,7 @@ namespace sunfish {
 
 		static int from(const Move& move) {
 			if (move.isHand()) {
-				assert(move.piece() >= Piece::KindBegin);
-				assert(move.piece() < Piece::KindEnd);
-				int result = Board + move.piece() - Piece::KindBegin;
+				int result = Board + (uint8_t)move.piece() - Piece::KindBegin;
 				assert(result >= Board);
 				assert(result < From);
 				return result;

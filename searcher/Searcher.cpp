@@ -712,6 +712,11 @@ namespace sunfish {
 					_info.nullMovePruning++;
 					return beta;
 				}
+
+				// mate threat
+				if (currval <= -Value::Mate) {
+					stat.setMateThreat();
+				}
 			}
 
 		}
@@ -794,7 +799,7 @@ namespace sunfish {
 			// late move reduction
 			int reduced = 0;
 #if ENABLE_LMR
-			if (newDepth >= Depth1Ply && count != 1 && !isCheck &&
+			if (newDepth >= Depth1Ply && count != 1 && !isCheck && !stat.isMateThreat() &&
 					move.captured().isEmpty() && (!move.promote() || move.piece() != Piece::Silver) &&
 					!isPriorMove(tree, move)) {
 				reduced = getReductionDepth(move, isNullWindow);

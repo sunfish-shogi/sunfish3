@@ -12,11 +12,12 @@ namespace sunfish {
 	public:
 
 		enum {
-			NullMove  = 0x01,
-			Recapture = 0x02,
-			Mate      = 0x04,
-			HashCut   = 0x08,
-			Recursion = 0x10,
+			NullMove   = 0x01,
+			Recapture  = 0x02,
+			Mate       = 0x04,
+			HashCut    = 0x08,
+			Recursion  = 0x10,
+			MateThreat = 0x20,
 
 			Default = NullMove | Recapture | Mate | HashCut | Recursion,
 		};
@@ -65,6 +66,7 @@ namespace sunfish {
 		__METHOD__(Mate);
 		__METHOD__(HashCut);
 		__METHOD__(Recursion);
+		__METHOD__(MateThreat);
 
 		operator unsigned() const {
 			return _stat;
