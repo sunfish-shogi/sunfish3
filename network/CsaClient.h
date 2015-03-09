@@ -11,11 +11,11 @@
 #include "logger/Logger.h"
 #include "core/record/Record.h"
 #include "core/util/StringUtil.h"
+#include "core/util/Wildcard.h"
 #include "searcher/Searcher.h"
 #include "book/Book.h"
 #include <iomanip>
 #include <queue>
-#include <regex>
 #include <thread>
 #include <mutex>
 #include <atomic>
@@ -79,7 +79,7 @@ namespace sunfish {
 		};
 
 		struct ReceiveFlagSet {
-			std::regex regex;
+			Wildcard wildcard;
 			RECV_FLAG flag;
 			void (*func)(CsaClient*);
 			const char* name;

@@ -12,6 +12,9 @@
 		09393DB21A99EC5400CCF8A0 /* MovesTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09393DB01A99EC5300CCF8A0 /* MovesTest.cpp */; };
 		094161911A8F606E00E3D250 /* problem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0941618F1A8F606E00E3D250 /* problem.cpp */; };
 		094161951A8F61D700E3D250 /* Solver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 094161931A8F61D700E3D250 /* Solver.cpp */; };
+		0941EF811AADDD5500362339 /* Wildcard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0941EF7F1AADDD5500362339 /* Wildcard.cpp */; };
+		0941EF831AADDD8700362339 /* profile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0941EF821AADDD8700362339 /* profile.cpp */; };
+		0941EF851AADDDB300362339 /* WildcardTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0941EF841AADDDB300362339 /* WildcardTest.cpp */; };
 		0969B6881A41C91200D56A21 /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B6131A41C91200D56A21 /* Config.cpp */; };
 		0969B6891A41C91200D56A21 /* Piece.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B6191A41C91200D56A21 /* Piece.cpp */; };
 		0969B68A1A41C91200D56A21 /* Position.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B61B1A41C91200D56A21 /* Position.cpp */; };
@@ -43,7 +46,6 @@
 		0969B6A41A41C91200D56A21 /* Logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B6541A41C91200D56A21 /* Logger.cpp */; };
 		0969B6A51A41C91200D56A21 /* Connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B6591A41C91200D56A21 /* Connection.cpp */; };
 		0969B6A61A41C91200D56A21 /* CsaClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B65B1A41C91200D56A21 /* CsaClient.cpp */; };
-		0969B6A71A41C91200D56A21 /* CsaClientConfig.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B65D1A41C91200D56A21 /* CsaClientConfig.cpp */; };
 		0969B6A91A41C91200D56A21 /* RandomSearcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B66C1A41C91200D56A21 /* RandomSearcher.cpp */; };
 		0969B6AA1A41C91200D56A21 /* Searcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B66F1A41C91200D56A21 /* Searcher.cpp */; };
 		0969B6AB1A41C91200D56A21 /* See.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0969B6721A41C91200D56A21 /* See.cpp */; };
@@ -80,6 +82,10 @@
 		0941618F1A8F606E00E3D250 /* problem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = problem.cpp; sourceTree = "<group>"; };
 		094161931A8F61D700E3D250 /* Solver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Solver.cpp; path = solve/Solver.cpp; sourceTree = "<group>"; };
 		094161941A8F61D700E3D250 /* Solver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Solver.h; path = solve/Solver.h; sourceTree = "<group>"; };
+		0941EF7F1AADDD5500362339 /* Wildcard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Wildcard.cpp; sourceTree = "<group>"; };
+		0941EF801AADDD5500362339 /* Wildcard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Wildcard.h; sourceTree = "<group>"; };
+		0941EF821AADDD8700362339 /* profile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = profile.cpp; sourceTree = "<group>"; };
+		0941EF841AADDDB300362339 /* WildcardTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WildcardTest.cpp; sourceTree = "<group>"; };
 		09474C001A8E0FE1006A0AC2 /* ShekEntity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ShekEntity.h; path = shek/ShekEntity.h; sourceTree = "<group>"; };
 		0969B6131A41C91200D56A21 /* Config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Config.cpp; sourceTree = "<group>"; };
 		0969B6141A41C91200D56A21 /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Config.h; sourceTree = "<group>"; };
@@ -137,8 +143,6 @@
 		0969B65A1A41C91200D56A21 /* Connection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Connection.h; sourceTree = "<group>"; };
 		0969B65B1A41C91200D56A21 /* CsaClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CsaClient.cpp; sourceTree = "<group>"; };
 		0969B65C1A41C91200D56A21 /* CsaClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsaClient.h; sourceTree = "<group>"; };
-		0969B65D1A41C91200D56A21 /* CsaClientConfig.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CsaClientConfig.cpp; sourceTree = "<group>"; };
-		0969B65E1A41C91200D56A21 /* CsaClientConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsaClientConfig.h; sourceTree = "<group>"; };
 		0969B6601A41C91200D56A21 /* RemainingTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RemainingTime.h; sourceTree = "<group>"; };
 		0969B6611A41C91200D56A21 /* network.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = network.conf; sourceTree = "<group>"; };
 		0969B6671A41C91200D56A21 /* Evaluator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Evaluator.h; sourceTree = "<group>"; };
@@ -308,6 +312,7 @@
 		0969B63B1A41C91200D56A21 /* test */ = {
 			isa = PBXGroup;
 			children = (
+				0941EF841AADDDB300362339 /* WildcardTest.cpp */,
 				0969B63C1A41C91200D56A21 /* BitboardTest.cpp */,
 				0969B63D1A41C91200D56A21 /* BoardTest.cpp */,
 				0969B63E1A41C91200D56A21 /* CsaReaderTest.cpp */,
@@ -325,6 +330,8 @@
 		0969B6451A41C91200D56A21 /* util */ = {
 			isa = PBXGroup;
 			children = (
+				0941EF7F1AADDD5500362339 /* Wildcard.cpp */,
+				0941EF801AADDD5500362339 /* Wildcard.h */,
 				099B2B7E1AA2F1EB00EED5FF /* FileList.cpp */,
 				099B2B7F1AA2F1EB00EED5FF /* FileList.h */,
 				0969B6461A41C91200D56A21 /* Random.h */,
@@ -337,6 +344,7 @@
 		0969B6491A41C91200D56A21 /* cui */ = {
 			isa = PBXGroup;
 			children = (
+				0941EF821AADDD8700362339 /* profile.cpp */,
 				09761B381A9392B500193EA8 /* program_options */,
 				094161921A8F61B800E3D250 /* solve */,
 				0969B64A1A41C91200D56A21 /* console */,
@@ -376,8 +384,6 @@
 				0969B65A1A41C91200D56A21 /* Connection.h */,
 				0969B65B1A41C91200D56A21 /* CsaClient.cpp */,
 				0969B65C1A41C91200D56A21 /* CsaClient.h */,
-				0969B65D1A41C91200D56A21 /* CsaClientConfig.cpp */,
-				0969B65E1A41C91200D56A21 /* CsaClientConfig.h */,
 				0969B6601A41C91200D56A21 /* RemainingTime.h */,
 			);
 			path = network;
@@ -605,13 +611,14 @@
 				0969B6891A41C91200D56A21 /* Piece.cpp in Sources */,
 				0969B69C1A41C91200D56A21 /* PieceTest.cpp in Sources */,
 				0904956B1A80E4CF0016AC43 /* Tree.cpp in Sources */,
-				0969B6A71A41C91200D56A21 /* CsaClientConfig.cpp in Sources */,
 				090B23141A87520C00FD67CC /* TreeTest.cpp in Sources */,
 				0969B6A21A41C91200D56A21 /* sunfish.cpp in Sources */,
 				0969B6AB1A41C91200D56A21 /* See.cpp in Sources */,
 				0969B6971A41C91200D56A21 /* BoardTest.cpp in Sources */,
+				0941EF831AADDD8700362339 /* profile.cpp in Sources */,
 				0969B6931A41C91200D56A21 /* CsaReader.cpp in Sources */,
 				0969B6921A41C91200D56A21 /* MoveTable.cpp in Sources */,
+				0941EF851AADDDB300362339 /* WildcardTest.cpp in Sources */,
 				0969B6911A41C91200D56A21 /* MoveGenerator.cpp in Sources */,
 				0969B6AC1A41C91200D56A21 /* SeeTest.cpp in Sources */,
 				0969B68F1A41C91200D56A21 /* MoveGeneratorExpr.cpp in Sources */,
@@ -628,6 +635,7 @@
 				0969B68C1A41C91200D56A21 /* Board.cpp in Sources */,
 				0969B6AE1A41C91200D56A21 /* TTE.cpp in Sources */,
 				0969B68A1A41C91200D56A21 /* Position.cpp in Sources */,
+				0941EF811AADDD5500362339 /* Wildcard.cpp in Sources */,
 				0969B68D1A41C91200D56A21 /* Zobrist.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

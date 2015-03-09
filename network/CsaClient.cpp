@@ -6,7 +6,6 @@
 #include "core/record/Record.h"
 #include "core/record/CsaReader.h"
 #include "core/record/CsaWriter.h"
-#include <regex>
 #include <mutex>
 #include <fstream>
 #include <sstream>
@@ -58,28 +57,28 @@ namespace sunfish {
 
 	const CsaClient::ReceiveFlagSet* CsaClient::getFlagSets() {
 		static const ReceiveFlagSet flagSets[RECV_NUM] = {
-			{ std::regex("^LOGIN:.* OK$"), RECV_LOGIN_OK, NULL, NULL },
-			{ std::regex("^LOGIN:incorect$"), RECV_LOGIN_INC, NULL, NULL },
-			{ std::regex("^LOGOUT:completed$"), RECV_LOGOUT, NULL, NULL },
-			{ std::regex("^%.*"), RECV_MOVE_EX, NULL, NULL },
-			{ std::regex("^\\+.*"), RECV_MOVE_B, NULL, NULL },
-			{ std::regex("^-.*"), RECV_MOVE_W, NULL, NULL },
-			{ std::regex("^BEGIN Game_Summary$"), RECV_SUMMARY, _recvGameSummary, NULL },
-			{ std::regex("^START:.*"), RECV_START, NULL, NULL },
-			{ std::regex("^REJECT:.* by .*"), RECV_REJECT, NULL, NULL },
-			{ std::regex("^#WIN$"), RECV_WIN, NULL, "win" },
-			{ std::regex("^#LOSE$"), RECV_LOSE, NULL, "lose" },
-			{ std::regex("^#WIN\\(LOSE\\)$"), RECV_WIN_LOSE, NULL, "unknown" }, // CSA将棋付属の簡易サーバ用
-			{ std::regex("^#DRAW$"), RECV_DRAW, NULL, "draw" },
-			{ std::regex("^#CHUDAN$"), RECV_INTERRUPT, NULL, "chudan" },
-			{ std::regex("^#SENNICHITE$"), RECV_REPEAT, NULL, "sennichite" },
-			{ std::regex("^#OUTE_SENNICHITE$"), RECV_CHECK_REP, NULL, "oute sennichite" },
-			{ std::regex("^#ILLEGAL_MOVE$"), RECV_ILLEGAL, NULL, "illegal move" },
-			{ std::regex("^#TIME_UP$"), RECV_TIME_UP, NULL, "time up" },
-			{ std::regex("^#RESIGN$"), RECV_RESIGN, NULL, "resign" },
-			{ std::regex("^#JISHOGI$"), RECV_JISHOGI, NULL, "jishogi" },
-			{ std::regex("^#MAX_MOVES$"), RECV_MAX_MOVE, NULL, "max move" },
-			{ std::regex("^#CENSORED$"), RECV_CENSORED, NULL, "censored" },
+			{ Wildcard("LOGIN:* OK"), RECV_LOGIN_OK, NULL, NULL },
+			{ Wildcard("LOGIN:incorect"), RECV_LOGIN_INC, NULL, NULL },
+			{ Wildcard("LOGOUT:completed"), RECV_LOGOUT, NULL, NULL },
+			{ Wildcard("%*"), RECV_MOVE_EX, NULL, NULL },
+			{ Wildcard("+*"), RECV_MOVE_B, NULL, NULL },
+			{ Wildcard("-*"), RECV_MOVE_W, NULL, NULL },
+			{ Wildcard("BEGIN Game_Summary"), RECV_SUMMARY, _recvGameSummary, NULL },
+			{ Wildcard("START:*"), RECV_START, NULL, NULL },
+			{ Wildcard("REJECT:* by *"), RECV_REJECT, NULL, NULL },
+			{ Wildcard("#WIN"), RECV_WIN, NULL, "win" },
+			{ Wildcard("#LOSE"), RECV_LOSE, NULL, "lose" },
+			{ Wildcard("#WIN(LOSE)"), RECV_WIN_LOSE, NULL, "unknown" }, // CSA将棋付属の簡易サーバ用
+			{ Wildcard("#DRAW"), RECV_DRAW, NULL, "draw" },
+			{ Wildcard("#CHUDAN"), RECV_INTERRUPT, NULL, "chudan" },
+			{ Wildcard("#SENNICHITE"), RECV_REPEAT, NULL, "sennichite" },
+			{ Wildcard("#OUTE_SENNICHITE"), RECV_CHECK_REP, NULL, "oute sennichite" },
+			{ Wildcard("#ILLEGAL_MOVE"), RECV_ILLEGAL, NULL, "illegal move" },
+			{ Wildcard("#TIME_UP"), RECV_TIME_UP, NULL, "time up" },
+			{ Wildcard("#RESIGN"), RECV_RESIGN, NULL, "resign" },
+			{ Wildcard("#JISHOGI"), RECV_JISHOGI, NULL, "jishogi" },
+			{ Wildcard("#MAX_MOVES"), RECV_MAX_MOVE, NULL, "max move" },
+			{ Wildcard("#CENSORED"), RECV_CENSORED, NULL, "censored" },
 		};
 		return flagSets;
 	}
@@ -473,7 +472,7 @@ lab_end:
 
 	bool CsaClient::enqueue(const std::string& recvStr) {
 		for (int i = 0; i < RECV_NUM; i++) {
-			if (std::regex_match(recvStr, getFlagSets()[i].regex)) {
+			if (getFlagSets()[i].wildcard.match(recvStr)) {
 				if (getFlagSets()[i].func != NULL) {
 					getFlagSets()[i].func(this);
 				}
