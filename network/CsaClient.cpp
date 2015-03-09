@@ -56,30 +56,33 @@ namespace sunfish {
 		_config.addDef(CONF_MONITOR, "");
 	}
 
-	const CsaClient::ReceiveFlagSet CsaClient::FlagSets[RECV_NUM] = {
-		{ std::regex("^LOGIN:.* OK$"), RECV_LOGIN_OK, NULL, NULL },
-		{ std::regex("^LOGIN:incorect$"), RECV_LOGIN_INC, NULL, NULL },
-		{ std::regex("^LOGOUT:completed$"), RECV_LOGOUT, NULL, NULL },
-		{ std::regex("^%.*"), RECV_MOVE_EX, NULL, NULL },
-		{ std::regex("^\\+.*"), RECV_MOVE_B, NULL, NULL },
-		{ std::regex("^-.*"), RECV_MOVE_W, NULL, NULL },
-		{ std::regex("^BEGIN Game_Summary$"), RECV_SUMMARY, _recvGameSummary, NULL },
-		{ std::regex("^START:.*"), RECV_START, NULL, NULL },
-		{ std::regex("^REJECT:.* by .*"), RECV_REJECT, NULL, NULL },
-		{ std::regex("^#WIN$"), RECV_WIN, NULL, "win" },
-		{ std::regex("^#LOSE$"), RECV_LOSE, NULL, "lose" },
-		{ std::regex("^#WIN\\(LOSE\\)$"), RECV_WIN_LOSE, NULL, "unknown" }, // CSA将棋付属の簡易サーバ用
-		{ std::regex("^#DRAW$"), RECV_DRAW, NULL, "draw" },
-		{ std::regex("^#CHUDAN$"), RECV_INTERRUPT, NULL, "chudan" },
-		{ std::regex("^#SENNICHITE$"), RECV_REPEAT, NULL, "sennichite" },
-		{ std::regex("^#OUTE_SENNICHITE$"), RECV_CHECK_REP, NULL, "oute sennichite" },
-		{ std::regex("^#ILLEGAL_MOVE$"), RECV_ILLEGAL, NULL, "illegal move" },
-		{ std::regex("^#TIME_UP$"), RECV_TIME_UP, NULL, "time up" },
-		{ std::regex("^#RESIGN$"), RECV_RESIGN, NULL, "resign" },
-		{ std::regex("^#JISHOGI$"), RECV_JISHOGI, NULL, "jishogi" },
-		{ std::regex("^#MAX_MOVES$"), RECV_MAX_MOVE, NULL, "max move" },
-		{ std::regex("^#CENSORED$"), RECV_CENSORED, NULL, "censored" },
-	};
+	const CsaClient::ReceiveFlagSet* CsaClient::getFlagSets() {
+		static const ReceiveFlagSet flagSets[RECV_NUM] = {
+			{ std::regex("^LOGIN:.* OK$"), RECV_LOGIN_OK, NULL, NULL },
+			{ std::regex("^LOGIN:incorect$"), RECV_LOGIN_INC, NULL, NULL },
+			{ std::regex("^LOGOUT:completed$"), RECV_LOGOUT, NULL, NULL },
+			{ std::regex("^%.*"), RECV_MOVE_EX, NULL, NULL },
+			{ std::regex("^\\+.*"), RECV_MOVE_B, NULL, NULL },
+			{ std::regex("^-.*"), RECV_MOVE_W, NULL, NULL },
+			{ std::regex("^BEGIN Game_Summary$"), RECV_SUMMARY, _recvGameSummary, NULL },
+			{ std::regex("^START:.*"), RECV_START, NULL, NULL },
+			{ std::regex("^REJECT:.* by .*"), RECV_REJECT, NULL, NULL },
+			{ std::regex("^#WIN$"), RECV_WIN, NULL, "win" },
+			{ std::regex("^#LOSE$"), RECV_LOSE, NULL, "lose" },
+			{ std::regex("^#WIN\\(LOSE\\)$"), RECV_WIN_LOSE, NULL, "unknown" }, // CSA将棋付属の簡易サーバ用
+			{ std::regex("^#DRAW$"), RECV_DRAW, NULL, "draw" },
+			{ std::regex("^#CHUDAN$"), RECV_INTERRUPT, NULL, "chudan" },
+			{ std::regex("^#SENNICHITE$"), RECV_REPEAT, NULL, "sennichite" },
+			{ std::regex("^#OUTE_SENNICHITE$"), RECV_CHECK_REP, NULL, "oute sennichite" },
+			{ std::regex("^#ILLEGAL_MOVE$"), RECV_ILLEGAL, NULL, "illegal move" },
+			{ std::regex("^#TIME_UP$"), RECV_TIME_UP, NULL, "time up" },
+			{ std::regex("^#RESIGN$"), RECV_RESIGN, NULL, "resign" },
+			{ std::regex("^#JISHOGI$"), RECV_JISHOGI, NULL, "jishogi" },
+			{ std::regex("^#MAX_MOVES$"), RECV_MAX_MOVE, NULL, "max move" },
+			{ std::regex("^#CENSORED$"), RECV_CENSORED, NULL, "censored" },
+		};
+		return flagSets;
+	}
 
 	/**
 	 * 対局の実行
@@ -470,16 +473,16 @@ lab_end:
 
 	bool CsaClient::enqueue(const std::string& recvStr) {
 		for (int i = 0; i < RECV_NUM; i++) {
-			if (std::regex_match(recvStr, FlagSets[i].regex)) {
-				if (FlagSets[i].func != NULL) {
-					FlagSets[i].func(this);
+			if (std::regex_match(recvStr, getFlagSets()[i].regex)) {
+				if (getFlagSets()[i].func != NULL) {
+					getFlagSets()[i].func(this);
 				}
 				std::lock_guard<std::mutex> lock(_recvMutex);
 				RECV_DATA data;
-				data.flag = FlagSets[i].flag;
+				data.flag = getFlagSets()[i].flag;
 				data.str = recvStr;
 				_recvQueue.push(data);
-				_endFlags |= FlagSets[i].flag & RECV_END_MSK;
+				_endFlags |= getFlagSets()[i].flag & RECV_END_MSK;
 				return true;
 			}
 		}
@@ -655,8 +658,8 @@ lab_end:
 		std::ofstream fout("csaClient.csv", std::ios::out | std::ios::app);
 		std::ostringstream endStatus;
 		for (int i = 0; i < RECV_NUM; i++) {
-			if (_endFlags & FlagSets[i].flag) {
-				endStatus << FlagSets[i].name << ' ';
+			if (_endFlags & getFlagSets()[i].flag) {
+				endStatus << getFlagSets()[i].name << ' ';
 			}
 		}
 		fout << _gameSummary.gameId << ','

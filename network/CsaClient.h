@@ -84,7 +84,6 @@ namespace sunfish {
 			void (*func)(CsaClient*);
 			const char* name;
 		};
-		static const ReceiveFlagSet FlagSets[RECV_NUM];
 
 		/** 受信データ */
 		std::queue<RECV_DATA> _recvQueue;
@@ -137,6 +136,8 @@ namespace sunfish {
 			/** 秒読み */
 			int readoff;
 		} _gameSummary;
+
+		static const ReceiveFlagSet* getFlagSets();
 
 		void init() {
 			while (!_recvQueue.empty()) {
