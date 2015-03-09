@@ -23,9 +23,7 @@
 namespace sunfish {
 
 	class CsaClient {
-	private:
-		std::mutex _recvMutex;
-
+	public:
 		enum RECV_FLAG {
 			RECV_NULL      = 0x000000,
 
@@ -67,6 +65,9 @@ namespace sunfish {
 
 			RECV_NUM       = 22,
 		};
+
+	private:
+		std::mutex _recvMutex;
 
 		struct RECV_DATA {
 			unsigned flag;
@@ -136,8 +137,6 @@ namespace sunfish {
 			/** 秒読み */
 			int readoff;
 		} _gameSummary;
-
-		static const ReceiveFlagSet* getFlagSets();
 
 		void init() {
 			while (!_recvQueue.empty()) {
@@ -248,6 +247,8 @@ namespace sunfish {
 	public:
 		static const char* DEFAULT_CONFIG_FILE;
 
+		static const ReceiveFlagSet* getFlagSets();
+
 		CsaClient();
 		CsaClient(const CsaClient&) = delete;
 		CsaClient(CsaClient&&) = delete;
@@ -261,7 +262,6 @@ namespace sunfish {
 		 * 対局の実行
 		 */
 		bool execute();
-
 	};
 }
 
