@@ -8,7 +8,7 @@
 
 namespace sunfish {
 
-	std::string Wildcard::optimize(const char* pattern) {
+	std::string Wildcard::normalize(const char* pattern) {
 		if (pattern[0] == '\0') {
 			return "";
 		}
@@ -38,7 +38,7 @@ namespace sunfish {
 				case '*':
 					if ((pp[1] == '?' && pt[0] != '\0' && match(pp+1, pt)) ||
 							(pp[1] == pt[0] && match(pp+1, pt)) ||
-							(pp[1] == '?' && pt[0] != '\0' && pt[1] != '\0' && match(pp+1, pt+1)) ||
+							(pt[0] != '\0' && pp[1] == '?' && pt[1] != '\0' && match(pp+1, pt+1)) ||
 							(pt[0] != '\0' && pp[1] == pt[1] && match(pp+1, pt+1)) ||
 							(pt[0] != '\0' && match(pp, pt+1))) {
 						return true;
