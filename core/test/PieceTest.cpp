@@ -3,7 +3,7 @@
  * Kubo Ryosuke
  */
 
- #if !defined(NDEBUG)
+#if !defined(NDEBUG)
 
 #include "test/Test.h"
 #include "../base/Piece.h"
