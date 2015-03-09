@@ -16,8 +16,8 @@ namespace sunfish {
 		static const uint8_t Empty = 0x20;
 		static const uint8_t White = 0x10;
            
-		static const uint8_t HandMask = 0x07;
-		static const uint8_t KindMask = 0x0f;
+		static const uint8_t HandMask = 0x27;
+		static const uint8_t KindMask = 0x2f;
 
 		static const uint8_t Pawn = 0;
 		static const uint8_t Lance = 1;

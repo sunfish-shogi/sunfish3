@@ -221,40 +221,8 @@ namespace sunfish {
 			std::cout << "done.\n";
 			std::cout << std::endl;
 
-#define PRINT_INFO(key, value) \
-(std::cout << (key) << std::setw(8) << (value) << '\n')
-#define PRINT_INFO2(key, value, total) \
-(std::cout << (key) << std::setw(8) << (value) << " / " << std::setw(8) << (total) \
-<< " (" << std::setw(5) << std::fixed << std::setprecision(1)<< ((double)(value) / ((total)!=0?(total):1) * 100.0) << "%)\n")
 			const auto& info = _searcher.getInfo();
-			std::cout << "Search Info:\n";
-			PRINT_INFO ("  nodes          : ", info.node);
-			PRINT_INFO ("  quies-nodes    : ", info.qnode);
-			PRINT_INFO ("  all-nodes      : ", (info.node + info.qnode));
-			PRINT_INFO ("  time           : ", info.time);
-			PRINT_INFO ("  nps            : ", std::ceil(info.nps));
-			PRINT_INFO ("  eval           : ", info.eval.int32());
-			PRINT_INFO2("  fail high first: ", info.failHighFirst, info.failHigh);
-			PRINT_INFO2("  hash hit       : ", info.hashHit, info.hashProbed);
-			PRINT_INFO2("  hash extract   : ", info.hashExact, info.hashProbed);
-			PRINT_INFO2("  hash lower     : ", info.hashLower, info.hashProbed);
-			PRINT_INFO2("  hash upper     : ", info.hashUpper, info.hashProbed);
-			PRINT_INFO2("  hash new       : ", info.hashNew, info.hashStore);
-			PRINT_INFO2("  hash update    : ", info.hashUpdate, info.hashStore);
-			PRINT_INFO2("  hash collide   : ", info.hashCollision, info.hashStore);
-			PRINT_INFO2("  hash reject    : ", info.hashReject, info.hashStore);
-			PRINT_INFO2("  shek superior  : ", info.shekSuperior, info.shekProbed);
-			PRINT_INFO2("  shek inferior  : ", info.shekInferior, info.shekProbed);
-			PRINT_INFO2("  shek equal     : ", info.shekEqual, info.shekProbed);
-			PRINT_INFO2("  null mv pruning: ", info.nullMovePruning, info.nullMovePruningTried);
-			PRINT_INFO ("  fut pruning    : ", info.futilityPruning);
-			PRINT_INFO ("  ext fut pruning: ", info.extendedFutilityPruning);
-			PRINT_INFO2("  check extension: ", info.checkExtension, info.expanded);
-			PRINT_INFO2("  1rep extension : ", info.onerepExtension, info.expanded);
-			PRINT_INFO2("  recap extension: ", info.recapExtension, info.expanded);
-			std::cout << std::endl;
-#undef PRINT_INFO
-#undef PRINT_INFO2
+			showSearchInfo(info);
 		}
 
 		if (ok) {
@@ -528,5 +496,41 @@ namespace sunfish {
 		}
 
 		return true;
+	}
+
+	void ConsoleManager::showSearchInfo(const Searcher::Info& info) {
+#define PRINT_INFO(key, value) \
+(std::cout << (key) << std::setw(8) << (value) << '\n')
+#define PRINT_INFO2(key, value, total) \
+(std::cout << (key) << std::setw(8) << (value) << " / " << std::setw(8) << (total) \
+<< " (" << std::setw(5) << std::fixed << std::setprecision(1)<< ((double)(value) / ((total)!=0?(total):1) * 100.0) << "%)\n")
+		std::cout << "Search Info:\n";
+		PRINT_INFO ("  nodes          : ", info.node);
+		PRINT_INFO ("  quies-nodes    : ", info.qnode);
+		PRINT_INFO ("  all-nodes      : ", (info.node + info.qnode));
+		PRINT_INFO ("  time           : ", info.time);
+		PRINT_INFO ("  nps            : ", std::ceil(info.nps));
+		PRINT_INFO ("  eval           : ", info.eval.int32());
+		PRINT_INFO2("  fail high first: ", info.failHighFirst, info.failHigh);
+		PRINT_INFO2("  hash hit       : ", info.hashHit, info.hashProbed);
+		PRINT_INFO2("  hash extract   : ", info.hashExact, info.hashProbed);
+		PRINT_INFO2("  hash lower     : ", info.hashLower, info.hashProbed);
+		PRINT_INFO2("  hash upper     : ", info.hashUpper, info.hashProbed);
+		PRINT_INFO2("  hash new       : ", info.hashNew, info.hashStore);
+		PRINT_INFO2("  hash update    : ", info.hashUpdate, info.hashStore);
+		PRINT_INFO2("  hash collide   : ", info.hashCollision, info.hashStore);
+		PRINT_INFO2("  hash reject    : ", info.hashReject, info.hashStore);
+		PRINT_INFO2("  shek superior  : ", info.shekSuperior, info.shekProbed);
+		PRINT_INFO2("  shek inferior  : ", info.shekInferior, info.shekProbed);
+		PRINT_INFO2("  shek equal     : ", info.shekEqual, info.shekProbed);
+		PRINT_INFO2("  null mv pruning: ", info.nullMovePruning, info.nullMovePruningTried);
+		PRINT_INFO ("  fut pruning    : ", info.futilityPruning);
+		PRINT_INFO ("  ext fut pruning: ", info.extendedFutilityPruning);
+		PRINT_INFO2("  check extension: ", info.checkExtension, info.expanded);
+		PRINT_INFO2("  1rep extension : ", info.onerepExtension, info.expanded);
+		PRINT_INFO2("  recap extension: ", info.recapExtension, info.expanded);
+		std::cout << std::endl;
+#undef PRINT_INFO
+#undef PRINT_INFO2
 	}
 }

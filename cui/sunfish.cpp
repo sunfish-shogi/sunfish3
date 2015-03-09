@@ -26,7 +26,7 @@ int network();
 int solve(const std::vector<std::string>& problems, const ConsoleManager::Config&);
 
 // profile.cpp
-int profile(const ConsoleManager::Config&);
+int profile(const ConsoleManager::Config&, bool);
 
 // test.cpp
 int test();
@@ -57,6 +57,7 @@ int main(int argc, char** argv, char** /*envp*/) {
 	po.addOption("network", "n", "network mode");
 	po.addOption("problem", "p", "solve problems");
 	po.addOption("profile", "solve problems");
+	po.addOption("profile1", "solve one problem");
 #ifndef NDEBUG
 	po.addOption("test", "unit test");
 	po.addOption("dev", "development method", true);
@@ -164,7 +165,12 @@ int main(int argc, char** argv, char** /*envp*/) {
 
 	if (po.has("profile")) {
 		// profiling
-		return profile(config);
+		return profile(config, true);
+	}
+
+	if (po.has("profile1")) {
+		// profiling
+		return profile(config, false);
 	}
 
 	return play(config);

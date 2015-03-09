@@ -16,7 +16,7 @@ namespace sunfish {
 
 	namespace _GenPhase {
 		enum Type {
-			Prior,
+			Hash,
 			Capture,
 			NoCapture,
 			CaptureOnly,
@@ -24,8 +24,6 @@ namespace sunfish {
 		};
 	}
 	typedef _GenPhase::Type GenPhase;
-
-	typedef TempMoves<4> PriorMoves;
 
 	class Tree {
 	public:
@@ -37,12 +35,17 @@ namespace sunfish {
 		struct Node {
 			Move move;
 			Moves moves;
-			PriorMoves priorMoves;
 			GenPhase genPhase;
 			Moves::iterator ite;
 			bool checking;
 			Pv pv;
 			ValuePair valuePair;
+			Move hash1;
+			Move hash2;
+			Move killer1;
+			Move killer2;
+			Value kvalue1;
+			Value kvalue2;
 		};
 
 		/** stack */
@@ -77,6 +80,10 @@ namespace sunfish {
 			_stack[0].valuePair = eval.evaluate(board);
 			_stack[0].checking = _board.isChecking();
 			_stack[0].pv.init();
+			_stack[0].killer1 = Move::empty();
+			_stack[0].killer2 = Move::empty();
+			_stack[1].killer1 = Move::empty();
+			_stack[1].killer2 = Move::empty();
 		}
 
 		int getPly() const {
@@ -84,7 +91,9 @@ namespace sunfish {
 		}
 
 		bool isStackFull() const {
-			return _ply == StackSize - 1;
+			// killer の初期化で 1 つ先のインデクスにアクセスするため 1 つ余裕を設ける。
+			assert(_ply >= StackSize - 1);
+			return _ply >= StackSize - 2;
 		}
 
 		Moves& getMoves() {
@@ -124,6 +133,11 @@ namespace sunfish {
 		Moves::iterator selectNextMove() {
 			assert(_stack[_ply].ite != _stack[_ply].moves.end());
 			return _stack[_ply].ite++;
+		}
+
+		Moves::iterator addMove(const Move& move) {
+			_stack[_ply].moves.add(move);
+			return _stack[_ply].moves.end() - 1;
 		}
 
 		void rejectPreviousMove() {
@@ -174,10 +188,6 @@ namespace sunfish {
 			sort(_stack[_ply].ite);
 		}
 
-		PriorMoves& getPriorMoves() {
-			return _stack[_ply].priorMoves;
-		}
-
 		bool isChecking() {
 			return _stack[_ply].checking;
 		}
@@ -190,12 +200,11 @@ namespace sunfish {
 			return _board;
 		}
 
-		void initGenPhase(GenPhase phase = GenPhase::Prior) {
+		void initGenPhase(GenPhase phase = GenPhase::Hash) {
 			auto& node = _stack[_ply];
 			node.moves.clear();
 			node.genPhase = phase;
 			node.ite = node.moves.begin();
-			node.priorMoves.clear();
 		}
 
 		void resetGenPhase() {
@@ -216,15 +225,22 @@ namespace sunfish {
 		bool makeMove(Move move, Evaluator& eval) {
 			_shekTable.set(_board);
 			bool checking = _board.isCheck(move);
+			// try make move
 			if (_board.makeMove(move)) {
 				_ply++;
+				// current node
 				auto& curr = _stack[_ply];
-				auto& front = _stack[_ply-1];
 				curr.move = move;
-				curr.valuePair = eval.evaluateDiff(_board, front.valuePair, move);
 				curr.checking = checking;
 				assert(checking == _board.isChecking());
 				curr.pv.init();
+				// frontier node
+				auto& front = _stack[_ply-1];
+				curr.valuePair = eval.evaluateDiff(_board, front.valuePair, move);
+				// child node
+				auto& child = _stack[_ply+1];
+				child.killer1 = Move::empty();
+				child.killer2 = Move::empty();
 				return true;
 			}
 			_shekTable.unset(_board);
@@ -241,11 +257,19 @@ namespace sunfish {
 		void makeNullMove() {
 			_board.makeNullMove();
 			_ply++;
-			_stack[_ply].move.setEmpty();
-			_stack[_ply].valuePair = _stack[_ply-1].valuePair;
-			_stack[_ply].checking = false;
+			// current node
+			auto& curr = _stack[_ply];
+			curr.move.setEmpty();
+			curr.checking = false;
 			assert(!_board.isChecking());
-			_stack[_ply].pv.init();
+			curr.pv.init();
+			// frontier node
+			auto& front = _stack[_ply-1];
+			curr.valuePair = front.valuePair;
+			// child node
+			auto& child = _stack[_ply+1];
+			child.killer1 = Move::empty();
+			child.killer2 = Move::empty();
 		}
 
 		void unmakeNullMove() {
@@ -286,6 +310,62 @@ namespace sunfish {
 
 		ShekStat checkShek() const {
 			return _shekTable.check(_board);
+		}
+
+		bool isPriorMove(const Move& move) const {
+			auto& curr = _stack[_ply];
+			return curr.hash1 == move || curr.hash2 == move ||
+				curr.killer1 == move || curr.killer2 == move;
+		}
+
+		void setHash1(const Move& move) {
+			auto& curr = _stack[_ply];
+			curr.hash1 = move;
+		}
+
+		void setHash2(const Move& move) {
+			auto& curr = _stack[_ply];
+			curr.hash2 = move;
+		}
+
+		const Move& getHash1() const {
+			auto& curr = _stack[_ply];
+			return curr.hash1;
+		}
+
+		const Move& getHash2() const {
+			auto& curr = _stack[_ply];
+			return curr.hash2;
+		}
+
+		void addKiller(const Move& killer, const Value& value) {
+			auto& curr = _stack[_ply];
+			if (curr.killer1 != killer) {
+				curr.killer2 = curr.killer1;
+				curr.kvalue2 = curr.kvalue1;
+				curr.killer1 = killer;
+				curr.kvalue1 = value;
+			}
+		}
+
+		const Move& getKiller1() const {
+			auto& curr = _stack[_ply];
+			return curr.killer1;
+		}
+
+		const Move& getKiller2() const {
+			auto& curr = _stack[_ply];
+			return curr.killer2;
+		}
+
+		Value getKiller1Value() const {
+			auto& curr = _stack[_ply];
+			return curr.kvalue1;
+		}
+
+		Value getKiller2Value() const {
+			auto& curr = _stack[_ply];
+			return curr.kvalue2;
 		}
 
 		const Pv& __debug__getNextPv() const {

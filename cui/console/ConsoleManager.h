@@ -152,6 +152,8 @@ namespace sunfish {
 
 		bool play();
 
+		static void showSearchInfo(const Searcher::Info& info);
+
 	};
 }
 

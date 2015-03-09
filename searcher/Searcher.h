@@ -141,30 +141,14 @@ namespace sunfish {
 		bool isInterrupted();
 
 		/**
-		 * 優先的に探索する手を追加
-		 */
-		void addPriorMove(Tree& tree, const Move& move);
-
-		/**
-		 * PriorMove に含まれる手かチェックする。
-		 */
-		bool isPriorMove(Tree& tree, const Move& move);
-
-		/**
-		 * PriorMove に含まれる手を除去する。
-		 */
-		void removePriorMove(Tree& tree);
-
-		/**
 		 * sort moves by see
 		 */
-		template <bool isQuies, bool exceptSmallCapture>
-		void sortSee(Tree& tree, Value standPat, Value alpha);
+		void sortSee(Tree& tree, Value standPat, Value alpha, bool exceptSmallCapture, bool isQuies);
 
 		/**
 		 * sort moves by history
 		 */
-		void sortHistory(Tree& tree);
+		void sortHistory(Tree& tree, bool exceptHash, bool exceptKiller);
 
 		/**
 		 * update history

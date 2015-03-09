@@ -41,6 +41,7 @@ TEST(PieceTest, testHand) {
 	ASSERT_EQ(Piece::Pawn, Piece(Piece::BTokin).hand());
 	ASSERT_EQ(Piece::Pawn, Piece(Piece::WPawn).hand());
 	ASSERT_EQ(Piece::Pawn, Piece(Piece::WTokin).hand());
+	ASSERT_EQ(Piece::Empty, Piece(Piece::Empty).hand());
 }
 
 TEST(PieceTest, testKind) {
@@ -48,6 +49,7 @@ TEST(PieceTest, testKind) {
 	ASSERT_EQ(Piece::Tokin, Piece(Piece::BTokin).kindOnly());
 	ASSERT_EQ(Piece::Pawn, Piece(Piece::WPawn).kindOnly());
 	ASSERT_EQ(Piece::Tokin, Piece(Piece::WTokin).kindOnly());
+	ASSERT_EQ(Piece::Empty, Piece(Piece::Empty).kindOnly());
 }
 
 TEST(PieceTest, testTurn) {

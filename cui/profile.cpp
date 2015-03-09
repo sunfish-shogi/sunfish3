@@ -10,7 +10,7 @@
 
 using namespace sunfish;
 
-int profile(const ConsoleManager::Config& config) {
+int profile(const ConsoleManager::Config& config, bool full) {
 	Loggers::error.addStream(std::cerr, "\x1b[31m", "\x1b[39m");
 	Loggers::warning.addStream(std::cerr, "\x1b[33m", "\x1b[39m");
 	Loggers::message.addStream(std::cerr);
@@ -97,6 +97,13 @@ P-00KI00GI00FU
 		bool ok = searcher.idsearch(board, move);
 		if (ok) {
 			Loggers::message << move.toString();
+		}
+
+		const auto& info = searcher.getInfo();
+		ConsoleManager::showSearchInfo(info);
+
+		if (!full) {
+			break;
 		}
 	}
 
