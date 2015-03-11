@@ -41,4 +41,18 @@ TEST(TreeTest, testSortByValue) {
 
 }
 
+TEST(TreeTest, testAddMove) {
+
+	Tree tree;
+	Move move1(Piece::Pawn, P77, P76, false);
+	Move move2(Piece::Rook, P28, P58, false);
+
+	auto ite = tree.addMove(move1);
+	ASSERT_EQ(*ite, move1);
+
+	ite = tree.addMove(move2);
+	ASSERT_EQ(*ite, move2);
+
+}
+
 #endif // !defined(NDEBUG)

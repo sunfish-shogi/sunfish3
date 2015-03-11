@@ -272,7 +272,9 @@ namespace sunfish {
 		}
 
 		if (!isQuies) {
-			if (!killer1.isEmpty() && board.isValidMoveStrict(killer1)) {
+			if (!killer1.isEmpty() && killer1 != hash1 && killer1 != hash2
+					&& tree.getKiller1Value() >= Value::Zero
+					&& board.isValidMoveStrict(killer1)) {
 #if !ENABLE_KILLER_MOVE
 				assert(false);
 #endif // ENABLE_KILLER_MOVE
@@ -281,11 +283,13 @@ namespace sunfish {
 #if ENABLE_PRECEDE_KILLER
 				tree.setSortValue(ite, Value::Inf);
 #else
-				Value kvalue = tree.getKiller1Value() + _eval.pieceExchange(captured);
+				Value kvalue = tree.getKiller1Value();
 				tree.setSortValue(ite, kvalue.int32());
 #endif
 			}
-			if (!killer2.isEmpty() && board.isValidMoveStrict(killer2)) {
+			if (!killer2.isEmpty() && killer2 != hash1 && killer2 != hash2
+					&& tree.getKiller2Value() >= Value::Zero
+					&& board.isValidMoveStrict(killer2)) {
 #if !ENABLE_KILLER_MOVE
 				assert(false);
 #endif // ENABLE_KILLER_MOVE
@@ -294,7 +298,7 @@ namespace sunfish {
 #if ENABLE_PRECEDE_KILLER
 				tree.setSortValue(ite, Value::Inf);
 #else
-				Value kvalue = tree.getKiller2Value() + _eval.pieceExchange(captured);
+				Value kvalue = tree.getKiller2Value();
 				tree.setSortValue(ite, kvalue.int32());
 #endif
 			}
