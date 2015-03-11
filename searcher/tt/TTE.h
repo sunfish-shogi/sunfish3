@@ -19,8 +19,7 @@
 #define TT_MATE_WIDTH  1
 
 // 2nd word
-#define TT_MOVE1_WIDTH 16
-#define TT_MOVE2_WIDTH 16
+#define TT_MOVE_WIDTH 16
 #define TT_DEPTH_WIDTH 10 // 2^10 = 1024
 #define TT_VALUE_WIDTH 16 // 2^16
 #define TT_VTYPE_WIDTH 2  // 2^2 = 4 [0, 3]
@@ -63,8 +62,7 @@ namespace sunfish {
 		} _1;
 
 		struct {
-			uint16_t move1 : TT_MOVE1_WIDTH;
-			uint16_t move2 : TT_MOVE2_WIDTH;
+			uint16_t move : TT_MOVE_WIDTH;
 			uint32_t depth : TT_DEPTH_WIDTH;
 			uint32_t value : TT_VALUE_WIDTH;
 			uint32_t valueType : TT_VTYPE_WIDTH;
@@ -147,12 +145,8 @@ namespace sunfish {
 			return (int)_2.depth;
 		}
 
-		uint16_t getMove1() const {
-			return _2.move1;
-		}
-
-		uint16_t getMove2() const {
-			return _2.move2;
+		uint16_t getMove() const {
+			return _2.move;
 		}
 
 		uint32_t getAge() const {

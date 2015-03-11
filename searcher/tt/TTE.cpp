@@ -32,8 +32,7 @@ namespace sunfish {
 			}
 		} else {
 			_1.hash = TT_ENC_HASH(newHash);
-			_2.move1 = Move::S16_EMPTY;
-			_2.move2 = Move::S16_EMPTY;
+			_2.move = Move::S16_EMPTY;
 		}
 
 		if (newValue >= Value::Mate) {
@@ -62,11 +61,8 @@ namespace sunfish {
 		_2.value = value;
 		_2.valueType = newValueType;
 		_2.depth = (uint32_t)newDepth;
-		if (move != Move::S16_EMPTY && _2.move1 != move) {
-			_2.move2 = _2.move1;
-			_2.move1 = move;
-			assert(_2.move1 != 0x8c11);
-			assert(_2.move2 != 0x8c11);
+		if (move != Move::S16_EMPTY) {
+			_2.move = move;
 		}
 		_1.mateThreat = stat.isMateThreat();
 		_1.age = newAge;
@@ -87,17 +83,13 @@ namespace sunfish {
 			}
 		} else {
 			_1.hash = TT_ENC_HASH(newHash);
-			_2.move1 = Move::S16_EMPTY;
-			_2.move2 = Move::S16_EMPTY;
+			_2.move = Move::S16_EMPTY;
 			_2.valueType = None;
 			_2.depth = (uint32_t)newDepth;
 		}
 
-		if (move != Move::S16_EMPTY && _2.move1 != move) {
-			_2.move2 = _2.move1;
-			_2.move1 = move;
-			assert(_2.move1 != 0x8c11);
-			assert(_2.move2 != 0x8c11);
+		if (move != Move::S16_EMPTY) {
+			_2.move = move;
 		}
 		_1.mateThreat = false;
 		_1.age = newAge;

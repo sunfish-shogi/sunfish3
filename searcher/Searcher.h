@@ -44,6 +44,9 @@ namespace sunfish {
 		struct Info {
 			uint64_t failHigh;
 			uint64_t failHighFirst;
+			uint64_t failHighIsHash;
+			uint64_t failHighIsKiller1;
+			uint64_t failHighIsKiller2;
 			uint64_t hashProbed;
 			uint64_t hashHit;
 			uint64_t hashExact;

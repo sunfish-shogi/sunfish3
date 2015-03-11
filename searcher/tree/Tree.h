@@ -43,8 +43,7 @@ namespace sunfish {
 			bool checking;
 			Pv pv;
 			ValuePair valuePair;
-			Move hash1;
-			Move hash2;
+			Move hash;
 			Move killer1;
 			Move killer2;
 			Value kvalue1;
@@ -327,33 +326,25 @@ namespace sunfish {
 
 		bool isPriorMove(const Move& move) const {
 			auto& curr = _stack[_ply];
-			return curr.hash1 == move || curr.hash2 == move ||
+			return curr.hash == move ||
 				curr.killer1 == move || curr.killer2 == move;
 		}
 
-		void setHash1(const Move& move) {
+		void setHash(const Move& move) {
 			auto& curr = _stack[_ply];
-			curr.hash1 = move;
+			curr.hash = move;
 		}
 
-		void setHash2(const Move& move) {
+		const Move& getHash() const {
 			auto& curr = _stack[_ply];
-			curr.hash2 = move;
-		}
-
-		const Move& getHash1() const {
-			auto& curr = _stack[_ply];
-			return curr.hash1;
-		}
-
-		const Move& getHash2() const {
-			auto& curr = _stack[_ply];
-			return curr.hash2;
+			return curr.hash;
 		}
 
 		void addKiller(const Move& killer, const Value& value) {
 			auto& curr = _stack[_ply];
-			if (curr.killer1 != killer) {
+			if (curr.killer1 == killer) {
+				curr.kvalue1 = value;
+			} else {
 				curr.killer2 = curr.killer1;
 				curr.kvalue2 = curr.kvalue1;
 				curr.killer1 = killer;

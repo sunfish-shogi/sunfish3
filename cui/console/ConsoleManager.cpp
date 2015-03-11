@@ -8,6 +8,7 @@
 #include "core/record/CsaReader.h"
 #include "core/move/MoveGenerator.h"
 #include "logger/Logger.h"
+#include <utility>
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
@@ -499,38 +500,77 @@ namespace sunfish {
 	}
 
 	void ConsoleManager::showSearchInfo(const Searcher::Info& info) {
-#define PRINT_INFO(key, value) \
-(std::cout << (key) << std::setw(8) << (value) << '\n')
-#define PRINT_INFO2(key, value, total) \
-(std::cout << (key) << std::setw(8) << (value) << " / " << std::setw(8) << (total) \
-<< " (" << std::setw(5) << std::fixed << std::setprecision(1)<< ((double)(value) / ((total)!=0?(total):1) * 100.0) << "%)\n")
+		auto format = [](uint64_t value) {
+			std::ostringstream oss;
+			oss << std::setw(8) << (value);
+			return oss.str();
+		};
+		auto format2 = [](uint64_t value, uint64_t total) {
+			std::ostringstream oss;
+			oss << std::setw(8) << (value) << '/' << std::setw(8) << (total)
+				<< " (" << std::setw(5) << std::fixed << std::setprecision(1)<< ((double)(value) / ((total)!=0?(total):1) * 100.0) << "%)";
+			return oss.str();
+		};
+
+		std::vector<std::pair<std::string, std::string>> lines;
+		lines.emplace_back("nodes          ", format (info.node));
+		lines.emplace_back("quies-nodes    ", format (info.qnode));
+		lines.emplace_back("all-nodes      ", format ((info.node + info.qnode)));
+		lines.emplace_back("time           ", format (info.time));
+		lines.emplace_back("nps            ", format (std::ceil(info.nps)));
+		lines.emplace_back("eval           ", format (info.eval.int32()));
+		lines.emplace_back("fail high first", format2(info.failHighFirst, info.failHigh));
+		lines.emplace_back("fail high hash ", format2(info.failHighIsHash, info.failHigh));
+		lines.emplace_back("fail high kill1", format2(info.failHighIsKiller1, info.failHigh));
+		lines.emplace_back("fail high kill2", format2(info.failHighIsKiller2, info.failHigh));
+		lines.emplace_back("hash hit       ", format2(info.hashHit, info.hashProbed));
+		lines.emplace_back("hash extract   ", format2(info.hashExact, info.hashProbed));
+		lines.emplace_back("hash lower     ", format2(info.hashLower, info.hashProbed));
+		lines.emplace_back("hash upper     ", format2(info.hashUpper, info.hashProbed));
+		lines.emplace_back("hash new       ", format2(info.hashNew, info.hashStore));
+		lines.emplace_back("hash update    ", format2(info.hashUpdate, info.hashStore));
+		lines.emplace_back("hash collide   ", format2(info.hashCollision, info.hashStore));
+		lines.emplace_back("hash reject    ", format2(info.hashReject, info.hashStore));
+		lines.emplace_back("shek superior  ", format2(info.shekSuperior, info.shekProbed));
+		lines.emplace_back("shek inferior  ", format2(info.shekInferior, info.shekProbed));
+		lines.emplace_back("shek equal     ", format2(info.shekEqual, info.shekProbed));
+		lines.emplace_back("null mv pruning", format2(info.nullMovePruning, info.nullMovePruningTried));
+		lines.emplace_back("fut pruning    ", format (info.futilityPruning));
+		lines.emplace_back("ext fut pruning", format (info.extendedFutilityPruning));
+		lines.emplace_back("check extension", format2(info.checkExtension, info.expanded));
+		lines.emplace_back("1rep extension ", format2(info.onerepExtension, info.expanded));
+		lines.emplace_back("recap extension", format2(info.recapExtension, info.expanded));
+
+		int columns = 2;
+		int rows = (lines.size() + columns - 1) / columns;
+		int maxLength[columns] = { 0 };
+
+		for (int row = 0; row < rows; row++) {
+			for (int column = 0; column < columns; column++) {
+				int index = column * rows + row;
+				if (index >= (int)lines.size()) { continue; }
+				int length = lines[index].first.length() + lines[index].second.length();
+				maxLength[column] = std::max(maxLength[column], length);
+			}
+		}
+
 		std::cout << "Search Info:\n";
-		PRINT_INFO ("  nodes          : ", info.node);
-		PRINT_INFO ("  quies-nodes    : ", info.qnode);
-		PRINT_INFO ("  all-nodes      : ", (info.node + info.qnode));
-		PRINT_INFO ("  time           : ", info.time);
-		PRINT_INFO ("  nps            : ", std::ceil(info.nps));
-		PRINT_INFO ("  eval           : ", info.eval.int32());
-		PRINT_INFO2("  fail high first: ", info.failHighFirst, info.failHigh);
-		PRINT_INFO2("  hash hit       : ", info.hashHit, info.hashProbed);
-		PRINT_INFO2("  hash extract   : ", info.hashExact, info.hashProbed);
-		PRINT_INFO2("  hash lower     : ", info.hashLower, info.hashProbed);
-		PRINT_INFO2("  hash upper     : ", info.hashUpper, info.hashProbed);
-		PRINT_INFO2("  hash new       : ", info.hashNew, info.hashStore);
-		PRINT_INFO2("  hash update    : ", info.hashUpdate, info.hashStore);
-		PRINT_INFO2("  hash collide   : ", info.hashCollision, info.hashStore);
-		PRINT_INFO2("  hash reject    : ", info.hashReject, info.hashStore);
-		PRINT_INFO2("  shek superior  : ", info.shekSuperior, info.shekProbed);
-		PRINT_INFO2("  shek inferior  : ", info.shekInferior, info.shekProbed);
-		PRINT_INFO2("  shek equal     : ", info.shekEqual, info.shekProbed);
-		PRINT_INFO2("  null mv pruning: ", info.nullMovePruning, info.nullMovePruningTried);
-		PRINT_INFO ("  fut pruning    : ", info.futilityPruning);
-		PRINT_INFO ("  ext fut pruning: ", info.extendedFutilityPruning);
-		PRINT_INFO2("  check extension: ", info.checkExtension, info.expanded);
-		PRINT_INFO2("  1rep extension : ", info.onerepExtension, info.expanded);
-		PRINT_INFO2("  recap extension: ", info.recapExtension, info.expanded);
+		for (int row = 0; row < rows; row++) {
+			std::cout << "  ";
+			for (int column = 0; column < columns; column++) {
+				int index = column * rows + row;
+				if (index >= (int)lines.size()) { continue; }
+				int length = lines[index].first.length() + lines[index].second.length();
+				int padding = maxLength[column] - length + 1;
+				std::cout << " * " << lines[index].first << ":" << lines[index].second;
+				bool isLastColumn = column == columns - 1;
+				if (isLastColumn) { break; }
+				for (int i = 0; i < padding; i++) {
+					std::cout << ' ';
+				}
+			}
+			std::cout << '\n';
+		}
 		std::cout << std::endl;
-#undef PRINT_INFO
-#undef PRINT_INFO2
 	}
 }

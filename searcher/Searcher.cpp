@@ -192,8 +192,7 @@ namespace sunfish {
 	 */
 	void Searcher::sortSee(Tree& tree, Value standPat, Value alpha, bool exceptSmallCapture, bool isQuies) {
 		const auto& board = tree.getBoard();
-		Move hash1 = tree.getHash1();
-		Move hash2 = tree.getHash2();
+		Move hashMove = tree.getHash();
 		Move killer1 = tree.getKiller1();
 		Move killer2 = tree.getKiller2();
 #if !ENABLE_KILLER_MOVE
@@ -216,7 +215,7 @@ namespace sunfish {
 			}
 
 			if (!isQuies) {
-				if (move == hash1 || move == hash2) {
+				if (move == hashMove) {
 #ifndef NDEBUG
 					DEBUG_CHECK_PRIOR_MOVE;
 #endif
@@ -272,7 +271,7 @@ namespace sunfish {
 		}
 
 		if (!isQuies) {
-			if (!killer1.isEmpty() && killer1 != hash1 && killer1 != hash2
+			if (!killer1.isEmpty() && killer1 != hashMove
 					&& tree.getKiller1Value() >= Value::Zero
 					&& board.isValidMoveStrict(killer1)) {
 #if !ENABLE_KILLER_MOVE
@@ -286,7 +285,7 @@ namespace sunfish {
 				tree.setSortValue(ite, kvalue.int32());
 #endif
 			}
-			if (!killer2.isEmpty() && killer2 != hash1 && killer2 != hash2
+			if (!killer2.isEmpty() && killer2 != hashMove
 					&& tree.getKiller2Value() >= Value::Zero
 					&& board.isValidMoveStrict(killer2)) {
 #if !ENABLE_KILLER_MOVE
@@ -320,8 +319,7 @@ namespace sunfish {
 	 */
 	bool Searcher::pickOneHistory(Tree& tree, bool exceptPrior) {
 #if ENABLE_HISTORY_HEURISTIC
-		Move hash1 = tree.getHash1();
-		Move hash2 = tree.getHash2();
+		Move hashMove = tree.getHash();
 		Move killer1 = tree.getKiller1();
 		Move killer2 = tree.getKiller2();
 #if !ENABLE_KILLER_MOVE
@@ -336,7 +334,7 @@ namespace sunfish {
 			const Move& move = *ite;
 
 			if (exceptPrior) {
-				if (move == hash1 || move == hash2) {
+				if (move == hashMove) {
 #ifndef NDEBUG
 					DEBUG_CHECK_PRIOR_MOVE;
 #endif
@@ -380,8 +378,7 @@ namespace sunfish {
 	 */
 	void Searcher::sortHistory(Tree& tree, bool exceptHash, bool exceptKiller) {
 #if ENABLE_HISTORY_HEURISTIC
-		Move hash1 = tree.getHash1();
-		Move hash2 = tree.getHash2();
+		Move hashMove = tree.getHash();
 		Move killer1 = tree.getKiller1();
 		Move killer2 = tree.getKiller2();
 #if !ENABLE_KILLER_MOVE
@@ -392,7 +389,7 @@ namespace sunfish {
 		for (auto ite = tree.getNext(); ite != tree.getEnd(); ) {
 			const Move& move = *ite;
 
-			if (exceptHash && (move == hash1 || move == hash2)) {
+			if (exceptHash && move == hashMove) {
 #ifndef NDEBUG
 				DEBUG_CHECK_PRIOR_MOVE;
 #endif
@@ -496,13 +493,9 @@ namespace sunfish {
 			switch (genPhase) {
 			case GenPhase::Hash:
 				{
-					Move hash1 = tree.getHash1();
-					Move hash2 = tree.getHash2();
-					if (!hash1.isEmpty() && board.isValidMoveStrict(hash1)) {
-						tree.addMove(hash1);
-					}
-					if (!hash1.isEmpty() && board.isValidMoveStrict(hash2)) {
-						tree.addMove(hash2);
+					Move hashMove = tree.getHash();
+					if (!hashMove.isEmpty() && board.isValidMoveStrict(hashMove)) {
+						tree.addMove(hashMove);
 					}
 					genPhase = GenPhase::Capture;
 				}
@@ -783,73 +776,67 @@ namespace sunfish {
 		bool isNullWindow = (beta == alpha + 1);
 
 		// transposition table
-		bool hashOk = false;
-		Move hash1 = Move::empty();
-		Move hash2 = Move::empty();
+		Move hashMove = Move::empty();
 		{
 			TTE tte;
 			_info.hashProbed++;
-			if (_tt.get(hash, tte) &&
-					(depth < search_param::REC_THRESHOLD ||
-					 tte.getDepth() >= search_func::recDepth(depth))) {
-				auto ttv = tte.getValue(tree.getPly());
-				auto valueType = tte.getValueType();
-
-				// 前回の結果で枝刈り
-				if (!pvNode && stat.isHashCut() && isNullWindow) {
-					// 現在のノードに対して優位な条件の場合
-					if (tte.getDepth() >= depth ||
-							(ttv >= Value::Mate && (valueType == TTE::Lower || valueType == TTE::Exact)) ||
-							(ttv <= -Value::Mate && (valueType == TTE::Upper || valueType == TTE::Exact))) {
-						if (valueType == TTE::Exact) {
-							// 確定値
-							_info.hashExact++;
-							return ttv;
-						} else if (valueType == TTE::Lower && ttv >= beta) {
-							// 下界値
-							_info.hashLower++;
-							return ttv;
-						} else if (valueType == TTE::Upper && ttv <= alpha) {
-							// 上界値
-							_info.hashUpper++;
-							return ttv;
-						}
-					}
-					// 十分なマージンを加味して beta 値を超える場合
-					if ((valueType == TTE::Lower || valueType == TTE::Exact) &&
-							tree.isChecking() && tree.isCheckingOnFrontier()) {
-						if ((depth <= Depth1Ply * 2 && ttv >= beta + search_param::EFUT_MGN1) ||
-								(depth <= Depth1Ply * 3 && ttv >= beta + search_param::EFUT_MGN2)) {
-							return beta;
-						}
-					}
-				}
-
-				if (valueType == TTE::Upper || valueType == TTE::Exact) {
-					// alpha 値を割るなら recursion 不要
-					if (ttv <= alpha && tte.getDepth() >= search_func::recDepth(depth)) {
-						stat.unsetRecursion();
-					}
-					// beta を超えないなら null move pruning を省略
-					if (ttv < beta && tte.getDepth() >= search_func::nullDepth(depth)) {
-						stat.unsetNullMove();
-					}
-				}
-
-				// 前回の最善手を取得
+			if (_tt.get(hash, tte)) {
 				if (depth < search_param::REC_THRESHOLD ||
 						tte.getDepth() >= search_func::recDepth(depth)) {
-					hash1 = Move::deserialize16(tte.getMove1(), tree.getBoard());
-					hash2 = Move::deserialize16(tte.getMove2(), tree.getBoard());
-					if (!hash1.isEmpty()) {
-  					hashOk = true;
+					auto ttv = tte.getValue(tree.getPly());
+					auto valueType = tte.getValueType();
+
+					// 前回の結果で枝刈り
+					if (!pvNode && stat.isHashCut() && isNullWindow) {
+						// 現在のノードに対して優位な条件の場合
+						if (tte.getDepth() >= depth ||
+								(ttv >= Value::Mate && (valueType == TTE::Lower || valueType == TTE::Exact)) ||
+								(ttv <= -Value::Mate && (valueType == TTE::Upper || valueType == TTE::Exact))) {
+							if (valueType == TTE::Exact) {
+								// 確定値
+								_info.hashExact++;
+								return ttv;
+							} else if (valueType == TTE::Lower && ttv >= beta) {
+								// 下界値
+								_info.hashLower++;
+								return ttv;
+							} else if (valueType == TTE::Upper && ttv <= alpha) {
+								// 上界値
+								_info.hashUpper++;
+								return ttv;
+							}
+						}
+						// 十分なマージンを加味して beta 値を超える場合
+						if ((valueType == TTE::Lower || valueType == TTE::Exact) &&
+								tree.isChecking() && tree.isCheckingOnFrontier()) {
+							if ((depth <= Depth1Ply * 2 && ttv >= beta + search_param::EFUT_MGN1) ||
+									(depth <= Depth1Ply * 3 && ttv >= beta + search_param::EFUT_MGN2)) {
+								return beta;
+							}
+						}
+					}
+
+					if (valueType == TTE::Upper || valueType == TTE::Exact) {
+						// alpha 値を割るなら recursion 不要
+						if (ttv <= alpha && tte.getDepth() >= search_func::recDepth(depth)) {
+							stat.unsetRecursion();
+						}
+						// beta を超えないなら null move pruning を省略
+						if (ttv < beta && tte.getDepth() >= search_func::nullDepth(depth)) {
+							stat.unsetNullMove();
+						}
+					}
+
+					// 前回の最善手を取得
+					if (depth < search_param::REC_THRESHOLD ||
+							tte.getDepth() >= search_func::recDepth(depth)) {
+						hashMove = Move::deserialize16(tte.getMove(), tree.getBoard());
+					}
+
+					if (tte.isMateThreat()) {
+						stat.setMateThreat();
 					}
 				}
-
-				if (tte.isMateThreat()) {
-					stat.setMateThreat();
-				}
-
 				_info.hashHit++;
 			}
 		}
@@ -894,7 +881,7 @@ namespace sunfish {
 		}
 
 		// recursive iterative-deepening search
-		if (!hashOk && stat.isRecursion() && depth >= search_param::REC_THRESHOLD) {
+		if (!hashMove.isEmpty() && stat.isRecursion() && depth >= search_param::REC_THRESHOLD) {
 			auto newStat = NodeStat(stat).unsetNullMove().unsetMate().unsetHashCut();
 			searchr<pvNode>(tree, black, search_func::recDepth(depth), alpha, beta, newStat);
 
@@ -906,11 +893,7 @@ namespace sunfish {
 			// ハッシュ表から前回の最善手を取得
 			TTE tte;
 			if (_tt.get(hash, tte)) {
-				hash1 = Move::deserialize16(tte.getMove1(), tree.getBoard());
-				hash2 = Move::deserialize16(tte.getMove2(), tree.getBoard());
-				if (!hash1.isEmpty()) {
-					hashOk = true;
-				}
+				hashMove = Move::deserialize16(tte.getMove(), tree.getBoard());
 			}
 		}
 
@@ -923,8 +906,7 @@ namespace sunfish {
 		best.setEmpty();
 		tree.initGenPhase();
 #if ENABLE_HASH_MOVE
-		tree.setHash1(hash1);
-		tree.setHash2(hash2);
+		tree.setHash(hashMove);
 #else
 		tree.setHash1(Move::empty());
 		tree.setHash2(Move::empty());
@@ -1069,6 +1051,13 @@ namespace sunfish {
 					_info.failHigh++;
 					if (count == 1) {
 						_info.failHighFirst++;
+					}
+					if (move == tree.getHash()) {
+						_info.failHighIsHash++;
+					} else if (move == tree.getKiller1()) {
+						_info.failHighIsKiller1++;
+					} else if (move == tree.getKiller2()) {
+						_info.failHighIsKiller2++;
 					}
 #if ENABLE_KILLER_MOVE
 					Value kvalue = currval - standPat - _eval.pieceExchange(captured);
