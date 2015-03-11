@@ -668,8 +668,12 @@ lab_end:
 		fout.close();
 
 		// 棋譜の保存
+		std::string dir = _config.getString(CONF_KIFU);
 		std::ostringstream path;
-		path << _config.getString(CONF_KIFU);
+		path << dir;
+		if (dir[dir.length()-1] != '/') {
+			path << '/';
+		}
 		path << _gameSummary.gameId << ".csa";
 		RecordInfo info = getRecordInfo();
 		CsaWriter::write(path.str().c_str(), _record, &info);
