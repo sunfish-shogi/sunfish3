@@ -13,6 +13,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <cstring>
 
 #define COMMAND_NUM							((int)Command::__num__)
 
@@ -543,7 +544,8 @@ namespace sunfish {
 
 		int columns = 2;
 		int rows = (lines.size() + columns - 1) / columns;
-		int maxLength[columns] = { 0 };
+		int maxLength[columns];
+		memset(maxLength, 0, sizeof(int) * columns);
 
 		for (int row = 0; row < rows; row++) {
 			for (int column = 0; column < columns; column++) {
