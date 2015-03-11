@@ -18,7 +18,9 @@ namespace sunfish {
 		enum Type {
 			Hash,
 			Capture,
-			NoCapture,
+			History1,
+			History2,
+			Misc,
 			CaptureOnly,
 			End,
 		};
@@ -36,6 +38,7 @@ namespace sunfish {
 			Move move;
 			Moves moves;
 			GenPhase genPhase;
+			bool isThroughPhase;
 			Moves::iterator ite;
 			bool checking;
 			Pv pv;
@@ -102,6 +105,14 @@ namespace sunfish {
 
 		GenPhase& getGenPhase() {
 			return _stack[_ply].genPhase;
+		}
+
+		bool isThroughPhase() const {
+			return _stack[_ply].isThroughPhase;
+		}
+
+		void setThroughPhase(bool b) {
+			_stack[_ply].isThroughPhase = b;
 		}
 
 		bool isRecapture() const {
@@ -204,12 +215,14 @@ namespace sunfish {
 			auto& node = _stack[_ply];
 			node.moves.clear();
 			node.genPhase = phase;
+			node.isThroughPhase = false;
 			node.ite = node.moves.begin();
 		}
 
 		void resetGenPhase() {
 			auto& node = _stack[_ply];
 			node.genPhase = GenPhase::End;
+			node.isThroughPhase = false;
 			node.ite = node.moves.begin();
 		}
 

@@ -11,8 +11,8 @@
 #define ENABLE_HISTORY_HEURISTIC			1
 #define ENABLE_LMR										1
 #define ENABLE_HASH_MOVE							1
-#define ENABLE_KILLER_MOVE						0 // should be 0
-#define ENABLE_PRECEDE_KILLER					1
+#define ENABLE_KILLER_MOVE						1
+#define ENABLE_PRECEDE_KILLER					0 // should be 0
 #define ENABLE_SHEK_PRESET						1
 #define ENABLE_SHEK										1
 #define ENABLE_STORE_PV								1
@@ -279,7 +279,6 @@ namespace sunfish {
 				assert(false);
 #endif // ENABLE_KILLER_MOVE
 				auto ite = tree.addMove(killer1);
-				auto captured = board.getBoardPiece(killer1.to());
 #if ENABLE_PRECEDE_KILLER
 				tree.setSortValue(ite, Value::Inf);
 #else
@@ -294,7 +293,6 @@ namespace sunfish {
 				assert(false);
 #endif // ENABLE_KILLER_MOVE
 				auto ite = tree.addMove(killer2);
-				auto captured = board.getBoardPiece(killer2.to());
 #if ENABLE_PRECEDE_KILLER
 				tree.setSortValue(ite, Value::Inf);
 #else
@@ -314,6 +312,66 @@ namespace sunfish {
 				}
 			}
 		}
+
+	}
+
+	/**
+	 * pick best move by history
+	 */
+	bool Searcher::pickOneHistory(Tree& tree, bool exceptPrior) {
+#if ENABLE_HISTORY_HEURISTIC
+		Move hash1 = tree.getHash1();
+		Move hash2 = tree.getHash2();
+		Move killer1 = tree.getKiller1();
+		Move killer2 = tree.getKiller2();
+#if !ENABLE_KILLER_MOVE
+		assert(killer1.isEmpty());
+		assert(killer2.isEmpty());
+#endif // ENABLE_KILLER_MOVE
+
+		Moves::iterator best = tree.getEnd();
+		uint32_t bestValue = 0;
+
+		for (auto ite = tree.getBegin() + 1; ite != tree.getEnd(); ) {
+			const Move& move = *ite;
+
+			if (exceptPrior) {
+				if (move == hash1 || move == hash2) {
+#ifndef NDEBUG
+					DEBUG_CHECK_PRIOR_MOVE;
+#endif
+					ite = tree.getMoves().remove(ite);
+					continue;
+				}
+				if (move == killer1 || move == killer2) {
+#ifndef NDEBUG
+					DEBUG_CHECK_PRIOR_MOVE;
+#endif
+					ite = tree.getMoves().remove(ite);
+					continue;
+				}
+			}
+
+			auto key = History::getKey(move);
+			auto data = _history.getData(key);
+			auto value = History::getRatio(data);
+			if (value > bestValue) {
+				best = ite;
+				bestValue = value;
+			}
+
+			ite++;
+		}
+
+		if (best != tree.getEnd()) {
+			Move temp = *tree.getBegin();
+			*tree.getBegin() = *best;
+			*best = temp;
+			return true;
+		}
+
+		return false;
+#endif // ENABLE_HISTORY_HEURISTIC
 
 	}
 
@@ -428,7 +486,8 @@ namespace sunfish {
 
 		while (true) {
 
-			if (tree.getNext() != tree.getEnd()) {
+			if (!tree.isThroughPhase() &&
+					tree.getNext() != tree.getEnd()) {
 				move = *tree.getNext();
 				tree.selectNextMove();
 				return true;
@@ -448,6 +507,7 @@ namespace sunfish {
 					genPhase = GenPhase::Capture;
 				}
 				break;
+
 			case GenPhase::Capture:
 				if (tree.isChecking()) {
 					MoveGenerator::generateEvasion(board, moves);
@@ -458,16 +518,37 @@ namespace sunfish {
 				} else {
 					MoveGenerator::generateCap(board, moves);
 					sortSee(tree, Value::Zero, Value::Zero, false, false);
-					genPhase = GenPhase::NoCapture;
+					genPhase = GenPhase::History1;
 					break;
 
 				}
 
-			case GenPhase::NoCapture:
+			case GenPhase::History1:
 				MoveGenerator::generateNoCap(board, moves);
 				MoveGenerator::generateDrop(board, moves);
+				genPhase = GenPhase::History2;
+				tree.setThroughPhase(true);
+				if (pickOneHistory(tree, true)) {
+					move = *tree.getNext();
+					tree.selectNextMove();
+					return true;
+				}
+				break;
+
+			case GenPhase::History2:
+				genPhase = GenPhase::Misc;
+				tree.setThroughPhase(true);
+				if (pickOneHistory(tree, true)) {
+					move = *tree.getNext();
+					tree.selectNextMove();
+					return true;
+				}
+				break;
+
+			case GenPhase::Misc:
 				sortHistory(tree, true, true);
 				genPhase = GenPhase::End;
+				tree.setThroughPhase(false);
 				break;
 
 			case GenPhase::CaptureOnly:
@@ -500,7 +581,9 @@ namespace sunfish {
 			switch (genPhase) {
 			case GenPhase::Hash: // fall through
 			case GenPhase::Capture: // fall through
-			case GenPhase::NoCapture:
+			case GenPhase::History1:
+			case GenPhase::History2:
+			case GenPhase::Misc:
 				assert(false);
 				break;
 
