@@ -11,11 +11,14 @@
 #define ENABLE_HISTORY_HEURISTIC			1
 #define ENABLE_LMR										1
 #define ENABLE_HASH_MOVE							1
-#define ENABLE_KILLER_MOVE						1
+#define ENABLE_KILLER_MOVE						0 // should be 0
+#define ENABLE_PRECEDE_KILLER					1
 #define ENABLE_SHEK_PRESET						1
 #define ENABLE_SHEK										1
 #define ENABLE_STORE_PV								1
-#define SHALLOW_SEE                   0
+#define SHALLOW_SEE                   0 // should be 0
+
+// debugging flags
 #define DEBUG_ROOT_MOVES							0
 #define DEBUG_TREE										0
 #define DEBUG_NODE										0
@@ -166,6 +169,24 @@ namespace sunfish {
 		_forceInterrupt = true;
 	}
 
+// ハッシュ表の手や killer move が本当に探索済みかチェックする
+#define DEBUG_CHECK_PRIOR_MOVE do {\
+	bool __debugHashCheck__ = false; \
+	if (tree.getBoard().isValidMoveStrict(move)) { /* 不正な手はいずれにせよmakeMoveで弾かれる */ \
+		for (auto __ite__ = tree.getBegin(); __ite__ != ite; ++__ite__) { \
+			if (*__ite__ == move) { \
+				__debugHashCheck__ = true; \
+				break; \
+			} \
+		} \
+		if (!__debugHashCheck__) { \
+			std::cout << tree.getBoard().toStringCsa() << std::endl; \
+			std::cout << move.toString() << std::endl; \
+			assert(false); \
+		} \
+	} \
+} while(false)
+
 	/**
 	 * sort moves by see
 	 */
@@ -175,6 +196,10 @@ namespace sunfish {
 		Move hash2 = tree.getHash2();
 		Move killer1 = tree.getKiller1();
 		Move killer2 = tree.getKiller2();
+#if !ENABLE_KILLER_MOVE
+		assert(killer1.isEmpty());
+		assert(killer2.isEmpty());
+#endif // ENABLE_KILLER_MOVE
 
 		for (auto ite = tree.getNext(); ite != tree.getEnd(); ) {
 			const Move& move = *ite;
@@ -192,6 +217,9 @@ namespace sunfish {
 
 			if (!isQuies) {
 				if (move == hash1 || move == hash2) {
+#ifndef NDEBUG
+					DEBUG_CHECK_PRIOR_MOVE;
+#endif
 					ite = tree.getMoves().remove(ite);
 					continue;
 				}
@@ -212,15 +240,29 @@ namespace sunfish {
 
 			if (!isQuies) {
 				if (move == killer1) {
+#if !ENABLE_KILLER_MOVE
+					assert(false);
+#endif // ENABLE_KILLER_MOVE
 					killer1 = Move::empty();
 					auto captured = board.getBoardPiece(move.to());
+#if ENABLE_PRECEDE_KILLER
+					value = Value::Inf;
+#else
 					Value kvalue = tree.getKiller1Value() + _eval.pieceExchange(captured);
 					value = Value::max(value, kvalue);
+#endif
 				} else if (move == killer2) {
+#if !ENABLE_KILLER_MOVE
+					assert(false);
+#endif // ENABLE_KILLER_MOVE
 					killer2 = Move::empty();
 					auto captured = board.getBoardPiece(move.to());
+#if ENABLE_PRECEDE_KILLER
+					value = Value::Inf-1;
+#else
 					Value kvalue = tree.getKiller2Value() + _eval.pieceExchange(captured);
 					value = Value::max(value, kvalue);
+#endif
 				}
 			}
 
@@ -231,16 +273,30 @@ namespace sunfish {
 
 		if (!isQuies) {
 			if (!killer1.isEmpty() && board.isValidMoveStrict(killer1)) {
+#if !ENABLE_KILLER_MOVE
+				assert(false);
+#endif // ENABLE_KILLER_MOVE
 				auto ite = tree.addMove(killer1);
 				auto captured = board.getBoardPiece(killer1.to());
+#if ENABLE_PRECEDE_KILLER
+				tree.setSortValue(ite, Value::Inf);
+#else
 				Value kvalue = tree.getKiller1Value() + _eval.pieceExchange(captured);
 				tree.setSortValue(ite, kvalue.int32());
+#endif
 			}
 			if (!killer2.isEmpty() && board.isValidMoveStrict(killer2)) {
+#if !ENABLE_KILLER_MOVE
+				assert(false);
+#endif // ENABLE_KILLER_MOVE
 				auto ite = tree.addMove(killer2);
 				auto captured = board.getBoardPiece(killer2.to());
+#if ENABLE_PRECEDE_KILLER
+				tree.setSortValue(ite, Value::Inf);
+#else
 				Value kvalue = tree.getKiller2Value() + _eval.pieceExchange(captured);
 				tree.setSortValue(ite, kvalue.int32());
+#endif
 			}
 		}
 
@@ -266,15 +322,25 @@ namespace sunfish {
 		Move hash2 = tree.getHash2();
 		Move killer1 = tree.getKiller1();
 		Move killer2 = tree.getKiller2();
+#if !ENABLE_KILLER_MOVE
+		assert(killer1.isEmpty());
+		assert(killer2.isEmpty());
+#endif // ENABLE_KILLER_MOVE
 
 		for (auto ite = tree.getNext(); ite != tree.getEnd(); ) {
 			const Move& move = *ite;
 
 			if (exceptHash && (move == hash1 || move == hash2)) {
+#ifndef NDEBUG
+				DEBUG_CHECK_PRIOR_MOVE;
+#endif
 				ite = tree.getMoves().remove(ite);
 				continue;
 			}
 			if (exceptKiller && (move == killer1 || move == killer2)) {
+#ifndef NDEBUG
+				DEBUG_CHECK_PRIOR_MOVE;
+#endif
 				ite = tree.getMoves().remove(ite);
 				continue;
 			}
