@@ -7,7 +7,7 @@
 #define __SUNFISH_SEE__
 
 #include "core/board/Board.h"
-#include "../eval/Evaluator.h"
+#include "../eval/Material.h"
 
 namespace sunfish {
 
@@ -44,10 +44,10 @@ namespace sunfish {
 		int _wnum;
 
 		template <bool black, bool shallow, Direction dir, bool isFirst>
-		void generateAttacker(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn, bool shortOnly);
+		void generateAttacker(const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn, bool shortOnly);
 
 		template <bool black, bool shallow, Direction dir, bool isFirst = false>
-		void generateAttackerR(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn) {
+		void generateAttackerR(const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn) {
 			HSideType sideTypeH = to.sideTypeH();
 			VSideType sideTypeV = to.sideTypeV();
 			if ((sideTypeH == HSideType::Top && (dir == Direction::Up || dir == Direction::LeftUp || dir == Direction::RightUp)) ||
@@ -59,33 +59,33 @@ namespace sunfish {
 								 (sideTypeH == HSideType::Bottom2 && (dir == Direction::Down || dir == Direction::LeftDown || dir == Direction::RightDown)) ||
 								 (sideTypeV == VSideType::Left2 && (dir == Direction::Left || dir == Direction::LeftUp || dir == Direction::LeftDown)) ||
 								 (sideTypeV == VSideType::Right2 && (dir == Direction::Right || dir == Direction::RightUp || dir == Direction::RightDown))) {
-				generateAttacker<black, shallow, dir, false>(eval, board, to, occ, dependOn, true); // short only
+				generateAttacker<black, shallow, dir, false>(board, to, occ, dependOn, true); // short only
 			} else {
-				generateAttacker<black, shallow, dir, false>(eval, board, to, occ, dependOn, false);
+				generateAttacker<black, shallow, dir, false>(board, to, occ, dependOn, false);
 			}
 		}
 
 		template <bool black>
-		void generateKnightAttacker(const Evaluator& eval, const Board& board, const Position& from);
+		void generateKnightAttacker(const Board& board, const Position& from);
 
 		template <bool black, bool shallow>
-		void generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Direction exceptDir, HSideType sideTypeH, VSideType sideTypeV);
+		void generateAttackers(const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Direction exceptDir, HSideType sideTypeH, VSideType sideTypeV);
 
 		template <bool shallow>
-		void generateAttackers(const Evaluator& eval, const Board& board, const Move& move, HSideType sideTypeH, VSideType sideTypeV) {
+		void generateAttackers(const Board& board, const Move& move, HSideType sideTypeH, VSideType sideTypeV) {
 			if (move.isHand()) {
   			auto to = move.to();
   			auto occ = board.getBOccupy() | board.getWOccupy();
-				generateAttackers<true, shallow>(eval, board, to, occ, Position::Invalid, Direction::None, sideTypeH, sideTypeV);
-				generateAttackers<false, shallow>(eval, board, to, occ, Position::Invalid, Direction::None, sideTypeH, sideTypeV);
+				generateAttackers<true, shallow>(board, to, occ, Position::Invalid, Direction::None, sideTypeH, sideTypeV);
+				generateAttackers<false, shallow>(board, to, occ, Position::Invalid, Direction::None, sideTypeH, sideTypeV);
 			} else {
   			auto to = move.to();
   			auto from = move.from();
   			auto exceptMask = ~Bitboard::mask(from);
   			auto occ = (board.getBOccupy() | board.getWOccupy()) & exceptMask;
   			Direction exceptDir = to.dir(from);
-				generateAttackers<true, shallow>(eval, board, to, occ, from, exceptDir, sideTypeH, sideTypeV);
-				generateAttackers<false, shallow>(eval, board, to, occ, from, exceptDir, sideTypeH, sideTypeV);
+				generateAttackers<true, shallow>(board, to, occ, from, exceptDir, sideTypeH, sideTypeV);
+				generateAttackers<false, shallow>(board, to, occ, from, exceptDir, sideTypeH, sideTypeV);
 			}
 		}
 
@@ -95,11 +95,11 @@ namespace sunfish {
 	public:
 
 		template <bool shallow = false>
-		Value search(const Evaluator& eval, const Board& board, const Move& move, Value alpha, Value beta);
+		Value search(const Board& board, const Move& move, Value alpha, Value beta);
 
 		template <bool shallow = false>
-		void generateAttackers(const Evaluator& eval, const Board& board, const Move& move) {
-			generateAttackers<shallow>(eval, board, move, move.to().sideTypeH(), move.to().sideTypeV());
+		void generateAttackers(const Board& board, const Move& move) {
+			generateAttackers<shallow>(board, move, move.to().sideTypeH(), move.to().sideTypeV());
 		}
 
 		const AttackerRef* getBlackList() const {

@@ -13,7 +13,6 @@ using namespace sunfish;
 
 TEST(SeeTest, testGenerateAttackers) {
 
-	Evaluator eval(Evaluator::InitType::Random);
 	See see;
 
 	{
@@ -36,12 +35,12 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 		Move move(Piece::Gold, P45, P55, false);
 
-		see.generateAttackers(eval, board, move);
+		see.generateAttackers(board, move);
 
 		ASSERT_EQ(see.getBlackNum(), 1);
 		ASSERT_EQ(see.getWhiteNum(), 1);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().pawnEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().pawnEx);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::PawnEx);
+		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::PawnEx);
 	}
 
 	{
@@ -64,12 +63,12 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 		Move move(Piece::Gold, P45, P55, false);
 
-		see.generateAttackers(eval, board, move);
+		see.generateAttackers(board, move);
 
 		ASSERT_EQ(see.getBlackNum(), 1);
 		ASSERT_EQ(see.getWhiteNum(), 1);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().lanceEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().lanceEx);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::LanceEx);
+		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::LanceEx);
 	}
 
 	{
@@ -92,13 +91,13 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 		Move move(Piece::Knight, P47, P55, false);
 
-		see.generateAttackers(eval, board, move);
+		see.generateAttackers(board, move);
 
 		ASSERT_EQ(see.getBlackNum(), 1);
 		ASSERT_EQ(see.getWhiteNum(), 2);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().knightEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().knightEx);
-		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), eval.table().knightEx);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::KnightEx);
+		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::KnightEx);
+		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), material::KnightEx);
 	}
 
 	{
@@ -121,13 +120,13 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 		Move move(Piece::Silver, P46, P55, false);
 
-		see.generateAttackers(eval, board, move);
+		see.generateAttackers(board, move);
 
 		ASSERT_EQ(see.getBlackNum(), 2);
 		ASSERT_EQ(see.getWhiteNum(), 1);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().silverEx);
-		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), eval.table().silverEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().silverEx);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::SilverEx);
+		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), material::SilverEx);
+		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::SilverEx);
 	}
 
 	{
@@ -150,14 +149,14 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 		Move move(Piece::Silver, P66, P55, false);
 
-		see.generateAttackers(eval, board, move);
+		see.generateAttackers(board, move);
 
 		ASSERT_EQ(see.getBlackNum(), 2);
 		ASSERT_EQ(see.getWhiteNum(), 2);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().goldEx);
-		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), eval.table().goldEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().goldEx);
-		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), eval.table().goldEx);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::GoldEx);
+		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), material::GoldEx);
+		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::GoldEx);
+		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), material::GoldEx);
 	}
 
 	{
@@ -180,12 +179,12 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 		Move move(Piece::Silver, P46, P55, false);
 
-		see.generateAttackers(eval, board, move);
+		see.generateAttackers(board, move);
 
 		ASSERT_EQ(see.getBlackNum(), 1);
 		ASSERT_EQ(see.getWhiteNum(), 1);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().bishopEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().bishopEx);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::BishopEx);
+		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::BishopEx);
 	}
 
 	{
@@ -208,12 +207,12 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 		Move move(Piece::Silver, P46, P55, false);
 
-		see.generateAttackers(eval, board, move);
+		see.generateAttackers(board, move);
 
 		ASSERT_EQ(see.getBlackNum(), 1);
 		ASSERT_EQ(see.getWhiteNum(), 1);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().rookEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().rookEx);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::RookEx);
+		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::RookEx);
 	}
 
 	{
@@ -236,11 +235,11 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 		Move move(Piece::Silver, P72, P81, false);
 
-		see.generateAttackers(eval, board, move);
+		see.generateAttackers(board, move);
 
 		ASSERT_EQ(see.getBlackNum(), 1);
 		ASSERT_EQ(see.getWhiteNum(), 0);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().silverEx);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::SilverEx);
 	}
 
 	{
@@ -263,15 +262,15 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 		Move move(Piece::Rook, P47, P45, false);
 
-		see.generateAttackers(eval, board, move);
+		see.generateAttackers(board, move);
 
 		ASSERT_EQ(see.getBlackNum(), 2);
 		ASSERT_EQ(see.getWhiteNum(), 3);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().lanceEx);
-		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), eval.table().knightEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().silverEx);
-		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), eval.table().bishopEx);
-		ASSERT_EQ(see.getWhiteList()[2].attacker->value.int32(), eval.table().horseEx);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::LanceEx);
+		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), material::KnightEx);
+		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::SilverEx);
+		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), material::BishopEx);
+		ASSERT_EQ(see.getWhiteList()[2].attacker->value.int32(), material::HorseEx);
 	}
 
 	{
@@ -294,21 +293,21 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 		Move move(Piece::Pawn, P64, P63, true);
 
-		see.generateAttackers(eval, board, move);
+		see.generateAttackers(board, move);
 
 		ASSERT_EQ(see.getBlackNum(), 6);
 		ASSERT_EQ(see.getWhiteNum(), 5);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().lanceEx);
-		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), eval.table().knightEx);
-		ASSERT_EQ(see.getBlackList()[2].attacker->value.int32(), eval.table().silverEx);
-		ASSERT_EQ(see.getBlackList()[3].attacker->value.int32(), eval.table().bishopEx);
-		ASSERT_EQ(see.getBlackList()[4].attacker->value.int32(), eval.table().horseEx);
-		ASSERT_EQ(see.getBlackList()[5].attacker->value.int32(), eval.table().dragonEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().knightEx);
-		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), eval.table().goldEx);
-		ASSERT_EQ(see.getWhiteList()[2].attacker->value.int32(), eval.table().goldEx);
-		ASSERT_EQ(see.getWhiteList()[3].attacker->value.int32(), eval.table().goldEx);
-		ASSERT_EQ(see.getWhiteList()[4].attacker->value.int32(), eval.table().dragonEx);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::LanceEx);
+		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), material::KnightEx);
+		ASSERT_EQ(see.getBlackList()[2].attacker->value.int32(), material::SilverEx);
+		ASSERT_EQ(see.getBlackList()[3].attacker->value.int32(), material::BishopEx);
+		ASSERT_EQ(see.getBlackList()[4].attacker->value.int32(), material::HorseEx);
+		ASSERT_EQ(see.getBlackList()[5].attacker->value.int32(), material::DragonEx);
+		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::KnightEx);
+		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), material::GoldEx);
+		ASSERT_EQ(see.getWhiteList()[2].attacker->value.int32(), material::GoldEx);
+		ASSERT_EQ(see.getWhiteList()[3].attacker->value.int32(), material::GoldEx);
+		ASSERT_EQ(see.getWhiteList()[4].attacker->value.int32(), material::DragonEx);
 		ASSERT_EQ(see.getBlackList()[0].attacker->dependOn == nullptr, true);
 		ASSERT_EQ(see.getBlackList()[1].attacker->dependOn == nullptr, true);
 		ASSERT_EQ(see.getBlackList()[2].attacker->dependOn == nullptr, true);
@@ -337,21 +336,20 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 		Move move(Piece::Lance, P45, P44, false);
 
-		see.generateAttackers(eval, board, move);
+		see.generateAttackers(board, move);
 
 		ASSERT_EQ(see.getBlackNum(), 2);
 		ASSERT_EQ(see.getWhiteNum(), 2);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), eval.table().knightEx);
+		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::KnightEx);
 		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), Value::PieceInfEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), eval.table().lanceEx);
-		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), eval.table().knightEx);
+		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::LanceEx);
+		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), material::KnightEx);
 	}
 
 }
 
 TEST(SeeTest, testSearch) {
 
-	Evaluator eval(Evaluator::InitType::Random);
 	See see;
 
 	{
@@ -375,18 +373,18 @@ P-\n\
 
 		// 飛車で歩を取った場合
 		Move capByRook(Piece::Rook, P47, P45, false);
-		Value exact = see.search(eval, board, capByRook, -Value::PieceInf, Value::PieceInf);
-		Value correct = (+ eval.table().pawnEx
-										 - eval.table().rookEx
-										 + eval.table().silverEx
-										 - eval.table().knightEx);
+		Value exact = see.search(board, capByRook, -Value::PieceInf, Value::PieceInf);
+		Value correct = (+ material::PawnEx
+										 - material::RookEx
+										 + material::SilverEx
+										 - material::KnightEx);
 		ASSERT_EQ(correct.int32(), exact.int32());
 
 		// 桂馬で歩を取った場合
 		Move capByKnight(Piece::Knight, P37, P45, false);
-		exact = see.search(eval, board, capByKnight, -Value::PieceInf, Value::PieceInf);
-		correct = (+ eval.table().pawnEx
-							 - eval.table().knightEx);
+		exact = see.search(board, capByKnight, -Value::PieceInf, Value::PieceInf);
+		correct = (+ material::PawnEx
+							 - material::KnightEx);
 		ASSERT_EQ(correct.int32(), exact.int32());
 	}
 
@@ -410,12 +408,12 @@ P-\n\
 		CsaReader::readBoard(iss, board);
 
 		Move move(Piece::Lance, P45, P44, false);
-		Value exact = see.search(eval, board, move, -Value::PieceInf, Value::PieceInf);
-		Value correct = (+ eval.table().pawnEx
-										 - eval.table().lanceEx
-										 + eval.table().lanceEx
-										 - eval.table().knightEx
-										 + eval.table().knightEx);
+		Value exact = see.search(board, move, -Value::PieceInf, Value::PieceInf);
+		Value correct = (+ material::PawnEx
+										 - material::LanceEx
+										 + material::LanceEx
+										 - material::KnightEx
+										 + material::KnightEx);
 		ASSERT_EQ(correct.int32(), exact.int32());
 	}
 

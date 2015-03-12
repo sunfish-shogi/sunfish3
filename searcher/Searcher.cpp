@@ -232,9 +232,9 @@ namespace sunfish {
 			}
 
 #if SHALLOW_SEE
-			value = _see.search<true>(_eval, board, move, -1, Evaluator::PieceInf);
+			value = _see.search<true>(board, move, -1, Evaluator::PieceInf);
 #else
-			value = _see.search(_eval, board, move, -1, Value::PieceInf);
+			value = _see.search(board, move, -1, Value::PieceInf);
 #endif
 
 			if (!isQuies) {
@@ -247,7 +247,7 @@ namespace sunfish {
 #if ENABLE_PRECEDE_KILLER
 					value = Value::Inf;
 #else
-					Value kvalue = tree.getKiller1Value() + _eval.pieceExchange(captured);
+					Value kvalue = tree.getKiller1Value() + material::pieceExchange(captured);
 					value = Value::max(value, kvalue);
 #endif
 				} else if (move == killer2) {
@@ -259,7 +259,7 @@ namespace sunfish {
 #if ENABLE_PRECEDE_KILLER
 					value = Value::Inf-1;
 #else
-					Value kvalue = tree.getKiller2Value() + _eval.pieceExchange(captured);
+					Value kvalue = tree.getKiller2Value() + material::pieceExchange(captured);
 					value = Value::max(value, kvalue);
 #endif
 				}
@@ -979,7 +979,7 @@ namespace sunfish {
 			if (newDepth < Depth1Ply * 2 && isNullWindow && !isCheck &&
 					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
 					!tree.isPriorMove(move) &&
-					_see.search<true>(_eval, board, move, -1, 0) < Value::Zero) {
+					_see.search<true>(board, move, -1, 0) < Value::Zero) {
 				value = newAlpha;
 				continue;
 			}
@@ -1060,7 +1060,7 @@ namespace sunfish {
 						_info.failHighIsKiller2++;
 					}
 #if ENABLE_KILLER_MOVE
-					Value kvalue = currval - standPat - _eval.pieceExchange(captured);
+					Value kvalue = currval - standPat - material::pieceExchange(captured);
 					tree.addKiller(move, kvalue);
 #endif // ENABLE_KILLER_MOVE
 					break;

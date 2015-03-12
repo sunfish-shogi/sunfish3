@@ -9,6 +9,7 @@
 #include "EvaluateTable.h"
 #include "Value.h"
 #include "core/board/Board.h"
+#include "Material.h"
 #include <memory>
 
 namespace sunfish {
@@ -113,34 +114,6 @@ namespace sunfish {
 		};
 
 		struct Table {
-			int16_t pawn;
-			int16_t lance;
-			int16_t knight;
-			int16_t silver;
-			int16_t gold;
-			int16_t bishop;
-			int16_t rook;
-			int16_t tokin;
-			int16_t pro_lance;
-			int16_t pro_knight;
-			int16_t pro_silver;
-			int16_t horse;
-			int16_t dragon;
-
-			int16_t pawnEx;
-			int16_t lanceEx;
-			int16_t knightEx;
-			int16_t silverEx;
-			int16_t goldEx;
-			int16_t bishopEx;
-			int16_t rookEx;
-			int16_t tokinEx;
-			int16_t pro_lanceEx;
-			int16_t pro_knightEx;
-			int16_t pro_silverEx;
-			int16_t horseEx;
-			int16_t dragonEx;
-
 			int16_t kpp[81][KPP_SIZE];
 			int16_t kkp[81][81][KKP_MAX];
 		};
@@ -153,7 +126,6 @@ namespace sunfish {
 
 		void alloc();
 		void free();
-		void initMaterial();
 		void initPositional();
 		void initPositionalRandom();
 
@@ -283,10 +255,6 @@ namespace sunfish {
 								_estimate<false, false>(board, move));
 			}
 		}
-
-		Value piece(const Piece& piece) const;
-		Value pieceExchange(const Piece& piece) const;
-		Value piecePromote(const Piece& piece) const;
 
 		const Table& table() const {
 			return *_t;

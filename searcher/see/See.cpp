@@ -57,7 +57,7 @@ namespace sunfish {
 	};
 
 	template <bool black, bool shallow, Direction dir, bool isFirst>
-	void See::generateAttacker(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn, bool shortOnly) {
+	void See::generateAttacker(const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn, bool shortOnly) {
 
 		auto& num = black ? _bnum : _wnum;
 		auto list = black ? _b : _w;
@@ -78,8 +78,8 @@ namespace sunfish {
   						 dir == Direction::LeftDown ? MovableTable[piece].rightUp :
   						 dir == Direction::RightUp ? MovableTable[piece].leftDown :
   						 MovableTable[piece].leftUp)) {
-  					list[num++] = { eval.pieceExchange(piece), dependOn, false };
-  					if (!shallow && !shortOnly) { generateAttackerR<black, false, dir>(eval, board, from, occ, &list[num-1]); }
+  					list[num++] = { material::pieceExchange(piece), dependOn, false };
+  					if (!shallow && !shortOnly) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
   				}
 					return;
 				}
@@ -95,15 +95,15 @@ namespace sunfish {
     			auto result = bb & (black ? board.getBBishop() : board.getWBishop());
     			if (result) {
     				auto from = result.pickFirst();
-  					list[num++] = { eval.table().bishopEx, dependOn, false };
-  					if (!shallow) { generateAttackerR<black, false, dir>(eval, board, from, occ, &list[num-1]); }
+  					list[num++] = { material::BishopEx, dependOn, false };
+  					if (!shallow) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
   					return;
     			}
     			result = bb & (black ? board.getBHorse() : board.getWHorse());
     			if (result) {
     				auto from = result.pickFirst();
-  					list[num++] = { eval.table().horseEx, dependOn, false };
-  					if (!shallow) { generateAttackerR<black, false, dir>(eval, board, from, occ, &list[num-1]); }
+  					list[num++] = { material::HorseEx, dependOn, false };
+  					if (!shallow) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
   					return;
     			}
   			}
@@ -126,8 +126,8 @@ namespace sunfish {
   						 dir == Direction::Down ? MovableTable[piece].up :
   						 dir == Direction::Left ? MovableTable[piece].right :
   						 MovableTable[piece].left)) {
-  					list[num++] = { eval.pieceExchange(piece), dependOn, false };
-  					if (!shallow && !shortOnly) { generateAttackerR<black, false, dir>(eval, board, from, occ, &list[num-1]); }
+  					list[num++] = { material::pieceExchange(piece), dependOn, false };
+  					if (!shallow && !shortOnly) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
   				}
 					return;
 				}
@@ -142,23 +142,23 @@ namespace sunfish {
   			auto result = bb & (black ? board.getBRook() : board.getWRook());
   			if (result) {
   				auto from = result.pickFirst();
-  				list[num++] = { eval.table().rookEx, dependOn, false };
-  				if (!shallow) { generateAttackerR<black, false, dir>(eval, board, from, occ, &list[num-1]); }
+  				list[num++] = { material::RookEx, dependOn, false };
+  				if (!shallow) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
   				return;
   			}
   			result = bb & (black ? board.getBDragon() : board.getWDragon());
   			if (result) {
   				auto from = result.pickFirst();
-  				list[num++] = { eval.table().dragonEx, dependOn, false };
-  				if (!shallow) { generateAttackerR<black, false, dir>(eval, board, from, occ, &list[num-1]); }
+  				list[num++] = { material::DragonEx, dependOn, false };
+  				if (!shallow) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
   				return;
   			}
   			if ((black && dir == Direction::Down) || (!black && dir == Direction::Up)) {
   				result = bb & (black ? board.getBLance() : board.getWLance());
   				if (result) {
   					auto from = result.pickFirst();
-  					list[num++] = { eval.table().lanceEx, dependOn, false };
-  					if (!shallow) { generateAttackerR<black, false, dir>(eval, board, from, occ, &list[num-1]); }
+  					list[num++] = { material::LanceEx, dependOn, false };
+  					if (!shallow) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
     				return;
   				}
   			}
@@ -168,19 +168,19 @@ namespace sunfish {
 	}
 
 	template <bool black>
-	void See::generateKnightAttacker(const Evaluator& eval, const Board& board, const Position& from) {
+	void See::generateKnightAttacker(const Board& board, const Position& from) {
 		auto& num = black ? _bnum : _wnum;
 		auto list = black ? _b : _w;
 
 		auto piece = board.getBoardPiece(from);
 		if ((black && piece == Piece::BKnight) || (!black && piece == Piece::WKnight)) {
-			list[num++] = { eval.pieceExchange(piece), nullptr, false };
+			list[num++] = { material::pieceExchange(piece), nullptr, false };
 			return;
 		}
 	}
 
 	template <bool black, bool shallow>
-	void See::generateAttackers(const Evaluator& eval, const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Direction exceptDir, HSideType sideTypeH, VSideType sideTypeV) {
+	void See::generateAttackers(const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Direction exceptDir, HSideType sideTypeH, VSideType sideTypeV) {
 
 		auto& num = black ? _bnum : _wnum;
 		auto list = black ? _b : _w;
@@ -191,9 +191,9 @@ namespace sunfish {
 #define GEN(dirname, except, shortOnly) \
 		if (!(except)) { \
   		if (exceptDir != Direction::dirname) { \
-    		generateAttacker<black, shallow, Direction::dirname, true>(eval, board, to, occ, nullptr, (shortOnly)); \
+    		generateAttacker<black, shallow, Direction::dirname, true>(board, to, occ, nullptr, (shortOnly)); \
   		} else { \
-    		generateAttackerR<black, shallow, Direction::dirname, true>(eval, board, exceptPos, occ, nullptr); \
+    		generateAttackerR<black, shallow, Direction::dirname, true>(board, exceptPos, occ, nullptr); \
   		} \
 		}
 
@@ -219,21 +219,21 @@ namespace sunfish {
 		if (sideTypeH != HSideType::Bottom && sideTypeH != HSideType::Bottom2) {
 			if (black && exceptDir != Direction::LeftDownKnight && sideTypeV != VSideType::Left) {
 				auto from = to.left().down(2);
-				generateKnightAttacker<true>(eval, board, from);
+				generateKnightAttacker<true>(board, from);
 			}
 			if (black && exceptDir != Direction::RightDownKnight && sideTypeV != VSideType::Right) {
 				auto from = to.right().down(2);
-				generateKnightAttacker<true>(eval, board, from);
+				generateKnightAttacker<true>(board, from);
 			}
 		}
 		if (sideTypeH != HSideType::Top && sideTypeH != HSideType::Top2) {
 			if (!black && exceptDir != Direction::LeftUpKnight && sideTypeV != VSideType::Left) {
   			auto from = to.left().up(2);
-  			generateKnightAttacker<false>(eval, board, from);
+  			generateKnightAttacker<false>(board, from);
   		}
   		if (!black && exceptDir != Direction::RightUpKnight && sideTypeV != VSideType::Right) {
   			auto from = to.right().up(2);
-  			generateKnightAttacker<false>(eval, board, from);
+  			generateKnightAttacker<false>(board, from);
   		}
 		}
 
@@ -279,21 +279,21 @@ namespace sunfish {
 	}
 
 	template <bool shallow>
-	Value See::search(const Evaluator& eval, const Board& board, const Move& move, Value alpha, Value beta) {
+	Value See::search(const Board& board, const Move& move, Value alpha, Value beta) {
 
 		assert(shallow || !move.isHand());
 		assert(beta <= Value::PieceInf);
 		assert(alpha >= -Value::PieceInf);
 
 		// 取った駒の価値
-		Value captured = eval.pieceExchange(board.getBoardPiece(move.to()));
+		Value captured = material::pieceExchange(board.getBoardPiece(move.to()));
 
 		// 動かした駒の価値
 		Piece piece = move.piece();
 		if (move.promote()) {
 			piece = piece.unpromote();
 		}
-		Value attacker = eval.pieceExchange(piece);
+		Value attacker = material::pieceExchange(piece);
 
 		if (captured <= alpha) {
 			return alpha;
@@ -304,7 +304,7 @@ namespace sunfish {
 		}
 
 		// 移動可能な駒を列挙する。
-		generateAttackers<shallow>(eval, board, move);
+		generateAttackers<shallow>(board, move);
 
 		if (board.isBlack()) {
 			return captured - search<false>(attacker, -beta+captured, -alpha+captured);
@@ -313,7 +313,7 @@ namespace sunfish {
 		}
 
 	}
-	template Value See::search<true>(const Evaluator&, const Board&, const Move&, Value, Value);
-	template Value See::search<false>(const Evaluator&, const Board&, const Move&, Value, Value);
+	template Value See::search<true>(const Board&, const Move&, Value, Value);
+	template Value See::search<false>(const Board&, const Move&, Value, Value);
 
 }

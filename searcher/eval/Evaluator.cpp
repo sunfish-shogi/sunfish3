@@ -113,8 +113,6 @@ namespace sunfish {
 	Evaluator::Evaluator(InitType initType /*= InitType::File*/) : _t(nullptr) {
 		alloc();
 
-		initMaterial();
-
 		switch (initType) {
 		case InitType::File:
 			initPositional();
@@ -153,52 +151,6 @@ namespace sunfish {
 			delete _t;
 			_t = nullptr;
 		}
-	}
-
-	void Evaluator::initMaterial() {
-#if 1
-		_t->pawn       = 113;
-		_t->lance      = 265;
-		_t->knight     = 269;
-		_t->silver     = 411;
-		_t->gold       = 509;
-		_t->bishop     = 651;
-		_t->rook       = 711;
-		_t->tokin      = 513;
-		_t->pro_lance  = 371;
-		_t->pro_knight = 450;
-		_t->pro_silver = 448;
-		_t->horse      = 807;
-		_t->dragon     = 882;
-#else
-		_t->pawn       = 87;
-		_t->lance      = 232;
-		_t->knight     = 257;
-		_t->silver     = 369;
-		_t->gold       = 444;
-		_t->bishop     = 569;
-		_t->rook       = 642;
-		_t->tokin      = 534;
-		_t->pro_lance  = 489;
-		_t->pro_knight = 510;
-		_t->pro_silver = 495;
-		_t->horse      = 827;
-		_t->dragon     = 945;
-#endif
-
-		_t->pawnEx       = _t->pawn * 2;
-		_t->lanceEx      = _t->lance * 2;
-		_t->knightEx     = _t->knight * 2;
-		_t->silverEx     = _t->silver * 2;
-		_t->goldEx       = _t->gold * 2;
-		_t->bishopEx     = _t->bishop * 2;
-		_t->rookEx       = _t->rook * 2;
-		_t->tokinEx      = _t->tokin + _t->pawn;
-		_t->pro_lanceEx  = _t->pro_lance + _t->lance;
-		_t->pro_knightEx = _t->pro_knight + _t->knight;
-		_t->pro_silverEx = _t->pro_silver + _t->silver;
-		_t->horseEx      = _t->horse + _t->bishop;
-		_t->dragonEx     = _t->dragon + _t->rook;
 	}
 
 	void Evaluator::initPositional() {
@@ -485,49 +437,49 @@ namespace sunfish {
 	Value Evaluator::_evaluateMaterial(const Board& board) const {
 		Value material = Value::Zero;
 
-		material += _t->pawn * board.getBPawn().count();
-		material += _t->lance * board.getBLance().count();
-		material += _t->knight * board.getBKnight().count();
-		material += _t->silver * board.getBSilver().count();
-		material += _t->gold * board.getBGold().count();
-		material += _t->bishop * board.getBBishop().count();
-		material += _t->rook * board.getBRook().count();
-		material += _t->tokin * board.getBTokin().count();
-		material += _t->pro_lance * board.getBProLance().count();
-		material += _t->pro_knight * board.getBProKnight().count();
-		material += _t->pro_silver * board.getBProSilver().count();
-		material += _t->horse * board.getBHorse().count();
-		material += _t->dragon * board.getBDragon().count();
+		material += material::Pawn * board.getBPawn().count();
+		material += material::Lance * board.getBLance().count();
+		material += material::Knight * board.getBKnight().count();
+		material += material::Silver * board.getBSilver().count();
+		material += material::Gold * board.getBGold().count();
+		material += material::Bishop * board.getBBishop().count();
+		material += material::Rook * board.getBRook().count();
+		material += material::Tokin * board.getBTokin().count();
+		material += material::Pro_lance * board.getBProLance().count();
+		material += material::Pro_knight * board.getBProKnight().count();
+		material += material::Pro_silver * board.getBProSilver().count();
+		material += material::Horse * board.getBHorse().count();
+		material += material::Dragon * board.getBDragon().count();
 
-		material -= _t->pawn * board.getWPawn().count();
-		material -= _t->lance * board.getWLance().count();
-		material -= _t->knight * board.getWKnight().count();
-		material -= _t->silver * board.getWSilver().count();
-		material -= _t->gold * board.getWGold().count();
-		material -= _t->bishop * board.getWBishop().count();
-		material -= _t->rook * board.getWRook().count();
-		material -= _t->tokin * board.getWTokin().count();
-		material -= _t->pro_lance * board.getWProLance().count();
-		material -= _t->pro_knight * board.getWProKnight().count();
-		material -= _t->pro_silver * board.getWProSilver().count();
-		material -= _t->horse * board.getWHorse().count();
-		material -= _t->dragon * board.getWDragon().count();
+		material -= material::Pawn * board.getWPawn().count();
+		material -= material::Lance * board.getWLance().count();
+		material -= material::Knight * board.getWKnight().count();
+		material -= material::Silver * board.getWSilver().count();
+		material -= material::Gold * board.getWGold().count();
+		material -= material::Bishop * board.getWBishop().count();
+		material -= material::Rook * board.getWRook().count();
+		material -= material::Tokin * board.getWTokin().count();
+		material -= material::Pro_lance * board.getWProLance().count();
+		material -= material::Pro_knight * board.getWProKnight().count();
+		material -= material::Pro_silver * board.getWProSilver().count();
+		material -= material::Horse * board.getWHorse().count();
+		material -= material::Dragon * board.getWDragon().count();
 
-		material += _t->pawn * board.getBlackHand(Piece::Pawn);
-		material += _t->lance * board.getBlackHand(Piece::Lance);
-		material += _t->knight * board.getBlackHand(Piece::Knight);
-		material += _t->silver * board.getBlackHand(Piece::Silver);
-		material += _t->gold * board.getBlackHand(Piece::Gold);
-		material += _t->bishop * board.getBlackHand(Piece::Bishop);
-		material += _t->rook * board.getBlackHand(Piece::Rook);
+		material += material::Pawn * board.getBlackHand(Piece::Pawn);
+		material += material::Lance * board.getBlackHand(Piece::Lance);
+		material += material::Knight * board.getBlackHand(Piece::Knight);
+		material += material::Silver * board.getBlackHand(Piece::Silver);
+		material += material::Gold * board.getBlackHand(Piece::Gold);
+		material += material::Bishop * board.getBlackHand(Piece::Bishop);
+		material += material::Rook * board.getBlackHand(Piece::Rook);
 
-		material -= _t->pawn * board.getWhiteHand(Piece::Pawn);
-		material -= _t->lance * board.getWhiteHand(Piece::Lance);
-		material -= _t->knight * board.getWhiteHand(Piece::Knight);
-		material -= _t->silver * board.getWhiteHand(Piece::Silver);
-		material -= _t->gold * board.getWhiteHand(Piece::Gold);
-		material -= _t->bishop * board.getWhiteHand(Piece::Bishop);
-		material -= _t->rook * board.getWhiteHand(Piece::Rook);
+		material -= material::Pawn * board.getWhiteHand(Piece::Pawn);
+		material -= material::Lance * board.getWhiteHand(Piece::Lance);
+		material -= material::Knight * board.getWhiteHand(Piece::Knight);
+		material -= material::Silver * board.getWhiteHand(Piece::Silver);
+		material -= material::Gold * board.getWhiteHand(Piece::Gold);
+		material -= material::Bishop * board.getWhiteHand(Piece::Bishop);
+		material -= material::Rook * board.getWhiteHand(Piece::Rook);
 
 		return material;
 	}
@@ -644,16 +596,16 @@ namespace sunfish {
 		if (_hashTable.get(board.getNoTurnHash(), positional)) {
 			if (!captured.isEmpty()) {
 				if (black) {
-  				material += pieceExchange(captured);
+  				material += material::pieceExchange(captured);
 				} else {
-  				material -= pieceExchange(captured);
+  				material -= material::pieceExchange(captured);
 				}
 			}
 			if (move.promote()) {
 				if (black) {
-					material += piecePromote(piece);
+					material += material::piecePromote(piece);
 				} else {
-					material -= piecePromote(piece);
+					material -= material::piecePromote(piece);
 				}
 			}
 			return ValuePair(material, positional);
@@ -664,17 +616,17 @@ namespace sunfish {
 		if (!ENABLE_DIFF || piece == Piece::King) {
 			if (!captured.isEmpty()) {
 				if (black) {
-  				material += pieceExchange(captured);
+  				material += material::pieceExchange(captured);
 				} else {
-  				material -= pieceExchange(captured);
+  				material -= material::pieceExchange(captured);
 				}
 			}
 #if !ENABLE_DIFF
 			if (move.promote()) {
 				if (black) {
-					material += piecePromote(piece);
+					material += material::piecePromote(piece);
 				} else {
-					material -= piecePromote(piece);
+					material -= material::piecePromote(piece);
 				}
 			}
 #endif
@@ -738,13 +690,13 @@ namespace sunfish {
 		if (isProm) {
 			// 駒が成った場合
 			if (black) {
-				material += piecePromote(piece);
+				material += material::piecePromote(piece);
 				auto promoted = piece.promote();
 				positional += _t->kkp[bking][wking][kkpBoardIndex(promoted, to)];
 				kppIndexToB = kppBoardIndex<true>(promoted, to);
 				kppIndexToW = kppBoardIndex<false>(promoted, to.reverse());
 			} else {
-				material -= piecePromote(piece);
+				material -= material::piecePromote(piece);
 				auto promoted = piece.promote();
 				positional -= _t->kkp[wkingR][bkingR][kkpBoardIndex(promoted, to.reverse())];
 				kppIndexToB = kppBoardIndex<false>(promoted, to);
@@ -766,12 +718,12 @@ namespace sunfish {
 		// 駒を取った場合
 		if (!captured.isEmpty()) {
 			if (black) {
-				material += pieceExchange(captured);
+				material += material::pieceExchange(captured);
 				positional += _t->kkp[wkingR][bkingR][kkpBoardIndex(captured, to.reverse())];
 				kppIndexCapturedB = kppBoardIndex<false>(captured, to);
 				kppIndexCapturedW = kppBoardIndex<true>(captured, to.reverse());
 			} else {
-				material -= pieceExchange(captured);
+				material -= material::pieceExchange(captured);
 				positional -= _t->kkp[bking][wking][kkpBoardIndex(captured, to)];
 				kppIndexCapturedB = kppBoardIndex<true>(captured, to);
 				kppIndexCapturedW = kppBoardIndex<false>(captured, to.reverse());
@@ -1045,7 +997,7 @@ namespace sunfish {
 		if (!isKing && isProm) {
 			// 駒が成った場合
 			if (black) {
-				material += piecePromote(piece);
+				material += material::piecePromote(piece);
 				auto promoted = piece.promote();
 				positional += _t->kkp[bking][wking][kkpBoardIndex(promoted, to)];
 				int kppIndexB = kppBoardIndex<true>(promoted, to);
@@ -1053,7 +1005,7 @@ namespace sunfish {
 				int kppIndexW = kppBoardIndex<false>(promoted, to.reverse());
 				positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
 			} else {
-				material -= piecePromote(piece);
+				material -= material::piecePromote(piece);
 				auto promoted = piece.promote();
 				positional -= _t->kkp[wkingR][bkingR][kkpBoardIndex(promoted, to.reverse())];
 				int kppIndexB = kppBoardIndex<false>(promoted, to);
@@ -1085,14 +1037,14 @@ namespace sunfish {
 		// 駒を取った場合
 		if (!captured.isEmpty()) {
 			if (black) {
-				material += pieceExchange(captured);
+				material += material::pieceExchange(captured);
 				positional += _t->kkp[wkingR][bkingR][kkpBoardIndex(captured, to.reverse())];
 				int kppIndexB = kppBoardIndex<false>(captured, to);
 				positional += _t->kpp[bking][kpp_index(kppIndexB)];
 				int kppIndexW = kppBoardIndex<true>(captured, to.reverse());
 				positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
 			} else {
-				material -= pieceExchange(captured);
+				material -= material::pieceExchange(captured);
 				positional -= _t->kkp[bking][wking][kkpBoardIndex(captured, to)];
 				int kppIndexB = kppBoardIndex<true>(captured, to);
 				positional -= _t->kpp[bking][kpp_index(kppIndexB)];
@@ -1240,113 +1192,6 @@ namespace sunfish {
 		assert(false);
 		return 0;
 
-	}
-
-	/**
-	 * 駒割を取得します。
-	 */
-	Value Evaluator::piece(const Piece& piece) const {
-		switch(piece) {
-			case Piece::BPawn: case Piece::WPawn:
-				return _t->pawn;
-			case Piece::BLance: case Piece::WLance:
-				return _t->lance;
-			case Piece::BKnight: case Piece::WKnight:
-				return _t->knight;
-			case Piece::BSilver: case Piece::WSilver:
-				return _t->silver;
-			case Piece::BGold: case Piece::WGold:
-				return _t->gold;
-			case Piece::BBishop: case Piece::WBishop:
-				return _t->bishop;
-			case Piece::BRook: case Piece::WRook:
-				return _t->rook;
-			case Piece::BTokin: case Piece::WTokin:
-				return _t->tokin;
-			case Piece::BProLance: case Piece::WProLance:
-				return _t->pro_lance;
-			case Piece::BProKnight: case Piece::WProKnight:
-				return _t->pro_knight;
-			case Piece::BProSilver: case Piece::WProSilver:
-				return _t->pro_silver;
-			case Piece::BHorse: case Piece::WHorse:
-				return _t->horse;
-			case Piece::BDragon: case Piece::WDragon:
-				return _t->dragon;
-			case Piece::BKing: case Piece::WKing:
-				return Value::PieceInf;
-			default:
-				return 0;
-		}
-	}
-
-	/**
-	 * 駒を取った時の変化値を取得します。
-	 */
-	Value Evaluator::pieceExchange(const Piece& piece) const {
-		switch(piece) {
-			case Piece::BPawn: case Piece::WPawn:
-				return _t->pawnEx;
-			case Piece::BLance: case Piece::WLance:
-				return _t->lanceEx;
-			case Piece::BKnight: case Piece::WKnight:
-				return _t->knightEx;
-			case Piece::BSilver: case Piece::WSilver:
-				return _t->silverEx;
-			case Piece::BGold: case Piece::WGold:
-				return _t->goldEx;
-			case Piece::BBishop: case Piece::WBishop:
-				return _t->bishopEx;
-			case Piece::BRook: case Piece::WRook:
-				return _t->rookEx;
-			case Piece::BTokin: case Piece::WTokin:
-				return _t->tokinEx;
-			case Piece::BProLance: case Piece::WProLance:
-				return _t->pro_lanceEx;
-			case Piece::BProKnight: case Piece::WProKnight:
-				return _t->pro_knightEx;
-			case Piece::BProSilver: case Piece::WProSilver:
-				return _t->pro_silverEx;
-			case Piece::BHorse: case Piece::WHorse:
-				return _t->horseEx;
-			case Piece::BDragon: case Piece::WDragon:
-				return _t->dragonEx;
-			case Piece::BKing: case Piece::WKing:
-				return Value::PieceInfEx;
-			default:
-				return 0;
-		}
-	}
-
-	/**
-	 * 駒が成った時の変化値を取得します。
-	 */
-	Value Evaluator::piecePromote(const Piece& piece) const {
-		switch(piece) {
-			case Piece::BPawn: case Piece::WPawn:
-				return _t->tokin - _t->pawn;
-			case Piece::BLance: case Piece::WLance:
-				return _t->pro_lance - _t->lance;
-			case Piece::BKnight: case Piece::WKnight:
-				return _t->pro_knight - _t->knight;
-			case Piece::BSilver: case Piece::WSilver:
-				return _t->pro_silver - _t->silver;
-			case Piece::BGold: case Piece::WGold:
-				return 0;
-			case Piece::BBishop: case Piece::WBishop:
-				return _t->horse - _t->bishop;
-			case Piece::BRook: case Piece::WRook:
-				return _t->dragon - _t->rook;
-			case Piece::BTokin: case Piece::WTokin:
-			case Piece::BProLance: case Piece::WProLance:
-			case Piece::BProKnight: case Piece::WProKnight:
-			case Piece::BProSilver: case Piece::WProSilver:
-			case Piece::BHorse: case Piece::WHorse:
-			case Piece::BDragon: case Piece::WDragon:
-			case Piece::BKing: case Piece::WKing:
-			default:
-				return 0;
-		}
 	}
 
 }

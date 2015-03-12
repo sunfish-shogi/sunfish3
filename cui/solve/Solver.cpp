@@ -59,7 +59,7 @@ namespace sunfish {
 		int size = (int)_record.getTotalCount();
 		int startPos = std::max(0, std::min(30, size-30));
 
-		while (_record.getCount() > startPos && _record.unmakeMove())
+		while ((int)_record.getCount() > startPos && _record.unmakeMove())
 			;
 
 		while (true) {
