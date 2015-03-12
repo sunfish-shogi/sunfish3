@@ -149,14 +149,19 @@ namespace sunfish {
 		void sortSee(Tree& tree, Value standPat, Value alpha, bool exceptSmallCapture, bool isQuies);
 
 		/**
+		 * except prior moves
+		 */
+		void exceptPriorMoves(Tree& tree);
+
+		/**
 		 * pick best move by history
 		 */
-		bool pickOneHistory(Tree& tree, bool exceptPrior);
+		bool pickOneHistory(Tree& tree);
 
 		/**
 		 * sort moves by history
 		 */
-		void sortHistory(Tree& tree, bool exceptHash, bool exceptKiller);
+		void sortHistory(Tree& tree);
 
 		/**
 		 * update history

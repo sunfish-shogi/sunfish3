@@ -8,7 +8,6 @@
 #include "logger/Logger.h"
 #include <iomanip>
 
-#define ENABLE_HISTORY_HEURISTIC			1
 #define ENABLE_LMR										1
 #define ENABLE_HASH_MOVE							1
 #define ENABLE_KILLER_MOVE						1
@@ -169,24 +168,6 @@ namespace sunfish {
 		_forceInterrupt = true;
 	}
 
-// ハッシュ表の手や killer move が本当に探索済みかチェックする
-#define DEBUG_CHECK_PRIOR_MOVE do {\
-	bool __debugHashCheck__ = false; \
-	if (tree.getBoard().isValidMoveStrict(move)) { /* 不正な手はいずれにせよmakeMoveで弾かれる */ \
-		for (auto __ite__ = tree.getBegin(); __ite__ != ite; ++__ite__) { \
-			if (*__ite__ == move) { \
-				__debugHashCheck__ = true; \
-				break; \
-			} \
-		} \
-		if (!__debugHashCheck__) { \
-			std::cout << tree.getBoard().toStringCsa() << std::endl; \
-			std::cout << move.toString() << std::endl; \
-			assert(false); \
-		} \
-	} \
-} while(false)
-
 	/**
 	 * sort moves by see
 	 */
@@ -215,10 +196,7 @@ namespace sunfish {
 			}
 
 			if (!isQuies) {
-				if (move == hashMove) {
-#ifndef NDEBUG
-					DEBUG_CHECK_PRIOR_MOVE;
-#endif
+				if (tree.checkGenStat(HashDone) && move == hashMove) {
 					ite = tree.getMoves().remove(ite);
 					continue;
 				}
@@ -242,7 +220,7 @@ namespace sunfish {
 #if !ENABLE_KILLER_MOVE
 					assert(false);
 #endif // ENABLE_KILLER_MOVE
-					killer1 = Move::empty();
+					tree.setGenStat(Killer1Done);
 					auto captured = board.getBoardPiece(move.to());
 #if ENABLE_PRECEDE_KILLER
 					value = Value::Inf;
@@ -254,7 +232,7 @@ namespace sunfish {
 #if !ENABLE_KILLER_MOVE
 					assert(false);
 #endif // ENABLE_KILLER_MOVE
-					killer2 = Move::empty();
+					tree.setGenStat(Killer2Done);
 					auto captured = board.getBoardPiece(move.to());
 #if ENABLE_PRECEDE_KILLER
 					value = Value::Inf-1;
@@ -271,12 +249,13 @@ namespace sunfish {
 		}
 
 		if (!isQuies) {
-			if (!killer1.isEmpty() && killer1 != hashMove
+			if (!tree.checkGenStat(Killer1Done) && killer1 != hashMove
 					&& tree.getKiller1Value() >= Value::Zero
 					&& board.isValidMoveStrict(killer1)) {
 #if !ENABLE_KILLER_MOVE
 				assert(false);
 #endif // ENABLE_KILLER_MOVE
+				tree.setGenStat(Killer1Done);
 				auto ite = tree.addMove(killer1);
 #if ENABLE_PRECEDE_KILLER
 				tree.setSortValue(ite, Value::Inf);
@@ -285,12 +264,13 @@ namespace sunfish {
 				tree.setSortValue(ite, kvalue.int32());
 #endif
 			}
-			if (!killer2.isEmpty() && killer2 != hashMove
+			if (!tree.checkGenStat(Killer2Done) && killer2 != hashMove
 					&& tree.getKiller2Value() >= Value::Zero
 					&& board.isValidMoveStrict(killer2)) {
 #if !ENABLE_KILLER_MOVE
 				assert(false);
 #endif // ENABLE_KILLER_MOVE
+				tree.setGenStat(Killer2Done);
 				auto ite = tree.addMove(killer2);
 #if ENABLE_PRECEDE_KILLER
 				tree.setSortValue(ite, Value::Inf);
@@ -315,10 +295,9 @@ namespace sunfish {
 	}
 
 	/**
-	 * pick best move by history
+	 * except prior moves
 	 */
-	bool Searcher::pickOneHistory(Tree& tree, bool exceptPrior) {
-#if ENABLE_HISTORY_HEURISTIC
+	void Searcher::exceptPriorMoves(Tree& tree) {
 		Move hashMove = tree.getHash();
 		Move killer1 = tree.getKiller1();
 		Move killer2 = tree.getKiller2();
@@ -327,28 +306,32 @@ namespace sunfish {
 		assert(killer2.isEmpty());
 #endif // ENABLE_KILLER_MOVE
 
+		for (auto ite = tree.getNext(); ite != tree.getEnd(); ) {
+			const Move& move = *ite;
+
+			if (tree.checkGenStat(HashDone) && move == hashMove) {
+				ite = tree.getMoves().remove(ite);
+				continue;
+			}
+			if ((tree.checkGenStat(Killer1Done) && move == killer1) ||
+					(tree.checkGenStat(Killer2Done) && move == killer2)) {
+				ite = tree.getMoves().remove(ite);
+				continue;
+			}
+
+			ite++;
+		}
+	}
+
+	/**
+	 * pick best move by history
+	 */
+	bool Searcher::pickOneHistory(Tree& tree) {
 		Moves::iterator best = tree.getEnd();
 		uint32_t bestValue = 0;
 
-		for (auto ite = tree.getBegin() + 1; ite != tree.getEnd(); ) {
+		for (auto ite = tree.getNext(); ite != tree.getEnd(); ) {
 			const Move& move = *ite;
-
-			if (exceptPrior) {
-				if (move == hashMove) {
-#ifndef NDEBUG
-					DEBUG_CHECK_PRIOR_MOVE;
-#endif
-					ite = tree.getMoves().remove(ite);
-					continue;
-				}
-				if (move == killer1 || move == killer2) {
-#ifndef NDEBUG
-					DEBUG_CHECK_PRIOR_MOVE;
-#endif
-					ite = tree.getMoves().remove(ite);
-					continue;
-				}
-			}
 
 			auto key = History::getKey(move);
 			auto data = _history.getData(key);
@@ -362,47 +345,21 @@ namespace sunfish {
 		}
 
 		if (best != tree.getEnd()) {
-			Move temp = *tree.getBegin();
-			*tree.getBegin() = *best;
+			Move temp = *tree.getNext();
+			*tree.getNext() = *best;
 			*best = temp;
 			return true;
 		}
 
 		return false;
-#endif // ENABLE_HISTORY_HEURISTIC
-
 	}
 
 	/**
 	 * sort moves by history
 	 */
-	void Searcher::sortHistory(Tree& tree, bool exceptHash, bool exceptKiller) {
-#if ENABLE_HISTORY_HEURISTIC
-		Move hashMove = tree.getHash();
-		Move killer1 = tree.getKiller1();
-		Move killer2 = tree.getKiller2();
-#if !ENABLE_KILLER_MOVE
-		assert(killer1.isEmpty());
-		assert(killer2.isEmpty());
-#endif // ENABLE_KILLER_MOVE
-
+	void Searcher::sortHistory(Tree& tree) {
 		for (auto ite = tree.getNext(); ite != tree.getEnd(); ) {
 			const Move& move = *ite;
-
-			if (exceptHash && move == hashMove) {
-#ifndef NDEBUG
-				DEBUG_CHECK_PRIOR_MOVE;
-#endif
-				ite = tree.getMoves().remove(ite);
-				continue;
-			}
-			if (exceptKiller && (move == killer1 || move == killer2)) {
-#ifndef NDEBUG
-				DEBUG_CHECK_PRIOR_MOVE;
-#endif
-				ite = tree.getMoves().remove(ite);
-				continue;
-			}
 
 			auto key = History::getKey(move);
 			auto data = _history.getData(key);
@@ -413,7 +370,6 @@ namespace sunfish {
 		}
 
 		tree.sortAfterCurrent();
-#endif // ENABLE_HISTORY_HEURISTIC
 
 	}
 
@@ -496,6 +452,7 @@ namespace sunfish {
 					Move hashMove = tree.getHash();
 					if (!hashMove.isEmpty() && board.isValidMoveStrict(hashMove)) {
 						tree.addMove(hashMove);
+						tree.setGenStat(HashDone);
 					}
 					genPhase = GenPhase::Capture;
 				}
@@ -504,7 +461,7 @@ namespace sunfish {
 			case GenPhase::Capture:
 				if (tree.isChecking()) {
 					MoveGenerator::generateEvasion(board, moves);
-					sortHistory(tree, true, false);
+					sortHistory(tree);
 					genPhase = GenPhase::End;
 					break;
 					
@@ -519,9 +476,10 @@ namespace sunfish {
 			case GenPhase::History1:
 				MoveGenerator::generateNoCap(board, moves);
 				MoveGenerator::generateDrop(board, moves);
+				exceptPriorMoves(tree);
 				genPhase = GenPhase::History2;
 				tree.setThroughPhase(true);
-				if (pickOneHistory(tree, true)) {
+				if (pickOneHistory(tree)) {
 					move = *tree.getNext();
 					tree.selectNextMove();
 					return true;
@@ -531,7 +489,7 @@ namespace sunfish {
 			case GenPhase::History2:
 				genPhase = GenPhase::Misc;
 				tree.setThroughPhase(true);
-				if (pickOneHistory(tree, true)) {
+				if (pickOneHistory(tree)) {
 					move = *tree.getNext();
 					tree.selectNextMove();
 					return true;
@@ -539,7 +497,7 @@ namespace sunfish {
 				break;
 
 			case GenPhase::Misc:
-				sortHistory(tree, true, true);
+				sortHistory(tree);
 				genPhase = GenPhase::End;
 				tree.setThroughPhase(false);
 				break;
@@ -583,7 +541,7 @@ namespace sunfish {
 			case GenPhase::CaptureOnly:
 				if (tree.isChecking()) {
 					MoveGenerator::generateEvasion(board, moves);
-					sortHistory(tree, false, false);
+					sortHistory(tree);
 					genPhase = GenPhase::End;
 					break;
 
@@ -908,8 +866,7 @@ namespace sunfish {
 #if ENABLE_HASH_MOVE
 		tree.setHash(hashMove);
 #else
-		tree.setHash1(Move::empty());
-		tree.setHash2(Move::empty());
+		tree.setHash(Move::empty());
 #endif
 		while (nextMove(tree, move)) {
 

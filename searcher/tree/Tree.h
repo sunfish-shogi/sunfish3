@@ -10,22 +10,25 @@
 #include "../eval/Evaluator.h"
 #include "../shek/ShekTable.h"
 #include "core/move/Moves.h"
+#include <cstdint>
 #include <cassert>
 
 namespace sunfish {
 
-	namespace _GenPhase {
-		enum Type {
-			Hash,
-			Capture,
-			History1,
-			History2,
-			Misc,
-			CaptureOnly,
-			End,
-		};
-	}
-	typedef _GenPhase::Type GenPhase;
+	enum class GenPhase : int32_t {
+		Hash,
+		Capture,
+		History1,
+		History2,
+		Misc,
+		CaptureOnly,
+		End,
+	};
+
+	using GenStat = uint32_t;
+	static CONSTEXPR uint32_t HashDone    = 0x01;
+	static CONSTEXPR uint32_t Killer1Done = 0x02;
+	static CONSTEXPR uint32_t Killer2Done = 0x04;
 
 	class Tree {
 	public:
@@ -38,6 +41,7 @@ namespace sunfish {
 			Move move;
 			Moves moves;
 			GenPhase genPhase;
+			GenStat genStat;
 			bool isThroughPhase;
 			Moves::iterator ite;
 			bool checking;
@@ -104,6 +108,18 @@ namespace sunfish {
 
 		GenPhase& getGenPhase() {
 			return _stack[_ply].genPhase;
+		}
+
+		GenStat getGenStat() const {
+			return _stack[_ply].genStat;
+		}
+		bool checkGenStat(GenStat genStat) const {
+			auto& curr = _stack[_ply];
+			return curr.genStat & genStat;
+		}
+		void setGenStat(GenStat genStat) {
+			auto& curr = _stack[_ply];
+			curr.genStat |= genStat;
 		}
 
 		bool isThroughPhase() const {
@@ -214,6 +230,7 @@ namespace sunfish {
 			auto& node = _stack[_ply];
 			node.moves.clear();
 			node.genPhase = phase;
+			node.genStat = 0x00;
 			node.isThroughPhase = false;
 			node.ite = node.moves.begin();
 		}
@@ -221,6 +238,7 @@ namespace sunfish {
 		void resetGenPhase() {
 			auto& node = _stack[_ply];
 			node.genPhase = GenPhase::End;
+			node.genStat = 0x00;
 			node.isThroughPhase = false;
 			node.ite = node.moves.begin();
 		}
