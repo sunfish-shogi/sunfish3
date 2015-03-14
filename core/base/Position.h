@@ -175,9 +175,9 @@ namespace sunfish {
 		template<bool black>
 		bool isLanceSignficant() const {
 			if (black) {
-				return getRank() - 1 == 2;
+				return getRank() - 1 >= 2;
 			} else {
-				return getRank() - 1 == 6;
+				return getRank() - 1 <= 6;
 			}
 		}
 		template<bool black>
@@ -282,6 +282,18 @@ namespace sunfish {
 		}
 		Position safetyRightDown(int distance = 1) const {
 			return (*this).safetyRight(distance).safetyDown(distance);
+		}
+		Position safetyLeftUpKnight() const {
+			return (*this).safetyLeft().safetyUp(2);
+		}
+		Position safetyLeftDownKnight() const {
+			return (*this).safetyLeft().safetyDown(2);
+		}
+		Position safetyRightUpKnight() const {
+			return (*this).safetyRight().safetyUp(2);
+		}
+		Position safetyRightDownKnight() const {
+			return (*this).safetyRight().safetyDown(2);
 		}
 		Position next() const {
 			return _index + 1;

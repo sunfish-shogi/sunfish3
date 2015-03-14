@@ -189,6 +189,17 @@ namespace sunfish {
 		void storePv(Tree& tree, const Pv& pv, int ply);
 
 		/**
+		 * 詰んでいるか判定します。
+		 */
+		bool isMate(Tree& tree);
+
+		/**
+		 * 1手詰めを探します。
+		 * 王手の局面では使用できません。
+		 */
+		bool mate1Ply(Tree& tree);
+
+		/**
 		 * quiesence search
 		 */
 		Value qsearch(Tree& tree, bool black, int qply, Value alpha, Value beta);
@@ -287,6 +298,12 @@ namespace sunfish {
 		bool isRunning() const {
 			return _isRunning;
 		}
+
+		/**
+		 * 1手詰めを探します。
+		 * 王手の局面では使用できません。
+		 */
+		bool mate1Ply(const Board& initialBoard);
 
 		/**
 		 * 指定した局面に対して探索を実行します。

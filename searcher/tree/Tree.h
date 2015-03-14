@@ -97,9 +97,9 @@ namespace sunfish {
 		}
 
 		bool isStackFull() const {
-			// killer の初期化で 1 つ先のインデクスにアクセスするため 1 つ余裕を設ける。
-			assert(_ply <= StackSize - 2);
-			return _ply >= StackSize - 2;
+			// killer や mate で判定を省略するため余裕を設ける。
+			assert(_ply <= StackSize - 8);
+			return _ply >= StackSize - 8;
 		}
 
 		Moves& getMoves() {

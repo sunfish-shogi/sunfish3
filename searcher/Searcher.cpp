@@ -592,6 +592,53 @@ namespace sunfish {
 	}
 
 	/**
+	 * 1手詰めを探します。
+	 * 王手の局面では使用できません。
+	 */
+	bool Searcher::isMate(Tree& tree) {
+		auto& board = tree.getBoard();
+		auto& moves = tree.getMoves();
+
+		moves.clear();
+		MoveGenerator::generateEvasion(board, moves);
+
+		for (auto& move : moves) {
+			if (board.isValidMove(move)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * 1手詰めを探します。
+	 * 王手の局面では使用できません。
+	 */
+	bool Searcher::mate1Ply(Tree& tree) {
+		auto& board = tree.getBoard();
+		auto& moves = tree.getMoves();
+
+		moves.clear();
+		MoveGenerator::generateCheck(board, moves);
+
+		for (auto& move : moves) {
+			if (!tree.makeMoveFast(move)) {
+				continue;
+			}
+
+			if (isMate(tree)) {
+				tree.unmakeMoveFast();
+				return true;
+			}
+
+			tree.unmakeMoveFast();
+		}
+
+		return false;
+	}
+
+	/**
 	 * quiesence search
 	 */
 	Value Searcher::qsearch(Tree& tree, bool black, int qply, Value alpha, Value beta) {
@@ -801,7 +848,21 @@ namespace sunfish {
 
 		Value standPat = tree.getValue() * (black ? 1 : -1);
 
+		Value value = -Value::Inf + tree.getPly(); // fail-soft
+		int count = 0;
+		Move move;
+		Move best;
+		best.setEmpty();
+
 		if (!tree.isChecking()) {
+
+#if 1
+			// search mate in 1 ply
+			if (stat.isMate() && mate1Ply(tree)) {
+				value = -Value::Inf + tree.getPly() + 1;
+				goto hash_store;
+			}
+#endif
 
 			// null move pruning
 			if (!pvNode && isNullWindow && stat.isNullMove() && beta <= standPat && depth >= Depth1Ply * 2) {
@@ -827,7 +888,11 @@ namespace sunfish {
 				if (currval >= beta) {
 					tree.updatePv(Move::empty(), depth);
 					_info.nullMovePruning++;
-					return beta;
+					value = beta;
+					if (newDepth < Depth1Ply) {
+						goto hash_store;
+					}
+					goto search_end;
 				}
 
 				// mate threat
@@ -855,13 +920,6 @@ namespace sunfish {
 			}
 		}
 
-		// fail-soft
-		Value value = -Value::Inf + tree.getPly();
-
-		int count = 0;
-		Move move;
-		Move best;
-		best.setEmpty();
 		tree.initGenPhase();
 #if ENABLE_HASH_MOVE
 		tree.setHash(hashMove);
@@ -1030,8 +1088,11 @@ namespace sunfish {
 			if (!isNullWindow && value > alpha) {
 				updateHistory(tree, depth, best);
 			}
+		}
 
-			// TODO: GHI対策
+hash_store:
+		// TODO: GHI対策
+		{
 			TTStatus status = _tt.entry(hash, alpha, beta, value, depth, tree.getPly(), Move::serialize16(best), stat);
 			switch (status) {
 				case TTStatus::New: _info.hashNew++; break;
@@ -1043,6 +1104,7 @@ namespace sunfish {
 			_info.hashStore++;
 		}
 
+search_end:
 		return value;
 
 	}
@@ -1310,6 +1372,24 @@ namespace sunfish {
 
 		return result;
 
+	}
+
+	/**
+	 * 1手詰めを探します。
+	 * 王手の局面では使用できません。
+	 */
+	bool Searcher::mate1Ply(const Board& initialBoard) {
+
+		// 前処理
+		before(initialBoard);
+
+		auto& tree = _trees[0];
+		bool result = mate1Ply(tree);
+
+		// 後処理
+		after();
+
+		return result;
 	}
 
 	/**

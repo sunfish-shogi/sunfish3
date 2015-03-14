@@ -660,4 +660,311 @@ namespace sunfish {
 	}
 	template void MoveGenerator::_generateKing<true>(const Board& board, Moves& moves);
 	template void MoveGenerator::_generateKing<false>(const Board& board, Moves& moves);
+
+	/**
+	 * 王手を生成
+	 */
+	template <bool black>
+	void MoveGenerator::_generateCheck(const Board& board, Moves& moves) {
+		const auto& occ = board.getBOccupy() | board.getWOccupy();
+		Bitboard movable = ~(black ? board.getBOccupy() : board.getWOccupy());
+		const auto& king = black ? board.getWKingPosition() : board.getBKingPosition();
+
+		// 金が王手できる位置
+		Bitboard bbtTokin = movable & (black ? MoveTables::WGold.get(king) : MoveTables::BGold.get(king));
+		bbtTokin &= (black ? Bitboard::BPromotable : Bitboard::WPromotable);
+
+		// pawn
+		{
+			// drop
+			Position to = black ? king.down() : king.up();
+			if (!occ.check(to)) {
+				int handCount = black ? board.getBlackHand(Piece::Pawn) : board.getWhiteHand(Piece::Pawn);
+				if (handCount) {
+					const Bitboard& bbPawn = black ? board.getBPawn() : board.getWPawn();
+					// 2歩チェック
+					if (!(bbPawn & Bitboard::file(king.getFile()))) {
+						moves.add(Move(Piece::Pawn, to, false));
+					}
+				}
+			}
+
+			// board
+			Bitboard bb = black ? board.getBPawn() : board.getWPawn();
+			if (black) {
+				bb.cheepRightShift(1);
+			} else {
+				bb.cheepLeftShift(1);
+			}
+			bb &= bbtTokin | Bitboard::mask(black ? king.down() : king.up());
+			bb &= movable;
+			BB_EACH_OPE(to, bb,
+				if (to.isPromotable<black>()) {
+					moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, true, false));
+				} else {
+					moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, false, false));
+				}
+			);
+		}
+
+		// lance
+		{
+			Bitboard bbt = black ? MoveTables::WLance.get(king, occ) : MoveTables::BLance.get(king, occ);
+			bbt &= movable;
+
+			// drop
+			int handCount = black ? board.getBlackHand(Piece::Lance) : board.getWhiteHand(Piece::Lance);
+			if (handCount) {
+				Bitboard bb = bbt & ~occ;
+				BB_EACH_OPE(to, bb,
+					moves.add(Move(Piece::Lance, to, false));
+				);
+			}
+
+			// board
+			Bitboard bb = black ? board.getBLance() : board.getWLance();
+			bbt &= ~bbtTokin;
+			BB_EACH_OPE(from, bb,
+				Bitboard bbe = black ? MoveTables::BLance.get(from, occ) : MoveTables::WLance.get(from, occ);
+				Bitboard bb2 = bbt & bbe;
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::Lance, from, to, false, false));
+				});
+				bb2 = bbtTokin & bbe;
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::Lance, from, to, true, false));
+				});
+			);
+		}
+
+		// knight
+		{
+			// drop
+			Position to1 = black ? king.safetyLeftDownKnight() : king.safetyLeftUpKnight();
+			Position to2 = black ? king.safetyRightDownKnight() : king.safetyRightUpKnight();
+			int handCount = black ? board.getBlackHand(Piece::Knight) : board.getWhiteHand(Piece::Knight);
+			if (handCount) {
+				if (to1.isValid() && !occ.check(to1)) {
+					moves.add(Move(Piece::Knight, to1, false));
+				}
+				if (to2.isValid() && !occ.check(to2)) {
+					moves.add(Move(Piece::Knight, to2, false));
+				}
+			}
+
+			// board
+			Bitboard bb = black ? board.getBKnight() : board.getWKnight();
+			Bitboard bbt = Bitboard::mask(to1) | Bitboard::mask(to2);
+			BB_EACH_OPE(from, bb,
+				Bitboard bbe = black ? MoveTables::BKnight.get(from) : MoveTables::WKnight.get(from);
+				Bitboard bb2 = bbt & bbe;
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::Knight, from, to, false, false));
+				});
+				bb2 = bbtTokin & bbe;
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::Knight, from, to, true, false));
+				});
+			);
+		}
+
+		// silver
+		{
+			Bitboard bbt = black ? MoveTables::WSilver.get(king) : MoveTables::BSilver.get(king);
+			bbt &= movable;
+
+			// drop
+			int handCount = black ? board.getBlackHand(Piece::Silver) : board.getWhiteHand(Piece::Silver);
+			if (handCount) {
+				Bitboard bb = bbt & ~occ;
+				BB_EACH_OPE(to, bb,
+					moves.add(Move(Piece::Silver, to, false));
+				);
+			}
+
+			// board
+			Bitboard bb = black ? board.getBSilver() : board.getWSilver();
+			bbt &= ~bbtTokin;
+			BB_EACH_OPE(from, bb,
+				Bitboard bbe = black ? MoveTables::BSilver.get(from) : MoveTables::WSilver.get(from);
+				Bitboard bb2 = bbt & bbe;
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::Silver, from, to, false, false));
+				});
+				bb2 = bbtTokin & bbe;
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::Silver, from, to, true, false));
+				});
+			);
+		}
+
+		Bitboard bbtGold = black ? MoveTables::WGold.get(king) : MoveTables::BGold.get(king);
+		bbtGold &= movable;
+
+		// gold
+		{
+			// drop
+			int handCount = black ? board.getBlackHand(Piece::Gold) : board.getWhiteHand(Piece::Gold);
+			if (handCount) {
+				Bitboard bb = bbtGold & ~occ;
+				BB_EACH_OPE(to, bb,
+					moves.add(Move(Piece::Gold, to, false));
+				);
+			}
+
+			// board
+			Bitboard bb = black ? board.getBGold() : board.getWGold();
+			BB_EACH_OPE(from, bb,
+				Bitboard bb2 = bbtGold & (black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from));
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::Gold, from, to, false, false));
+				});
+			);
+		}
+
+		// tokin
+		{
+			Bitboard bb = black ? board.getBTokin() : board.getWTokin();
+			BB_EACH_OPE(from, bb,
+				Bitboard bb2 = bbtGold & (black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from));
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::Tokin, from, to, false, false));
+				});
+			);
+		}
+
+		// promoted lance
+		{
+			Bitboard bb = black ? board.getBProLance() : board.getWProLance();
+			BB_EACH_OPE(from, bb,
+				Bitboard bb2 = bbtGold & (black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from));
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::ProLance, from, to, false, false));
+				});
+			);
+		}
+
+		// promoted knight
+		{
+			Bitboard bb = black ? board.getBProKnight() : board.getWProKnight();
+			BB_EACH_OPE(from, bb,
+				Bitboard bb2 = bbtGold & (black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from));
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::ProKnight, from, to, false, false));
+				});
+			);
+		}
+
+		// promoted silver
+		{
+			Bitboard bb = black ? board.getBProSilver() : board.getWProSilver();
+			BB_EACH_OPE(from, bb,
+				Bitboard bb2 = bbtGold & (black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from));
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::ProSilver, from, to, false, false));
+				});
+			);
+		}
+
+		// 馬、竜が王手できる位置
+		Bitboard bbtKing = movable & MoveTables::King.get(king);
+		bbtKing &= (black ? Bitboard::BPromotable : Bitboard::WPromotable);
+
+		// bishop
+		{
+			Bitboard bbt = MoveTables::Bishop.get(king, occ);
+			bbt &= movable;
+
+			// drop
+			int handCount = black ? board.getBlackHand(Piece::Bishop) : board.getWhiteHand(Piece::Bishop);
+			if (handCount) {
+				Bitboard bb = bbt & ~occ;
+				BB_EACH_OPE(to, bb,
+					moves.add(Move(Piece::Bishop, to, false));
+				);
+			}
+
+			// board
+			Bitboard bb = black ? board.getBBishop() : board.getWBishop();
+			bbt &= ~bbtKing;
+			BB_EACH_OPE(from, bb,
+				Bitboard bbe = MoveTables::Bishop.get(from, occ);
+				Bitboard bb2 = bbt & bbe;
+				BB_EACH_OPE(to, bb2, {
+					if (to.isPromotable<black>()) {
+						moves.add(Move(Piece::Bishop, from, to, true, false));
+					} else {
+						moves.add(Move(Piece::Bishop, from, to, false, false));
+					}
+				});
+				bb2 = bbtKing & bbe;
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::Bishop, from, to, true, false));
+				});
+			);
+		}
+
+		// rook
+		{
+			Bitboard bbt = MoveTables::Rook.get(king, occ);
+			bbt &= movable;
+
+			// drop
+			int handCount = black ? board.getBlackHand(Piece::Rook) : board.getWhiteHand(Piece::Rook);
+			if (handCount) {
+				Bitboard bb = bbt & ~occ;
+				BB_EACH_OPE(to, bb,
+					moves.add(Move(Piece::Rook, to, false));
+				);
+			}
+
+			// board
+			Bitboard bb = black ? board.getBRook() : board.getWRook();
+			bbt &= ~bbtKing;
+			BB_EACH_OPE(from, bb,
+				Bitboard bbe = MoveTables::Rook.get(from, occ);
+				Bitboard bb2 = bbt & bbe;
+				BB_EACH_OPE(to, bb2, {
+					if (to.isPromotable<black>()) {
+						moves.add(Move(Piece::Rook, from, to, true, false));
+					} else {
+						moves.add(Move(Piece::Rook, from, to, false, false));
+					}
+				});
+				bb2 = bbtKing & bbe;
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::Rook, from, to, true, false));
+				});
+			);
+		}
+
+		// horse
+		{
+			Bitboard bbt = MoveTables::Horse.get(king, occ);
+			bbt &= movable;
+			Bitboard bb = black ? board.getBHorse() : board.getWHorse();
+			BB_EACH_OPE(from, bb,
+				Bitboard bb2 = bbt & MoveTables::Horse.get(from, occ);
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::Horse, from, to, false, false));
+				});
+			);
+		}
+
+		// dragon
+		{
+			Bitboard bbt = MoveTables::Dragon.get(king, occ);
+			bbt &= movable;
+			Bitboard bb = black ? board.getBDragon() : board.getWDragon();
+			BB_EACH_OPE(from, bb,
+				Bitboard bb2 = bbt & MoveTables::Dragon.get(from, occ);
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(Piece::Dragon, from, to, false, false));
+				});
+			);
+		}
+
+	}
+	template void MoveGenerator::_generateCheck<true>(const Board& board, Moves& moves);
+	template void MoveGenerator::_generateCheck<false>(const Board& board, Moves& moves);
 }

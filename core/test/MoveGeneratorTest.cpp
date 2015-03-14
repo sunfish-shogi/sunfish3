@@ -401,4 +401,256 @@ TEST(MoveGeneratorTest, testEvasion) {
 
 }
 
+TEST(MoveGeneratorTest, testCheck) {
+	{
+		std::string src =
+"P1 *  *  *  *  *  *  *  *  * \n"
+"P2 *  *  *  *  *  *  *  *  * \n"
+"P3 *  *  *  * -FU *  *  *  * \n"
+"P4 *  *  * +GI * -OU *  *  * \n"
+"P5 *  *  *  *  *  *  *  *  * \n"
+"P6 *  *  *  * +GI *  *  *  * \n"
+"P7 *  *  *  *  *  *  *  *  * \n"
+"P8 *  *  * +OU *  *  *  *  * \n"
+"P9 *  *  *  *  *  *  *  *  * \n"
+"P+00FU00GI\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		Moves moves;
+		MoveGenerator::generateCheck(board, moves);
+		ASSERT_EQ(9, moves.size());
+		ASSERT_EQ(Move(Piece::Pawn, P45), moves[0]);
+		ASSERT_EQ(Move(Piece::Silver, P55), moves[1]);
+		ASSERT_EQ(Move(Piece::Silver, P45), moves[2]);
+		ASSERT_EQ(Move(Piece::Silver, P33), moves[3]);
+		ASSERT_EQ(Move(Piece::Silver, P35), moves[4]);
+		ASSERT_EQ(Move(Piece::Silver, P64, P53, false), moves[5]);
+		ASSERT_EQ(Move(Piece::Silver, P64, P55, false), moves[6]);
+		ASSERT_EQ(Move(Piece::Silver, P56, P55, false), moves[7]);
+		ASSERT_EQ(Move(Piece::Silver, P56, P45, false), moves[8]);
+	}
+
+	{
+		std::string src =
+"P1 *  *  *  *  *  *  *  *  * \n"
+"P2 *  *  *  *  *  *  *  *  * \n"
+"P3 *  *  *  *  * -OU *  *  * \n"
+"P4 *  *  *  *  * +KE *  *  * \n"
+"P5 *  *  *  *  * +FU *  *  * \n"
+"P6 *  *  *  *  *  *  *  *  * \n"
+"P7 *  *  *  *  *  *  *  *  * \n"
+"P8 *  *  * +OU *  *  *  *  * \n"
+"P9 *  *  *  *  *  *  *  *  * \n"
+"P+\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		Moves moves;
+		MoveGenerator::generateCheck(board, moves);
+		ASSERT_EQ(0, moves.size());
+	}
+
+	{
+		std::string src =
+"P1 *  *  *  *  *  *  *  *  * \n"
+"P2 *  *  *  *  *  *  *  *  * \n"
+"P3 *  *  *  * +KI *  *  *  * \n"
+"P4 *  *  *  *  * -OU *  *  * \n"
+"P5 *  *  *  *  *  *  * +KI * \n"
+"P6 *  *  *  *  * +FU *  *  * \n"
+"P7 *  *  *  *  *  *  *  *  * \n"
+"P8 *  *  * +OU *  *  * +KE * \n"
+"P9 *  *  *  *  * +KY+KY *  * \n"
+"P+00FU00KE\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		// 45歩 56桂 36桂打 36桂 54金 43金 34金 35金
+		Moves moves;
+		MoveGenerator::generateCheck(board, moves);
+		ASSERT_EQ(8, moves.size());
+		ASSERT_EQ(Move(Piece::Pawn, P46, P45, false), moves[0]);
+		ASSERT_EQ(Move(Piece::Knight, P56), moves[1]);
+		ASSERT_EQ(Move(Piece::Knight, P36), moves[2]);
+		ASSERT_EQ(Move(Piece::Knight, P28, P36, false), moves[3]);
+		ASSERT_EQ(Move(Piece::Gold, P53, P54, false), moves[4]);
+		ASSERT_EQ(Move(Piece::Gold, P53, P43, false), moves[5]);
+		ASSERT_EQ(Move(Piece::Gold, P25, P34, false), moves[6]);
+		ASSERT_EQ(Move(Piece::Gold, P25, P35, false), moves[7]);
+	}
+
+	{
+		std::string src =
+"P1 *  *  *  *  *  *  *  *  * \n"
+"P2 *  *  *  *  *  *  *  *  * \n"
+"P3 *  *  *  *  *  *  *  *  * \n"
+"P4 *  *  *  * -FU-OU *  *  * \n"
+"P5 *  *  *  *  *  *  *  *  * \n"
+"P6 *  *  *  *  *  *  *  *  * \n"
+"P7 *  *  *  *  * -FU *  *  * \n"
+"P8 *  *  * +OU *  *  *  *  * \n"
+"P9 *  *  *  *  * +KY+KY *  * \n"
+"P+00KY00KI\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		// 45香 46香 47香 55金 43金 45金 34金 35金
+		Moves moves;
+		MoveGenerator::generateCheck(board, moves);
+		ASSERT_EQ(8, moves.size());
+		ASSERT_EQ(Move(Piece::Lance, P45), moves[0]);
+		ASSERT_EQ(Move(Piece::Lance, P46), moves[1]);
+		ASSERT_EQ(Move(Piece::Lance, P49, P47, false), moves[2]);
+		ASSERT_EQ(Move(Piece::Gold, P55), moves[3]);
+		ASSERT_EQ(Move(Piece::Gold, P43), moves[4]);
+		ASSERT_EQ(Move(Piece::Gold, P45), moves[5]);
+		ASSERT_EQ(Move(Piece::Gold, P34), moves[6]);
+		ASSERT_EQ(Move(Piece::Gold, P35), moves[7]);
+	}
+
+	{
+		std::string src =
+"P1 *  *  *  *  *  *  *  *  * \n"
+"P2 *  *  *  *  *  *  *  *  * \n"
+"P3 *  *  *  * -FU-OU *  *  * \n"
+"P4 *  * +KA *  *  *  *  *  * \n"
+"P5 *  * +KA *  *  *  *  *  * \n"
+"P6 *  *  *  *  *  *  *  *  * \n"
+"P7 *  *  *  *  * -FU *  *  * \n"
+"P8 *  *  * +OU *  *  *  *  * \n"
+"P9 *  *  *  *  * +KY+KY *  * \n"
+"P+\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		// 47香 33香成 53角成 52角成 55角
+		Moves moves;
+		MoveGenerator::generateCheck(board, moves);
+		ASSERT_EQ(5, moves.size());
+		ASSERT_EQ(Move(Piece::Lance, P49, P47, false), moves[0]);
+		ASSERT_EQ(Move(Piece::Lance, P39, P33, true), moves[1]);
+		ASSERT_EQ(Move(Piece::Bishop, P74, P65, false), moves[2]);
+		ASSERT_EQ(Move(Piece::Bishop, P74, P52, true), moves[3]);
+		ASSERT_EQ(Move(Piece::Bishop, P75, P53, true), moves[4]);
+	}
+
+	{
+		std::string src =
+"P1 *  *  *  *  *  *  * -KE * \n"
+"P2 *  *  *  * -GI *  *  *  * \n"
+"P3 *  *  *  * +FU-OU *  *  * \n"
+"P4 *  *  *  *  *  *  *  *  * \n"
+"P5 *  * +KA *  *  *  * +FU * \n"
+"P6 *  * -FU *  *  * +HI * +HI\n"
+"P7 *  *  *  *  *  *  *  *  * \n"
+"P8 *  *  * +OU *  *  *  *  * \n"
+"P9 *  *  *  *  *  *  *  *  * \n"
+"P+00KA\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		// 65角 54角 32角 34角 46飛 32飛成 33飛成 13飛成
+		Moves moves;
+		MoveGenerator::generateCheck(board, moves);
+		ASSERT_EQ(8, moves.size());
+		ASSERT_EQ(Move(Piece::Bishop, P65), moves[0]);
+		ASSERT_EQ(Move(Piece::Bishop, P54), moves[1]);
+		ASSERT_EQ(Move(Piece::Bishop, P32), moves[2]);
+		ASSERT_EQ(Move(Piece::Bishop, P34), moves[3]);
+		ASSERT_EQ(Move(Piece::Rook, P36, P46, false), moves[4]);
+		ASSERT_EQ(Move(Piece::Rook, P36, P32, true), moves[5]);
+		ASSERT_EQ(Move(Piece::Rook, P36, P33, true), moves[6]);
+		ASSERT_EQ(Move(Piece::Rook, P16, P13, true), moves[7]);
+	}
+
+	{
+		std::string src =
+"P1 *  *  *  *  *  *  *  *  * \n"
+"P2 *  *  *  *  *  *  *  *  * \n"
+"P3 *  * -FU *  * -OU * -FU * \n"
+"P4 *  *  *  *  *  *  *  *  * \n"
+"P5 *  *  * +RY * -FU+UM *  * \n"
+"P6 *  *  *  *  *  *  *  *  * \n"
+"P7 *  *  *  *  *  *  *  *  * \n"
+"P8 *  *  * +OU *  *  *  *  * \n"
+"P9 *  *  *  *  *  *  *  *  * \n"
+"P+00HI\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		// 63飛 53飛 41飛 42飛 44飛 33飛 53馬 44馬 34馬 25馬 63竜 54竜 45竜
+		Moves moves;
+		MoveGenerator::generateCheck(board, moves);
+		ASSERT_EQ(13, moves.size());
+		ASSERT_EQ(Move(Piece::Rook, P63), moves[0]);
+		ASSERT_EQ(Move(Piece::Rook, P53), moves[1]);
+		ASSERT_EQ(Move(Piece::Rook, P41), moves[2]);
+		ASSERT_EQ(Move(Piece::Rook, P42), moves[3]);
+		ASSERT_EQ(Move(Piece::Rook, P44), moves[4]);
+		ASSERT_EQ(Move(Piece::Rook, P33), moves[5]);
+		ASSERT_EQ(Move(Piece::Horse, P35, P53, false), moves[6]);
+		ASSERT_EQ(Move(Piece::Horse, P35, P44, false), moves[7]);
+		ASSERT_EQ(Move(Piece::Horse, P35, P34, false), moves[8]);
+		ASSERT_EQ(Move(Piece::Horse, P35, P25, false), moves[9]);
+		ASSERT_EQ(Move(Piece::Dragon, P65, P63, false), moves[10]);
+		ASSERT_EQ(Move(Piece::Dragon, P65, P54, false), moves[11]);
+		ASSERT_EQ(Move(Piece::Dragon, P65, P45, false), moves[12]);
+	}
+
+	{
+		std::string src =
+"P1 *  *  *  *  *  *  *  *  * \n"
+"P2 *  *  *  * +NG *  *  *  * \n"
+"P3 *  *  *  *  * -OU *  *  * \n"
+"P4 *  *  *  *  *  *  *  *  * \n"
+"P5 *  *  *  * +TO+NY+NK *  * \n"
+"P6 *  *  *  *  *  *  *  *  * \n"
+"P7 *  *  *  *  *  *  *  *  * \n"
+"P8 *  *  * +OU *  *  *  *  * \n"
+"P9 *  *  *  *  *  *  *  *  * \n"
+"P+\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		// 54と 44と 54成香 44成香 34成香 44成桂 34成桂 53成銀 42成銀
+		Moves moves;
+		MoveGenerator::generateCheck(board, moves);
+		ASSERT_EQ(9, moves.size());
+		ASSERT_EQ(Move(Piece::Tokin, P55, P54, false), moves[0]);
+		ASSERT_EQ(Move(Piece::Tokin, P55, P44, false), moves[1]);
+		ASSERT_EQ(Move(Piece::ProLance, P45, P54, false), moves[2]);
+		ASSERT_EQ(Move(Piece::ProLance, P45, P44, false), moves[3]);
+		ASSERT_EQ(Move(Piece::ProLance, P45, P34, false), moves[4]);
+		ASSERT_EQ(Move(Piece::ProKnight, P35, P44, false), moves[5]);
+		ASSERT_EQ(Move(Piece::ProKnight, P35, P34, false), moves[6]);
+		ASSERT_EQ(Move(Piece::ProSilver, P52, P53, false), moves[7]);
+		ASSERT_EQ(Move(Piece::ProSilver, P52, P42, false), moves[8]);
+	}
+}
+
 #endif // !defined(NDEBUG)

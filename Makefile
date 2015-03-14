@@ -1,3 +1,5 @@
+PROF:=gprof
+PROFOUT:=profile.txt
 RM:=rm
 
 SUNFISH:=sunfish
@@ -13,7 +15,7 @@ LEARN_OPT:=-O2 -DNDEBUG
 
 override CXXFLAGS+=$(OPT)
 
-.PHONY: release release-pgo debug profile learn clean run-prof
+.PHONY: release release-pgo debug profile profile1 learn clean run-prof run-prof1
 
 help:
 	@echo 'usage:'
@@ -21,6 +23,7 @@ help:
 	@echo '  make release-pgo'
 	@echo '  make debug'
 	@echo '  make profile'
+	@echo '  make profile1'
 	@echo '  make learn'
 	@echo '  make clean'
 
@@ -37,6 +40,13 @@ debug:
 
 profile:
 	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(PROFILE_OPT)' $(SUNFISH)
+	$(MAKE) run-prof
+	@$(SHELL) -c '$(PROF) ./$(SUNFISH) > $(PROFOUT)'
+
+profile1:
+	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(PROFILE_OPT)' $(SUNFISH)
+	$(MAKE) run-prof1
+	@$(SHELL) -c '$(PROF) ./$(SUNFISH) > $(PROFOUT)'
 
 learn:
 	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(LEARN_OPT)' $(SUNFISH)
@@ -55,5 +65,8 @@ clean:
 
 run-prof:
 	@./$(SUNFISH) --profile -d 30 -t 10
+
+run-prof1:
+	@./$(SUNFISH) --profile1 -d 30 -t 10
 
 -include $(DEPENDS)
