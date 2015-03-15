@@ -41,6 +41,30 @@ P-\n\
 	}
 
 	{
+		// 頭金(詰)
+		std::string src = "\
+P1 *  *  *  * -OU *  *  *  * \n\
+P2 *  *  *  *  *  *  *  *  * \n\
+P3 *  *  *  *  *  *  *  *  * \n\
+P4 *  *  *  *  *  *  *  *  * \n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  *  * -FU *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+\n\
+P-00KI\n\
+-\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		bool mate = searcher.mate1Ply(board);
+		ASSERT_EQ(true, mate);
+	}
+
+	{
 		// 頭銀(不詰)
 		std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
@@ -55,6 +79,30 @@ P9 *  *  *  * +OU *  *  *  * \n\
 P+00GI\n\
 P-\n\
 +\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		bool mate = searcher.mate1Ply(board);
+		ASSERT_EQ(false, mate);
+	}
+
+	{
+		// 頭銀(不詰)
+		std::string src = "\
+P1 *  *  *  * -OU *  *  *  * \n\
+P2 *  *  *  *  *  *  *  *  * \n\
+P3 *  *  *  *  *  *  *  *  * \n\
+P4 *  *  *  *  *  *  *  *  * \n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  *  * -FU *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+\n\
+P-00GI\n\
+-\n\
 ";
 		std::istringstream iss(src);
 		Board board;
