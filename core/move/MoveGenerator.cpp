@@ -755,6 +755,7 @@ namespace sunfish {
 			// board
 			Bitboard bb = black ? board.getBKnight() : board.getWKnight();
 			Bitboard bbt = Bitboard::mask(to1) | Bitboard::mask(to2);
+			bbt &= movable;
 			BB_EACH_OPE(from, bb,
 				Bitboard bbe = black ? MoveTables::BKnight.get(from) : MoveTables::WKnight.get(from);
 				Bitboard bb2 = bbt & bbe;
