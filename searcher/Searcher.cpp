@@ -14,6 +14,7 @@
 #define ENABLE_PRECEDE_KILLER					0 // should be 0
 #define ENABLE_SHEK_PRESET						1
 #define ENABLE_SHEK										1
+#define ENABLE_MATE_1PLY							1
 #define ENABLE_STORE_PV								1
 #define SHALLOW_SEE                   0 // should be 0
 
@@ -856,10 +857,10 @@ namespace sunfish {
 
 		if (!tree.isChecking()) {
 
-#if 1
+#if ENABLE_MATE_1PLY
 			// search mate in 1 ply
 			if (stat.isMate() && mate1Ply(tree)) {
-				value = -Value::Inf + tree.getPly() + 1;
+				value = Value::Inf - tree.getPly() - 1;
 				goto hash_store;
 			}
 #endif
