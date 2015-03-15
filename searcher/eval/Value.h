@@ -143,6 +143,12 @@ namespace sunfish {
 			return a >= Value(0) ? a : -a;
 		}
 
+		static void swap(Value& val1, Value& val2) {
+			Value temp = val1;
+			val1 = val2;
+			val2 = temp;
+		}
+
 	};
 
 }

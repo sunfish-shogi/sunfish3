@@ -281,7 +281,6 @@ namespace sunfish {
 	template <bool shallow>
 	Value See::search(const Board& board, const Move& move, Value alpha, Value beta) {
 
-		assert(shallow || !move.isHand());
 		assert(beta <= Value::PieceInf);
 		assert(alpha >= -Value::PieceInf);
 

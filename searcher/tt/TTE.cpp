@@ -27,7 +27,8 @@ namespace sunfish {
 
 		if (checkHash(newHash)) {
 			// 深さが劣るものは登録させない。
-			if (newDepth < (int)_2.depth && _1.age == newAge) {
+			if (newDepth < (int)_2.depth && _1.age == newAge &&
+					newValue < Value::Mate && newValue > -Value::Mate) {
 				return false;
 			}
 		} else {

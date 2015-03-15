@@ -17,13 +17,6 @@
 
 namespace sunfish {
 
-	struct AspSearchStatus {
-		Value base;
-		int upper;
-		int lower;
-		Value alpha;
-	};
-
 	class Searcher {
 	public:
 
@@ -57,6 +50,8 @@ namespace sunfish {
 			uint64_t hashUpdate;
 			uint64_t hashCollision;
 			uint64_t hashReject;
+			uint64_t expand;
+			uint64_t expandHashMove;
 			uint64_t shekProbed;
 			uint64_t shekSuperior;
 			uint64_t shekInferior;
@@ -75,6 +70,7 @@ namespace sunfish {
 			double nps;
 			Move move;
 			Value eval;
+			int lastDepth;
 		};
 
 	private:
@@ -100,6 +96,9 @@ namespace sunfish {
 
 		/** record */
 		std::vector<Move> _record;
+
+		/** values of child node of root node */
+		int _rootValues[1024];
 
 		/** 中断フラグ */
 		std::atomic<bool> _forceInterrupt;
@@ -146,7 +145,7 @@ namespace sunfish {
 		/**
 		 * sort moves by see
 		 */
-		void sortSee(Tree& tree, Value standPat, Value alpha, bool exceptSmallCapture, bool isQuies);
+		void sortSee(Tree& tree, Value standPat, Value alpha, bool enableKiller, bool estimate, bool exceptSmallCapture, bool isQuies);
 
 		/**
 		 * except prior moves
@@ -205,23 +204,28 @@ namespace sunfish {
 		Value qsearch(Tree& tree, bool black, int qply, Value alpha, Value beta);
 
 		/**
+		 * update killer move
+		 */
+		void updateKiller(Tree& tree, const Move& move);
+
+		/**
 		 * nega-max search
 		 */
 		template <bool pvNode>
-		Value searchr(Tree& tree, bool black, int depth, Value alpha, Value beta, NodeStat stat = NodeStat::Default);
+		Value search(Tree& tree, bool black, int depth, Value alpha, Value beta, NodeStat stat = NodeStat::Default);
+
+		/**
+		 * search on root node
+		 */
+		Value searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move& best);
 
 		/**
 		 * aspiration search
-		 */
-		Value asp(Tree& tree, bool black, int depth, AspSearchStatus& astat);
-
-		/**
-		 * search from root node
 		 * @return {負けたか中断された場合にfalseを返します。}
 		 */
-		bool search(int depth, Move& best, bool gen = true, Value* prevval = nullptr);
+		bool searchAsp(int depth, Move& best, bool gen = true, Value* prevval = nullptr);
 
-		void showPv(int depth, const Pv& pv, const Value& value, bool isFirst);
+		void showPv(int depth, const Pv& pv, const Value& value);
 
 		void showEndOfIterate();
 

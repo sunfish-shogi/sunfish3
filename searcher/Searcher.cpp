@@ -23,7 +23,7 @@
 #define DEBUG_TREE										0
 #define DEBUG_NODE										0
 
-#define ITERATE_INFO_THRESHOLD        3
+#define ITERATE_INFO_THRESHOLD        1
 
 namespace sunfish {
 
@@ -172,14 +172,12 @@ namespace sunfish {
 	/**
 	 * sort moves by see
 	 */
-	void Searcher::sortSee(Tree& tree, Value standPat, Value alpha, bool exceptSmallCapture, bool isQuies) {
+	void Searcher::sortSee(Tree& tree, Value standPat, Value alpha, bool enableKiller, bool estimate, bool exceptSmallCapture, bool isQuies) {
 		const auto& board = tree.getBoard();
-		Move hashMove = tree.getHash();
-		Move killer1 = tree.getKiller1();
-		Move killer2 = tree.getKiller2();
+		auto& node = tree.getCurrentNode();
 #if !ENABLE_KILLER_MOVE
-		assert(killer1.isEmpty());
-		assert(killer2.isEmpty());
+		assert(node.killer1.isEmpty());
+		assert(node.killer2.isEmpty());
 #endif // ENABLE_KILLER_MOVE
 
 		for (auto ite = tree.getNext(); ite != tree.getEnd(); ) {
@@ -197,31 +195,33 @@ namespace sunfish {
 			}
 
 			if (!isQuies) {
-				if (tree.checkGenStat(HashDone) && move == hashMove) {
+				if ((node.expStat & HashDone) && move == node.hash) {
 					ite = tree.getMoves().remove(ite);
 					continue;
 				}
 			}
 
-			// futility pruning
-			if (standPat + tree.estimate(move, _eval) <= alpha) {
-				_info.futilityPruning++;
-				ite = tree.getMoves().remove(ite);
-				continue;
+			if (isQuies) {
+				// futility pruning
+				if (standPat + tree.estimate(move, _eval) <= alpha) {
+					_info.futilityPruning++;
+					ite = tree.getMoves().remove(ite);
+					continue;
+				}
 			}
 
 #if SHALLOW_SEE
-			value = _see.search<true>(board, move, -1, Evaluator::PieceInf);
+			value = _see.search<true>(board, move, -1, Value::PieceInf);
 #else
-			value = _see.search(board, move, -1, Value::PieceInf);
+			value = _see.search<false>(board, move, -1, Value::PieceInf);
 #endif
+			if (estimate) {
+				value += tree.estimate<true>(move, _eval);
+			}
 
-			if (!isQuies) {
-				if (move == killer1) {
-#if !ENABLE_KILLER_MOVE
-					assert(false);
-#endif // ENABLE_KILLER_MOVE
-					tree.setGenStat(Killer1Done);
+			if (enableKiller) {
+				if (move == node.killer1) {
+					node.expStat |= Killer1Added;
 					auto captured = board.getBoardPiece(move.to());
 #if ENABLE_PRECEDE_KILLER
 					value = Value::Inf;
@@ -229,11 +229,8 @@ namespace sunfish {
 					Value kvalue = tree.getKiller1Value() + material::pieceExchange(captured);
 					value = Value::max(value, kvalue);
 #endif
-				} else if (move == killer2) {
-#if !ENABLE_KILLER_MOVE
-					assert(false);
-#endif // ENABLE_KILLER_MOVE
-					tree.setGenStat(Killer2Done);
+				} else if (move == node.killer2) {
+					node.expStat |= Killer2Added;
 					auto captured = board.getBoardPiece(move.to());
 #if ENABLE_PRECEDE_KILLER
 					value = Value::Inf-1;
@@ -249,15 +246,12 @@ namespace sunfish {
 			ite++;
 		}
 
-		if (!isQuies) {
-			if (!tree.checkGenStat(Killer1Done) && killer1 != hashMove
+		if (enableKiller) {
+			if (!(node.expStat & Killer1Added) && node.killer1 != node.hash
 					&& tree.getKiller1Value() >= Value::Zero
-					&& board.isValidMoveStrict(killer1)) {
-#if !ENABLE_KILLER_MOVE
-				assert(false);
-#endif // ENABLE_KILLER_MOVE
-				tree.setGenStat(Killer1Done);
-				auto ite = tree.addMove(killer1);
+					&& board.isValidMoveStrict(node.killer1)) {
+				node.expStat |= Killer1Added;
+				auto ite = tree.addMove(node.killer1);
 #if ENABLE_PRECEDE_KILLER
 				tree.setSortValue(ite, Value::Inf);
 #else
@@ -265,14 +259,11 @@ namespace sunfish {
 				tree.setSortValue(ite, kvalue.int32());
 #endif
 			}
-			if (!tree.checkGenStat(Killer2Done) && killer2 != hashMove
+			if (!(node.expStat & Killer2Added) && node.killer2 != node.hash
 					&& tree.getKiller2Value() >= Value::Zero
-					&& board.isValidMoveStrict(killer2)) {
-#if !ENABLE_KILLER_MOVE
-				assert(false);
-#endif // ENABLE_KILLER_MOVE
-				tree.setGenStat(Killer2Done);
-				auto ite = tree.addMove(killer2);
+					&& board.isValidMoveStrict(node.killer2)) {
+				node.expStat |= Killer2Added;
+				auto ite = tree.addMove(node.killer2);
 #if ENABLE_PRECEDE_KILLER
 				tree.setSortValue(ite, Value::Inf);
 #else
@@ -293,29 +284,38 @@ namespace sunfish {
 			}
 		}
 
+		if (enableKiller) {
+			auto ite = tree.getNext();
+			if (ite != tree.getEnd()) {
+				tree.setCapture1(*ite, tree.getSortValue(ite));
+				ite++;
+				if (ite != tree.getEnd()) {
+					tree.setCapture2(*ite, tree.getSortValue(ite));
+				}
+			}
+		}
+
 	}
 
 	/**
 	 * except prior moves
 	 */
 	void Searcher::exceptPriorMoves(Tree& tree) {
-		Move hashMove = tree.getHash();
-		Move killer1 = tree.getKiller1();
-		Move killer2 = tree.getKiller2();
+		auto& node = tree.getCurrentNode();
 #if !ENABLE_KILLER_MOVE
-		assert(killer1.isEmpty());
-		assert(killer2.isEmpty());
+		assert(node.killer1.isEmpty());
+		assert(node.killer2.isEmpty());
 #endif // ENABLE_KILLER_MOVE
 
 		for (auto ite = tree.getNext(); ite != tree.getEnd(); ) {
 			const Move& move = *ite;
 
-			if (tree.checkGenStat(HashDone) && move == hashMove) {
+			if ((node.expStat & HashDone) && move == node.hash) {
 				ite = tree.getMoves().remove(ite);
 				continue;
 			}
-			if ((tree.checkGenStat(Killer1Done) && move == killer1) ||
-					(tree.checkGenStat(Killer2Done) && move == killer2)) {
+			if (((node.expStat & Killer1Done) && move == node.killer1) ||
+					((node.expStat & Killer2Done) && move == node.killer2)) {
 				ite = tree.getMoves().remove(ite);
 				continue;
 			}
@@ -379,7 +379,7 @@ namespace sunfish {
 	 */
 	void Searcher::updateHistory(Tree& tree, int depth, const Move& move) {
 
-		int value = std::max(depth / (Depth1Ply/4), 1);
+		int value = std::max(depth * 4 / Depth1Ply, 1);
 		for (auto ite = tree.getBegin(); ite != tree.getNext(); ite++) {
 			assert(ite != tree.getEnd());
 			auto key = History::getKey(*ite);
@@ -435,7 +435,7 @@ namespace sunfish {
 	bool Searcher::nextMove(Tree& tree, Move& move) {
 
 		auto& moves = tree.getMoves();
-		auto& genPhase = tree.getGenPhase();
+		auto& node = tree.getCurrentNode();
 		const auto& board = tree.getBoard();
 
 		while (true) {
@@ -444,32 +444,42 @@ namespace sunfish {
 					tree.getNext() != tree.getEnd()) {
 				move = *tree.getNext();
 				tree.selectNextMove();
+				if (move == node.hash) {
+					node.expStat |= HashDone;
+				} else if (move == node.killer1) {
+					node.expStat |= Killer1Done;
+				} else if (move == node.killer2) {
+					node.expStat |= Killer2Done;
+				} else if (move == node.capture1) {
+					node.expStat |= Capture1Done;
+				} else if (move == node.capture2) {
+					node.expStat |= Capture2Done;
+				}
 				return true;
 			}
 
-			switch (genPhase) {
+			switch (node.genPhase) {
 			case GenPhase::Hash:
 				{
-					Move hashMove = tree.getHash();
+					Move hashMove = node.hash;
 					if (!hashMove.isEmpty() && board.isValidMoveStrict(hashMove)) {
 						tree.addMove(hashMove);
-						tree.setGenStat(HashDone);
 					}
-					genPhase = GenPhase::Capture;
+					node.genPhase = GenPhase::Capture;
 				}
 				break;
 
 			case GenPhase::Capture:
 				if (tree.isChecking()) {
 					MoveGenerator::generateEvasion(board, moves);
-					sortHistory(tree);
-					genPhase = GenPhase::End;
+					sortSee(tree, Value::Zero, Value::Zero, false, true, false, false);
+					node.genPhase = GenPhase::End;
 					break;
 					
 				} else {
 					MoveGenerator::generateCap(board, moves);
-					sortSee(tree, Value::Zero, Value::Zero, false, false);
-					genPhase = GenPhase::History1;
+					sortSee(tree, Value::Zero, Value::Zero, true, false, false, false);
+					node.genPhase = GenPhase::History1;
 					break;
 
 				}
@@ -478,7 +488,7 @@ namespace sunfish {
 				MoveGenerator::generateNoCap(board, moves);
 				MoveGenerator::generateDrop(board, moves);
 				exceptPriorMoves(tree);
-				genPhase = GenPhase::History2;
+				node.genPhase = GenPhase::History2;
 				tree.setThroughPhase(true);
 				if (pickOneHistory(tree)) {
 					move = *tree.getNext();
@@ -488,7 +498,7 @@ namespace sunfish {
 				break;
 
 			case GenPhase::History2:
-				genPhase = GenPhase::Misc;
+				node.genPhase = GenPhase::Misc;
 				tree.setThroughPhase(true);
 				if (pickOneHistory(tree)) {
 					move = *tree.getNext();
@@ -499,7 +509,7 @@ namespace sunfish {
 
 			case GenPhase::Misc:
 				sortHistory(tree);
-				genPhase = GenPhase::End;
+				node.genPhase = GenPhase::End;
 				tree.setThroughPhase(false);
 				break;
 
@@ -519,7 +529,7 @@ namespace sunfish {
 	bool Searcher::nextMoveQuies(Tree& tree, Move& move, int qply, Value standPat, Value alpha) {
 
 		auto& moves = tree.getMoves();
-		auto& genPhase = tree.getGenPhase();
+		auto& node = tree.getCurrentNode();
 		const auto& board = tree.getBoard();
 
 		while (true) {
@@ -530,7 +540,7 @@ namespace sunfish {
 				return true;
 			}
 
-			switch (genPhase) {
+			switch (node.genPhase) {
 			case GenPhase::Hash: // fall through
 			case GenPhase::Capture: // fall through
 			case GenPhase::History1:
@@ -543,17 +553,17 @@ namespace sunfish {
 				if (tree.isChecking()) {
 					MoveGenerator::generateEvasion(board, moves);
 					sortHistory(tree);
-					genPhase = GenPhase::End;
+					node.genPhase = GenPhase::End;
 					break;
 
 				} else {
 					MoveGenerator::generateCap(board, moves);
 					if (qply >= 7) {
-  					sortSee(tree, standPat, alpha, true, true);
+  					sortSee(tree, standPat, alpha, false, false, true, true);
 					} else {
-  					sortSee(tree, standPat, alpha, false, true);
+  					sortSee(tree, standPat, alpha, false, false, false, true);
 					}
-					genPhase = GenPhase::End;
+					node.genPhase = GenPhase::End;
 					break;
 
 				}
@@ -658,15 +668,22 @@ namespace sunfish {
 		// stand-pat
 		Value standPat = tree.getValue() * (black ? 1 : -1);
 
+		// beta-cut
+		if (standPat >= beta) {
+			return standPat;
+		}
+
 		// スタックサイズの限界
 		if (tree.isStackFull()) {
 			return standPat;
 		}
 
-		// beta-cut
-		if (standPat >= beta) {
-			return standPat;
+#if ENABLE_MATE_1PLY
+		// search mate in 1 ply
+		if (mate1Ply(tree)) {
+			return Value::Inf - tree.getPly() - 1;
 		}
+#endif
 
 		alpha = Value::max(alpha, standPat);
 
@@ -710,11 +727,65 @@ namespace sunfish {
 
 	}
 
+	void Searcher::updateKiller(Tree& tree, const Move& move) {
+		auto& node = tree.getCurrentNode();
+		const auto& board = tree.getBoard();
+
+		Piece captured = board.getBoardPiece(move.to());
+		Value capVal = material::pieceExchange(captured);
+
+		if (move == node.capture1) {
+			if ((node.expStat & Killer1Done) && move != node.killer1) {
+				node.kvalue1 = node.cvalue1 - capVal - 1;
+			}
+			if ((node.expStat & Killer2Done) && move != node.killer2) {
+				node.kvalue2 = node.cvalue1 - capVal - 1;
+			}
+
+		} else if (move == node.killer1) {
+			if ((node.expStat & Capture1Done) &&
+					node.kvalue2 + capVal <= node.cvalue1) {
+				node.kvalue2 = node.cvalue1 - capVal + 1;
+			}
+			Piece captured2 = board.getBoardPiece(node.killer2.to());
+			Value capVal2 = material::pieceExchange(captured2);
+			if ((node.expStat & Killer2Done) &&
+					node.kvalue1 + capVal <= node.kvalue2 + capVal2) {
+				node.kvalue1 = node.kvalue2 + capVal2 - capVal + 1;
+			}
+
+		} else if (move == node.killer2) {
+			if ((node.expStat & Capture1Done) &&
+					node.kvalue2 + capVal <= node.cvalue1) {
+				node.kvalue2 = node.cvalue1 - capVal + 1;
+			}
+			Piece captured1 = board.getBoardPiece(node.killer1.to());
+			Value capVal1 = material::pieceExchange(captured1);
+			if ((node.expStat & Killer1Done) &&
+					node.kvalue2 + capVal <= node.kvalue1 + capVal1) {
+				node.kvalue2 = node.kvalue1 + capVal1 - capVal + 1;
+			}
+			Move::swap(node.killer1, node.killer2);
+			Value::swap(node.kvalue1, node.kvalue2);
+
+		} else {
+			if (node.expStat & Killer1Done) {
+				Value val = _see.search<false>(board, move, -1, Value::PieceInf) - capVal + 1;
+				node.kvalue1 = Value::min(node.kvalue1, val);
+			}
+			node.killer2 = node.killer1;
+			node.kvalue2 = node.kvalue1;
+			node.killer1 = move;
+			node.kvalue1 = node.cvalue1 - capVal + 1;
+
+		}
+	}
+
 	/**
 	 * nega-max search
 	 */
 	template <bool pvNode>
-	Value Searcher::searchr(Tree& tree, bool black, int depth, Value alpha, Value beta, NodeStat stat) {
+	Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value beta, NodeStat stat) {
 
 #if DEBUG_TREE
 		{
@@ -727,19 +798,13 @@ namespace sunfish {
 
 #if DEBUG_NODE
 		bool debug = false;
-		if (tree.__debug__matchPath("+0052KA -6465FU +5243UM")) {
+		if (tree.__debug__matchPath("-0065KY +0066FU -0076KA +6768OU -0077GI +6859OU -0049KI +5969OU -8778GI")) {
 			std::cout << " ** debug begin **" << std::endl;
 			std::cout << tree.__debug__getPath() << std::endl;
 			std::cout << "alpha=" << alpha.int32() << " beta=" << beta.int32() << " depth=" << depth << std::endl;
 			debug = true;
 		}
 #endif
-
-		// distance pruning
-		Value maxv = Value::Inf - tree.getPly();
-		if (alpha >= maxv) {
-			return maxv;
-		}
 
 #if ENABLE_SHEK
 		// SHEK
@@ -774,6 +839,23 @@ namespace sunfish {
 		// 静止探索の結果を返す。
 		if (!tree.isChecking() && depth < Depth1Ply) {
 			return qsearch(tree, black, 0, alpha, beta);
+		}
+
+		// distance pruning
+		Value oldAlpha = alpha;
+		{
+			Value value = -Value::Inf + tree.getPly();
+			if (value > alpha) {
+				if (value >= beta) {
+					return value;
+				}
+				alpha = value;
+			} else {
+				value = Value::Inf - tree.getPly() - 1;
+				if (value <= alpha) {
+					return value;
+				}
+			}
 		}
 
 		_info.node++;
@@ -849,18 +931,16 @@ namespace sunfish {
 
 		Value standPat = tree.getValue() * (black ? 1 : -1);
 
-		Value value = -Value::Inf + tree.getPly(); // fail-soft
 		int count = 0;
 		Move move;
-		Move best;
-		best.setEmpty();
+		Move best = Move::empty();
 
 		if (!tree.isChecking()) {
 
 #if ENABLE_MATE_1PLY
 			// search mate in 1 ply
 			if (stat.isMate() && mate1Ply(tree)) {
-				value = Value::Inf - tree.getPly() - 1;
+				alpha = Value::Inf - tree.getPly() - 1;
 				goto hash_store;
 			}
 #endif
@@ -875,7 +955,7 @@ namespace sunfish {
 				// make move
 				tree.makeNullMove();
 
-				Value currval = -searchr<false>(tree, !black, newDepth, -beta, -beta+1, newStat);
+				Value currval = -search<false>(tree, !black, newDepth, -beta, -beta+1, newStat);
 
 				// unmake move
 				tree.unmakeNullMove();
@@ -889,7 +969,7 @@ namespace sunfish {
 				if (currval >= beta) {
 					tree.updatePv(Move::empty(), depth);
 					_info.nullMovePruning++;
-					value = beta;
+					alpha = beta;
 					if (newDepth < Depth1Ply) {
 						goto hash_store;
 					}
@@ -907,7 +987,7 @@ namespace sunfish {
 		// recursive iterative-deepening search
 		if (!hashMove.isEmpty() && stat.isRecursion() && depth >= search_param::REC_THRESHOLD) {
 			auto newStat = NodeStat(stat).unsetNullMove().unsetMate().unsetHashCut();
-			searchr<pvNode>(tree, black, search_func::recDepth(depth), alpha, beta, newStat);
+			search<pvNode>(tree, black, search_func::recDepth(depth), alpha, beta, newStat);
 
 			// 中断判定
 			if (isInterrupted()) {
@@ -922,8 +1002,12 @@ namespace sunfish {
 		}
 
 		tree.initGenPhase();
+		_info.expand++;
 #if ENABLE_HASH_MOVE
 		tree.setHash(hashMove);
+		if (!hashMove.isEmpty()) {
+			_info.expandHashMove++;
+		}
 #else
 		tree.setHash(Move::empty());
 #endif
@@ -931,22 +1015,19 @@ namespace sunfish {
 
 			_info.expanded++;
 
-			count++;
-
 			// depth
 			int newDepth = depth - Depth1Ply;
                           
 			// stat
 			NodeStat newStat = NodeStat::Default;
 
-			// alpha value
-			Value newAlpha = Value::max(alpha, value);
+			isNullWindow = (beta == alpha + 1);
 
 			const auto& board = tree.getBoard();
 			bool isCheckCurr = board.isCheck(move);
 			bool isCheckPrev = tree.isChecking();
 			bool isCheck = isCheckCurr || isCheckPrev;
-			Piece captured = board.getBoardPiece(move.to());
+			bool isCap = board.getBoardPiece(move.to());
 
 			// extensions
 			if (isCheckCurr) {
@@ -954,13 +1035,14 @@ namespace sunfish {
 				newDepth += search_param::EXT_CHECK;
 				_info.checkExtension++;
 
-			} else if (isCheckPrev && count == 1 && tree.getGenPhase() == GenPhase::End && tree.getNext() == tree.getEnd()) {
+			} else if (isCheckPrev && count == 0 && tree.getGenPhase() == GenPhase::End && tree.getNext() == tree.getEnd()) {
 				// one-reply
 				newDepth += search_param::EXT_ONEREP;
 				_info.onerepExtension++;
 
-			} else if (!isCheckPrev && stat.isRecapture() && tree.isRecapture()
-								 // TODO: 前回の最善のcaptureを除外
+			} else if (!isCheckPrev && stat.isRecapture() && tree.isRecapture() &&
+								 (move == tree.getCapture1() ||
+									(move == tree.getCapture2() && tree.getCapture1Value() < tree.getCapture2Value() + 180))
 								 ) {
 				// recapture
 				newDepth += search_param::EXT_RECAP;
@@ -972,8 +1054,8 @@ namespace sunfish {
 			// late move reduction
 			int reduced = 0;
 #if ENABLE_LMR
-			if (newDepth >= Depth1Ply && count != 1 && !isCheck && !stat.isMateThreat() &&
-					captured.isEmpty() && (!move.promote() || move.piece() != Piece::Silver) &&
+			if (count != 0 && newDepth >= Depth1Ply && !isCheck && !stat.isMateThreat() &&
+					isCap && (!move.promote() || move.piece() != Piece::Silver) &&
 					!tree.isPriorMove(move)) {
 				reduced = getReductionDepth(move, isNullWindow);
 				newDepth -= reduced;
@@ -981,22 +1063,22 @@ namespace sunfish {
 #endif // ENABLE_LMR
 
 			// futility pruning
-			if (!isCheck && newDepth < Depth1Ply * 3 && newAlpha > -Value::Mate) {
-				Value futAlpha = newAlpha;
+			if (!isCheck && newDepth < Depth1Ply * 3 && alpha > -Value::Mate) {
+				Value futAlpha = alpha;
 				if (newDepth >= Depth1Ply * 2) { futAlpha -= search_param::EFUT_MGN2; }
 				else if (newDepth >= Depth1Ply) { futAlpha -= search_param::EFUT_MGN1; }
 				if (standPat + tree.estimate(move, _eval) <= futAlpha) {
-					value = newAlpha;
+					count++;
 					_info.futilityPruning++;
 					continue;
 				}
 			}
 
 			if (newDepth < Depth1Ply * 2 && isNullWindow && !isCheck &&
-					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
+					isCap && (!move.promote() || move.piece() == Piece::Silver) &&
 					!tree.isPriorMove(move) &&
 					_see.search<true>(board, move, -1, 0) < Value::Zero) {
-				value = newAlpha;
+				count++;
 				continue;
 			}
 
@@ -1008,12 +1090,12 @@ namespace sunfish {
 			Value newStandPat = tree.getValue() * (black ? 1 : -1);
 
 			// extended futility pruning
-			if (!isCheck && newAlpha > -Value::Mate) {
-				if ((newDepth < Depth1Ply && newStandPat <= newAlpha) ||
-						(newDepth < Depth1Ply * 2 && newStandPat + search_param::EFUT_MGN1 <= newAlpha) ||
-						(newDepth < Depth1Ply * 3 && newStandPat + search_param::EFUT_MGN2 <= newAlpha)) {
+			if (!isCheck && alpha > -Value::Mate) {
+				if ((newDepth < Depth1Ply && newStandPat <= alpha) ||
+						(newDepth < Depth1Ply * 2 && newStandPat + search_param::EFUT_MGN1 <= alpha) ||
+						(newDepth < Depth1Ply * 3 && newStandPat + search_param::EFUT_MGN2 <= alpha)) {
 					tree.unmakeMove();
-					value = newAlpha;
+					count++;
 					_info.extendedFutilityPruning++;
 					continue;
 				}
@@ -1021,28 +1103,21 @@ namespace sunfish {
 
 			// reccursive call
 			Value currval;
-			if (count == 1) {
-				currval = -searchr<pvNode>(tree, !black, newDepth, -beta, -newAlpha, newStat);
+			if (count == 0) {
+				currval = -search<pvNode>(tree, !black, newDepth, -beta, -alpha, newStat);
 
 			} else {
 				// nega-scout
-				currval = -searchr<false>(tree, !black, newDepth, -newAlpha-1, -newAlpha, newStat);
+				currval = -search<false>(tree, !black, newDepth, -alpha-1, -alpha, newStat);
 
-#if 1
-				if (!isInterrupted() && currval > newAlpha && currval < beta && reduced > 0) {
+				if (!isInterrupted() && currval > alpha && reduced > 0) {
 					newDepth += reduced;
-					currval = -searchr<pvNode>(tree, !black, newDepth, -newAlpha-1, -newAlpha, newStat);
+					currval = -search<pvNode>(tree, !black, newDepth, -alpha-1, -alpha, newStat);
 				}
 
-				if (!isInterrupted() && currval > newAlpha && currval < beta && !isNullWindow) {
-					currval = -searchr<pvNode>(tree, !black, newDepth, -beta, -newAlpha, newStat);
+				if (!isInterrupted() && currval > alpha && currval < beta && !isNullWindow) {
+					currval = -search<pvNode>(tree, !black, newDepth, -beta, -alpha, newStat);
 				}
-#else
-				if (!isInterrupted() && currval > newAlpha &&  currval < beta) {
-					newDepth += reduced;
-					currval = -searchr<pvNode>(tree, !black, newDepth, -beta, -newAlpha, newStat);
-				}
-#endif
 
 			}
 
@@ -1055,8 +1130,8 @@ namespace sunfish {
 			}
 
 			// 値更新
-			if (currval > value) {
-				value = currval;
+			if (currval > alpha) {
+				alpha = currval;
 				best = move;
 				if (!isNullWindow) {
 					tree.updatePv(move, depth);
@@ -1065,7 +1140,7 @@ namespace sunfish {
 				// beta-cut
 				if (currval >= beta) {
 					_info.failHigh++;
-					if (count == 1) {
+					if (count == 0) {
 						_info.failHighFirst++;
 					}
 					if (move == tree.getHash()) {
@@ -1075,18 +1150,21 @@ namespace sunfish {
 					} else if (move == tree.getKiller2()) {
 						_info.failHighIsKiller2++;
 					}
-#if ENABLE_KILLER_MOVE
-					Value kvalue = currval - standPat - material::pieceExchange(captured);
-					tree.addKiller(move, kvalue);
-#endif // ENABLE_KILLER_MOVE
 					break;
 				}
 			}
+			count++;
 
 		}
 
-		if (!best.isEmpty()) {
-			if (!isNullWindow && value > alpha) {
+		if (!best.isEmpty() && !tree.isChecking()) {
+			if (!isNullWindow || alpha >= beta) {
+#if ENABLE_KILLER_MOVE
+				updateKiller(tree, move);
+#endif // ENABLE_KILLER_MOVE
+			}
+			if (tree.getBoard().getBoardPiece(best.to()).isEmpty() &&
+					(!best.promote() || best.piece() != Piece::Silver)) {
 				updateHistory(tree, depth, best);
 			}
 		}
@@ -1094,7 +1172,7 @@ namespace sunfish {
 hash_store:
 		// TODO: GHI対策
 		{
-			TTStatus status = _tt.entry(hash, alpha, beta, value, depth, tree.getPly(), Move::serialize16(best), stat);
+			TTStatus status = _tt.entry(hash, oldAlpha, beta, alpha, depth, tree.getPly(), Move::serialize16(best), stat);
 			switch (status) {
 				case TTStatus::New: _info.hashNew++; break;
 				case TTStatus::Update: _info.hashUpdate++; break;
@@ -1106,150 +1184,66 @@ hash_store:
 		}
 
 search_end:
-		return value;
+		return alpha;
 
 	}
-	template Value Searcher::searchr<true>(Tree&, bool, int, Value, Value, NodeStat);
-	template Value Searcher::searchr<false>(Tree&, bool, int, Value, Value, NodeStat);
+	template Value Searcher::search<true>(Tree&, bool, int, Value, Value, NodeStat);
+	template Value Searcher::search<false>(Tree&, bool, int, Value, Value, NodeStat);
 
 	/**
-	 * aspiration search
+	 * search on root node
 	 */
-	Value Searcher::asp(Tree& tree, bool black, int depth, AspSearchStatus& astat) {
-
-		const int wcnt = 3;
-		const Value alphas[wcnt] = { astat.base-320, astat.base-1280, -Value::Inf };
-		const Value betas[wcnt] = { astat.base+320, astat.base+1280, Value::Inf };
-
-		if (astat.base == -Value::Inf) {
-			astat.lower = wcnt - 1;
-			astat.upper = wcnt - 1;
-		}
-
-		while (true) {
-
-			Value alpha = std::max(astat.alpha, alphas[astat.lower]);
-			Value beta = std::max(astat.alpha + 1, betas[astat.upper]);
-
-			Value value = -searchr<true>(tree, black, depth, -beta, -alpha);
-
-			// 中断判定
-			if (isInterrupted()) {
-				return Value::Zero;
-			}
-
-			// 値が確定 (alpha < value < beta)
-			if (value > alpha && value < beta) {
-				return value;
-			}
-
-			// alpha-cut
-			if (value <= astat.alpha) {
-				return value;
-			}
-
-			bool retry = false;
-
-			// alpha 値を広げる
-			while (value <= alphas[astat.lower] && astat.lower != wcnt - 1) {
-				astat.lower++;
-				assert(astat.lower < wcnt);
-				retry = true;
-			}
-
-			// beta 値を広げる
-			while (value >= betas[astat.upper] && astat.upper != wcnt - 1) {
-				astat.upper++;
-				assert(astat.upper < wcnt);
-				retry = true;
-			}
-
-			if (!retry) {
-				return value;
-			}
-
-		}
-
-	}
-
-	/**
-	 * search from root node
-	 * @return {負けたか中断された場合にfalseを返します。}
-	 */
-	bool Searcher::search(int depth, Move& best, bool gen /* = true */, Value* prevval /* = nullptr */) {
-
-		// tree
-		auto& tree = _trees[0];
-
-		// sort values
-		int sortValues[1024];
-
-		auto& moves = tree.getMoves();
+	Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move& best) {
 		const auto& board = tree.getBoard();
 		bool black = board.isBlack();
-
-		Value value = -Value::Inf;
-
-		AspSearchStatus astat;
-		astat.base = prevval != nullptr ? *prevval : -Value::Inf;
-		astat.upper = 0;
-		astat.lower = 0;
-
-		// 合法手生成
-		if (gen) {
-			tree.initGenPhase();
-			MoveGenerator::generate(board, moves);
-		}
-		tree.resetGenPhase();
-
 		int count = 0;
 		Move move;
+
 		while (nextMove(tree, move)) {
-
-			count++;
-
 			// depth
 			int newDepth = depth - Depth1Ply;
 
-			bool isCheck = tree.isChecking() || board.isCheck(move);
+			bool isCheckCurr = board.isCheck(move);
+			Piece captured = board.getBoardPiece(move.to());
+
+			// extensions
+			if (isCheckCurr) {
+				// check
+				newDepth += search_param::EXT_CHECK;
+				_info.checkExtension++;
+			}
 
 			// late move reduction
 			int reduced = 0;
 #if ENABLE_LMR
-			if (newDepth >= Depth1Ply && count != 1 && !isCheck &&
-					(!move.promote() || move.piece() != Piece::Silver) &&
-					!tree.isPriorMove(move)) {
-
+			if (count != 0 && newDepth >= Depth1Ply * 2 && !isCheckCurr &&
+					captured.isEmpty() && (!move.promote() || move.piece() != Piece::Silver)) {
 				reduced = getReductionDepth(move, false);
 				newDepth -= reduced;
-
 			}
 #endif // ENABLE_LMR
 
 			// make move
-			if (!tree.makeMove(move, _eval)) {
-				tree.rejectPreviousMove();
-				continue;
-			}
+			bool ok = tree.makeMove(move, _eval);
+			assert(ok);
 
 			Value currval;
 
-			if (value == -Value::Inf) {
-
-				// aspiration search
-				astat.alpha = value;
-				currval = asp(tree, !black, newDepth, astat);
-
+			if (count == 0) {
+				// full window search
+				currval = -search<true>(tree, !black, newDepth, -beta, -alpha);
 			} else {
-
 				// nega-scout
-				currval = -searchr<true>(tree, !black, newDepth, -value-1, -value);
-				if (!isInterrupted() && currval >= value + 1) {
-					// full window search
+				currval = -search<true>(tree, !black, newDepth, -alpha-1, -alpha);
+				if (!isInterrupted() && currval >= alpha + 1 && reduced != 0) {
+					// full depth
 					newDepth += reduced;
-					currval = -searchr<true>(tree, !black, newDepth, -Value::Inf, -value);
+					currval = -search<true>(tree, !black, newDepth, -alpha-1, -alpha);
 				}
-
+				if (!isInterrupted() && currval >= alpha + 1) {
+					// full window search
+					currval = -search<true>(tree, !black, newDepth, -beta, -alpha);
+				}
 			}
 
 			// unmake move
@@ -1262,24 +1256,115 @@ search_end:
 
 			// ソート用に値をセット
 			auto index = tree.getIndexByMove(move);
-			sortValues[index] = (currval != value) ? (currval.int32()) : (currval.int32() - 1);
+			_rootValues[index] = (currval != alpha) ? (currval.int32()) : (currval.int32() - 1);
 
 			// 値更新
-			if (currval > value) {
-				best = move;
-				value = currval;
+			if (currval > alpha) {
+				// update alpha
+				alpha = currval;
 				tree.updatePv(move, depth);
 				if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD) {
-					showPv(depth / Depth1Ply, tree.getPv(), black ? value : -value, count == 1);
+					showPv(depth / Depth1Ply, tree.getPv(), black ? alpha : -alpha);
+				}
+
+				// beta-cut or update best move
+				if (alpha >= beta) {
+					return alpha;
+				} else {
+					best = move;
 				}
 			}
+
+			count++;
+		}
+
+		return alpha;
+	}
+
+	/**
+	 * aspiration search
+	 * @return {負けたか中断された場合にfalseを返します。}
+	 */
+	bool Searcher::searchAsp(int depth, Move& best, bool gen /* = true */, Value* prevval /* = nullptr */) {
+
+		// tree
+		auto& tree = _trees[0];
+
+		auto& moves = tree.getMoves();
+		const auto& board = tree.getBoard();
+
+		// 合法手生成
+		if (gen) {
+			tree.initGenPhase();
+			MoveGenerator::generate(board, moves);
+		}
+		tree.resetGenPhase();
+
+		// 非合法手除去
+		for (auto ite = moves.begin(); ite != moves.end();) {
+			if (!board.isValidMove(*ite)) {
+				ite = moves.remove(ite);
+			} else {
+				++ite;
+			}
+		}
+
+		bool hasPrevVal = prevval != nullptr && *prevval != -Value::Inf;
+		Value baseVal = hasPrevVal ? *prevval : -Value::Inf;
+		CONSTEXPR int wmax = 3;
+		const Value alphas[wmax] = { baseVal-320, baseVal-1280, -Value::Mate };
+		const Value betas[wmax] = { baseVal+320, baseVal+1280, Value::Mate };
+		int lower = hasPrevVal ? 0 : wmax - 1;
+		int upper = hasPrevVal ? 0 : wmax - 1;
+		Value value = alphas[lower];
+
+		while (true) {
+
+			const Value alpha = alphas[lower];
+			const Value beta = betas[upper];
+
+			Value currval = searchRoot(tree, depth, alpha, beta, best);
+
+			// 中断判定
+			if (isInterrupted()) {
+				return false;
+			}
+
+			if (currval >= value) {
+				value = currval;
+			}
+
+			// 値が確定
+			if (currval > alpha && currval < beta) {
+				break;
+			}
+
+			bool retry = false;
+
+			// alpha 値を広げる
+			while (currval <= alphas[lower] && lower != wmax - 1) {
+				lower++;
+				assert(lower < wmax);
+				retry = true;
+				tree.selectFirstMove();
+			}
+
+			// beta 値を広げる
+			while (currval >= betas[upper] && upper != wmax - 1) {
+				upper++;
+				assert(upper < wmax);
+				retry = true;
+				tree.selectPreviousMove();
+			}
+
+			if (!retry) { break; }
 		}
 
 		if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD) {
 			showEndOfIterate();
 		}
 
-		tree.setSortValues(sortValues);
+		tree.setSortValues(_rootValues);
 		tree.sortAll();
 
 		_info.eval = value;
@@ -1295,14 +1380,15 @@ search_end:
 
 	}
 
-	void Searcher::showPv(int depth, const Pv& pv, const Value& value, bool isFirst) {
+	void Searcher::showPv(int depth, const Pv& pv, const Value& value) {
 		uint64_t node = _info.node + _info.qnode;
 
 		std::ostringstream oss;
-		if (isFirst) {
-			oss << std::setw(2) << depth << ": ";
-		} else {
+		if (_info.lastDepth == depth) {
 			oss << "    ";
+		} else {
+			oss << std::setw(2) << depth << ": ";
+			_info.lastDepth = depth;
 		}
 		oss << std::setw(10) << node << ": ";
 		oss << pv.toString() << ": ";
@@ -1337,7 +1423,7 @@ search_end:
 		Value value = -Value::Inf;
 
 		for (int depth = 1; depth <= _config.maxDepth; depth++) {
-			bool ok = search(depth * Depth1Ply + Depth1Ply / 2, best, gen, &value);
+			bool ok = searchAsp(depth * Depth1Ply + Depth1Ply / 2, best, gen, &value);
 
 			gen = false;
 
@@ -1405,7 +1491,7 @@ search_end:
 		// 最大深さ
 		int depth = _config.maxDepth * Depth1Ply;
 
-		bool result = search(depth, best);
+		bool result = searchAsp(depth, best);
 
 		// 後処理
 		after();

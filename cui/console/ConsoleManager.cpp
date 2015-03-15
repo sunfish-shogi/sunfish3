@@ -524,6 +524,7 @@ namespace sunfish {
 		lines.emplace_back("fail high hash ", format2(info.failHighIsHash, info.failHigh));
 		lines.emplace_back("fail high kill1", format2(info.failHighIsKiller1, info.failHigh));
 		lines.emplace_back("fail high kill2", format2(info.failHighIsKiller2, info.failHigh));
+		lines.emplace_back("expand hash    ", format2(info.expandHashMove, info.expand));
 		lines.emplace_back("hash hit       ", format2(info.hashHit, info.hashProbed));
 		lines.emplace_back("hash extract   ", format2(info.hashExact, info.hashProbed));
 		lines.emplace_back("hash lower     ", format2(info.hashLower, info.hashProbed));

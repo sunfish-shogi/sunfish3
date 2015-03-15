@@ -926,7 +926,7 @@ namespace sunfish {
 	 * @param board
 	 * @param move
 	 */
-	template <bool black, bool isKing>
+	template <bool black, bool isKing, bool positionalOnly>
 	Value Evaluator::_estimate(const Board& board, const Move& move) {
 
 		Value material = 0;
@@ -997,7 +997,7 @@ namespace sunfish {
 		if (!isKing && isProm) {
 			// 駒が成った場合
 			if (black) {
-				material += material::piecePromote(piece);
+				if (!positionalOnly) { material += material::piecePromote(piece); }
 				auto promoted = piece.promote();
 				positional += _t->kkp[bking][wking][kkpBoardIndex(promoted, to)];
 				int kppIndexB = kppBoardIndex<true>(promoted, to);
@@ -1005,7 +1005,7 @@ namespace sunfish {
 				int kppIndexW = kppBoardIndex<false>(promoted, to.reverse());
 				positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
 			} else {
-				material -= material::piecePromote(piece);
+				if (!positionalOnly) { material -= material::piecePromote(piece); }
 				auto promoted = piece.promote();
 				positional -= _t->kkp[wkingR][bkingR][kkpBoardIndex(promoted, to.reverse())];
 				int kppIndexB = kppBoardIndex<false>(promoted, to);
@@ -1037,14 +1037,14 @@ namespace sunfish {
 		// 駒を取った場合
 		if (!captured.isEmpty()) {
 			if (black) {
-				material += material::pieceExchange(captured);
+				if (!positionalOnly) { material += material::pieceExchange(captured); }
 				positional += _t->kkp[wkingR][bkingR][kkpBoardIndex(captured, to.reverse())];
 				int kppIndexB = kppBoardIndex<false>(captured, to);
 				positional += _t->kpp[bking][kpp_index(kppIndexB)];
 				int kppIndexW = kppBoardIndex<true>(captured, to.reverse());
 				positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
 			} else {
-				material -= material::pieceExchange(captured);
+				if (!positionalOnly) { material -= material::pieceExchange(captured); }
 				positional -= _t->kkp[bking][wking][kkpBoardIndex(captured, to)];
 				int kppIndexB = kppBoardIndex<true>(captured, to);
 				positional -= _t->kpp[bking][kpp_index(kppIndexB)];
@@ -1080,18 +1080,20 @@ namespace sunfish {
 		auto valuePair = ValuePair(material, positional);
 		auto value = black ? valuePair.value() : -valuePair.value();
 
-		if (isKing) {
-			value += eval_param::FUT_KING_MGN;
-		} else {
-			value += eval_param::FUT_MGN;
+		if (positionalOnly) {
+			value += isKing ? eval_param::FUT_KING_MGN : eval_param::FUT_MGN;
 		}
 
 		return value;
 	}
-	template Value Evaluator::_estimate<true, true>(const Board& board, const Move& move);
-	template Value Evaluator::_estimate<true, false>(const Board& board, const Move& move);
-	template Value Evaluator::_estimate<false, true>(const Board& board, const Move& move);
-	template Value Evaluator::_estimate<false, false>(const Board& board, const Move& move);
+	template Value Evaluator::_estimate<true, true, true>(const Board& board, const Move& move);
+	template Value Evaluator::_estimate<true, false, true>(const Board& board, const Move& move);
+	template Value Evaluator::_estimate<false, true, true>(const Board& board, const Move& move);
+	template Value Evaluator::_estimate<false, false, true>(const Board& board, const Move& move);
+	template Value Evaluator::_estimate<true, true, false>(const Board& board, const Move& move);
+	template Value Evaluator::_estimate<true, false, false>(const Board& board, const Move& move);
+	template Value Evaluator::_estimate<false, true, false>(const Board& board, const Move& move);
+	template Value Evaluator::_estimate<false, false, false>(const Board& board, const Move& move);
 
 	/**
 	 * 盤上の駒の種類から KKP のインデクスを取得します。

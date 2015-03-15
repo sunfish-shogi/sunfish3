@@ -77,7 +77,12 @@ namespace sunfish {
 		static uint16_t serialize16(const Move& obj);
 		static Move deserialize16(uint16_t value, const Board& board);
 
-		// move from board
+		static void swap(Move& move1, Move& move2) {
+			Move temp = move1;
+			move1 = move2;
+			move2 = temp;
+		}
+
 	private:
 		template<bool safe>
 		void _set(const Piece& piece, const Position& from, const Position& to, bool promote) {

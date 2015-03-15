@@ -25,10 +25,14 @@ namespace sunfish {
 		End,
 	};
 
-	using GenStat = uint32_t;
+	using ExpStat = uint32_t;
 	static CONSTEXPR uint32_t HashDone    = 0x01;
-	static CONSTEXPR uint32_t Killer1Done = 0x02;
-	static CONSTEXPR uint32_t Killer2Done = 0x04;
+	static CONSTEXPR uint32_t Killer1Added = 0x02;
+	static CONSTEXPR uint32_t Killer2Added = 0x04;
+	static CONSTEXPR uint32_t Killer1Done = 0x08;
+	static CONSTEXPR uint32_t Killer2Done = 0x10;
+	static CONSTEXPR uint32_t Capture1Done = 0x20;
+	static CONSTEXPR uint32_t Capture2Done = 0x40;
 
 	class Tree {
 	public:
@@ -41,7 +45,7 @@ namespace sunfish {
 			Move move;
 			Moves moves;
 			GenPhase genPhase;
-			GenStat genStat;
+			ExpStat expStat;
 			bool isThroughPhase;
 			Moves::iterator ite;
 			bool checking;
@@ -52,6 +56,10 @@ namespace sunfish {
 			Move killer2;
 			Value kvalue1;
 			Value kvalue2;
+			Move capture1;
+			Move capture2;
+			Value cvalue1;
+			Value cvalue2;
 		};
 
 		/** stack */
@@ -110,18 +118,6 @@ namespace sunfish {
 			return _stack[_ply].genPhase;
 		}
 
-		GenStat getGenStat() const {
-			return _stack[_ply].genStat;
-		}
-		bool checkGenStat(GenStat genStat) const {
-			auto& curr = _stack[_ply];
-			return curr.genStat & genStat;
-		}
-		void setGenStat(GenStat genStat) {
-			auto& curr = _stack[_ply];
-			curr.genStat |= genStat;
-		}
-
 		bool isThroughPhase() const {
 			return _stack[_ply].isThroughPhase;
 		}
@@ -136,7 +132,7 @@ namespace sunfish {
 			}
 			const auto& m0 = *(_stack[_ply-1].ite - 1);
 			const auto& m1 = *(_stack[_ply].ite - 1);
-			return m0.to() == m1.to() && m0.isCapturing();
+			return m0.to() == m1.to() && (m0.isCapturing() || (m0.promote() && m0.piece() != Piece::Silver));
 		}
 
 		Moves::iterator getNext() {
@@ -156,9 +152,18 @@ namespace sunfish {
 			return _stack[_ply].moves.end();
 		}
 
+		Moves::iterator selectFirstMove() {
+			return _stack[_ply].ite = _stack[_ply].moves.begin();
+		}
+
 		Moves::iterator selectNextMove() {
 			assert(_stack[_ply].ite != _stack[_ply].moves.end());
 			return _stack[_ply].ite++;
+		}
+
+		Moves::iterator selectPreviousMove() {
+			assert(_stack[_ply].ite != _stack[_ply].moves.begin());
+			return _stack[_ply].ite--;
 		}
 
 		Moves::iterator addMove(const Move& move) {
@@ -230,17 +235,21 @@ namespace sunfish {
 			auto& node = _stack[_ply];
 			node.moves.clear();
 			node.genPhase = phase;
-			node.genStat = 0x00;
+			node.expStat = 0x00;
 			node.isThroughPhase = false;
 			node.ite = node.moves.begin();
+			node.capture1 = Move::empty();
+			node.capture2 = Move::empty();
 		}
 
 		void resetGenPhase() {
 			auto& node = _stack[_ply];
 			node.genPhase = GenPhase::End;
-			node.genStat = 0x00;
+			node.expStat = 0x00;
 			node.isThroughPhase = false;
 			node.ite = node.moves.begin();
+			node.capture1 = Move::empty();
+			node.capture2 = Move::empty();
 		}
 
 		Value getValue() {
@@ -248,8 +257,9 @@ namespace sunfish {
 			return node.valuePair.value();
 		}
 
+		template <bool positionalOnly = false>
 		Value estimate(const Move& move, Evaluator& eval) {
-			return eval.estimate(_board, move);
+			return eval.estimate<positionalOnly>(_board, move);
 		}
 
 		bool makeMove(Move move, Evaluator& eval) {
@@ -342,6 +352,14 @@ namespace sunfish {
 			return _shekTable.check(_board);
 		}
 
+		Node& getCurrentNode() {
+			return _stack[_ply];
+		}
+
+		const Node& getCurrentNode() const {
+			return _stack[_ply];
+		}
+
 		bool isPriorMove(const Move& move) const {
 			auto& curr = _stack[_ply];
 			return curr.hash == move ||
@@ -356,18 +374,6 @@ namespace sunfish {
 		const Move& getHash() const {
 			auto& curr = _stack[_ply];
 			return curr.hash;
-		}
-
-		void addKiller(const Move& killer, const Value& value) {
-			auto& curr = _stack[_ply];
-			if (curr.killer1 == killer) {
-				curr.kvalue1 = value;
-			} else {
-				curr.killer2 = curr.killer1;
-				curr.kvalue2 = curr.kvalue1;
-				curr.killer1 = killer;
-				curr.kvalue1 = value;
-			}
 		}
 
 		const Move& getKiller1() const {
@@ -388,6 +394,38 @@ namespace sunfish {
 		Value getKiller2Value() const {
 			auto& curr = _stack[_ply];
 			return curr.kvalue2;
+		}
+
+		void setCapture1(const Move& move, const Value& value) {
+			auto& curr = _stack[_ply];
+			curr.capture1 = move;
+			curr.cvalue1 = value;
+		}
+
+		void setCapture2(const Move& move, const Value& value) {
+			auto& curr = _stack[_ply];
+			curr.capture2 = move;
+			curr.cvalue2 = value;
+		}
+
+		const Move& getCapture1() const {
+			auto& curr = _stack[_ply];
+			return curr.capture1;
+		}
+
+		const Move& getCapture2() const {
+			auto& curr = _stack[_ply];
+			return curr.capture2;
+		}
+
+		Value getCapture1Value() const {
+			auto& curr = _stack[_ply];
+			return curr.cvalue1;
+		}
+
+		Value getCapture2Value() const {
+			auto& curr = _stack[_ply];
+			return curr.cvalue2;
 		}
 
 		const Pv& __debug__getNextPv() const {

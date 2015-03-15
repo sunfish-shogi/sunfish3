@@ -170,7 +170,7 @@ namespace sunfish {
 		template <bool black>
 		ValuePair _evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move);
 
-		template <bool black, bool isKing>
+		template <bool black, bool isKing, bool positionalOnly>
 		Value _estimate(const Board& board, const Move& move);
 
 	public:
@@ -244,15 +244,16 @@ namespace sunfish {
 			}
 		}
 
+		template <bool positionalOnly = false>
 		Value estimate(const Board& board, const Move& move) {
 			if (board.isBlack()) {
 				return (move.piece() == Piece::King ?
-								_estimate<true, true>(board, move):
-								_estimate<true, false>(board, move));
+								_estimate<true, true, positionalOnly>(board, move):
+								_estimate<true, false, positionalOnly>(board, move));
 			} else {
 				return (move.piece() == Piece::King ?
-								_estimate<false, true>(board, move):
-								_estimate<false, false>(board, move));
+								_estimate<false, true, positionalOnly>(board, move):
+								_estimate<false, false, positionalOnly>(board, move));
 			}
 		}
 
