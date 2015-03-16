@@ -677,34 +677,36 @@ namespace sunfish {
 		// pawn
 		{
 			// drop
-			Position to = black ? king.down() : king.up();
-			if (!occ.check(to)) {
-				int handCount = black ? board.getBlackHand(Piece::Pawn) : board.getWhiteHand(Piece::Pawn);
-				if (handCount) {
-					const Bitboard& bbPawn = black ? board.getBPawn() : board.getWPawn();
-					// 2歩チェック
-					if (!(bbPawn & Bitboard::file(king.getFile()))) {
-						moves.add(Move(Piece::Pawn, to, false));
+			Position to = black ? king.safetyDown() : king.safetyUp();
+			if (to.isValid()) {
+				if (!occ.check(to)) {
+					int handCount = black ? board.getBlackHand(Piece::Pawn) : board.getWhiteHand(Piece::Pawn);
+					if (handCount) {
+						const Bitboard& bbPawn = black ? board.getBPawn() : board.getWPawn();
+						// 2歩チェック
+						if (!(bbPawn & Bitboard::file(king.getFile()))) {
+							moves.add(Move(Piece::Pawn, to, false));
+						}
 					}
 				}
-			}
 
-			// board
-			Bitboard bb = black ? board.getBPawn() : board.getWPawn();
-			if (black) {
-				bb.cheepRightShift(1);
-			} else {
-				bb.cheepLeftShift(1);
-			}
-			bb &= bbtTokin | Bitboard::mask(black ? king.down() : king.up());
-			bb &= movable;
-			BB_EACH_OPE(to, bb,
-				if (to.isPromotable<black>()) {
-					moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, true, false));
+				// board
+				Bitboard bb = black ? board.getBPawn() : board.getWPawn();
+				if (black) {
+					bb.cheepRightShift(1);
 				} else {
-					moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, false, false));
+					bb.cheepLeftShift(1);
 				}
-			);
+				bb &= bbtTokin | Bitboard::mask(to);
+				bb &= movable;
+				BB_EACH_OPE(to, bb,
+					if (to.isPromotable<black>()) {
+						moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, true, false));
+					} else {
+						moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, false, false));
+					}
+				);
+			}
 		}
 
 		// lance
