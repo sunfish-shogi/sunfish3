@@ -23,7 +23,7 @@
 #define DEBUG_TREE										0
 #define DEBUG_NODE										0
 
-#define ITERATE_INFO_THRESHOLD        1
+#define ITERATE_INFO_THRESHOLD        3
 
 namespace sunfish {
 
@@ -1263,7 +1263,8 @@ search_end:
 				// update alpha
 				alpha = currval;
 				tree.updatePv(move, depth);
-				if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD) {
+				if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD ||
+						currval >= Value::Mate || currval <= -Value::Mate) {
 					showPv(depth / Depth1Ply, tree.getPv(), black ? alpha : -alpha);
 				}
 
@@ -1360,7 +1361,8 @@ search_end:
 			if (!retry) { break; }
 		}
 
-		if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD) {
+		if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD ||
+				value >= Value::Mate || value <= -Value::Mate) {
 			showEndOfIterate();
 		}
 
