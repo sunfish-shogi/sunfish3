@@ -1080,7 +1080,7 @@ namespace sunfish {
 		auto valuePair = ValuePair(material, positional);
 		auto value = black ? valuePair.value() : -valuePair.value();
 
-		if (positionalOnly) {
+		if (!positionalOnly) {
 			value += isKing ? eval_param::FUT_KING_MGN : eval_param::FUT_MGN;
 		}
 
