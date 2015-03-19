@@ -5,103 +5,123 @@
 
 #include "Mate.h"
 #include "core/move/MoveTable.h"
-#include "core/util/Data.h"
-
-#include <iostream>
 
 namespace sunfish {
 
 	template<bool black>
-	bool Mate::_isProtected(const Board& board, const Position& to, const Bitboard& occ, const Position& king) {
+	bool Mate::_isProtected(const Board& board, const Position& to, const Bitboard& occ, const Bitboard& occNoAttacker, const Position& king) {
 		// pawn
-		Bitboard bb = black ? board.getBPawn() : board.getWPawn();
+		Bitboard bb = (black ? board.getBPawn() : board.getWPawn()) & occNoAttacker;
 		if (bb.check(black ? to.safetyDown() : to.safetyUp())) {
 			return true;
 		}
 
 		// lance
-		bb = black ? board.getBLance() : board.getWLance();
+		bb = (black ? board.getBLance() : board.getWLance()) & occNoAttacker;
 		bb &= black ? MoveTables::WLance.get(to, occ) : MoveTables::BLance.get(to, occ);
 		if (bb) { return true; }
 
 		// knight
-		bb = black ? board.getBKnight() : board.getWKnight();
+		bb = (black ? board.getBKnight() : board.getWKnight()) & occNoAttacker;
 		bb &= black ? MoveTables::WKnight.get(to) : MoveTables::BKnight.get(to);
 		if (bb) { return true; }
 
 		// silver
-		bb = black ? board.getBSilver() : board.getWSilver();
+		bb = (black ? board.getBSilver() : board.getWSilver()) & occNoAttacker;
 		bb &= black ? MoveTables::WSilver.get(to) : MoveTables::BSilver.get(to);
 		if (bb) { return true; }
 
 		// gold
-		bb = black ? board.getBGold() : board.getWGold();
+		bb = (black ? board.getBGold() : board.getWGold()) & occNoAttacker;
 		bb &= black ? MoveTables::WGold.get(to) : MoveTables::BGold.get(to);
 		if (bb) { return true; }
 
 		// bishop
-		bb = black ? board.getBBishop() : board.getWBishop();
+		bb = (black ? board.getBBishop() : board.getWBishop()) & occNoAttacker;
 		bb &= MoveTables::Bishop.get(to, occ);
 		if (bb) { return true; }
 
 		// rook
-		bb = black ? board.getBRook() : board.getWRook();
+		bb = (black ? board.getBRook() : board.getWRook()) & occNoAttacker;
 		bb &= MoveTables::Rook.get(to, occ);
 		if (bb) { return true; }
 
 		// tokin
-		bb = black ? board.getBTokin() : board.getWTokin();
+		bb = (black ? board.getBTokin() : board.getWTokin()) & occNoAttacker;
 		bb &= black ? MoveTables::WGold.get(to) : MoveTables::BGold.get(to);
 		if (bb) { return true; }
 
 		// promoted lance
-		bb = black ? board.getBProLance() : board.getWProLance();
+		bb = (black ? board.getBProLance() : board.getWProLance()) & occNoAttacker;
 		bb &= black ? MoveTables::WGold.get(to) : MoveTables::BGold.get(to);
 		if (bb) { return true; }
 
 		// promoted knight
-		bb = black ? board.getBProKnight() : board.getWProKnight();
+		bb = (black ? board.getBProKnight() : board.getWProKnight()) & occNoAttacker;
 		bb &= black ? MoveTables::WGold.get(to) : MoveTables::BGold.get(to);
 		if (bb) { return true; }
 
 		// promoted silver
-		bb = black ? board.getBProSilver() : board.getWProSilver();
+		bb = (black ? board.getBProSilver() : board.getWProSilver()) & occNoAttacker;
 		bb &= black ? MoveTables::WGold.get(to) : MoveTables::BGold.get(to);
 		if (bb) { return true; }
 
 		// horse
-		bb = black ? board.getBHorse() : board.getWHorse();
+		bb = (black ? board.getBHorse() : board.getWHorse()) & occNoAttacker;
 		bb &= MoveTables::Horse.get(to, occ);
 		if (bb) { return true; }
 
 		// dragon
-		bb = black ? board.getBDragon() : board.getWDragon();
+		bb = (black ? board.getBDragon() : board.getWDragon()) & occNoAttacker;
 		bb &= MoveTables::Dragon.get(to, occ);
 		if (bb) { return true; }
 
 		// king
 		if (king.isValid()) {
 			if (MoveTables::King.get(king).check(to) &&
-					!_isProtected<!black>(board, to, occ, Position::Invalid)) {
+					!_isProtected<!black>(board, to, occ, occNoAttacker, Position::Invalid)) {
 				return true;
 			}
 		}
 
 		return false;
 	}
-	template bool Mate::_isProtected<true>(const Board&, const Position&, const Bitboard&, const Position&);
-	template bool Mate::_isProtected<false>(const Board&, const Position&, const Bitboard&, const Position&);
+	template bool Mate::_isProtected<true>(const Board&, const Position&, const Bitboard&, const Bitboard&, const Position&);
+	template bool Mate::_isProtected<false>(const Board&, const Position&, const Bitboard&, const Bitboard&, const Position&);
 
 	template<bool black>
-	bool Mate::_isProtected(const Board& board, Bitboard& bb, const Bitboard& occ) {
-		const auto& king = black ? board.getWKingPosition() : board.getBKingPosition();
-		BB_EACH_OPE(to, bb, {
-				if (_isProtected<black>(board, to, occ, king)) { return true; }
-		});
+	bool Mate::_isProtected(const Board& board, Bitboard& bb, const Bitboard& occ, const Bitboard& occNoAttacker) {
+		const auto& king = black ? board.getBKingPosition() : board.getWKingPosition();
+		bool hasHand = black
+			? !(board.getBlackHand(Piece::Pawn) == 0 &&
+					board.getBlackHand(Piece::Lance) == 0 &&
+					board.getBlackHand(Piece::Knight) == 0 &&
+					board.getBlackHand(Piece::Silver) == 0 &&
+					board.getBlackHand(Piece::Gold) == 0 &&
+					board.getBlackHand(Piece::Bishop) == 0 &&
+					board.getBlackHand(Piece::Rook) == 0)
+			: !(board.getWhiteHand(Piece::Pawn) == 0 &&
+					board.getWhiteHand(Piece::Lance) == 0 &&
+					board.getWhiteHand(Piece::Knight) == 0 &&
+					board.getWhiteHand(Piece::Silver) == 0 &&
+					board.getWhiteHand(Piece::Gold) == 0 &&
+					board.getWhiteHand(Piece::Bishop) == 0 &&
+					board.getWhiteHand(Piece::Rook) == 0);
+
+		if (hasHand) {
+			BB_EACH_OPE(to, bb, {
+					if (_isProtected<black>(board, to, occ, occNoAttacker, king)) { return true; }
+			});
+		} else {
+			BB_EACH_OPE(to, bb, {
+					if (_isProtected<black>(board, to, occ, occNoAttacker, Position::Invalid)) { return true; }
+			});
+		}
+
 		return false;
 	}
-	template bool Mate::_isProtected<true>(const Board&, Bitboard&, const Bitboard&);
-	template bool Mate::_isProtected<false>(const Board&, Bitboard&, const Bitboard&);
+	template bool Mate::_isProtected<true>(const Board&, Bitboard&, const Bitboard&, const Bitboard&);
+	template bool Mate::_isProtected<false>(const Board&, Bitboard&, const Bitboard&, const Bitboard&);
 
 	template<bool black>
 	bool Mate::_isMate(const Board& board, const Move& move) {
@@ -114,11 +134,11 @@ namespace sunfish {
 			occ &= ~Bitboard::mask(move.from());
 		}
 		occ |= Bitboard::mask(to);
-
 		Bitboard occNoKing = occ & ~Bitboard::mask(king);
+		Bitboard occNoAttacker = occ & ~Bitboard::mask(to);
 
 		// 王手している駒を取れるか調べる
-		if (_isProtected<!black>(board, to, occ, Position::Invalid)) {
+		if (_isProtected<!black>(board, to, occ, occNoAttacker, Position::Invalid)) {
 			return false;
 		}
 
@@ -131,16 +151,17 @@ namespace sunfish {
 			piece = piece.promote();
 		}
 
-		switch (move.piece()) {
+		switch (piece) {
 		case Piece::Pawn: // fall-through
 		case Piece::Knight: {
 			// do nothing
 			break;
 		}
 		case Piece::Lance: {
-			Bitboard route = black ? MoveTables::BLance.get(to, occ) : MoveTables::WLance.get(to, occ);
-			route &= ~occ;
-			if (_isProtected<!black>(board, route, occ)) { return false; }
+			Bitboard route = black
+				? (MoveTables::BLance.get(to, occ) & MoveTables::WLance.get(king, occ))
+				: (MoveTables::WLance.get(to, occ) & MoveTables::BLance.get(king, occ));
+			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
 			Bitboard mask = black ? MoveTables::BLance.get(to, occNoKing) : MoveTables::WLance.get(to, occNoKing);
 			movable &= ~mask;
 			break;
@@ -160,30 +181,26 @@ namespace sunfish {
 			break;
 		}
 		case Piece::Bishop: {
-			Bitboard route = MoveTables::Bishop.get(to, occ);
-			route &= ~occ;
-			if (_isProtected<!black>(board, route, occ)) { return false; }
+			Bitboard route = MoveTables::Bishop.get(to, occ) & MoveTables::Bishop.get(king, occ);
+			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
 			movable &= ~MoveTables::Bishop.get(to, occNoKing);
 			break;
 		}
 		case Piece::Rook: {
-			Bitboard route = MoveTables::Rook.get(to, occ);
-			route &= ~occ;
-			if (_isProtected<!black>(board, route, occ)) { return false; }
+			Bitboard route = MoveTables::Rook.get(to, occ) & MoveTables::Rook.get(king, occ);
+			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
 			movable &= ~MoveTables::Rook.get(to, occNoKing);
 			break;
 		}
 		case Piece::Horse: {
-			Bitboard route = MoveTables::Bishop.get(to, occ);
-			route &= ~occ;
-			if (_isProtected<!black>(board, route, occ)) { return false; }
+			Bitboard route = MoveTables::Bishop.get(to, occ) & MoveTables::Bishop.get(king, occ);
+			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
 			movable &= ~MoveTables::Horse.get(to, occNoKing);
 			break;
 		}
 		case Piece::Dragon: {
-			Bitboard route = MoveTables::Rook.get(to, occ);
-			route &= ~occ;
-			if (_isProtected<!black>(board, route, occ)) { return false; }
+			Bitboard route = MoveTables::Rook.get(to, occ) & MoveTables::Rook.get(king, occ);
+			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
 			movable &= ~MoveTables::Dragon.get(to, occNoKing);
 			break;
 		}
@@ -192,7 +209,7 @@ namespace sunfish {
 		}
 
 		BB_EACH_OPE(pos, movable, {
-				if (!_isProtected<black>(board, pos, occ, Position::Invalid)) {
+				if (!_isProtected<black>(board, pos, occ, occNoAttacker, Position::Invalid)) {
 					return false;
 				}
 		});
@@ -218,17 +235,6 @@ namespace sunfish {
 			// drop
 			Position to = black ? king.safetyDown() : king.safetyUp();
 			if (to.isValid()) {
-				if (!occ.check(to)) {
-					int handCount = black ? board.getBlackHand(Piece::Pawn) : board.getWhiteHand(Piece::Pawn);
-					if (handCount) {
-						const Bitboard& bbPawn = black ? board.getBPawn() : board.getWPawn();
-						// 2歩チェック
-						if (!(bbPawn & Bitboard::file(king.getFile()))) {
-							if (_isMate<black>(board, Move(Piece::Pawn, to, false))) { return true; }
-						}
-					}
-				}
-
 				// board
 				Bitboard bb = black ? board.getBPawn() : board.getWPawn();
 				if (black) {

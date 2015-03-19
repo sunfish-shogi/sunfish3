@@ -74,10 +74,10 @@ namespace sunfish {
 		Mate();
 
 		template<bool black>
-		static bool _isProtected(const Board& board, const Position& to, const Bitboard& occ, const Position& king);
+		static bool _isProtected(const Board& board, const Position& to, const Bitboard& occ, const Bitboard& occNoAttacker, const Position& king);
 
 		template<bool black>
-		static bool _isProtected(const Board& board, Bitboard& bb, const Bitboard& occ);
+		static bool _isProtected(const Board& board, Bitboard& bb, const Bitboard& occ, const Bitboard& occNoAttacker);
 
 		template<bool black>
 		static bool _isMate(const Board& board, const Move& move);
