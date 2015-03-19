@@ -223,7 +223,7 @@ namespace sunfish {
 		 * aspiration search
 		 * @return {負けたか中断された場合にfalseを返します。}
 		 */
-		bool searchAsp(int depth, Move& best, bool gen = true, Value* prevval = nullptr);
+		bool searchAsp(int depth, Move& best, bool gen = true, Value* pval = nullptr);
 
 		void showPv(int depth, const Pv& pv, const Value& value);
 

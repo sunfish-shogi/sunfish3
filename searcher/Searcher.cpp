@@ -1262,6 +1262,7 @@ search_end:
 			if (currval > alpha) {
 				// update alpha
 				alpha = currval;
+				best = move;
 				tree.updatePv(move, depth);
 				if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD ||
 						currval >= Value::Mate || currval <= -Value::Mate) {
@@ -1271,8 +1272,6 @@ search_end:
 				// beta-cut or update best move
 				if (alpha >= beta) {
 					return alpha;
-				} else {
-					best = move;
 				}
 			}
 
@@ -1286,7 +1285,7 @@ search_end:
 	 * aspiration search
 	 * @return {負けたか中断された場合にfalseを返します。}
 	 */
-	bool Searcher::searchAsp(int depth, Move& best, bool gen /* = true */, Value* prevval /* = nullptr */) {
+	bool Searcher::searchAsp(int depth, Move& best, bool gen /* = true */, Value* pval /* = nullptr */) {
 
 		// tree
 		auto& tree = _trees[0];
@@ -1310,8 +1309,8 @@ search_end:
 			}
 		}
 
-		bool hasPrevVal = prevval != nullptr && *prevval != -Value::Inf;
-		Value baseVal = hasPrevVal ? *prevval : -Value::Inf;
+		bool hasPrevVal = pval != nullptr && *pval != -Value::Inf;
+		Value baseVal = hasPrevVal ? *pval : -Value::Inf;
 		CONSTEXPR int wmax = 3;
 		const Value alphas[wmax] = { baseVal-320, baseVal-1280, -Value::Mate };
 		const Value betas[wmax] = { baseVal+320, baseVal+1280, Value::Mate };
@@ -1370,8 +1369,8 @@ search_end:
 		tree.sortAll();
 
 		_info.eval = value;
-		if (prevval != nullptr) {
-			*prevval = value;
+		if (pval != nullptr) {
+			*pval = value;
 		}
 
 		if (value <= -Value::Mate) {
@@ -1442,10 +1441,6 @@ search_end:
 			storePv(tree, tree.getPv(), 0);
 #endif // ENABLE_STORE_PV
 
-			if (!ok) {
-				break;
-			}
-
 			if (value >= Value::Mate) {
 				result = true;
 				break;
@@ -1453,6 +1448,10 @@ search_end:
 
 			if (value <= -Value::Mate) {
 				result = false;
+				break;
+			}
+
+			if (!ok) {
 				break;
 			}
 
