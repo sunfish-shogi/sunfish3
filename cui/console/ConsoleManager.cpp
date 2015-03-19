@@ -501,12 +501,12 @@ namespace sunfish {
 	}
 
 	void ConsoleManager::showSearchInfo(const Searcher::Info& info) {
-		auto format = [](uint64_t value) {
+		auto format = [](int64_t value) {
 			std::ostringstream oss;
 			oss << std::setw(8) << (value);
 			return oss.str();
 		};
-		auto format2 = [](uint64_t value, uint64_t total) {
+		auto format2 = [](int64_t value, int64_t total) {
 			std::ostringstream oss;
 			oss << std::setw(8) << (value) << '/' << std::setw(8) << (total)
 				<< " (" << std::setw(5) << std::fixed << std::setprecision(1)<< ((double)(value) / ((total)!=0?(total):1) * 100.0) << "%)";
