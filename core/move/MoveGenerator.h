@@ -117,6 +117,7 @@ namespace sunfish {
 		 * 王手を生成します。
 		 * 王手がかかっていない場合のみに使用します。
 		 * 打ち歩詰めや王手放置の手を含む可能性があります。
+		 * TODO: 開き王手の生成
 		 */
 		static void generateCheck(const Board& board, Moves& moves) {
 			if (board.isBlack()) {

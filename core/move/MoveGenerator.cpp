@@ -666,6 +666,7 @@ namespace sunfish {
 	 */
 	template <bool black>
 	void MoveGenerator::_generateCheck(const Board& board, Moves& moves) {
+		// TODO: 開き王手の生成
 		const auto& occ = board.getBOccupy() | board.getWOccupy();
 		Bitboard movable = ~(black ? board.getBOccupy() : board.getWOccupy());
 		const auto& king = black ? board.getWKingPosition() : board.getBKingPosition();

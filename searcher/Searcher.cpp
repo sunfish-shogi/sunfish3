@@ -603,53 +603,6 @@ namespace sunfish {
 	}
 
 	/**
-	 * 1手詰めを探します。
-	 * 王手の局面では使用できません。
-	 */
-	bool Searcher::isMate(Tree& tree) {
-		auto& board = tree.getBoard();
-		auto& moves = tree.getMoves();
-
-		moves.clear();
-		MoveGenerator::generateEvasion(board, moves);
-
-		for (auto& move : moves) {
-			if (board.isValidMove(move)) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * 1手詰めを探します。
-	 * 王手の局面では使用できません。
-	 */
-	bool Searcher::mate1Ply(Tree& tree) {
-		auto& board = tree.getBoard();
-		auto& moves = tree.getMoves();
-
-		moves.clear();
-		MoveGenerator::generateCheck(board, moves);
-
-		for (auto& move : moves) {
-			if (!tree.makeMoveFast(move)) {
-				continue;
-			}
-
-			if (isMate(tree)) {
-				tree.unmakeMoveFast();
-				return true;
-			}
-
-			tree.unmakeMoveFast();
-		}
-
-		return false;
-	}
-
-	/**
 	 * quiesence search
 	 */
 	Value Searcher::qsearch(Tree& tree, bool black, int qply, Value alpha, Value beta) {
@@ -679,9 +632,19 @@ namespace sunfish {
 		}
 
 #if ENABLE_MATE_1PLY
-		// search mate in 1 ply
-		if (mate1Ply(tree)) {
-			return Value::Inf - tree.getPly() - 1;
+		{
+			// search mate in 1 ply
+			bool mate;
+			_info.mateProbed++;
+			if (_mt.get(tree.getBoard().getHash(), mate)) {
+				_info.mateHit++;
+			} else {
+				mate = Mate::mate1Ply(tree.getBoard());
+				_mt.set(tree.getBoard().getHash(), mate);
+			}
+			if (mate) {
+				return Value::Inf - tree.getPly() - 1;
+			}
 		}
 #endif
 
@@ -938,10 +901,20 @@ namespace sunfish {
 		if (!tree.isChecking()) {
 
 #if ENABLE_MATE_1PLY
-			// search mate in 1 ply
-			if (stat.isMate() && mate1Ply(tree)) {
-				alpha = Value::Inf - tree.getPly() - 1;
-				goto hash_store;
+			if (stat.isMate()) {
+				// search mate in 1 ply
+				bool mate;
+				_info.mateProbed++;
+				if (_mt.get(tree.getBoard().getHash(), mate)) {
+					_info.mateHit++;
+				} else {
+					mate = Mate::mate1Ply(tree.getBoard());
+					_mt.set(tree.getBoard().getHash(), mate);
+				}
+				if (mate) {
+					alpha = Value::Inf - tree.getPly() - 1;
+					goto hash_store;
+				}
 			}
 #endif
 
@@ -1460,24 +1433,6 @@ search_end:
 
 		return result;
 
-	}
-
-	/**
-	 * 1手詰めを探します。
-	 * 王手の局面では使用できません。
-	 */
-	bool Searcher::mate1Ply(const Board& initialBoard) {
-
-		// 前処理
-		before(initialBoard);
-
-		auto& tree = _trees[0];
-		bool result = mate1Ply(tree);
-
-		// 後処理
-		after();
-
-		return result;
 	}
 
 	/**

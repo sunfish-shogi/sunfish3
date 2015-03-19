@@ -533,6 +533,7 @@ namespace sunfish {
 		lines.emplace_back("hash update    ", format2(info.hashUpdate, info.hashStore));
 		lines.emplace_back("hash collide   ", format2(info.hashCollision, info.hashStore));
 		lines.emplace_back("hash reject    ", format2(info.hashReject, info.hashStore));
+		lines.emplace_back("mate hit       ", format2(info.mateHit, info.mateProbed));
 		lines.emplace_back("shek superior  ", format2(info.shekSuperior, info.shekProbed));
 		lines.emplace_back("shek inferior  ", format2(info.shekInferior, info.shekProbed));
 		lines.emplace_back("shek equal     ", format2(info.shekEqual, info.shekProbed));

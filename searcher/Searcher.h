@@ -6,6 +6,7 @@
 #ifndef __SUNFISH_SEARCHER__
 #define __SUNFISH_SEARCHER__
 
+#include "Mate.h"
 #include "see/See.h"
 #include "tree/Tree.h"
 #include "tree/NodeStat.h"
@@ -50,6 +51,8 @@ namespace sunfish {
 			uint64_t hashUpdate;
 			uint64_t hashCollision;
 			uint64_t hashReject;
+			uint64_t mateProbed;
+			uint64_t mateHit;
 			uint64_t expand;
 			uint64_t expandHashMove;
 			uint64_t shekProbed;
@@ -93,6 +96,9 @@ namespace sunfish {
 
 		/** transposition table */
 		TT _tt;
+
+		/** mate table */
+		MateTable _mt;
 
 		/** record */
 		std::vector<Move> _record;
@@ -186,17 +192,6 @@ namespace sunfish {
 		 * store PV-nodes to TT
 		 */
 		void storePv(Tree& tree, const Pv& pv, int ply);
-
-		/**
-		 * 詰んでいるか判定します。
-		 */
-		bool isMate(Tree& tree);
-
-		/**
-		 * 1手詰めを探します。
-		 * 王手の局面では使用できません。
-		 */
-		bool mate1Ply(Tree& tree);
 
 		/**
 		 * quiesence search
@@ -302,12 +297,6 @@ namespace sunfish {
 		bool isRunning() const {
 			return _isRunning;
 		}
-
-		/**
-		 * 1手詰めを探します。
-		 * 王手の局面では使用できません。
-		 */
-		bool mate1Ply(const Board& initialBoard);
 
 		/**
 		 * 指定した局面に対して探索を実行します。
