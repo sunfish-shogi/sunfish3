@@ -761,7 +761,7 @@ namespace sunfish {
 
 #if DEBUG_NODE
 		bool debug = false;
-		if (tree.__debug__matchPath("-0065KY +0066FU -0076KA +6768OU -0077GI +6859OU -0049KI +5969OU -8778GI")) {
+		if (tree.__debug__matchPath("+0052KI")) {
 			std::cout << " ** debug begin **" << std::endl;
 			std::cout << tree.__debug__getPath() << std::endl;
 			std::cout << "alpha=" << alpha.int32() << " beta=" << beta.int32() << " depth=" << depth << std::endl;
@@ -1282,8 +1282,8 @@ search_end:
 			}
 		}
 
-		bool hasPrevVal = pval != nullptr && *pval != -Value::Inf;
-		Value baseVal = hasPrevVal ? *pval : -Value::Inf;
+		bool hasPrevVal = pval != nullptr && (*pval != -Value::Inf);
+		Value baseVal = hasPrevVal ? *pval : 0;
 		CONSTEXPR int wmax = 3;
 		const Value alphas[wmax] = { baseVal-320, baseVal-1280, -Value::Mate };
 		const Value betas[wmax] = { baseVal+320, baseVal+1280, Value::Mate };

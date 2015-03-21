@@ -544,8 +544,8 @@ P-00FU\n\
 	{
 		// 不詰
 		std::string src = "\
-P1-KY *  * -OU *  *  * -KE * \n\
-P2 *  *  *  *  *  *  * -HI * \n\
+P1-KY * +KI * -OU *  * -KE * \n\
+P2 *  *  *  * -HI *  *  *  * \n\
 P3-FU * -KE+TO *  *  * -FU * \n\
 P4 * +FU-FU * -FU * -GI *  * \n\
 P5+FU * +GI *  * -FU *  * -FU\n\
@@ -553,8 +553,8 @@ P6 *  * +HI * +FU * +FU * +GI\n\
 P7 *  * +KE * -KA+FU+KI+FU * \n\
 P8 *  *  *  *  *  *  *  * +KY\n\
 P9+KY *  *  *  *  * +KI+KE+OU\n\
-P+00FU00FU00FU00GI00KI00KI\n\
-P-00FU00FU00KY00KA\n\
+P+00FU00FU00FU00GI\n\
+P-00FU00FU00KY00KI00KI00KA\n\
 +\n\
 ";
 		std::istringstream iss(src);

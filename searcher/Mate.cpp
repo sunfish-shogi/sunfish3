@@ -6,6 +6,8 @@
 #include "Mate.h"
 #include "core/move/MoveTable.h"
 
+#include <iostream>
+
 namespace sunfish {
 
 	template<bool black>
@@ -138,7 +140,7 @@ namespace sunfish {
 		Bitboard occNoAttacker = occ & ~Bitboard::mask(to);
 
 		// 王手している駒を取れるか調べる
-		if (_isProtected<!black>(board, to, occ, occNoAttacker, Position::Invalid)) {
+		if (_isProtected<!black>(board, to, occ, occNoAttacker, king)) {
 			return false;
 		}
 
