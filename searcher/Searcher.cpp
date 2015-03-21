@@ -761,12 +761,14 @@ namespace sunfish {
 
 #if DEBUG_NODE
 		bool debug = false;
-		if (tree.__debug__matchPath("+0052KI")) {
+#if 1
+		if (tree.__debug__matchPath("-5354FU")) {
 			std::cout << " ** debug begin **" << std::endl;
 			std::cout << tree.__debug__getPath() << std::endl;
 			std::cout << "alpha=" << alpha.int32() << " beta=" << beta.int32() << " depth=" << depth << std::endl;
 			debug = true;
 		}
+#endif
 #endif
 
 #if ENABLE_SHEK
@@ -1048,7 +1050,7 @@ namespace sunfish {
 			}
 
 			if (newDepth < Depth1Ply * 2 && isNullWindow && !isCheck &&
-					isCap && (!move.promote() || move.piece() == Piece::Silver) &&
+					!isCap && (!move.promote() || move.piece() == Piece::Silver) &&
 					!tree.isPriorMove(move) &&
 					_see.search<true>(board, move, -1, 0) < Value::Zero) {
 				count++;
