@@ -3,24 +3,29 @@ Sunfish
 
 Sunfish is computer Shogi program.
 
-Build and Execute
-------------------
+Build
+-----
 
-### GCC
-
-#### Compile
+### GCC/Clang
 
 ```
-make
+make release
 
-# multi process
-make -j
+# parallel
+make release -j
 
 # clean
 make clean
 ```
 
-#### Execute
+### Xcode
+
+Open `sunfish3.xcodeproj` and build `release/debug > My Mac`.
+
+Usage
+-----
+
+### Execute
 
 ```
 ./sunfish
@@ -28,29 +33,17 @@ make clean
 # help
 ./sunfish --help
 
-# network(csa protocol)
+# network (csa protocol)
 ./sunfish -n
 
 # unit test
 ./sunfish --test
 ```
 
-### OS X
-
-Open `sunfish3.xcodeproj` and build `release/debug > My Mac`.
-
-## Usage
-
-### Show help
-
-```
-./sunfish --help
-```
-
 ### Import fv.bin
 
 ```
-rm evdata
-cp /hoge/bonanza/fv.bin ./fv.bin
+rm eval.bin
+cp path/to/bonanza/fv.bin ./fv.bin
 ./sunfish
 ```
