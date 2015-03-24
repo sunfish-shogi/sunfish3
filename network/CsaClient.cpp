@@ -11,7 +11,7 @@
 #include <sstream>
 #include <thread>
 
-#define WARN_IGNORED(key, value) Loggers::warning << __THIS__ << ": not supported: key=[" << (key) << "] value=[" << (value) << "]"
+#define WARN_IGNORED(key, value) Loggers::warning << __FILE_LINE__ << ": not supported: key=[" << (key) << "] value=[" << (value) << "]"
 
 #define CONF_HOST      "host"
 #define CONF_PORT      "port"
@@ -465,7 +465,7 @@ lab_end:
 			printReceivedString(recvStr);
 			bool ok = enqueue(recvStr);
 			if (!ok) {
-				Loggers::warning << __THIS__ << ": parse error!!";
+				Loggers::warning << __FILE_LINE__ << ": parse error!!";
 			}
 		}
 	}
@@ -505,7 +505,7 @@ lab_end:
 				ok = inputGameSummary(recvStr);
 			}
 			if (!ok) {
-				Loggers::warning << __THIS__ << ": parse error!!";
+				Loggers::warning << __FILE_LINE__ << ": parse error!!";
 				Loggers::warning << recvStr;
 			}
 		}
@@ -525,7 +525,7 @@ lab_end:
 			} else if (value == "-") {
 				_gameSummary.black = false;
 			} else {
-				Loggers::warning << __THIS__ << ": unknown value [" << value << "]";
+				Loggers::warning << __FILE_LINE__ << ": unknown value [" << value << "]";
 				return false;
 			}
 		} else if (key == "Game_ID") {
@@ -552,7 +552,7 @@ lab_end:
 		} else if (key == "To_Move") {
 			// TODO
 		} else {
-			Loggers::warning << __THIS__ << ": unknown key [" << key << "]";
+			Loggers::warning << __FILE_LINE__ << ": unknown key [" << key << "]";
 			return false;
 		}
 		return true;
@@ -567,7 +567,7 @@ lab_end:
 			}
 			bool ok = inputTime(recvStr);
 			if (!ok) {
-				Loggers::warning << __THIS__ << ": parse error!!";
+				Loggers::warning << __FILE_LINE__ << ": parse error!!";
 			}
 		}
 	}
@@ -600,7 +600,7 @@ lab_end:
 			// 秒読み
 			_gameSummary.readoff = std::stoi(value);
 		} else {
-			Loggers::warning << __THIS__ << ": unknown key [" << key << "]";
+			Loggers::warning << __FILE_LINE__ << ": unknown key [" << key << "]";
 			return false;
 		}
 		return true;
@@ -615,7 +615,7 @@ lab_end:
 			}
 			bool ok = inputBoard(recvStr);
 			if (!ok) {
-				Loggers::warning << __THIS__ << ": parse error!!";
+				Loggers::warning << __FILE_LINE__ << ": parse error!!";
 			}
 		}
 	}
@@ -632,7 +632,7 @@ lab_end:
 				WARN_IGNORED(key, value);
 				return true;
 			} else {
-				Loggers::warning << __THIS__ << ": unknown key [" << key << "]";
+				Loggers::warning << __FILE_LINE__ << ": unknown key [" << key << "]";
 				return false;
 			}
 		}

@@ -108,7 +108,7 @@ namespace sunfish {
 			} else if (line[1] == '-') {
 				return _readHand(line, board, false);
 			}
-			Loggers::warning << __THIS__ << ": unknown command";
+			Loggers::warning << __FILE_LINE__ << ": unknown command";
 			Loggers::warning << line;
 			return false;
 		case '+':
@@ -122,7 +122,7 @@ namespace sunfish {
 		case 'V': case '\'': case '\0':
 			return true;
 		default:
-			Loggers::warning << __THIS__ << ": unknown command";
+			Loggers::warning << __FILE_LINE__ << ": unknown command";
 			Loggers::warning << line;
 			return false;
 		}

@@ -11,7 +11,9 @@
 #include <ctime>
 #include <mutex>
 
-#define __THIS__			__FILE__ << '(' << __LINE__ << ')'
+#define __FILE_LINE__ (__FILE__ ":" __L2STR(__LINE__))
+#define __L2STR(l) __L2STR__(l)
+#define __L2STR__(l) #l
 
 namespace sunfish {
 

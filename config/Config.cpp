@@ -70,7 +70,7 @@ namespace sunfish {
 		auto ite = _defs.find(name);
 
 		if (ite == _defs.end()) {
-			Loggers::error << __THIS__ << ": unknown key [" << name << "]";
+			Loggers::error << __FILE_LINE__ << ": unknown key [" << name << "]";
 			return false;
 		}
 
