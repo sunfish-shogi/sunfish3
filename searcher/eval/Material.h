@@ -15,21 +15,6 @@ namespace sunfish {
 
 namespace material {
 
-#if 1
-	static CONSTEXPR int16_t Pawn       = 113;
-	static CONSTEXPR int16_t Lance      = 265;
-	static CONSTEXPR int16_t Knight     = 269;
-	static CONSTEXPR int16_t Silver     = 411;
-	static CONSTEXPR int16_t Gold       = 509;
-	static CONSTEXPR int16_t Bishop     = 651;
-	static CONSTEXPR int16_t Rook       = 711;
-	static CONSTEXPR int16_t Tokin      = 513;
-	static CONSTEXPR int16_t Pro_lance  = 371;
-	static CONSTEXPR int16_t Pro_knight = 450;
-	static CONSTEXPR int16_t Pro_silver = 448;
-	static CONSTEXPR int16_t Horse      = 807;
-	static CONSTEXPR int16_t Dragon     = 882;
-#else
 	static CONSTEXPR int16_t Pawn       = 87;
 	static CONSTEXPR int16_t Lance      = 232;
 	static CONSTEXPR int16_t Knight     = 257;
@@ -43,7 +28,6 @@ namespace material {
 	static CONSTEXPR int16_t Pro_silver = 495;
 	static CONSTEXPR int16_t Horse      = 827;
 	static CONSTEXPR int16_t Dragon     = 945;
-#endif
 
 	static CONSTEXPR int16_t PawnEx       = Pawn * 2;
 	static CONSTEXPR int16_t LanceEx      = Lance * 2;

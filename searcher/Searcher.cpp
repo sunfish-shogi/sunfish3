@@ -33,6 +33,7 @@ namespace sunfish {
 		CONSTEXPR int EXT_CHECK = Searcher::Depth1Ply;
 		CONSTEXPR int EXT_ONEREP = Searcher::Depth1Ply * 1 / 2;
 		CONSTEXPR int EXT_RECAP = Searcher::Depth1Ply * 1 / 4;
+		CONSTEXPR int EXT_RECAP2 = Searcher::Depth1Ply * 1 / 2;
 		CONSTEXPR int REC_THRESHOLD = Searcher::Depth1Ply * 3;
 	}
 
@@ -172,15 +173,17 @@ namespace sunfish {
 	/**
 	 * sort moves by see
 	 */
-	void Searcher::sortSee(Tree& tree, Value standPat, Value alpha, bool enableKiller, bool estimate, bool exceptSmallCapture, bool isQuies) {
+	void Searcher::sortSee(Tree& tree, int offset, Value standPat, Value alpha, bool enableKiller, bool estimate, bool exceptSmallCapture, bool isQuies) {
 		const auto& board = tree.getBoard();
 		auto& node = tree.getCurrentNode();
 #if !ENABLE_KILLER_MOVE
 		assert(node.killer1.isEmpty());
 		assert(node.killer2.isEmpty());
 #endif // ENABLE_KILLER_MOVE
+		assert(offset == 0 || offset == 1);
+		assert(tree.getNextMove() + offset <= tree.getEnd());
 
-		for (auto ite = tree.getNext(); ite != tree.getEnd(); ) {
+		for (auto ite = tree.getNextMove() + offset; ite != tree.getEnd(); ) {
 			const Move& move = *ite;
 			Value value;
 
@@ -276,7 +279,7 @@ namespace sunfish {
 		tree.sortAfterCurrent();
 
 		if (isQuies) {
-			for (auto ite = tree.getNext(); ite != tree.getEnd(); ite++) {
+			for (auto ite = tree.getNextMove() + offset; ite != tree.getEnd(); ite++) {
 				if (tree.getSortValue(ite) < 0) {
 					tree.removeAfter(ite);
 					break;
@@ -285,7 +288,7 @@ namespace sunfish {
 		}
 
 		if (enableKiller) {
-			auto ite = tree.getNext();
+			auto ite = tree.getNextMove() + offset;
 			if (ite != tree.getEnd()) {
 				tree.setCapture1(*ite, tree.getSortValue(ite));
 				ite++;
@@ -307,7 +310,7 @@ namespace sunfish {
 		assert(node.killer2.isEmpty());
 #endif // ENABLE_KILLER_MOVE
 
-		for (auto ite = tree.getNext(); ite != tree.getEnd(); ) {
+		for (auto ite = tree.getNextMove(); ite != tree.getEnd(); ) {
 			const Move& move = *ite;
 
 			if ((node.expStat & HashDone) && move == node.hash) {
@@ -331,7 +334,7 @@ namespace sunfish {
 		Moves::iterator best = tree.getEnd();
 		uint32_t bestValue = 0;
 
-		for (auto ite = tree.getNext(); ite != tree.getEnd(); ) {
+		for (auto ite = tree.getNextMove(); ite != tree.getEnd(); ) {
 			const Move& move = *ite;
 
 			auto key = History::getKey(move);
@@ -346,8 +349,8 @@ namespace sunfish {
 		}
 
 		if (best != tree.getEnd()) {
-			Move temp = *tree.getNext();
-			*tree.getNext() = *best;
+			Move temp = *tree.getNextMove();
+			*tree.getNextMove() = *best;
 			*best = temp;
 			return true;
 		}
@@ -359,7 +362,7 @@ namespace sunfish {
 	 * sort moves by history
 	 */
 	void Searcher::sortHistory(Tree& tree) {
-		for (auto ite = tree.getNext(); ite != tree.getEnd(); ) {
+		for (auto ite = tree.getNextMove(); ite != tree.getEnd(); ) {
 			const Move& move = *ite;
 
 			auto key = History::getKey(move);
@@ -380,7 +383,7 @@ namespace sunfish {
 	void Searcher::updateHistory(Tree& tree, int depth, const Move& move) {
 
 		int value = std::max(depth * 4 / Depth1Ply, 1);
-		for (auto ite = tree.getBegin(); ite != tree.getNext(); ite++) {
+		for (auto ite = tree.getBegin(); ite != tree.getNextMove(); ite++) {
 			assert(ite != tree.getEnd());
 			auto key = History::getKey(*ite);
 			if (ite->equals(move)) {
@@ -432,7 +435,7 @@ namespace sunfish {
 	/**
 	 * get next move
 	 */
-	bool Searcher::nextMove(Tree& tree, Move& move) {
+	bool Searcher::nextMove(Tree& tree) {
 
 		auto& moves = tree.getMoves();
 		auto& node = tree.getCurrentNode();
@@ -441,9 +444,9 @@ namespace sunfish {
 		while (true) {
 
 			if (!tree.isThroughPhase() &&
-					tree.getNext() != tree.getEnd()) {
-				move = *tree.getNext();
+					tree.getNextMove() != tree.getEnd()) {
 				tree.selectNextMove();
+				const Move& move = *tree.getCurrentMove();
 				if (move == node.hash) {
 					node.expStat |= HashDone;
 				} else if (move == node.killer1) {
@@ -464,21 +467,25 @@ namespace sunfish {
 					Move hashMove = node.hash;
 					if (!hashMove.isEmpty() && board.isValidMoveStrict(hashMove)) {
 						tree.addMove(hashMove);
+						tree.setThroughPhase(true);
 					}
 					node.genPhase = GenPhase::Capture;
 				}
 				break;
 
 			case GenPhase::Capture:
+				tree.setThroughPhase(false);
 				if (tree.isChecking()) {
+					int offset = moves.end() - tree.getNextMove();
 					MoveGenerator::generateEvasion(board, moves);
-					sortSee(tree, Value::Zero, Value::Zero, false, true, false, false);
+					sortSee(tree, offset, Value::Zero, Value::Zero, false, true, false, false);
 					node.genPhase = GenPhase::End;
 					break;
 					
 				} else {
+					int offset = moves.end() - tree.getNextMove();
 					MoveGenerator::generateCap(board, moves);
-					sortSee(tree, Value::Zero, Value::Zero, true, false, false, false);
+					sortSee(tree, offset, Value::Zero, Value::Zero, true, false, false, false);
 					node.genPhase = GenPhase::History1;
 					break;
 
@@ -491,7 +498,6 @@ namespace sunfish {
 				node.genPhase = GenPhase::History2;
 				tree.setThroughPhase(true);
 				if (pickOneHistory(tree)) {
-					move = *tree.getNext();
 					tree.selectNextMove();
 					return true;
 				}
@@ -501,7 +507,6 @@ namespace sunfish {
 				node.genPhase = GenPhase::Misc;
 				tree.setThroughPhase(true);
 				if (pickOneHistory(tree)) {
-					move = *tree.getNext();
 					tree.selectNextMove();
 					return true;
 				}
@@ -526,7 +531,7 @@ namespace sunfish {
 	/**
 	 * get next move
 	 */
-	bool Searcher::nextMoveQuies(Tree& tree, Move& move, int qply, Value standPat, Value alpha) {
+	bool Searcher::nextMoveQuies(Tree& tree, int qply, Value standPat, Value alpha) {
 
 		auto& moves = tree.getMoves();
 		auto& node = tree.getCurrentNode();
@@ -534,8 +539,7 @@ namespace sunfish {
 
 		while (true) {
 
-			if (tree.getNext() != tree.getEnd()) {
-				move = *tree.getNext();
+			if (tree.getNextMove() != tree.getEnd()) {
 				tree.selectNextMove();
 				return true;
 			}
@@ -559,9 +563,9 @@ namespace sunfish {
 				} else {
 					MoveGenerator::generateCap(board, moves);
 					if (qply >= 7) {
-  					sortSee(tree, standPat, alpha, false, false, true, true);
+  					sortSee(tree, 0, standPat, alpha, false, false, true, true);
 					} else {
-  					sortSee(tree, standPat, alpha, false, false, false, true);
+  					sortSee(tree, 0, standPat, alpha, false, false, false, true);
 					}
 					node.genPhase = GenPhase::End;
 					break;
@@ -655,10 +659,9 @@ namespace sunfish {
 		moves.clear();
 		tree.initGenPhase(GenPhase::CaptureOnly);
 
-		Move move;
-		while (nextMoveQuies(tree, move, qply, standPat, alpha)) {
+		while (nextMoveQuies(tree, qply, standPat, alpha)) {
 			// make move
-			if (!tree.makeMove(move, _eval)) {
+			if (!tree.makeMove(_eval)) {
 				continue;
 			}
 
@@ -677,7 +680,7 @@ namespace sunfish {
 			// 値更新
 			if (currval > alpha) {
 				alpha = currval;
-				tree.updatePv(move, 0);
+				tree.updatePv(0);
 
 				// beta-cut
 				if (currval >= beta) {
@@ -762,8 +765,8 @@ namespace sunfish {
 #if DEBUG_NODE
 		bool debug = false;
 #if 1
-		if (tree.__debug__matchPath("-5354FU")) {
-			std::cout << " ** debug begin **" << std::endl;
+		if (tree.__debug__matchPath("+8877KA")) {
+			std::cout << "#-- debug node begin --#" << std::endl;
 			std::cout << tree.__debug__getPath() << std::endl;
 			std::cout << "alpha=" << alpha.int32() << " beta=" << beta.int32() << " depth=" << depth << std::endl;
 			debug = true;
@@ -897,7 +900,6 @@ namespace sunfish {
 		Value standPat = tree.getValue() * (black ? 1 : -1);
 
 		int count = 0;
-		Move move;
 		Move best = Move::empty();
 
 		if (!tree.isChecking()) {
@@ -942,7 +944,7 @@ namespace sunfish {
 
 				// beta-cut
 				if (currval >= beta) {
-					tree.updatePv(Move::empty(), depth);
+					tree.updatePvNull(depth);
 					_info.nullMovePruning++;
 					alpha = beta;
 					if (newDepth < Depth1Ply) {
@@ -986,7 +988,8 @@ namespace sunfish {
 #else
 		tree.setHash(Move::empty());
 #endif
-		while (nextMove(tree, move)) {
+		while (nextMove(tree)) {
+			Move move = *tree.getCurrentMove();
 
 			_info.expanded++;
 
@@ -1002,7 +1005,7 @@ namespace sunfish {
 			bool isCheckCurr = board.isCheck(move);
 			bool isCheckPrev = tree.isChecking();
 			bool isCheck = isCheckCurr || isCheckPrev;
-			bool isCap = board.getBoardPiece(move.to());
+			Piece captured = board.getBoardPiece(move.to());
 
 			// extensions
 			if (isCheckCurr) {
@@ -1010,7 +1013,7 @@ namespace sunfish {
 				newDepth += search_param::EXT_CHECK;
 				_info.checkExtension++;
 
-			} else if (isCheckPrev && count == 0 && tree.getGenPhase() == GenPhase::End && tree.getNext() == tree.getEnd()) {
+			} else if (isCheckPrev && count == 0 && tree.getGenPhase() == GenPhase::End && tree.getNextMove() == tree.getEnd()) {
 				// one-reply
 				newDepth += search_param::EXT_ONEREP;
 				_info.onerepExtension++;
@@ -1020,7 +1023,11 @@ namespace sunfish {
 									(move == tree.getCapture2() && tree.getCapture1Value() < tree.getCapture2Value() + 180))
 								 ) {
 				// recapture
-				newDepth += search_param::EXT_RECAP;
+				if (!move.promote() && captured == tree.getFrontMove().captured()) {
+					newDepth += search_param::EXT_RECAP2;
+				} else {
+					newDepth += search_param::EXT_RECAP;
+				}
 				newStat.unsetRecapture();
 				_info.recapExtension++;
 
@@ -1030,7 +1037,7 @@ namespace sunfish {
 			int reduced = 0;
 #if ENABLE_LMR
 			if (count != 0 && newDepth >= Depth1Ply && !isCheck && !stat.isMateThreat() &&
-					isCap && (!move.promote() || move.piece() != Piece::Silver) &&
+					captured.isEmpty() && (!move.promote() || move.piece() != Piece::Silver) &&
 					!tree.isPriorMove(move)) {
 				reduced = getReductionDepth(move, isNullWindow);
 				newDepth -= reduced;
@@ -1050,7 +1057,7 @@ namespace sunfish {
 			}
 
 			if (newDepth < Depth1Ply * 2 && isNullWindow && !isCheck &&
-					!isCap && (!move.promote() || move.piece() == Piece::Silver) &&
+					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
 					!tree.isPriorMove(move) &&
 					_see.search<true>(board, move, -1, 0) < Value::Zero) {
 				count++;
@@ -1058,7 +1065,7 @@ namespace sunfish {
 			}
 
 			// make move
-			if (!tree.makeMove(move, _eval)) {
+			if (!tree.makeMove(_eval)) {
 				continue;
 			}
 
@@ -1109,7 +1116,7 @@ namespace sunfish {
 				alpha = currval;
 				best = move;
 				if (!isNullWindow) {
-					tree.updatePv(move, depth);
+					tree.updatePv(depth);
 				}
 
 				// beta-cut
@@ -1135,7 +1142,7 @@ namespace sunfish {
 		if (!best.isEmpty() && !tree.isChecking()) {
 			if (!isNullWindow || alpha >= beta) {
 #if ENABLE_KILLER_MOVE
-				updateKiller(tree, move);
+				updateKiller(tree, best);
 #endif // ENABLE_KILLER_MOVE
 			}
 			if (tree.getBoard().getBoardPiece(best.to()).isEmpty() &&
@@ -1172,9 +1179,10 @@ search_end:
 		const auto& board = tree.getBoard();
 		bool black = board.isBlack();
 		int count = 0;
-		Move move;
 
-		while (nextMove(tree, move)) {
+		while (nextMove(tree)) {
+			Move move = *tree.getCurrentMove();
+
 			// depth
 			int newDepth = depth - Depth1Ply;
 
@@ -1199,7 +1207,7 @@ search_end:
 #endif // ENABLE_LMR
 
 			// make move
-			bool ok = tree.makeMove(move, _eval);
+			bool ok = tree.makeMove(_eval);
 			assert(ok);
 
 			Value currval;
@@ -1238,7 +1246,7 @@ search_end:
 				// update alpha
 				alpha = currval;
 				best = move;
-				tree.updatePv(move, depth);
+				tree.updatePv(depth);
 				if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD ||
 						currval >= Value::Mate || currval <= -Value::Mate) {
 					showPv(depth / Depth1Ply, tree.getPv(), black ? alpha : -alpha);

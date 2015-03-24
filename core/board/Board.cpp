@@ -1232,8 +1232,8 @@ namespace sunfish {
 	template<bool black>
 	bool Board::_unmakeMove(const Move& move) {
 		bool promote = move.promote();
-		const auto& piece = move.piece();
-		const auto& to = move.to();
+		auto piece = move.piece();
+		auto to = move.to();
 
 		if (move.isHand()) {
 
@@ -1247,7 +1247,7 @@ namespace sunfish {
 		} else { // !move.isHand()
 
 			// from
-			const auto& from = move.from();
+			auto from = move.from();
 			assert(_board[from] == Piece::Empty);
 			if (black) {
 				assert(_board[to] == (promote ? piece.black().promote() : piece.black()));
@@ -1300,7 +1300,7 @@ namespace sunfish {
 
 			// capturing
 			if (move.isCapturing()) {
-				const auto& captured = move.captured();
+				auto captured = move.captured();
 				if (black) {
 					_bbWOccupy.set(to);
 					switch (captured) {

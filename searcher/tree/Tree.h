@@ -126,20 +126,25 @@ namespace sunfish {
 			_stack[_ply].isThroughPhase = b;
 		}
 
-		bool isRecapture() const {
-			if (_ply == 0) {
-				return false;
-			}
-			const auto& m0 = *(_stack[_ply-1].ite - 1);
-			const auto& m1 = *(_stack[_ply].ite - 1);
-			return m0.to() == m1.to() && (m0.isCapturing() || (m0.promote() && m0.piece() != Piece::Silver));
+		const Move& getFrontMove() const {
+			assert(_ply >= 1);
+			return _stack[_ply].move;
 		}
 
-		Moves::iterator getNext() {
+		bool isRecapture() const {
+			assert(_ply >= 1);
+			assert(_stack[_ply].ite != _stack[_ply].moves.begin());
+			const auto& m0 = _stack[_ply].move;
+			const auto& m1 = *(_stack[_ply].ite - 1);
+			return !m0.isEmpty() && m0.to() == m1.to() &&
+				(m0.isCapturing() || (m0.promote() && m0.piece() != Piece::Silver));
+		}
+
+		Moves::iterator getNextMove() {
 			return _stack[_ply].ite;
 		}
 
-		Moves::iterator getPrevious() {
+		Moves::iterator getCurrentMove() {
 			assert(_stack[_ply].ite != _stack[_ply].moves.begin());
 			return _stack[_ply].ite - 1;
 		}
@@ -172,6 +177,7 @@ namespace sunfish {
 		}
 
 		void rejectPreviousMove() {
+			assert(_stack[_ply].ite != _stack[_ply].moves.begin());
 			_stack[_ply].ite--;
 			_stack[_ply].moves.removeStable(_stack[_ply].ite);
 		}
@@ -252,17 +258,25 @@ namespace sunfish {
 			node.capture2 = Move::empty();
 		}
 
-		Value getValue() {
+		Value getValue() const {
 			auto& node = _stack[_ply];
 			return node.valuePair.value();
 		}
 
+		const ValuePair& getValuePair() const {
+			auto& node = _stack[_ply];
+			return node.valuePair;
+		}
+
 		template <bool positionalOnly = false>
-		Value estimate(const Move& move, Evaluator& eval) {
+		Value estimate(const Move& move, Evaluator& eval) const {
 			return eval.estimate<positionalOnly>(_board, move);
 		}
 
-		bool makeMove(Move move, Evaluator& eval) {
+		bool makeMove(Evaluator& eval) {
+			assert(_stack[_ply].ite != _stack[_ply].moves.begin());
+			Move& move = *(_stack[_ply].ite-1);
+			move.unsetCaptured();
 			_shekTable.set(_board);
 			bool checking = _board.isCheck(move);
 			// try make move
@@ -290,6 +304,7 @@ namespace sunfish {
 		void unmakeMove() {
 			auto& curr = _stack[_ply];
 			_ply--;
+			assert(_stack[_ply].ite != _stack[_ply].moves.begin());
 			_board.unmakeMove(curr.move);
 			_shekTable.unset(_board);
 		}
@@ -317,11 +332,13 @@ namespace sunfish {
 			_board.unmakeNullMove();
 		}
 
-		bool makeMoveFast(Move move) {
-			if (_board.makeMove(move)) {
+		bool makeMoveFast(const Move& move) {
+			Move mtemp = move;
+			mtemp.unsetCaptured();
+			if (_board.makeMove(mtemp)) {
 				_ply++;
 				auto& curr = _stack[_ply];
-				curr.move = move;
+				curr.move = mtemp;
 				return true;
 			}
 			return false;
@@ -333,13 +350,21 @@ namespace sunfish {
 			_board.unmakeMove(curr.move);
 		}
 
-		void updatePv(const Move& move, int depth) {
+		void updatePv(int depth) {
 			auto& curr = _stack[_ply];
 			auto& next = _stack[_ply+1];
+			assert(_stack[_ply].ite != _stack[_ply].moves.begin());
+			auto& move = *(_stack[_ply].ite-1);
 			curr.pv.set(move, depth, next.pv);
 		}
 
-		const Pv& getPv() {
+		void updatePvNull(int depth) {
+			auto& curr = _stack[_ply];
+			auto& next = _stack[_ply+1];
+			curr.pv.set(Move::empty(), depth, next.pv);
+		}
+
+		const Pv& getPv() const {
 			auto& node = _stack[_ply];
 			return node.pv;
 		}
@@ -437,10 +462,9 @@ namespace sunfish {
 
 		bool __debug__matchPath(const char* path ) const;
 
-		const Move& __debug__getFrontMove() const {
-			assert(_ply >= 1);
-			auto& front = _stack[_ply];
-			return front.move;
+		const Move& __debug__getPreFrontMove() const {
+			assert(_ply >= 2);
+			return _stack[_ply-1].move;
 		}
 
 	};

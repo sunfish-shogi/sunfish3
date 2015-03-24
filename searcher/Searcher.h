@@ -21,7 +21,7 @@ namespace sunfish {
 	class Searcher {
 	public:
 
-		static CONSTEXPR int Depth1Ply = 16;
+		static CONSTEXPR int Depth1Ply = 8;
 
 		/** 探索設定 */
 		struct Config {
@@ -151,7 +151,7 @@ namespace sunfish {
 		/**
 		 * sort moves by see
 		 */
-		void sortSee(Tree& tree, Value standPat, Value alpha, bool enableKiller, bool estimate, bool exceptSmallCapture, bool isQuies);
+		void sortSee(Tree& tree, int offset, Value standPat, Value alpha, bool enableKiller, bool estimate, bool exceptSmallCapture, bool isQuies);
 
 		/**
 		 * except prior moves
@@ -181,12 +181,12 @@ namespace sunfish {
 		/**
 		 * get next move
 		 */
-		bool nextMove(Tree& tree, Move& move);
+		bool nextMove(Tree& tree);
 
 		/**
 		 * get next move
 		 */
-		bool nextMoveQuies(Tree& tree, Move& move, int ply, Value standPat, Value alpha);
+		bool nextMoveQuies(Tree& tree, int ply, Value standPat, Value alpha);
 
 		/**
 		 * store PV-nodes to TT
