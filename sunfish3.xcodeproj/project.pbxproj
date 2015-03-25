@@ -68,6 +68,8 @@
 		0960419F1AB6E4EE006086FF /* TT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 096040E11AB6E4EE006086FF /* TT.cpp */; };
 		096041A21AB6E4EE006086FF /* TTE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 096040E51AB6E4EE006086FF /* TTE.cpp */; };
 		096041A61AB6E4EE006086FF /* sample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 096040EB1AB6E4EE006086FF /* sample.cpp */; };
+		09E17D321AC2D0E000A60738 /* Data.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09E17D301AC2D0E000A60738 /* Data.cpp */; };
+		09E17D351AC2D0FE00A60738 /* Mate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09E17D331AC2D0FE00A60738 /* Mate.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -199,6 +201,10 @@
 		096040EE1AB6E4EE006086FF /* Test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Test.h; sourceTree = "<group>"; };
 		0969B6611A41C91200D56A21 /* network.conf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = network.conf; sourceTree = "<group>"; };
 		09D366FE1A41C604002D88B9 /* sunfish3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sunfish3; sourceTree = BUILT_PRODUCTS_DIR; };
+		09E17D301AC2D0E000A60738 /* Data.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Data.cpp; sourceTree = "<group>"; };
+		09E17D311AC2D0E000A60738 /* Data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Data.h; sourceTree = "<group>"; };
+		09E17D331AC2D0FE00A60738 /* Mate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mate.cpp; sourceTree = "<group>"; };
+		09E17D341AC2D0FE00A60738 /* Mate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mate.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -333,6 +339,8 @@
 		096040561AB6E4EE006086FF /* util */ = {
 			isa = PBXGroup;
 			children = (
+				09E17D301AC2D0E000A60738 /* Data.cpp */,
+				09E17D311AC2D0E000A60738 /* Data.h */,
 				096040571AB6E4EE006086FF /* FileList.cpp */,
 				096040591AB6E4EE006086FF /* FileList.h */,
 				0960405B1AB6E4EE006086FF /* Random.h */,
@@ -421,6 +429,8 @@
 		0960409A1AB6E4EE006086FF /* searcher */ = {
 			isa = PBXGroup;
 			children = (
+				09E17D331AC2D0FE00A60738 /* Mate.cpp */,
+				09E17D341AC2D0FE00A60738 /* Mate.h */,
 				0960409B1AB6E4EE006086FF /* eval */,
 				096040A71AB6E4EE006086FF /* history */,
 				096040A91AB6E4EE006086FF /* RandomSearcher.cpp */,
@@ -615,6 +625,7 @@
 				096041841AB6E4EE006086FF /* ShekTable.cpp in Sources */,
 				0960414F1AB6E4EE006086FF /* dev.cpp in Sources */,
 				0960419F1AB6E4EE006086FF /* TT.cpp in Sources */,
+				09E17D321AC2D0E000A60738 /* Data.cpp in Sources */,
 				096040F21AB6E4EE006086FF /* BookGenerator.cpp in Sources */,
 				096041611AB6E4EE006086FF /* test.cpp in Sources */,
 				096041311AB6E4EE006086FF /* MovesTest.cpp in Sources */,
@@ -656,6 +667,7 @@
 				0960411C1AB6E4EE006086FF /* CsaWriter.cpp in Sources */,
 				0960416A1AB6E4EE006086FF /* CsaClient.cpp in Sources */,
 				096040FB1AB6E4EE006086FF /* Position.cpp in Sources */,
+				09E17D351AC2D0FE00A60738 /* Mate.cpp in Sources */,
 				0960410A1AB6E4EE006086FF /* MoveGenChecker.cpp in Sources */,
 				096041281AB6E4EE006086FF /* CsaReaderTest.cpp in Sources */,
 				096041461AB6E4EE006086FF /* Wildcard.cpp in Sources */,

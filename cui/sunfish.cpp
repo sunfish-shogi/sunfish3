@@ -47,8 +47,8 @@ int main(int argc, char** argv, char** /*envp*/) {
 
 	// program options
 	ProgramOptions po;
-	po.addOption("in", "i", "record file name to load", true);
-	po.addOption("out", "o", "record file name to save", true);
+	po.addOption("in", "i", "record path", true);
+	po.addOption("out", "o", "record path", true);
 	po.addOption("black", "b", "[auto/manual]", true);
 	po.addOption("white", "w", "[auto/manual]", true);
 	po.addOption("depth", "d", "max depth (default: 15)", true);
