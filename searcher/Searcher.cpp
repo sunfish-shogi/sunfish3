@@ -75,6 +75,8 @@ namespace sunfish {
 
 		_forceInterrupt = false;
 		_isRunning = true;
+
+		_timeManager.init();
 	}
 
 	/**
@@ -1151,7 +1153,6 @@ search_end:
 		const auto& board = tree.getBoard();
 		bool black = board.isBlack();
 		int count = 0;
-		bool showPvDone = false;
 
 		while (nextMove(tree)) {
 			Move move = *tree.getCurrentMove();
@@ -1214,11 +1215,7 @@ search_end:
 			auto index = tree.getIndexByMove(move);
 			_rootValues[index] = (currval != alpha) ? (currval.int32()) : (currval.int32() - 1);
 
-			if ((depth >= Depth1Ply * ITERATE_INFO_THRESHOLD && currval > alpha) ||
-					((currval >= Value::Mate || currval <= -Value::Mate) && !showPvDone)) {
-				showPv(depth / Depth1Ply, tree.getPv(), black ? alpha : -alpha);
-				showPvDone = true;
-			}
+			_timeManager.addMove(move, currval);
 
 			// 値更新
 			if (currval > alpha) {
@@ -1226,6 +1223,10 @@ search_end:
 				alpha = currval;
 				best = move;
 				tree.updatePv(depth);
+
+				if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD || currval >= Value::Mate) {
+					showPv(depth / Depth1Ply, tree.getPv(), black ? currval : -currval);
+				}
 
 				// beta-cut or update best move
 				if (alpha >= beta) {
@@ -1278,6 +1279,8 @@ search_end:
 
 		while (true) {
 
+			_timeManager.startDepth();
+
 			const Value alpha = alphas[lower];
 			const Value beta = betas[upper];
 
@@ -1316,7 +1319,7 @@ search_end:
 
 		if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD ||
 				value >= Value::Mate || value <= -Value::Mate) {
-			showEndOfIterate();
+			showEndOfIterate(depth / Depth1Ply);
 		}
 
 		tree.setSortValues(_rootValues);
@@ -1328,6 +1331,11 @@ search_end:
 		}
 
 		if (value <= -Value::Mate) {
+			return false;
+		}
+
+		int limit = _config.limitEnable ? _config.limitSeconds : 0;
+		if (_timeManager.isEasy(limit, _timer.get())) {
 			return false;
 		}
 
@@ -1348,21 +1356,23 @@ search_end:
 		oss << std::setw(10) << node << ": ";
 		oss << pv.toString() << ": ";
 		oss << value.int32();
-
 		Loggers::message << oss.str();
-
 	}
 
-	void Searcher::showEndOfIterate() {
+	void Searcher::showEndOfIterate(int depth) {
 		uint64_t node = _info.node + _info.qnode;
 		double seconds = _timer.get();
 
 		std::ostringstream oss;
-		oss << "    " << std::setw(10) << node;
+		if (_info.lastDepth == depth) {
+			oss << "    ";
+		} else {
+			oss << std::setw(2) << depth << ": ";
+			_info.lastDepth = depth;
+		}
+		oss << std::setw(10) << node;
 		oss << ": " << seconds << "sec";
-
 		Loggers::message << oss.str();
-
 	}
 
 	/**
@@ -1378,7 +1388,7 @@ search_end:
 		Value value = -Value::Inf;
 
 		for (int depth = 1; depth <= _config.maxDepth; depth++) {
-			bool ok = searchAsp(depth * Depth1Ply + Depth1Ply / 2, best, gen, &value);
+			bool cont = searchAsp(depth * Depth1Ply + Depth1Ply / 2, best, gen, &value);
 
 			gen = false;
 
@@ -1405,11 +1415,13 @@ search_end:
 				break;
 			}
 
-			if (!ok) {
+			if (!cont) {
 				break;
 			}
 
 			result = true;
+
+			_timeManager.nextDepth();
 		}
 
 		return result;

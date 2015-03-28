@@ -12,6 +12,7 @@
 #include "tree/NodeStat.h"
 #include "history/History.h"
 #include "tt/TT.h"
+#include "time/TimeManager.h"
 #include "core/record/Record.h"
 #include "core/util/Timer.h"
 #include <atomic>
@@ -111,6 +112,9 @@ namespace sunfish {
 
 		/** 実行中フラグ */
 		std::atomic<bool> _isRunning;
+
+		/** 思考時間制御 */
+		TimeManager _timeManager;
 
 		/**
 		 * 設定の初期化
@@ -222,7 +226,7 @@ namespace sunfish {
 
 		void showPv(int depth, const Pv& pv, const Value& value);
 
-		void showEndOfIterate();
+		void showEndOfIterate(int depth);
 
 		/**
 		 * iterative deepening search from root node
