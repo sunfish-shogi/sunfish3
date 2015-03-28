@@ -12,7 +12,6 @@
 #define ENABLE_HASH_MOVE							1
 #define ENABLE_KILLER_MOVE						1
 #define ENABLE_PRECEDE_KILLER					0 // should be 0
-#define ENABLE_SHEK_PRESET						1
 #define ENABLE_SHEK										1
 #define ENABLE_MATE_1PLY							1
 #define ENABLE_STORE_PV								1
@@ -60,8 +59,9 @@ namespace sunfish {
 	void Searcher::before(const Board& initialBoard) {
 
 		// ツリーの初期化
+		// TODO: 全treeに適用
 		auto& tree = _trees[0];
-		tree.init(initialBoard, _eval);
+		tree.init(initialBoard, _eval, _record);
 
 		// 探索情報収集準備
 		memset(&_info, 0, sizeof(_info));
@@ -73,23 +73,8 @@ namespace sunfish {
 		// hisotory heuristic
 		_history.reduce();
 
-#if ENABLE_SHEK_PRESET
-		{
-			// SHEK
-			auto& tree = _trees[0];
-			auto& shekTable = tree.getShekTable();
-			Board board = tree.getBoard();
-			for (int i = (int)_record.size()-1; i >= 0; i--) {
-				bool ok = board.unmakeMove(_record[i]);
-				assert(ok);
-				shekTable.set(board);
-			}
-		}
-#endif
-
 		_forceInterrupt = false;
 		_isRunning = true;
-
 	}
 
 	/**
@@ -104,30 +89,9 @@ namespace sunfish {
 		_info.nps = (_info.node + _info.qnode) / _info.time;
 		_info.move = tree.getPv().get(0).move;
 
-#if ENABLE_SHEK_PRESET
-		{
-			// SHEK
-			auto& tree = _trees[0];
-			auto& shekTable = tree.getShekTable();
-			Board board = tree.getBoard();
-			for (int i = (int)_record.size()-1; i >= 0; i--) {
-				bool ok = board.unmakeMove(_record[i]);
-				assert(ok);
-				shekTable.unset(board);
-			}
-		}
-#endif
-
-#ifndef NDEBUG
-		{
-			// SHEK のテーブルが元に戻っているかチェックする。
-			for (int ti = 0; ti < _config.treeSize; ti++) {
-				if (!_trees[ti].getShekTable().isAllCleared()) {
-					std::cout << "SHEK table has some pending record. (" << ti << ")" << std::endl;
-				}
-			}
-		}
-#endif
+		// ツリーの解放
+		// TODO: 全treeに適用
+		tree.release(_record);
 
 		_isRunning = false;
 		_forceInterrupt = false;
@@ -790,9 +754,17 @@ namespace sunfish {
 				return -Value::Inf + tree.getPly();
 
 			case ShekStat::Equal:
-				// TODO: 連続王手千日手の検出
 				_info.shekEqual++;
-				return Value::Zero;
+				switch(tree.getCheckRepStatus()) {
+				case RepStatus::Win:
+					return Value::Inf - tree.getPly();
+				case RepStatus::Lose:
+					return -Value::Inf + tree.getPly();
+				case RepStatus::None:
+					assert(false);
+				default:
+					return Value::Zero;
+				}
 
 			default:
 				break;
@@ -1179,6 +1151,7 @@ search_end:
 		const auto& board = tree.getBoard();
 		bool black = board.isBlack();
 		int count = 0;
+		bool showPvDone = false;
 
 		while (nextMove(tree)) {
 			Move move = *tree.getCurrentMove();
@@ -1241,16 +1214,18 @@ search_end:
 			auto index = tree.getIndexByMove(move);
 			_rootValues[index] = (currval != alpha) ? (currval.int32()) : (currval.int32() - 1);
 
+			if ((depth >= Depth1Ply * ITERATE_INFO_THRESHOLD && currval > alpha) ||
+					((currval >= Value::Mate || currval <= -Value::Mate) && !showPvDone)) {
+				showPv(depth / Depth1Ply, tree.getPv(), black ? alpha : -alpha);
+				showPvDone = true;
+			}
+
 			// 値更新
 			if (currval > alpha) {
 				// update alpha
 				alpha = currval;
 				best = move;
 				tree.updatePv(depth);
-				if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD ||
-						currval >= Value::Mate || currval <= -Value::Mate) {
-					showPv(depth / Depth1Ply, tree.getPv(), black ? alpha : -alpha);
-				}
 
 				// beta-cut or update best move
 				if (alpha >= beta) {
@@ -1306,26 +1281,22 @@ search_end:
 			const Value alpha = alphas[lower];
 			const Value beta = betas[upper];
 
-			Value currval = searchRoot(tree, depth, alpha, beta, best);
+			value = searchRoot(tree, depth, alpha, beta, best);
 
 			// 中断判定
 			if (isInterrupted()) {
 				return false;
 			}
 
-			if (currval >= value) {
-				value = currval;
-			}
-
 			// 値が確定
-			if (currval > alpha && currval < beta) {
+			if (value > alpha && value < beta) {
 				break;
 			}
 
 			bool retry = false;
 
 			// alpha 値を広げる
-			while (currval <= alphas[lower] && lower != wmax - 1) {
+			while (value <= alphas[lower] && lower != wmax - 1) {
 				lower++;
 				assert(lower < wmax);
 				retry = true;
@@ -1333,7 +1304,7 @@ search_end:
 			}
 
 			// beta 値を広げる
-			while (currval >= betas[upper] && upper != wmax - 1) {
+			while (value >= betas[upper] && upper != wmax - 1) {
 				upper++;
 				assert(upper < wmax);
 				retry = true;

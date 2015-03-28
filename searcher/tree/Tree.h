@@ -10,12 +10,13 @@
 #include "../eval/Evaluator.h"
 #include "../shek/ShekTable.h"
 #include "core/move/Moves.h"
+#include <vector>
 #include <cstdint>
 #include <cassert>
 
 namespace sunfish {
 
-	enum class GenPhase : int32_t {
+	enum class GenPhase : int {
 		Hash,
 		Capture,
 		History1,
@@ -23,6 +24,10 @@ namespace sunfish {
 		Misc,
 		CaptureOnly,
 		End,
+	};
+
+	enum class RepStatus : int {
+		None, Win, Lose, Draw
 	};
 
 	using ExpStat = uint32_t;
@@ -62,6 +67,11 @@ namespace sunfish {
 			Value cvalue2;
 		};
 
+		struct CheckHist {
+			bool check;
+			uint64_t hash;
+		};
+
 		/** stack */
 		Node _stack[StackSize];
 
@@ -77,28 +87,16 @@ namespace sunfish {
 		/** ソートキー */
 		int32_t _sortValues[1024];
 
+		/** 開始局面からの王手履歴 */
+		CheckHist _checkHist[1024];
+		int _checkHistCount;
+
 	public:
 
-		Tree() : _ply(0) {
-		}
+		Tree() : _ply(0), _checkHistCount(0) {}
 
-		~Tree() {
-		}
-
-		void init(const Board& board, Evaluator& eval) {
-			_ply = 0;
-			_board = board;
-#ifndef NDEBUG
-			_board.validate();
-#endif
-			_stack[0].valuePair = eval.evaluate(board);
-			_stack[0].checking = _board.isChecking();
-			_stack[0].pv.init();
-			_stack[0].killer1 = Move::empty();
-			_stack[0].killer2 = Move::empty();
-			_stack[1].killer1 = Move::empty();
-			_stack[1].killer2 = Move::empty();
-		}
+		void init(const Board& board, Evaluator& eval, const std::vector<Move>& record);
+		void release(const std::vector<Move>& record);
 
 		int getPly() const {
 			return _ply;
@@ -275,30 +273,37 @@ namespace sunfish {
 
 		bool makeMove(Evaluator& eval) {
 			assert(_stack[_ply].ite != _stack[_ply].moves.begin());
-			Move& move = *(_stack[_ply].ite-1);
+			// frontier node
+			auto& front = _stack[_ply];
+			// move
+			Move& move = *(front.ite-1);
 			move.unsetCaptured();
+			// SHEK
 			_shekTable.set(_board);
+			// check history
+			_checkHist[_checkHistCount].check = front.checking;
+			_checkHist[_checkHistCount].hash = _board.getHash();
+			_checkHistCount++;
 			bool checking = _board.isCheck(move);
-			// try make move
-			if (_board.makeMove(move)) {
-				_ply++;
-				// current node
-				auto& curr = _stack[_ply];
-				curr.move = move;
-				curr.checking = checking;
-				assert(checking == _board.isChecking());
-				curr.pv.init();
-				// frontier node
-				auto& front = _stack[_ply-1];
-				curr.valuePair = eval.evaluateDiff(_board, front.valuePair, move);
-				// child node
-				auto& child = _stack[_ply+1];
-				child.killer1 = Move::empty();
-				child.killer2 = Move::empty();
-				return true;
+			// make move
+			if (!_board.makeMove(move)) {
+				_shekTable.unset(_board);
+				_checkHistCount--;
+				return false;
 			}
-			_shekTable.unset(_board);
-			return false;
+			_ply++;
+			// current node
+			auto& curr = _stack[_ply];
+			curr.move = move;
+			curr.checking = checking;
+			assert(checking == _board.isChecking());
+			curr.pv.init();
+			curr.valuePair = eval.evaluateDiff(_board, front.valuePair, move);
+			// child node
+			auto& child = _stack[_ply+1];
+			child.killer1 = Move::empty();
+			child.killer2 = Move::empty();
+			return true;
 		}
 
 		void unmakeMove() {
@@ -307,9 +312,15 @@ namespace sunfish {
 			assert(_stack[_ply].ite != _stack[_ply].moves.begin());
 			_board.unmakeMove(curr.move);
 			_shekTable.unset(_board);
+			_checkHistCount--;
 		}
 
 		void makeNullMove() {
+			// check history
+			_checkHist[_checkHistCount].check = false;
+			_checkHist[_checkHistCount].hash = _board.getHash();
+			_checkHistCount++;
+			// make move
 			_board.makeNullMove();
 			_ply++;
 			// current node
@@ -330,6 +341,7 @@ namespace sunfish {
 		void unmakeNullMove() {
 			_ply--;
 			_board.unmakeNullMove();
+			_checkHistCount--;
 		}
 
 		bool makeMoveFast(const Move& move) {
@@ -457,6 +469,8 @@ namespace sunfish {
 			auto& next = _stack[_ply+1];
 			return next.pv;
 		}
+
+		RepStatus getCheckRepStatus() const;
 
 		std::string __debug__getPath() const;
 

@@ -17,11 +17,11 @@ namespace sunfish {
 			return false;
 		}
 
-		if (_moveStack.size() <= _count || _moveStack[_count] != mtemp) {
-			while (_moveStack.size() > _count) {
-				_moveStack.pop_back();
+		if (_moves.size() <= _count || _moves[_count] != mtemp) {
+			while (_moves.size() > _count) {
+				_moves.pop_back();
 			}
-			_moveStack.push_back(mtemp);
+			_moves.push_back(mtemp);
 		}
 		_count++;
 
@@ -34,11 +34,11 @@ namespace sunfish {
 	 */
 	bool Record::makeMove() {
 
-		if (_count >= _moveStack.size()) {
+		if (_count >= _moves.size()) {
 			return false;
 		}
 
-		Move mtemp = _moveStack[_count];
+		Move mtemp = _moves[_count];
 		if (!_board.makeMoveStrict(mtemp)) {
 			return false;
 		}
@@ -57,7 +57,7 @@ namespace sunfish {
 			return false;
 		}
 
-		const Move& move = _moveStack[_count-1];
+		const Move& move = _moves[_count-1];
 		if (_board.unmakeMove(move)) {
 			_count--;
 		} else {
@@ -76,7 +76,7 @@ namespace sunfish {
 		int count = _count;
 
 		while(count != 0) {
-			const Move& move = _moveStack[count-1];
+			const Move& move = _moves[count-1];
 			board.unmakeMove(move);
 			count--;
 		}

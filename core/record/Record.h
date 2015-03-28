@@ -26,7 +26,7 @@ namespace sunfish {
 	private:
 
 		Board _board;
-		std::vector<Move> _moveStack;
+		std::vector<Move> _moves;
 		unsigned _count;
 
 	public:
@@ -40,14 +40,14 @@ namespace sunfish {
 
 		void init(const Board& board) {
 			_board = board;
-			_moveStack.clear();
-			_moveStack.shrink_to_fit();
+			_moves.clear();
+			_moves.shrink_to_fit();
 			_count = 0;
 		}
 		void init(Board::Handicap handicap) {
 			_board.init(handicap);
-			_moveStack.clear();
-			_moveStack.shrink_to_fit();
+			_moves.clear();
+			_moves.shrink_to_fit();
 			_count = 0;
 		}
 
@@ -110,7 +110,7 @@ namespace sunfish {
 		 * 指し手を返します。
 		 */
 		Move getMoveAt(int i) const {
-			return _moveStack[i];
+			return _moves[i];
 		}
 
 		/**
@@ -131,7 +131,7 @@ namespace sunfish {
 		 * 総手数を返します。
 		 */
 		unsigned getTotalCount() const {
-			return (unsigned)_moveStack.size();
+			return (unsigned)_moves.size();
 		}
 
 		/**
