@@ -6,7 +6,9 @@
 #if !defined(NDEBUG)
 
 #include "test/Test.h"
+#include "core/record/CsaReader.h"
 #include "../tree/Tree.h"
+#include "../eval/Evaluator.h"
 
 using namespace sunfish;
 
@@ -52,6 +54,92 @@ TEST(TreeTest, testAddMove) {
 
 	ite = tree.addMove(move2);
 	ASSERT_EQ(*ite, move2);
+
+}
+
+TEST(TreeTest, testRepetition) {
+
+	Tree tree;
+	Evaluator eval(Evaluator::InitType::Zero);
+
+	{
+		std::string src = "\
+P1-KY+HI *  *  *  *  * -KE-OU\n\
+P2 * +TO *  *  *  * +UM-GI-KY\n\
+P3-FU *  * -FU *  *  * -FU * \n\
+P4 *  *  *  *  *  * -FU * -FU\n\
+P5 *  *  * -KE-FU-FU *  *  * \n\
+P6 * +FU-FU+KA *  * -KE+OU+FU\n\
+P7+FU *  *  * +FU-KI * +FU * \n\
+P8 *  *  * +HI *  * -KI-GI * \n\
+P9+KY+KE *  *  * +KI *  * +KY\n\
+P+00FU00GI00GI00KI\n\
+P-00FU00FU00FU\n\
+-\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		std::vector<Move> moves;
+		moves.push_back(Move(Piece::King, P26, P17, false));
+		moves.push_back(Move(Piece::Silver, P37, P28, false));
+		moves.push_back(Move(Piece::King, P17, P26, false));
+
+		tree.init(board, eval, moves);
+		ASSERT_EQ((int)RepStatus::None, (int)tree.getCheckRepStatus());
+		tree.initGenPhase();
+		tree.addMove(Move(Piece::Silver, P28, P37, false));
+		tree.selectNextMove();
+		tree.makeMove(eval);
+		ASSERT_EQ((int)RepStatus::Win, (int)tree.getCheckRepStatus());
+		tree.unmakeMove();
+		ASSERT_EQ((int)RepStatus::None, (int)tree.getCheckRepStatus());
+		tree.release(moves);
+	}
+
+	{
+		std::string src = "\
+P1-KY+HI *  *  *  *  * -KE-OU\n\
+P2 * +TO *  *  *  * +UM-GI-KY\n\
+P3-FU *  * -FU *  *  * -FU * \n\
+P4 *  *  *  *  *  * -FU * -FU\n\
+P5 *  *  * -KE-FU-FU *  *  * \n\
+P6 * +FU-FU+KA *  * -KE+OU+FU\n\
+P7+FU *  *  * +FU-KI * +FU * \n\
+P8 *  *  * +HI *  * -KI-GI * \n\
+P9+KY+KE *  *  * +KI *  * +KY\n\
+P+00FU00GI00GI00KI\n\
+P-00FU00FU00FU\n\
+-\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		std::vector<Move> moves;
+		moves.push_back(Move(Piece::Silver, P37, P28, false));
+		moves.push_back(Move(Piece::King, P17, P26, false));
+
+		tree.init(board, eval, moves);
+		ASSERT_EQ((int)RepStatus::None, (int)tree.getCheckRepStatus());
+		tree.initGenPhase();
+		tree.addMove(Move(Piece::Silver, P28, P37, false));
+		tree.selectNextMove();
+		tree.makeMove(eval);
+		ASSERT_EQ((int)RepStatus::None, (int)tree.getCheckRepStatus());
+		{
+			tree.initGenPhase();
+			tree.addMove(Move(Piece::King, P26, P17, false));
+			tree.selectNextMove();
+			tree.makeMove(eval);
+			ASSERT_EQ((int)RepStatus::Lose, (int)tree.getCheckRepStatus());
+			tree.unmakeMove();
+		}
+		tree.unmakeMove();
+		ASSERT_EQ((int)RepStatus::None, (int)tree.getCheckRepStatus());
+		tree.release(moves);
+	}
 
 }
 
