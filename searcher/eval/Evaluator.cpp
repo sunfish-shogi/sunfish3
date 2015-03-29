@@ -259,7 +259,7 @@ namespace sunfish {
 
 	void Evaluator::convertFromFvBin(Table* fvbin) {
 
-#define CONV_ERROR_CHECK						0
+#define CONV_ERROR_CHECK						1
 
 #if CONV_ERROR_CHECK
 		for (int i = 0; i < KPP_ALL; i++) {
@@ -399,9 +399,9 @@ namespace sunfish {
 			{ KKP_BKNIGHT, KKP_BSILVER, -18, posIndexBKnight },
 			{ KKP_BSILVER, KKP_BGOLD,     0,   nullptr },
 			{ KKP_BGOLD,   KKP_BBISHOP,   0,   nullptr },
-			{ KKP_BBISHOP, KKP_BROOK,     0,   nullptr },
-			{ KKP_BROOK,   KKP_BHORSE,    0,   nullptr },
-			{ KKP_BHORSE,  KKP_BDRAGON,   0,   nullptr },
+			{ KKP_BBISHOP, KKP_BHORSE,    0,   nullptr },
+			{ KKP_BHORSE,  KKP_BROOK,     0,   nullptr },
+			{ KKP_BROOK,   KKP_BDRAGON,   0,   nullptr },
 			{ KKP_BDRAGON, KKP_MAX,       0,   nullptr },
 		};
 
