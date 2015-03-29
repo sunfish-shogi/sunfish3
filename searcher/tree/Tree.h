@@ -49,6 +49,7 @@ namespace sunfish {
 		struct Node {
 			Move move;
 			Moves moves;
+			Moves histMoves;
 			GenPhase genPhase;
 			ExpStat expStat;
 			bool isThroughPhase;
@@ -65,6 +66,8 @@ namespace sunfish {
 			Move capture2;
 			Value cvalue1;
 			Value cvalue2;
+			Move nocap1;
+			Move nocap2;
 		};
 
 		struct CheckHist {
@@ -238,12 +241,15 @@ namespace sunfish {
 		void initGenPhase(GenPhase phase = GenPhase::Hash) {
 			auto& node = _stack[_ply];
 			node.moves.clear();
+			node.histMoves.clear();
 			node.genPhase = phase;
 			node.expStat = 0x00;
 			node.isThroughPhase = false;
 			node.ite = node.moves.begin();
 			node.capture1 = Move::empty();
 			node.capture2 = Move::empty();
+			node.cvalue1 = -Value::Inf;
+			node.cvalue2 = -Value::Inf;
 		}
 
 		void resetGenPhase() {
@@ -254,6 +260,8 @@ namespace sunfish {
 			node.ite = node.moves.begin();
 			node.capture1 = Move::empty();
 			node.capture2 = Move::empty();
+			node.cvalue1 = -Value::Inf;
+			node.cvalue2 = -Value::Inf;
 		}
 
 		Value getValue() const {
@@ -303,6 +311,8 @@ namespace sunfish {
 			auto& child = _stack[_ply+1];
 			child.killer1 = Move::empty();
 			child.killer2 = Move::empty();
+			child.nocap1 = Move::empty();
+			child.nocap2 = Move::empty();
 			return true;
 		}
 
@@ -336,6 +346,8 @@ namespace sunfish {
 			auto& child = _stack[_ply+1];
 			child.killer1 = Move::empty();
 			child.killer2 = Move::empty();
+			child.nocap1 = Move::empty();
+			child.nocap2 = Move::empty();
 		}
 
 		void unmakeNullMove() {
@@ -400,7 +412,7 @@ namespace sunfish {
 		bool isPriorMove(const Move& move) const {
 			auto& curr = _stack[_ply];
 			return curr.hash == move ||
-				curr.killer1 == move || curr.killer2 == move;
+				curr.nocap1 == move || curr.nocap2 == move;
 		}
 
 		void setHash(const Move& move) {
@@ -431,18 +443,6 @@ namespace sunfish {
 		Value getKiller2Value() const {
 			auto& curr = _stack[_ply];
 			return curr.kvalue2;
-		}
-
-		void setCapture1(const Move& move, const Value& value) {
-			auto& curr = _stack[_ply];
-			curr.capture1 = move;
-			curr.cvalue1 = value;
-		}
-
-		void setCapture2(const Move& move, const Value& value) {
-			auto& curr = _stack[_ply];
-			curr.capture2 = move;
-			curr.cvalue2 = value;
 		}
 
 		const Move& getCapture1() const {

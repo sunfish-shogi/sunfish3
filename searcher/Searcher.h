@@ -210,7 +210,6 @@ namespace sunfish {
 		/**
 		 * nega-max search
 		 */
-		template <bool pvNode>
 		Value search(Tree& tree, bool black, int depth, Value alpha, Value beta, NodeStat stat = NodeStat::Default);
 
 		/**

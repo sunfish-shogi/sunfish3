@@ -148,6 +148,12 @@ namespace sunfish {
 #endif // ENABLE_KILLER_MOVE
 		assert(offset == 0 || offset == 1);
 		assert(tree.getNextMove() + offset <= tree.getEnd());
+		if (enableKiller) {
+			node.capture1 = Move::empty();
+			node.capture2 = Move::empty();
+			node.cvalue1 = -Value::Inf;
+			node.cvalue2 = -Value::Inf;
+		}
 
 		for (auto ite = tree.getNextMove() + offset; ite != tree.getEnd(); ) {
 			const Move& move = *ite;
@@ -159,13 +165,6 @@ namespace sunfish {
 						(captured.isEmpty() && move.piece() != Piece::Pawn)) {
 					tree.setSortValue(ite, -Value::Inf);
 					ite++;
-					continue;
-				}
-			}
-
-			if (!isQuies) {
-				if ((node.expStat & HashDone) && move == node.hash) {
-					ite = tree.getMoves().remove(ite);
 					continue;
 				}
 			}
@@ -186,6 +185,25 @@ namespace sunfish {
 #endif
 			if (estimate) {
 				value += tree.estimate<true>(move, _eval);
+			}
+
+			if (enableKiller) {
+				if (value > node.cvalue1) {
+					node.capture2 = node.capture1;
+					node.cvalue2 = node.cvalue1;
+					node.capture1 = move;
+					node.cvalue1 = value;
+				} else if (value > node.cvalue2) {
+					node.capture2 = move;
+					node.cvalue2 = value;
+				}
+			}
+
+			if (!isQuies) {
+				if ((node.expStat & HashDone) && move == node.hash) {
+					ite = tree.getMoves().remove(ite);
+					continue;
+				}
 			}
 
 			if (enableKiller) {
@@ -249,17 +267,6 @@ namespace sunfish {
 				if (tree.getSortValue(ite) < 0) {
 					tree.removeAfter(ite);
 					break;
-				}
-			}
-		}
-
-		if (enableKiller) {
-			auto ite = tree.getNextMove() + offset;
-			if (ite != tree.getEnd()) {
-				tree.setCapture1(*ite, tree.getSortValue(ite));
-				ite++;
-				if (ite != tree.getEnd()) {
-					tree.setCapture2(*ite, tree.getSortValue(ite));
 				}
 			}
 		}
@@ -348,19 +355,18 @@ namespace sunfish {
 	 */
 	void Searcher::updateHistory(Tree& tree, int depth, const Move& move) {
 
-		int value = std::max(depth * 4 / Depth1Ply, 1);
-		for (auto ite = tree.getBegin(); ite != tree.getNextMove(); ite++) {
+		int value = std::max(depth * 8 / Depth1Ply, 1);
+		const auto& moves = tree.getCurrentNode().histMoves;
+		for (auto ite = moves.begin(); ite != moves.end(); ite++) {
 			assert(ite != tree.getEnd());
 			auto key = History::getKey(*ite);
 			if (ite->equals(move)) {
 				_history.add(key, value, value);
-				return;
 			} else {
 				_history.add(key, value, 0);
 			}
 
 		}
-		assert(false); // unreachable
 
 	}
 
@@ -577,6 +583,17 @@ namespace sunfish {
 	 */
 	Value Searcher::qsearch(Tree& tree, bool black, int qply, Value alpha, Value beta) {
 
+#if DEBUG_NODE
+		bool debug = false;
+#if 0
+		if (tree.__debug__matchPath("-4233GI +5968OU -8586FU")) {
+			std::cout << "#-- debug quies node begin --#" << std::endl;
+			std::cout << tree.__debug__getPath() << std::endl;
+			debug = true;
+		}
+#endif
+#endif
+
 #if DEBUG_TREE
 		{
 			for (int i = 0; i < tree.getPly(); i++) {
@@ -711,12 +728,17 @@ namespace sunfish {
 			node.kvalue1 = node.cvalue1 - capVal + 1;
 
 		}
+
+		if (tree.getBoard().getBoardPiece(move.to()).isEmpty() &&
+				(!move.promote() || move.piece() != Piece::Silver)) {
+			node.nocap2 = node.nocap1;
+			node.nocap1 = move;
+		}
 	}
 
 	/**
 	 * nega-max search
 	 */
-	template <bool pvNode>
 	Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value beta, NodeStat stat) {
 
 #if DEBUG_TREE
@@ -731,7 +753,7 @@ namespace sunfish {
 #if DEBUG_NODE
 		bool debug = false;
 #if 1
-		if (tree.__debug__matchPath("+8877KA")) {
+		if (tree.__debug__matchPath("-8586FU +8786FU -8286HI")) {
 			std::cout << "#-- debug node begin --#" << std::endl;
 			std::cout << tree.__debug__getPath() << std::endl;
 			std::cout << "alpha=" << alpha.int32() << " beta=" << beta.int32() << " depth=" << depth << std::endl;
@@ -817,7 +839,7 @@ namespace sunfish {
 					auto valueType = tte.getValueType();
 
 					// 前回の結果で枝刈り
-					if (!pvNode && stat.isHashCut() && isNullWindow) {
+					if (stat.isHashCut() && isNullWindow) {
 						// 現在のノードに対して優位な条件の場合
 						if (tte.getDepth() >= depth ||
 								(ttv >= Value::Mate && (valueType == TTE::Lower || valueType == TTE::Exact)) ||
@@ -897,7 +919,7 @@ namespace sunfish {
 #endif
 
 			// null move pruning
-			if (!pvNode && isNullWindow && stat.isNullMove() && beta <= standPat && depth >= Depth1Ply * 2) {
+			if (isNullWindow && stat.isNullMove() && beta <= standPat && depth >= Depth1Ply * 2) {
 				auto newStat = NodeStat().unsetNullMove();
 				int newDepth = search_func::nullDepth(depth);
 
@@ -906,7 +928,7 @@ namespace sunfish {
 				// make move
 				tree.makeNullMove();
 
-				Value currval = -search<false>(tree, !black, newDepth, -beta, -beta+1, newStat);
+				Value currval = -search(tree, !black, newDepth, -beta, -beta+1, newStat);
 
 				// unmake move
 				tree.unmakeNullMove();
@@ -938,7 +960,7 @@ namespace sunfish {
 		// recursive iterative-deepening search
 		if (!hashMove.isEmpty() && stat.isRecursion() && depth >= search_param::REC_THRESHOLD) {
 			auto newStat = NodeStat(stat).unsetNullMove().unsetMate().unsetHashCut();
-			search<pvNode>(tree, black, search_func::recDepth(depth), alpha, beta, newStat);
+			search(tree, black, search_func::recDepth(depth), alpha, beta, newStat);
 
 			// 中断判定
 			if (isInterrupted()) {
@@ -981,6 +1003,11 @@ namespace sunfish {
 			bool isCheck = isCheckCurr || isCheckPrev;
 			Piece captured = board.getBoardPiece(move.to());
 
+			if (!isCheckCurr && captured.isEmpty() &&
+					(!move.promote() || move.piece() != Piece::Silver)) {
+				tree.getCurrentNode().histMoves.add(move);
+			}
+
 			// extensions
 			if (isCheckCurr) {
 				// check
@@ -997,7 +1024,8 @@ namespace sunfish {
 									(move == tree.getCapture2() && tree.getCapture1Value() < tree.getCapture2Value() + 180))
 								 ) {
 				// recapture
-				if (!move.promote() && captured == tree.getFrontMove().captured()) {
+				Move fmove = tree.getFrontMove();
+				if (!move.promote() && fmove.piece() == fmove.captured()) {
 					newDepth += search_param::EXT_RECAP2;
 				} else {
 					newDepth += search_param::EXT_RECAP;
@@ -1060,19 +1088,19 @@ namespace sunfish {
 			// reccursive call
 			Value currval;
 			if (count == 0) {
-				currval = -search<pvNode>(tree, !black, newDepth, -beta, -alpha, newStat);
+				currval = -search(tree, !black, newDepth, -beta, -alpha, newStat);
 
 			} else {
 				// nega-scout
-				currval = -search<false>(tree, !black, newDepth, -alpha-1, -alpha, newStat);
+				currval = -search(tree, !black, newDepth, -alpha-1, -alpha, newStat);
 
 				if (!isInterrupted() && currval > alpha && reduced > 0) {
 					newDepth += reduced;
-					currval = -search<pvNode>(tree, !black, newDepth, -alpha-1, -alpha, newStat);
+					currval = -search(tree, !black, newDepth, -alpha-1, -alpha, newStat);
 				}
 
 				if (!isInterrupted() && currval > alpha && currval < beta && !isNullWindow) {
-					currval = -search<pvNode>(tree, !black, newDepth, -beta, -alpha, newStat);
+					currval = -search(tree, !black, newDepth, -beta, -alpha, newStat);
 				}
 
 			}
@@ -1114,11 +1142,9 @@ namespace sunfish {
 		}
 
 		if (!best.isEmpty() && !tree.isChecking()) {
-			if (!isNullWindow || alpha >= beta) {
 #if ENABLE_KILLER_MOVE
-				updateKiller(tree, best);
+			updateKiller(tree, best);
 #endif // ENABLE_KILLER_MOVE
-			}
 			if (tree.getBoard().getBoardPiece(best.to()).isEmpty() &&
 					(!best.promote() || best.piece() != Piece::Silver)) {
 				updateHistory(tree, depth, best);
@@ -1143,8 +1169,6 @@ search_end:
 		return alpha;
 
 	}
-	template Value Searcher::search<true>(Tree&, bool, int, Value, Value, NodeStat);
-	template Value Searcher::search<false>(Tree&, bool, int, Value, Value, NodeStat);
 
 	/**
 	 * search on root node
@@ -1175,7 +1199,11 @@ search_end:
 #if ENABLE_LMR
 			if (count != 0 && newDepth >= Depth1Ply * 2 && !isCheckCurr &&
 					captured.isEmpty() && (!move.promote() || move.piece() != Piece::Silver)) {
+#if 0
 				reduced = getReductionDepth(move, false);
+#else
+				reduced = Depth1Ply;
+#endif
 				newDepth -= reduced;
 			}
 #endif // ENABLE_LMR
@@ -1188,18 +1216,18 @@ search_end:
 
 			if (count == 0) {
 				// full window search
-				currval = -search<true>(tree, !black, newDepth, -beta, -alpha);
+				currval = -search(tree, !black, newDepth, -beta, -alpha);
 			} else {
 				// nega-scout
-				currval = -search<true>(tree, !black, newDepth, -alpha-1, -alpha);
+				currval = -search(tree, !black, newDepth, -alpha-1, -alpha);
 				if (!isInterrupted() && currval >= alpha + 1 && reduced != 0) {
 					// full depth
 					newDepth += reduced;
-					currval = -search<true>(tree, !black, newDepth, -alpha-1, -alpha);
+					currval = -search(tree, !black, newDepth, -alpha-1, -alpha);
 				}
 				if (!isInterrupted() && currval >= alpha + 1) {
 					// full window search
-					currval = -search<true>(tree, !black, newDepth, -beta, -alpha);
+					currval = -search(tree, !black, newDepth, -beta, -alpha);
 				}
 			}
 
