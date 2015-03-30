@@ -43,10 +43,10 @@ namespace sunfish {
 		int _bnum;
 		int _wnum;
 
-		template <bool black, bool shallow, Direction dir, bool isFirst>
+		template <bool shallow, Direction dir, bool isFirst>
 		void generateAttacker(const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn, bool shortOnly);
 
-		template <bool black, bool shallow, Direction dir, bool isFirst = false>
+		template <bool shallow, Direction dir>
 		void generateAttackerR(const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn) {
 			HSideType sideTypeH = to.sideTypeH();
 			VSideType sideTypeV = to.sideTypeV();
@@ -59,16 +59,16 @@ namespace sunfish {
 								 (sideTypeH == HSideType::Bottom2 && (dir == Direction::Down || dir == Direction::LeftDown || dir == Direction::RightDown)) ||
 								 (sideTypeV == VSideType::Left2 && (dir == Direction::Left || dir == Direction::LeftUp || dir == Direction::LeftDown)) ||
 								 (sideTypeV == VSideType::Right2 && (dir == Direction::Right || dir == Direction::RightUp || dir == Direction::RightDown))) {
-				generateAttacker<black, shallow, dir, false>(board, to, occ, dependOn, true); // short only
+				generateAttacker<shallow, dir, false>(board, to, occ, dependOn, true); // short only
 			} else {
-				generateAttacker<black, shallow, dir, false>(board, to, occ, dependOn, false);
+				generateAttacker<shallow, dir, false>(board, to, occ, dependOn, false);
 			}
 		}
 
 		template <bool black>
 		void generateKnightAttacker(const Board& board, const Position& from);
 
-		template <bool black, bool shallow>
+		template <bool shallow>
 		void generateAttackers(const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Direction exceptDir, HSideType sideTypeH, VSideType sideTypeV);
 
 		template <bool shallow>
@@ -76,21 +76,18 @@ namespace sunfish {
 			if (move.isHand()) {
   			auto to = move.to();
   			auto occ = board.getBOccupy() | board.getWOccupy();
-				generateAttackers<true, shallow>(board, to, occ, Position::Invalid, Direction::None, sideTypeH, sideTypeV);
-				generateAttackers<false, shallow>(board, to, occ, Position::Invalid, Direction::None, sideTypeH, sideTypeV);
+				generateAttackers<shallow>(board, to, occ, Position::Invalid, Direction::None, sideTypeH, sideTypeV);
 			} else {
   			auto to = move.to();
   			auto from = move.from();
   			auto exceptMask = ~Bitboard::mask(from);
   			auto occ = (board.getBOccupy() | board.getWOccupy()) & exceptMask;
   			Direction exceptDir = to.dir(from);
-				generateAttackers<true, shallow>(board, to, occ, from, exceptDir, sideTypeH, sideTypeV);
-				generateAttackers<false, shallow>(board, to, occ, from, exceptDir, sideTypeH, sideTypeV);
+				generateAttackers<shallow>(board, to, occ, from, exceptDir, sideTypeH, sideTypeV);
 			}
 		}
 
-		template <bool black>
-		Value search(Value value, Value alpha, Value beta);
+		Value search(bool black, Value value, Value alpha, Value beta);
 
 	public:
 

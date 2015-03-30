@@ -11,11 +11,8 @@
 
 namespace sunfish {
 
-	template <bool black, bool shallow, Direction dir, bool isFirst>
+	template <bool shallow, Direction dir, bool isFirst>
 	void See::generateAttacker(const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn, bool shortOnly) {
-
-		auto& num = black ? _bnum : _wnum;
-		auto list = black ? _b : _w;
 
 		// 斜め
 		if (dir == Direction::LeftUp || dir == Direction::LeftDown ||
@@ -28,13 +25,18 @@ namespace sunfish {
 										 to.rightDown());
 				auto piece = board.getBoardPiece(from);
 				if (!piece.isEmpty()) {
-  				if (((black && piece.isBlack()) || (!black && piece.isWhite())) &&
-  						(dir == Direction::LeftUp ? MovableTable[piece].rightDown :
+  				if (dir == Direction::LeftUp ? MovableTable[piece].rightDown :
   						 dir == Direction::LeftDown ? MovableTable[piece].rightUp :
   						 dir == Direction::RightUp ? MovableTable[piece].leftDown :
-  						 MovableTable[piece].leftUp)) {
-  					list[num++] = { material::pieceExchange(piece), dependOn, false };
-  					if (!shallow && !shortOnly) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
+  						 MovableTable[piece].leftUp) {
+						if (piece.isBlack()) {
+							_b[_bnum++] = { material::pieceExchange(piece), dependOn, false };
+							if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &_b[_bnum-1]); }
+						} else {
+							assert(piece.isWhite());
+							_w[_wnum++] = { material::pieceExchange(piece), dependOn, false };
+							if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &_w[_wnum-1]); }
+						}
   				}
 					return;
 				}
@@ -47,18 +49,32 @@ namespace sunfish {
   								 dir == Direction::RightUp ? MoveTables::RightUp.get(to, occ) :
   								 MoveTables::RightDown.get(to, occ));
   			if (bb) {
-    			auto result = bb & (black ? board.getBBishop() : board.getWBishop());
+    			auto result = bb & board.getBBishop();
     			if (result) {
     				auto from = result.pickFirst();
-  					list[num++] = { material::BishopEx, dependOn, false };
-  					if (!shallow) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
+  					_b[_bnum++] = { material::BishopEx, dependOn, false };
+  					if (!shallow) { generateAttackerR<false, dir>(board, from, occ, &_b[_bnum-1]); }
   					return;
     			}
-    			result = bb & (black ? board.getBHorse() : board.getWHorse());
+    			result = bb & board.getWBishop();
     			if (result) {
     				auto from = result.pickFirst();
-  					list[num++] = { material::HorseEx, dependOn, false };
-  					if (!shallow) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
+  					_w[_wnum++] = { material::BishopEx, dependOn, false };
+  					if (!shallow) { generateAttackerR<false, dir>(board, from, occ, &_w[_wnum-1]); }
+  					return;
+    			}
+    			result = bb & board.getBHorse();
+    			if (result) {
+    				auto from = result.pickFirst();
+  					_b[_bnum++] = { material::HorseEx, dependOn, false };
+  					if (!shallow) { generateAttackerR<false, dir>(board, from, occ, &_b[_bnum-1]); }
+  					return;
+    			}
+    			result = bb & board.getWHorse();
+    			if (result) {
+    				auto from = result.pickFirst();
+  					_w[_wnum++] = { material::HorseEx, dependOn, false };
+  					if (!shallow) { generateAttackerR<false, dir>(board, from, occ, &_w[_wnum-1]); }
   					return;
     			}
   			}
@@ -76,13 +92,18 @@ namespace sunfish {
 										 to.right());
 				auto piece = board.getBoardPiece(from);
 				if (!piece.isEmpty()) {
-  				if (((black && piece.isBlack()) || (!black && piece.isWhite())) &&
-  						(dir == Direction::Up ? MovableTable[piece].down :
+  				if (dir == Direction::Up ? MovableTable[piece].down :
   						 dir == Direction::Down ? MovableTable[piece].up :
   						 dir == Direction::Left ? MovableTable[piece].right :
-  						 MovableTable[piece].left)) {
-  					list[num++] = { material::pieceExchange(piece), dependOn, false };
-  					if (!shallow && !shortOnly) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
+  						 MovableTable[piece].left) {
+						if (piece.isBlack()) {
+							_b[_bnum++] = { material::pieceExchange(piece), dependOn, false };
+							if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &_b[_bnum-1]); }
+						} else {
+							assert(piece.isWhite());
+							_w[_wnum++] = { material::pieceExchange(piece), dependOn, false };
+							if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &_w[_wnum-1]); }
+						}
   				}
 					return;
 				}
@@ -94,26 +115,48 @@ namespace sunfish {
   								 dir == Direction::Down ? MoveTables::WLance.get(to, occ) :
   								 dir == Direction::Left ? MoveTables::Left.get(to, occ) :
   								 MoveTables::Right.get(to, occ));
-  			auto result = bb & (black ? board.getBRook() : board.getWRook());
+  			auto result = bb & board.getBRook();
   			if (result) {
   				auto from = result.pickFirst();
-  				list[num++] = { material::RookEx, dependOn, false };
-  				if (!shallow) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
+  				_b[_bnum++] = { material::RookEx, dependOn, false };
+  				if (!shallow) { generateAttackerR<false, dir>(board, from, occ, &_b[_bnum-1]); }
   				return;
   			}
-  			result = bb & (black ? board.getBDragon() : board.getWDragon());
+  			result = bb & board.getWRook();
   			if (result) {
   				auto from = result.pickFirst();
-  				list[num++] = { material::DragonEx, dependOn, false };
-  				if (!shallow) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
+  				_w[_wnum++] = { material::RookEx, dependOn, false };
+  				if (!shallow) { generateAttackerR<false, dir>(board, from, occ, &_w[_wnum-1]); }
   				return;
   			}
-  			if ((black && dir == Direction::Down) || (!black && dir == Direction::Up)) {
-  				result = bb & (black ? board.getBLance() : board.getWLance());
+  			result = bb & board.getBDragon();
+  			if (result) {
+  				auto from = result.pickFirst();
+  				_b[_bnum++] = { material::DragonEx, dependOn, false };
+  				if (!shallow) { generateAttackerR<false, dir>(board, from, occ, &_b[_bnum-1]); }
+  				return;
+  			}
+  			result = bb & board.getWDragon();
+  			if (result) {
+  				auto from = result.pickFirst();
+  				_w[_wnum++] = { material::DragonEx, dependOn, false };
+  				if (!shallow) { generateAttackerR<false, dir>(board, from, occ, &_w[_wnum-1]); }
+  				return;
+  			}
+  			if (dir == Direction::Down) {
+  				result = bb & board.getBLance();
   				if (result) {
   					auto from = result.pickFirst();
-  					list[num++] = { material::LanceEx, dependOn, false };
-  					if (!shallow) { generateAttackerR<black, false, dir>(board, from, occ, &list[num-1]); }
+  					_b[_bnum++] = { material::LanceEx, dependOn, false };
+  					if (!shallow) { generateAttackerR<false, dir>(board, from, occ, &_b[_bnum-1]); }
+    				return;
+  				}
+  			} else if (dir == Direction::Up) {
+  				result = bb & board.getWLance();
+  				if (result) {
+  					auto from = result.pickFirst();
+  					_w[_wnum++] = { material::LanceEx, dependOn, false };
+  					if (!shallow) { generateAttackerR<false, dir>(board, from, occ, &_w[_wnum-1]); }
     				return;
   				}
   			}
@@ -134,21 +177,18 @@ namespace sunfish {
 		}
 	}
 
-	template <bool black, bool shallow>
+	template <bool shallow>
 	void See::generateAttackers(const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Direction exceptDir, HSideType sideTypeH, VSideType sideTypeV) {
 
-		auto& num = black ? _bnum : _wnum;
-		auto list = black ? _b : _w;
-		auto listRef = black ? _bref : _wref;
-
-		num = 0;
+		_bnum = 0;
+		_wnum = 0;
 
 #define GEN(dirname, except, shortOnly) \
 		if (!(except)) { \
   		if (exceptDir != Direction::dirname) { \
-    		generateAttacker<black, shallow, Direction::dirname, true>(board, to, occ, nullptr, (shortOnly)); \
+    		generateAttacker<shallow, Direction::dirname, true>(board, to, occ, nullptr, (shortOnly)); \
   		} else { \
-    		generateAttackerR<black, shallow, Direction::dirname, true>(board, exceptPos, occ, nullptr); \
+    		generateAttackerR<shallow, Direction::dirname>(board, exceptPos, occ, nullptr); \
   		} \
 		}
 
@@ -172,47 +212,48 @@ namespace sunfish {
 
 		// 桂馬
 		if (sideTypeH != HSideType::Bottom && sideTypeH != HSideType::Bottom2) {
-			if (black && exceptDir != Direction::LeftDownKnight && sideTypeV != VSideType::Left) {
+			if (exceptDir != Direction::LeftDownKnight && sideTypeV != VSideType::Left) {
 				auto from = to.left().down(2);
 				generateKnightAttacker<true>(board, from);
 			}
-			if (black && exceptDir != Direction::RightDownKnight && sideTypeV != VSideType::Right) {
+			if (exceptDir != Direction::RightDownKnight && sideTypeV != VSideType::Right) {
 				auto from = to.right().down(2);
 				generateKnightAttacker<true>(board, from);
 			}
 		}
 		if (sideTypeH != HSideType::Top && sideTypeH != HSideType::Top2) {
-			if (!black && exceptDir != Direction::LeftUpKnight && sideTypeV != VSideType::Left) {
+			if (exceptDir != Direction::LeftUpKnight && sideTypeV != VSideType::Left) {
   			auto from = to.left().up(2);
   			generateKnightAttacker<false>(board, from);
   		}
-  		if (!black && exceptDir != Direction::RightUpKnight && sideTypeV != VSideType::Right) {
+  		if (exceptDir != Direction::RightUpKnight && sideTypeV != VSideType::Right) {
   			auto from = to.right().up(2);
   			generateKnightAttacker<false>(board, from);
   		}
 		}
 
-		assert(num < (int)(sizeof(_b) / sizeof(_b[0])));
+		assert(_bnum < (int)(sizeof(_b) / sizeof(_b[0])));
+		assert(_wnum < (int)(sizeof(_w) / sizeof(_w[0])));
 
-#define SET_REF(i) listRef[i].attacker = &list[i]
+#define SET_REF(i) do { _bref[i].attacker = &_b[i]; _wref[i].attacker = &_w[i]; } while(false)
 		SET_REF(0); SET_REF(1); SET_REF(2); SET_REF(3);
 		SET_REF(4); SET_REF(5); SET_REF(6); SET_REF(7);
 		SET_REF(8); SET_REF(9); SET_REF(10); SET_REF(11);
 		SET_REF(12); SET_REF(13); SET_REF(14); SET_REF(15);
 
-		std::sort(listRef, listRef + num);
+		std::sort(_bref, _bref + _bnum);
+		std::sort(_wref, _wref + _wnum);
 
 	}
 
-	template <bool black>
-	Value See::search(Value value, Value alpha, Value beta) {
+	Value See::search(bool black, Value value, Value alpha, Value beta) {
 
 #define SEARCH(i, c) if (i < _ ## c ## num) { \
 			auto att = _ ## c ## ref[i].attacker; \
 			if (!att->used && (att->dependOn == nullptr || att->dependOn->used)) { \
 				if (value - att->value >= beta) { return beta; } \
 				att->used = true; \
-				auto result = Value::max(0, value - search<!black>(att->value, -beta+value, -alpha+value)); \
+				auto result = Value::max(0, value - search(!black, att->value, -beta+value, -alpha+value)); \
 				att->used = false; \
 				return result; \
 			} \
@@ -260,11 +301,7 @@ namespace sunfish {
 		// 移動可能な駒を列挙する。
 		generateAttackers<shallow>(board, move);
 
-		if (board.isBlack()) {
-			return captured - search<false>(attacker, -beta+captured, -alpha+captured);
-		} else {
-			return captured - search<true>(attacker, -beta+captured, -alpha+captured);
-		}
+		return captured - search(!board.isBlack(), attacker, -beta+captured, -alpha+captured);
 
 	}
 	template Value See::search<true>(const Board&, const Move&, Value, Value);
