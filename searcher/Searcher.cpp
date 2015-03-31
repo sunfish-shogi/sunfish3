@@ -440,6 +440,7 @@ namespace sunfish {
 					if (!hashMove.isEmpty() && board.isValidMoveStrict(hashMove)) {
 						tree.addMove(hashMove);
 						tree.setThroughPhase(true);
+						_info.expandHashMove++;
 					}
 					node.genPhase = GenPhase::Capture;
 				}
@@ -880,10 +881,7 @@ namespace sunfish {
 					}
 
 					// 前回の最善手を取得
-					if (depth < search_param::REC_THRESHOLD ||
-							tte.getDepth() >= search_func::recDepth(depth)) {
-						hashMove = Move::deserialize16(tte.getMove(), tree.getBoard());
-					}
+					hashMove = Move::deserialize16(tte.getMove(), tree.getBoard());
 
 					if (tte.isMateThreat()) {
 						stat.setMateThreat();
@@ -958,7 +956,7 @@ namespace sunfish {
 		}
 
 		// recursive iterative-deepening search
-		if (!hashMove.isEmpty() && stat.isRecursion() && depth >= search_param::REC_THRESHOLD) {
+		if (hashMove.isEmpty() && stat.isRecursion() && depth >= search_param::REC_THRESHOLD) {
 			auto newStat = NodeStat(stat).unsetNullMove().unsetMate().unsetHashCut();
 			search(tree, black, search_func::recDepth(depth), alpha, beta, newStat);
 
@@ -978,9 +976,6 @@ namespace sunfish {
 		_info.expand++;
 #if ENABLE_HASH_MOVE
 		tree.setHash(hashMove);
-		if (!hashMove.isEmpty()) {
-			_info.expandHashMove++;
-		}
 #else
 		tree.setHash(Move::empty());
 #endif
