@@ -22,7 +22,7 @@
 #define DEBUG_TREE										0
 #define DEBUG_NODE										0
 
-#define ITERATE_INFO_THRESHOLD        3
+#define ITERATE_INFO_THRESHOLD        3 // must be greater than or equal to 2
 
 namespace sunfish {
 
@@ -260,7 +260,7 @@ namespace sunfish {
 			}
 		}
 
-		tree.sortAfterCurrent();
+		tree.sortAfterCurrent(offset);
 
 		if (isQuies) {
 			for (auto ite = tree.getNextMove() + offset; ite != tree.getEnd(); ite++) {
@@ -355,7 +355,8 @@ namespace sunfish {
 	 */
 	void Searcher::updateHistory(Tree& tree, int depth, const Move& move) {
 
-		int value = std::max(depth * 8 / Depth1Ply, 1);
+		CONSTEXPR int HistPerDepth = 8;
+		int value = std::max(depth * HistPerDepth / Depth1Ply, 1);
 		const auto& moves = tree.getCurrentNode().histMoves;
 		for (auto ite = moves.begin(); ite != moves.end(); ite++) {
 			assert(ite != tree.getEnd());
@@ -731,7 +732,7 @@ namespace sunfish {
 		}
 
 		if (tree.getBoard().getBoardPiece(move.to()).isEmpty() &&
-				(!move.promote() || move.piece() != Piece::Silver)) {
+				(!move.promote() || move.piece() == Piece::Silver)) {
 			node.nocap2 = node.nocap1;
 			node.nocap1 = move;
 		}
@@ -753,8 +754,8 @@ namespace sunfish {
 
 #if DEBUG_NODE
 		bool debug = false;
-#if 1
-		if (tree.__debug__matchPath("-8586FU +8786FU -8286HI")) {
+#if 0
+		if (tree.__debug__matchPath("-0095KA")) {
 			std::cout << "#-- debug node begin --#" << std::endl;
 			std::cout << tree.__debug__getPath() << std::endl;
 			std::cout << "alpha=" << alpha.int32() << " beta=" << beta.int32() << " depth=" << depth << std::endl;
@@ -999,7 +1000,7 @@ namespace sunfish {
 			Piece captured = board.getBoardPiece(move.to());
 
 			if (!isCheckCurr && captured.isEmpty() &&
-					(!move.promote() || move.piece() != Piece::Silver)) {
+					(!move.promote() || move.piece() == Piece::Silver)) {
 				tree.getCurrentNode().histMoves.add(move);
 			}
 
@@ -1033,8 +1034,8 @@ namespace sunfish {
 			// late move reduction
 			int reduced = 0;
 #if ENABLE_LMR
-			if (count != 0 && newDepth >= Depth1Ply && !isCheck && !stat.isMateThreat() &&
-					captured.isEmpty() && (!move.promote() || move.piece() != Piece::Silver) &&
+			if (count != 0 && newDepth >= Depth1Ply && !isCheckPrev && !stat.isMateThreat() &&
+					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
 					!tree.isPriorMove(move)) {
 				reduced = getReductionDepth(move, isNullWindow);
 				newDepth -= reduced;
@@ -1141,7 +1142,7 @@ namespace sunfish {
 			updateKiller(tree, best);
 #endif // ENABLE_KILLER_MOVE
 			if (tree.getBoard().getBoardPiece(best.to()).isEmpty() &&
-					(!best.promote() || best.piece() != Piece::Silver)) {
+					(!best.promote() || best.piece() == Piece::Silver)) {
 				updateHistory(tree, depth, best);
 			}
 		}
@@ -1168,10 +1169,12 @@ search_end:
 	/**
 	 * search on root node
 	 */
-	Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move& best) {
+	Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move& best,
+			bool forceFullWindow /* = false */) {
 		const auto& board = tree.getBoard();
 		bool black = board.isBlack();
 		int count = 0;
+		Value oldAlpha = alpha;
 
 		while (nextMove(tree)) {
 			Move move = *tree.getCurrentMove();
@@ -1179,6 +1182,7 @@ search_end:
 			// depth
 			int newDepth = depth - Depth1Ply;
 
+			bool isCheckPrev = board.isChecking(); // TODO: tree.isChecking を使えるようにする
 			bool isCheckCurr = board.isCheck(move);
 			Piece captured = board.getBoardPiece(move.to());
 
@@ -1192,8 +1196,8 @@ search_end:
 			// late move reduction
 			int reduced = 0;
 #if ENABLE_LMR
-			if (count != 0 && newDepth >= Depth1Ply * 2 && !isCheckCurr &&
-					captured.isEmpty() && (!move.promote() || move.piece() != Piece::Silver)) {
+			if (count != 0 && newDepth >= Depth1Ply * 2 && !isCheckPrev &&
+					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver)) {
 #if 0
 				reduced = getReductionDepth(move, false);
 #else
@@ -1209,17 +1213,23 @@ search_end:
 
 			Value currval;
 
-			if (count == 0) {
+			if (forceFullWindow) {
+				currval = -search(tree, !black, newDepth, -beta, -oldAlpha);
+
+			} else if (count == 0) {
 				// full window search
 				currval = -search(tree, !black, newDepth, -beta, -alpha);
+
 			} else {
 				// nega-scout
 				currval = -search(tree, !black, newDepth, -alpha-1, -alpha);
+
 				if (!isInterrupted() && currval >= alpha + 1 && reduced != 0) {
 					// full depth
 					newDepth += reduced;
 					currval = -search(tree, !black, newDepth, -alpha-1, -alpha);
 				}
+
 				if (!isInterrupted() && currval >= alpha + 1) {
 					// full window search
 					currval = -search(tree, !black, newDepth, -beta, -alpha);
@@ -1234,9 +1244,17 @@ search_end:
 				return false;
 			}
 
+			if (count == 0 && currval <= alpha) {
+				return currval;
+			}
+
 			// ソート用に値をセット
 			auto index = tree.getIndexByMove(move);
-			_rootValues[index] = (currval != alpha) ? (currval.int32()) : (currval.int32() - 1);
+			if (forceFullWindow || currval > alpha) {
+				_rootValues[index] = currval.int32();
+			} else {
+				_rootValues[index] = -Value::Inf;
+			}
 
 			_timeManager.addMove(move, currval);
 
@@ -1267,35 +1285,16 @@ search_end:
 	 * aspiration search
 	 * @return {負けたか中断された場合にfalseを返します。}
 	 */
-	bool Searcher::searchAsp(int depth, Move& best, bool gen /* = true */, Value* pval /* = nullptr */) {
+	bool Searcher::searchAsp(int depth, Move& best, Value* pval /* = nullptr */) {
 
 		// tree
 		auto& tree = _trees[0];
 
-		auto& moves = tree.getMoves();
-		const auto& board = tree.getBoard();
-
-		// 合法手生成
-		if (gen) {
-			tree.initGenPhase();
-			MoveGenerator::generate(board, moves);
-		}
-		tree.resetGenPhase();
-
-		// 非合法手除去
-		for (auto ite = moves.begin(); ite != moves.end();) {
-			if (!board.isValidMove(*ite)) {
-				ite = moves.remove(ite);
-			} else {
-				++ite;
-			}
-		}
-
 		bool hasPrevVal = pval != nullptr && (*pval != -Value::Inf);
 		Value baseVal = hasPrevVal ? *pval : 0;
 		CONSTEXPR int wmax = 3;
-		const Value alphas[wmax] = { baseVal-320, baseVal-1280, -Value::Mate };
-		const Value betas[wmax] = { baseVal+320, baseVal+1280, Value::Mate };
+		const Value alphas[wmax] = { baseVal-198, baseVal-793, -Value::Mate };
+		const Value betas[wmax] = { baseVal+198, baseVal+793, Value::Mate };
 		int lower = hasPrevVal ? 0 : wmax - 1;
 		int upper = hasPrevVal ? 0 : wmax - 1;
 		Value value = alphas[lower];
@@ -1398,6 +1397,28 @@ search_end:
 		Loggers::message << oss.str();
 	}
 
+	void Searcher::generateMovesOnRoot() {
+		// tree
+		auto& tree = _trees[0];
+
+		auto& moves = tree.getMoves();
+		const auto& board = tree.getBoard();
+
+		// 合法手生成
+		tree.initGenPhase();
+		MoveGenerator::generate(board, moves);
+		tree.resetGenPhase();
+
+		// 非合法手除去
+		for (auto ite = moves.begin(); ite != moves.end();) {
+			if (!board.isValidMove(*ite)) {
+				ite = moves.remove(ite);
+			} else {
+				++ite;
+			}
+		}
+	}
+
 	/**
 	 * iterative deepening search from root node
 	 * @return {負けたか深さ1で中断された場合にfalseを返します。}
@@ -1406,17 +1427,17 @@ search_end:
 
 		auto& tree = _trees[0];
 		bool result = false;
-		bool gen = true;
 
-		Value value = -Value::Inf;
+		generateMovesOnRoot();
+
+		Value value = searchRoot(tree, Depth1Ply, -Value::Inf, Value::Inf, best, true);
+		tree.setSortValues(_rootValues);
+		tree.sortAll();
 
 		for (int depth = 1; depth <= _config.maxDepth; depth++) {
-			bool cont = searchAsp(depth * Depth1Ply + Depth1Ply / 2, best, gen, &value);
-
-			gen = false;
+			bool cont = searchAsp(depth * Depth1Ply + Depth1Ply / 2, best, &value);
 
 #if DEBUG_ROOT_MOVES
-			auto& tree = _trees[0];
 			std::ostringstream oss;
 			for (auto ite = tree.getBegin(); ite != tree.getEnd(); ite++) {
 				oss << ' ' << (*ite).toString() << '[' << tree.getSortValue(ite) << ']';
@@ -1462,6 +1483,8 @@ search_end:
            
 		// 最大深さ
 		int depth = _config.maxDepth * Depth1Ply;
+
+		generateMovesOnRoot();
 
 		bool result = searchAsp(depth, best);
 

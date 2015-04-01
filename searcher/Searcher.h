@@ -215,17 +215,19 @@ namespace sunfish {
 		/**
 		 * search on root node
 		 */
-		Value searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move& best);
+		Value searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move& best, bool forceFullWindow = false);
 
 		/**
 		 * aspiration search
 		 * @return {負けたか中断された場合にfalseを返します。}
 		 */
-		bool searchAsp(int depth, Move& best, bool gen = true, Value* pval = nullptr);
+		bool searchAsp(int depth, Move& best, Value* pval = nullptr);
 
 		void showPv(int depth, const Pv& pv, const Value& value);
 
 		void showEndOfIterate(int depth);
+
+		void generateMovesOnRoot();
 
 		/**
 		 * iterative deepening search from root node

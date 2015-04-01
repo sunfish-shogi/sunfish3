@@ -222,8 +222,8 @@ namespace sunfish {
 			sort(_stack[_ply].moves.begin());
 		}
 
-		void sortAfterCurrent() {
-			sort(_stack[_ply].ite);
+		void sortAfterCurrent(int offset = 0) {
+			sort(_stack[_ply].ite + offset);
 		}
 
 		bool isChecking() {

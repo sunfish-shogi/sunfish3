@@ -4,6 +4,7 @@
  */
 
 #include "Tree.h"
+#include "logger/Logger.h"
 
 #define ENABLE_SHEK_PRESET						1
 
@@ -50,7 +51,7 @@ namespace sunfish {
 #ifndef NDEBUG
 		// SHEK のテーブルが元に戻っているかチェックする。
 		if (!_shekTable.isAllCleared()) {
-			std::cout << "SHEK table has some pending record." << std::endl;
+			Loggers::warning << "SHEK table has some pending record.";
 		}
 #endif
 	}
