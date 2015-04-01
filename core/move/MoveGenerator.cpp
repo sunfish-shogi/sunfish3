@@ -16,12 +16,13 @@ namespace sunfish {
 	 */
 	template <bool black, MoveGenerator::GenType genType>
 	void MoveGenerator::_generateOnBoard(const Board& board, Moves& moves, const Bitboard* costumToMask) {
-		const bool exceptNonEffectiveProm = true;
+		const bool exceptNonEffectiveNonProm = true;
 		const bool exceptProm = (genType == GenType::NoCapture);
 		const bool tactical = (genType == GenType::Capture);
 		const auto movable = ~(black ? board.getBOccupy() : board.getWOccupy());
 		const auto occ = board.getBOccupy() | board.getWOccupy();
 		const auto promotable = (black ? Bitboard::BPromotable : Bitboard::WPromotable) & movable;
+		const auto promotable2 = (black ? Bitboard::BPromotable2 : Bitboard::WPromotable2) & movable;
 		const Bitboard& toMask = (genType == GenType::Capture ? (black ? board.getWOccupy() : board.getBOccupy()) :
 															genType == GenType::NoCapture ? (~(board.getBOccupy() | board.getWOccupy())) :
 															*costumToMask);
@@ -35,6 +36,8 @@ namespace sunfish {
 		}
 		if (tactical) {
 			bb &= toMask | promotable;
+		} else if (exceptProm) {
+			bb &= toMask & ~promotable;
 		} else {
   		bb &= toMask;
 		}
@@ -45,7 +48,7 @@ namespace sunfish {
 					moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, true, false));
 				}
 				// 不成りを生成
-				if (!exceptNonEffectiveProm) {
+				if (!exceptNonEffectiveNonProm) {
 					moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, false, false));
 				}
 			} else {
@@ -55,10 +58,15 @@ namespace sunfish {
 
 		// lance
 		bb = black ? board.getBLance() : board.getWLance();
+		if (exceptProm) {
+			bb &= ~promotable;
+		}
 		BB_EACH_OPE(from, bb,
 			Bitboard bb2 = black ? MoveTables::BLance.get(from, occ) : MoveTables::WLance.get(from, occ);
   		if (tactical) {
 				bb2 &= toMask | promotable;
+			} else if (exceptProm) {
+				bb2 &= toMask & ~promotable2;
 			} else {
 				bb2 &= toMask;
 			}
@@ -69,7 +77,7 @@ namespace sunfish {
 						moves.add(Move(Piece::Lance, from, to, true, false));
 					}
 					// 意味のない不成でなければ不成を生成
-					if (!exceptNonEffectiveProm ||
+					if (!exceptNonEffectiveNonProm ||
 							((!tactical || !board.getBoardPiece(to).isEmpty()) && to.isLanceSignficant<black>())) {
 						moves.add(Move(Piece::Lance, from, to, false, false));
 					}
@@ -81,10 +89,15 @@ namespace sunfish {
 
 		// knight
 		bb = black ? board.getBKnight() : board.getWKnight();
+		if (exceptProm) {
+			bb &= ~promotable;
+		}
 		BB_EACH_OPE(from, bb,
 			Bitboard bb2 = black ? MoveTables::BKnight.get(from) : MoveTables::WKnight.get(from);
   		if (tactical) {
 				bb2 &= toMask | promotable;
+			} else if (exceptProm) {
+				bb2 &= toMask & ~promotable2;
 			} else {
 				bb2 &= toMask;
 			}
@@ -108,26 +121,12 @@ namespace sunfish {
 		bb = black ? board.getBSilver() : board.getWSilver();
 		BB_EACH_OPE(from, bb, {
 			Bitboard bb2 = black ? MoveTables::BSilver.get(from) : MoveTables::WSilver.get(from);
-  		if (tactical) {
-				if (!from.isPromotable<black>()) {
-					bb2 &= toMask | promotable;
-				} else {
-					bb2 &= movable;
-				}
-			} else {
-				bb2 &= toMask;
-			}
+			bb2 &= toMask;
 			BB_EACH_OPE(to, bb2, {
 				if (to.isPromotable<black>() || from.isPromotable<black>()) {
-					if (!exceptProm) {
-						moves.add(Move(Piece::Silver, from, to, true, false));
-					}
-					if ((!tactical || !board.getBoardPiece(to).isEmpty())) {
-						moves.add(Move(Piece::Silver, from, to, false, false));
-					}
-				} else {
-					moves.add(Move(Piece::Silver, from, to, false, false));
+					moves.add(Move(Piece::Silver, from, to, true, false));
 				}
+				moves.add(Move(Piece::Silver, from, to, false, false));
 			});
 		});
 
@@ -143,6 +142,9 @@ namespace sunfish {
 
 		// bishop
 		bb = black ? board.getBBishop() : board.getWBishop();
+		if (exceptProm) {
+			bb &= ~promotable;
+		}
 		BB_EACH_OPE(from, bb,
 			Bitboard bb2 = MoveTables::Bishop.get(from, occ);
   		if (tactical) {
@@ -151,6 +153,8 @@ namespace sunfish {
 				} else {
 					bb2 &= movable;
 				}
+			} else if (exceptProm) {
+				bb2 &= toMask & ~promotable;
 			} else {
 				bb2 &= toMask;
 			}
@@ -160,7 +164,7 @@ namespace sunfish {
 						moves.add(Move(Piece::Bishop, from, to, true, false));
 					}
 					// 不成りを生成
-					if (!exceptNonEffectiveProm) {
+					if (!exceptNonEffectiveNonProm) {
 						moves.add(Move(Piece::Bishop, from, to, false, false));
 					}
 				} else {
@@ -171,6 +175,9 @@ namespace sunfish {
 
 		// rook
 		bb = black ? board.getBRook() : board.getWRook();
+		if (exceptProm) {
+			bb &= ~promotable;
+		}
 		BB_EACH_OPE(from, bb,
 			Bitboard bb2 = MoveTables::Rook.get(from, occ);
   		if (tactical) {
@@ -179,6 +186,8 @@ namespace sunfish {
 				} else {
 					bb2 &= movable;
 				}
+			} else if (exceptProm) {
+				bb2 &= toMask & ~promotable;
 			} else {
 				bb2 &= toMask;
 			}
@@ -188,7 +197,7 @@ namespace sunfish {
 						moves.add(Move(Piece::Rook, from, to, true, false));
 					}
 					// 不成りを生成
-					if (!exceptNonEffectiveProm) {
+					if (!exceptNonEffectiveNonProm) {
 						moves.add(Move(Piece::Rook, from, to, false, false));
 					}
 				} else {

@@ -48,7 +48,7 @@ TEST(MoveGeneratorTest, test) {
 	}
 }
 
-TEST(MoveGeneratorTest, testNocap) {
+TEST(MoveGeneratorTest, testNoCap) {
 	{
 		std::string src =
 "P1-KY-KE-GI-KI * -KI * -KE-KY\n"
@@ -70,6 +70,30 @@ TEST(MoveGeneratorTest, testNocap) {
 		Moves moves;
 		MoveGenerator::generateNoCap(board, moves);
 		ASSERT_EQ(40, moves.size());
+	}
+
+	{
+		// 先手の駒 銀から飛車まで
+		std::string src =
+"P1 *  *  *  * -OU+KA *  *  * \n"
+"P2+KI *  *  *  *  *  * +HI * \n"
+"P3 *  * +GI *  *  *  *  *  * \n"
+"P4+GI *  *  *  *  *  *  *  * \n"
+"P5 *  * +KA *  *  *  *  *  * \n"
+"P6 *  *  *  *  *  * +HI *  * \n"
+"P7 *  *  *  *  *  *  *  *  * \n"
+"P8 *  *  *  *  *  *  *  *  * \n"
+"P9 *  *  *  * +OU * -TO *  * \n"
+"P+\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		Moves moves;
+		MoveGenerator::generateNoCap(board, moves);
+		ASSERT_EQ(43, moves.size());
 	}
 }
 
@@ -119,7 +143,7 @@ TEST(MoveGeneratorTest, testCap) {
 
 		Moves moves;
 		MoveGenerator::generateCap(board, moves);
-		ASSERT_EQ(39, moves.size());
+		ASSERT_EQ(32, moves.size());
 	}
 
 	{
@@ -167,7 +191,7 @@ TEST(MoveGeneratorTest, testCap) {
 
 		Moves moves;
 		MoveGenerator::generateCap(board, moves);
-		ASSERT_EQ(39, moves.size());
+		ASSERT_EQ(32, moves.size());
 	}
 }
 

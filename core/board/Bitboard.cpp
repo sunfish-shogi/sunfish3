@@ -102,6 +102,12 @@ namespace sunfish {
 		.set(P17).set(P27).set(P37).set(P47).set(P57).set(P67).set(P77).set(P87).set(P97)
 		.set(P18).set(P28).set(P38).set(P48).set(P58).set(P68).set(P78).set(P88).set(P98)
 		.set(P19).set(P29).set(P39).set(P49).set(P59).set(P69).set(P79).set(P89).set(P99);
+	const Bitboard Bitboard::BPromotable2 = Bitboard(0, 0)
+		.set(P11).set(P21).set(P31).set(P41).set(P51).set(P61).set(P71).set(P81).set(P91)
+		.set(P12).set(P22).set(P32).set(P42).set(P52).set(P62).set(P72).set(P82).set(P92);
+	const Bitboard Bitboard::WPromotable2 = Bitboard(0, 0)
+		.set(P18).set(P28).set(P38).set(P48).set(P58).set(P68).set(P78).set(P88).set(P98)
+		.set(P19).set(P29).set(P39).set(P49).set(P59).set(P69).set(P79).set(P89).set(P99);
 
 	std::string Bitboard::toString2D() const {
 		std::ostringstream oss;

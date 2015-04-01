@@ -195,6 +195,8 @@ namespace sunfish {
 		static const Bitboard WKnightMovable;
 		static const Bitboard BPromotable;
 		static const Bitboard WPromotable;
+		static const Bitboard BPromotable2;
+		static const Bitboard WPromotable2;
 
 		Bitboard() {
 		}
