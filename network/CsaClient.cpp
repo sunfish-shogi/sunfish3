@@ -244,7 +244,9 @@ lab_end:
 
   		// 探索
   		Loggers::message << "begin search: limit(sec)=" << searchConfig.limitSeconds;
+			_searcher.setRecord(_record);
   		ok = _searcher.idsearch(_record.getBoard(), myMove.move);
+			_searcher.clearRecord();
   		Loggers::message << "end search";
 
 			if (ok) {
@@ -357,7 +359,9 @@ lab_end:
 		// 探索
 		Loggers::message << "begin ponder";
 		Move move;
+		_searcher.setRecord(_record);
 		_searcher.idsearch(_record.getBoard(), move);
+		_searcher.clearRecord();
 		Loggers::message << "end ponder";
 
 		_ponderCompleted = true;
