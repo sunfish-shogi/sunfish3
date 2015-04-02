@@ -1241,10 +1241,10 @@ search_end:
 
 			// 中断判定
 			if (isInterrupted()) {
-				return false;
+				return alpha;
 			}
 
-			if (count == 0 && currval <= alpha) {
+			if (count == 0 && currval <= alpha && currval > -Value::Mate) {
 				return currval;
 			}
 
