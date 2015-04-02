@@ -12,7 +12,7 @@
 
 namespace sunfish {
 
-	class ShekTable : HashTable<ShekEntities> {
+	class ShekTable : public HashTable<ShekEntities> {
 	private:
 
 	public:

@@ -96,7 +96,7 @@ namespace sunfish {
 
 	public:
 
-		Tree() : _ply(0), _checkHistCount(0) {}
+		Tree();
 
 		void init(const Board& board, Evaluator& eval, const std::vector<Move>& record);
 		void release(const std::vector<Move>& record);

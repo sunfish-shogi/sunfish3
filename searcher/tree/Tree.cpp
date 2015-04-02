@@ -10,6 +10,10 @@
 
 namespace sunfish {
 
+	Tree::Tree() : _ply(0), _checkHistCount(0) {
+		_shekTable.init();
+	}
+
 	void Tree::init(const Board& board, Evaluator& eval, const std::vector<Move>& record) {
 		_ply = 0;
 		_board = board;
