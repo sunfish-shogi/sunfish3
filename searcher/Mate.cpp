@@ -96,20 +96,20 @@ namespace sunfish {
 	bool Mate::_isProtected(const Board& board, Bitboard& bb, const Bitboard& occ, const Bitboard& occNoAttacker) {
 		const auto& king = black ? board.getBKingPosition() : board.getWKingPosition();
 		bool hasHand = black
-			? !(board.getBlackHand(Piece::Pawn) == 0 &&
-					board.getBlackHand(Piece::Lance) == 0 &&
-					board.getBlackHand(Piece::Knight) == 0 &&
-					board.getBlackHand(Piece::Silver) == 0 &&
-					board.getBlackHand(Piece::Gold) == 0 &&
-					board.getBlackHand(Piece::Bishop) == 0 &&
-					board.getBlackHand(Piece::Rook) == 0)
-			: !(board.getWhiteHand(Piece::Pawn) == 0 &&
-					board.getWhiteHand(Piece::Lance) == 0 &&
-					board.getWhiteHand(Piece::Knight) == 0 &&
-					board.getWhiteHand(Piece::Silver) == 0 &&
-					board.getWhiteHand(Piece::Gold) == 0 &&
-					board.getWhiteHand(Piece::Bishop) == 0 &&
-					board.getWhiteHand(Piece::Rook) == 0);
+			? (board.getBlackHand(Piece::Pawn) != 0 ||
+				 board.getBlackHand(Piece::Lance) != 0 ||
+				 board.getBlackHand(Piece::Knight) != 0 ||
+				 board.getBlackHand(Piece::Silver) != 0 ||
+				 board.getBlackHand(Piece::Gold) != 0 ||
+				 board.getBlackHand(Piece::Bishop) != 0 ||
+				 board.getBlackHand(Piece::Rook) != 0)
+			: (board.getWhiteHand(Piece::Pawn) != 0 ||
+				 board.getWhiteHand(Piece::Lance) != 0 ||
+				 board.getWhiteHand(Piece::Knight) != 0 ||
+				 board.getWhiteHand(Piece::Silver) != 0 ||
+				 board.getWhiteHand(Piece::Gold) != 0 ||
+				 board.getWhiteHand(Piece::Bishop) != 0 ||
+				 board.getWhiteHand(Piece::Rook) != 0);
 
 		if (hasHand) {
 			BB_EACH_OPE(to, bb, {
@@ -172,6 +172,7 @@ namespace sunfish {
 			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
 			Bitboard mask = black ? MoveTables::BLance.get(to, occNoKing) : MoveTables::WLance.get(to, occNoKing);
 			movable &= ~mask;
+			occ |= mask;
 			break;
 		}
 		case Piece::Silver: {
@@ -191,25 +192,33 @@ namespace sunfish {
 		case Piece::Bishop: {
 			Bitboard route = MoveTables::Bishop.get(to, occ) & MoveTables::Bishop.get(king, occ);
 			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
-			movable &= ~MoveTables::Bishop.get(to, occNoKing);
+			Bitboard mask = MoveTables::Bishop.get(to, occNoKing);
+			movable &= ~mask;
+			occ |= mask;
 			break;
 		}
 		case Piece::Rook: {
 			Bitboard route = MoveTables::Rook.get(to, occ) & MoveTables::Rook.get(king, occ);
 			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
-			movable &= ~MoveTables::Rook.get(to, occNoKing);
+			Bitboard mask = MoveTables::Rook.get(to, occNoKing);
+			movable &= ~mask;
+			occ |= mask;
 			break;
 		}
 		case Piece::Horse: {
 			Bitboard route = MoveTables::Bishop.get(to, occ) & MoveTables::Bishop.get(king, occ);
 			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
-			movable &= ~MoveTables::Horse.get(to, occNoKing);
+			Bitboard mask = MoveTables::Horse.get(to, occNoKing);
+			movable &= ~mask;
+			occ |= mask;
 			break;
 		}
 		case Piece::Dragon: {
 			Bitboard route = MoveTables::Rook.get(to, occ) & MoveTables::Rook.get(king, occ);
 			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
-			movable &= ~MoveTables::Dragon.get(to, occNoKing);
+			Bitboard mask = MoveTables::Dragon.get(to, occNoKing);
+			movable &= ~mask;
+			occ |= mask;
 			break;
 		}
 		default:

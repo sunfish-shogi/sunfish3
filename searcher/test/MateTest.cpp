@@ -589,6 +589,78 @@ P-00KE00FU00FU\n\
 		ASSERT_EQ(false, mate);
 	}
 
+	{
+		// 不詰(53角 中合)
+		std::string src = "\
+P1 *  *  * -FU-OU-FU *  *  * \n\
+P2 *  *  *  *  *  *  *  *  * \n\
+P3 *  *  * +KI *  *  *  *  * \n\
+P4 *  *  * +KA-FU *  *  *  * \n\
+P5 *  *  *  *  *  * -KA *  * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  * +KY *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		bool mate = Mate::mate1Ply(board);
+		ASSERT_EQ(false, mate);
+	}
+
+	{
+		// 不詰(53歩 中合)
+		std::string src = "\
+P1 *  *  * -FU-OU-FU *  *  * \n\
+P2 *  *  *  *  *  *  *  *  * \n\
+P3 *  *  * +KI *  *  *  *  * \n\
+P4 *  *  * +KA-FU *  *  *  * \n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  * +KY *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+\n\
+P-00FU\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		bool mate = Mate::mate1Ply(board);
+		ASSERT_EQ(false, mate);
+	}
+
+	{
+		// 不詰(53桂 移動合)
+		std::string src = "\
+P1 *  *  * -FU-OU-KE *  *  * \n\
+P2 *  *  *  *  * -FU *  *  * \n\
+P3 *  *  * +KI *  *  *  *  * \n\
+P4 *  *  *  * -FU *  *  *  * \n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  * +KY *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		bool mate = Mate::mate1Ply(board);
+		ASSERT_EQ(false, mate);
+	}
+
 }
 
 #endif // !defined(NDEBUG)
