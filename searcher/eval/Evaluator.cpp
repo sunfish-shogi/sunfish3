@@ -304,12 +304,12 @@ namespace sunfish {
 #if CONV_ERROR_CHECK
 		for (int i = 0; i < KPP_ALL; i++) {
 			if (_t->kpp[0][i] == (int16_t)0x7fff) {
-				std::cout << "error kpp " << i << std::endl;
+				Loggers::error << "error kpp " << i;
 			}
 		}
 		for (int i = 0; i < KKP_ALL; i++) {
 			if (_t->kkp[0][0][i] == (int16_t)0x7fff) {
-				std::cout << "error kkp " << i << std::endl;
+				Loggers::error << "error kkp " << i;
 			}
 		}
 #endif
