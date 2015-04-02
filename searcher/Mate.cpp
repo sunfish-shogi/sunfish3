@@ -6,6 +6,7 @@
 #include "Mate.h"
 #include "core/move/MoveTable.h"
 
+#include "logger/Logger.h"
 #include <iostream>
 
 namespace sunfish {
@@ -127,14 +128,19 @@ namespace sunfish {
 
 	template<bool black>
 	bool Mate::_isMate(const Board& board, const Move& move) {
+
+		bool isHand = move.isHand();
+		// 王手放置を除外
+		if (!isHand && !board.isValidMove(move)) {
+			return false;
+		}
+
 		const auto& king = black ? board.getWKingPosition() : board.getBKingPosition();
-
-		Position to = move.to();
-
 		Bitboard occ = board.getBOccupy() | board.getWOccupy();
-		if (!move.isHand()) {
+		if (!isHand) {
 			occ &= ~Bitboard::mask(move.from());
 		}
+		Position to = move.to();
 		occ |= Bitboard::mask(to);
 		Bitboard occNoKing = occ & ~Bitboard::mask(king);
 		Bitboard occNoAttacker = occ & ~Bitboard::mask(to);

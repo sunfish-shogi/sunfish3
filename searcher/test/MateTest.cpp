@@ -565,6 +565,30 @@ P-00FU00FU00KY00KI00KI00KA\n\
 		ASSERT_EQ(false, mate);
 	}
 
+	{
+		// 不詰
+		std::string src = "\
+P1-KY * -KI *  * -OU-KA+HI-KY\n\
+P2 *  *  * -GI *  *  * -GI * \n\
+P3-FU *  * -FU * +KE-KE-FU-FU\n\
+P4 *  *  *  *  *  * -KE *  * \n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  * -FU *  * -FU *  *  * \n\
+P7+FU+FU-KI-KA *  * +FU * +FU\n\
+P8 *  *  * -GI * +OU+GI *  * \n\
+P9+KY *  *  *  *  *  * +HI+KY\n\
+P+00KI00KI00FU00FU00FU00FU00FU00FU\n\
+P-00KE00FU00FU\n\
+-\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		bool mate = Mate::mate1Ply(board);
+		ASSERT_EQ(false, mate);
+	}
+
 }
 
 #endif // !defined(NDEBUG)
