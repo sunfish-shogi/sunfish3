@@ -137,14 +137,14 @@ namespace sunfish {
 
 	class Bitboard {
 	public:
-		static const unsigned LowFiles = 5;
-		static const unsigned HighFiles = 4;
-		static const unsigned LowBits = 9 * LowFiles;
-		static const unsigned HighBits = 9 * HighFiles;
+		static const int LowFiles = 5;
+		static const int HighFiles = 4;
+		static const int LowBits = 9 * LowFiles;
+		static const int HighBits = 9 * HighFiles;
 
 	private:
-		static const unsigned _bfirst[256];
-		static const unsigned _blast[256];
+		static const int _bfirst[256];
+		static const int _blast[256];
 		static const Bitboard _file[9];
 		static const Bitboard _notFile[9];
 
@@ -163,14 +163,14 @@ namespace sunfish {
 # define _high0 _bb.i32[2]
 # define _high1 _bb.i32[3]
 
-		explicit Bitboard(unsigned pos) {
+		explicit Bitboard(int pos) {
 			init(pos);
 		}
 		explicit Bitboard(const Position& pos) {
 			init(pos);
 		}
 
-		Bitboard& init(unsigned pos) {
+		Bitboard& init(int pos) {
 			if (pos < LowBits) {
 				_high = 0x00LL;
 				_low |= 0x01LL << (pos);
@@ -181,7 +181,7 @@ namespace sunfish {
 			return *this;
 		}
 		Bitboard& init(const Position& pos) {
-			return init((unsigned)pos);
+			return init((int)pos);
 		}
 
 	public:
@@ -210,9 +210,9 @@ namespace sunfish {
 			_low = low;
 		}
 
-		static const Bitboard& mask(unsigned pos);
+		static const Bitboard& mask(int pos);
 		static const Bitboard& mask(const Position& pos) {
-			return mask((unsigned)pos);
+			return mask((int)pos);
 		}
 		static const Bitboard& file(int file) {
 			return _file[file-1];
@@ -262,7 +262,7 @@ namespace sunfish {
 			_low >>= n;
 		}
 #endif
-		void leftShift(unsigned n) {
+		void leftShift(int n) {
 			if (n < LowBits) {
 				_high <<= n;
 				_high = (_high | (_low >> (LowBits - n))) & __HIGH_RANGE__;
@@ -273,7 +273,7 @@ namespace sunfish {
 				_low = 0x00LL;
 			}
 		}
-		void rightShift(unsigned n) {
+		void rightShift(int n) {
 			if (n < LowBits) {
 				_low >>= n;
 				_low = (_low | _high << (LowBits - n)) & __LOW_RANGE__;
@@ -395,25 +395,25 @@ namespace sunfish {
 			return *this << (distance * Position::RankN);
 		}
 
-		Bitboard& set(unsigned pos) {
+		Bitboard& set(int pos) {
 			*this |= mask(pos);
 			return *this;
 		}
 		Bitboard& set(const Position& pos) {
-			return set((unsigned)pos);
+			return set((int)pos);
 		}
-		Bitboard& unset(unsigned pos) {
+		Bitboard& unset(int pos) {
 			*this &= ~mask(pos);
 			return *this;
 		}
 		Bitboard& unset(const Position& pos) {
-			return unset((unsigned)pos);
+			return unset((int)pos);
 		}
-		bool check(unsigned pos) const {
+		bool check(int pos) const {
 			return *this & mask(pos);
 		}
 		bool check(const Position& pos) const {
-			return check((unsigned)pos);
+			return check((int)pos);
 		}
 		uint64_t low() const {
 			return _low;

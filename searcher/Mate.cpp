@@ -5,6 +5,7 @@
 
 #include "Mate.h"
 #include "core/move/MoveTable.h"
+#include "core/util/Data.h"
 
 #include "logger/Logger.h"
 #include <iostream>
@@ -21,67 +22,67 @@ namespace sunfish {
 
 		// lance
 		bb = (black ? board.getBLance() : board.getWLance()) & occNoAttacker;
-		bb &= black ? MoveTables::WLance.get(to, occ) : MoveTables::BLance.get(to, occ);
+		bb &= black ? MoveTables::wlance(to, occ) : MoveTables::blance(to, occ);
 		if (bb) { return true; }
 
 		// knight
 		bb = (black ? board.getBKnight() : board.getWKnight()) & occNoAttacker;
-		bb &= black ? MoveTables::WKnight.get(to) : MoveTables::BKnight.get(to);
+		bb &= black ? MoveTables::wknight(to) : MoveTables::bknight(to);
 		if (bb) { return true; }
 
 		// silver
 		bb = (black ? board.getBSilver() : board.getWSilver()) & occNoAttacker;
-		bb &= black ? MoveTables::WSilver.get(to) : MoveTables::BSilver.get(to);
+		bb &= black ? MoveTables::wsilver(to) : MoveTables::bsilver(to);
 		if (bb) { return true; }
 
 		// gold
 		bb = (black ? board.getBGold() : board.getWGold()) & occNoAttacker;
-		bb &= black ? MoveTables::WGold.get(to) : MoveTables::BGold.get(to);
+		bb &= black ? MoveTables::wgold(to) : MoveTables::bgold(to);
 		if (bb) { return true; }
 
 		// bishop
 		bb = (black ? board.getBBishop() : board.getWBishop()) & occNoAttacker;
-		bb &= MoveTables::Bishop.get(to, occ);
+		bb &= MoveTables::bishop(to, occ);
 		if (bb) { return true; }
 
 		// rook
 		bb = (black ? board.getBRook() : board.getWRook()) & occNoAttacker;
-		bb &= MoveTables::Rook.get(to, occ);
+		bb &= MoveTables::rook(to, occ);
 		if (bb) { return true; }
 
 		// tokin
 		bb = (black ? board.getBTokin() : board.getWTokin()) & occNoAttacker;
-		bb &= black ? MoveTables::WGold.get(to) : MoveTables::BGold.get(to);
+		bb &= black ? MoveTables::wgold(to) : MoveTables::bgold(to);
 		if (bb) { return true; }
 
 		// promoted lance
 		bb = (black ? board.getBProLance() : board.getWProLance()) & occNoAttacker;
-		bb &= black ? MoveTables::WGold.get(to) : MoveTables::BGold.get(to);
+		bb &= black ? MoveTables::wgold(to) : MoveTables::bgold(to);
 		if (bb) { return true; }
 
 		// promoted knight
 		bb = (black ? board.getBProKnight() : board.getWProKnight()) & occNoAttacker;
-		bb &= black ? MoveTables::WGold.get(to) : MoveTables::BGold.get(to);
+		bb &= black ? MoveTables::wgold(to) : MoveTables::bgold(to);
 		if (bb) { return true; }
 
 		// promoted silver
 		bb = (black ? board.getBProSilver() : board.getWProSilver()) & occNoAttacker;
-		bb &= black ? MoveTables::WGold.get(to) : MoveTables::BGold.get(to);
+		bb &= black ? MoveTables::wgold(to) : MoveTables::bgold(to);
 		if (bb) { return true; }
 
 		// horse
 		bb = (black ? board.getBHorse() : board.getWHorse()) & occNoAttacker;
-		bb &= MoveTables::Horse.get(to, occ);
+		bb &= MoveTables::horse(to, occ);
 		if (bb) { return true; }
 
 		// dragon
 		bb = (black ? board.getBDragon() : board.getWDragon()) & occNoAttacker;
-		bb &= MoveTables::Dragon.get(to, occ);
+		bb &= MoveTables::dragon(to, occ);
 		if (bb) { return true; }
 
 		// king
 		if (king.isValid()) {
-			if (MoveTables::King.get(king).check(to) &&
+			if (MoveTables::king(king).check(to) &&
 					!_isProtected<!black>(board, to, occ, occNoAttacker, Position::Invalid)) {
 				return true;
 			}
@@ -151,7 +152,7 @@ namespace sunfish {
 		}
 
 		// 玉が移動可能な箇所
-		Bitboard movable = MoveTables::King.get(king); 
+		Bitboard movable = MoveTables::king(king); 
 		movable &= black ? ~board.getWOccupy() : ~board.getBOccupy();
 
 		Piece piece = move.piece();
@@ -167,16 +168,16 @@ namespace sunfish {
 		}
 		case Piece::Lance: {
 			Bitboard route = black
-				? (MoveTables::BLance.get(to, occ) & MoveTables::WLance.get(king, occ))
-				: (MoveTables::WLance.get(to, occ) & MoveTables::BLance.get(king, occ));
+				? (MoveTables::blance(to, occ) & MoveTables::wlance(king, occ))
+				: (MoveTables::wlance(to, occ) & MoveTables::blance(king, occ));
 			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
-			Bitboard mask = black ? MoveTables::BLance.get(to, occNoKing) : MoveTables::WLance.get(to, occNoKing);
+			Bitboard mask = black ? MoveTables::blance(to, occNoKing) : MoveTables::wlance(to, occNoKing);
 			movable &= ~mask;
 			occ |= mask;
 			break;
 		}
 		case Piece::Silver: {
-			Bitboard mask = black ? MoveTables::BSilver.get(to) : MoveTables::WSilver.get(to);
+			Bitboard mask = black ? MoveTables::bsilver(to) : MoveTables::wsilver(to);
 			movable &= ~mask;
 			break;
 		}
@@ -185,38 +186,38 @@ namespace sunfish {
 		case Piece::ProLance: // fall-through
 		case Piece::ProKnight: // fall-through
 		case Piece::ProSilver: {
-			Bitboard mask = black ? MoveTables::BGold.get(to) : MoveTables::WGold.get(to);
+			Bitboard mask = black ? MoveTables::bgold(to) : MoveTables::wgold(to);
 			movable &= ~mask;
 			break;
 		}
 		case Piece::Bishop: {
-			Bitboard route = MoveTables::Bishop.get(to, occ) & MoveTables::Bishop.get(king, occ);
+			Bitboard route = MoveTables::bishop(to, occ) & MoveTables::bishop(king, occ);
 			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
-			Bitboard mask = MoveTables::Bishop.get(to, occNoKing);
+			Bitboard mask = MoveTables::bishop(to, occNoKing);
 			movable &= ~mask;
 			occ |= mask;
 			break;
 		}
 		case Piece::Rook: {
-			Bitboard route = MoveTables::Rook.get(to, occ) & MoveTables::Rook.get(king, occ);
+			Bitboard route = MoveTables::rook(to, occ) & MoveTables::rook(king, occ);
 			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
-			Bitboard mask = MoveTables::Rook.get(to, occNoKing);
+			Bitboard mask = MoveTables::rook(to, occNoKing);
 			movable &= ~mask;
 			occ |= mask;
 			break;
 		}
 		case Piece::Horse: {
-			Bitboard route = MoveTables::Bishop.get(to, occ) & MoveTables::Bishop.get(king, occ);
+			Bitboard route = MoveTables::bishop(to, occ) & MoveTables::bishop(king, occ);
 			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
-			Bitboard mask = MoveTables::Horse.get(to, occNoKing);
+			Bitboard mask = MoveTables::horse(to, occNoKing);
 			movable &= ~mask;
 			occ |= mask;
 			break;
 		}
 		case Piece::Dragon: {
-			Bitboard route = MoveTables::Rook.get(to, occ) & MoveTables::Rook.get(king, occ);
+			Bitboard route = MoveTables::rook(to, occ) & MoveTables::rook(king, occ);
 			if (_isProtected<!black>(board, route, occ, occNoAttacker)) { return false; }
-			Bitboard mask = MoveTables::Dragon.get(to, occNoKing);
+			Bitboard mask = MoveTables::dragon(to, occNoKing);
 			movable &= ~mask;
 			occ |= mask;
 			break;
@@ -243,37 +244,28 @@ namespace sunfish {
 		Bitboard movable = ~(black ? board.getBOccupy() : board.getWOccupy());
 		const auto& king = black ? board.getWKingPosition() : board.getBKingPosition();
 
-		// 金が王手できる位置
-		Bitboard bbtTokin = movable & (black ? MoveTables::WGold.get(king) : MoveTables::BGold.get(king));
+		// 成金が王手できる位置
+		Bitboard bbtTokin = movable & (black ? MoveTables::wgold(king) : MoveTables::bgold(king));
 		bbtTokin &= (black ? Bitboard::BPromotable : Bitboard::WPromotable);
 
 		// pawn
 		{
-			// drop
-			Position to = black ? king.safetyDown() : king.safetyUp();
-			if (to.isValid()) {
-				// board
-				Bitboard bb = black ? board.getBPawn() : board.getWPawn();
-				if (black) {
-					bb.cheepRightShift(1);
+			// board
+			Bitboard bb = black ? board.getBPawn() : board.getWPawn();
+			bb &= black ? AttackableTables::bpawn(king) : AttackableTables::wpawn(king);
+			bb &= movable;
+			BB_EACH_OPE(to, bb,
+				if (to.isPromotable<black>()) {
+					if (_isMate<black>(board, Move(Piece::Pawn, black ? to.down() : to.up(), to, true, false))) { return true; }
 				} else {
-					bb.cheepLeftShift(1);
+					if (_isMate<black>(board, Move(Piece::Pawn, black ? to.down() : to.up(), to, false, false))) { return true; }
 				}
-				bb &= bbtTokin | Bitboard::mask(to);
-				bb &= movable;
-				BB_EACH_OPE(to, bb,
-					if (to.isPromotable<black>()) {
-						if (_isMate<black>(board, Move(Piece::Pawn, black ? to.down() : to.up(), to, true, false))) { return true; }
-					} else {
-						if (_isMate<black>(board, Move(Piece::Pawn, black ? to.down() : to.up(), to, false, false))) { return true; }
-					}
-				);
-			}
+			);
 		}
 
 		// lance
 		{
-			Bitboard bbt = black ? MoveTables::WLance.get(king, occ) : MoveTables::BLance.get(king, occ);
+			Bitboard bbt = black ? MoveTables::wlance(king, occ) : MoveTables::blance(king, occ);
 			bbt &= movable;
 
 			// drop
@@ -287,9 +279,10 @@ namespace sunfish {
 
 			// board
 			Bitboard bb = black ? board.getBLance() : board.getWLance();
+			bb &= black ? AttackableTables::blance(king) : AttackableTables::wlance(king);
 			bbt &= ~bbtTokin;
 			BB_EACH_OPE(from, bb,
-				Bitboard bbe = black ? MoveTables::BLance.get(from, occ) : MoveTables::WLance.get(from, occ);
+				Bitboard bbe = black ? MoveTables::blance(from, occ) : MoveTables::wlance(from, occ);
 				Bitboard bb2 = bbt & bbe;
 				BB_EACH_OPE(to, bb2, {
 					if (_isMate<black>(board, Move(Piece::Lance, from, to, false, false))) { return true; }
@@ -318,10 +311,11 @@ namespace sunfish {
 
 			// board
 			Bitboard bb = black ? board.getBKnight() : board.getWKnight();
+			bb &= black ? AttackableTables::bknight(king) : AttackableTables::wknight(king);
 			Bitboard bbt = Bitboard::mask(to1) | Bitboard::mask(to2);
 			bbt &= movable;
 			BB_EACH_OPE(from, bb,
-				Bitboard bbe = black ? MoveTables::BKnight.get(from) : MoveTables::WKnight.get(from);
+				Bitboard bbe = black ? MoveTables::bknight(from) : MoveTables::wknight(from);
 				Bitboard bb2 = bbt & bbe;
 				BB_EACH_OPE(to, bb2, {
 					if (_isMate<black>(board, Move(Piece::Knight, from, to, false, false))) { return true; }
@@ -335,7 +329,7 @@ namespace sunfish {
 
 		// silver
 		{
-			Bitboard bbt = black ? MoveTables::WSilver.get(king) : MoveTables::BSilver.get(king);
+			Bitboard bbt = black ? MoveTables::wsilver(king) : MoveTables::bsilver(king);
 			bbt &= movable;
 
 			// drop
@@ -349,9 +343,10 @@ namespace sunfish {
 
 			// board
 			Bitboard bb = black ? board.getBSilver() : board.getWSilver();
+			bb &= black ? AttackableTables::bsilver(king) : AttackableTables::wsilver(king);
 			bbt &= ~bbtTokin;
 			BB_EACH_OPE(from, bb,
-				Bitboard bbe = black ? MoveTables::BSilver.get(from) : MoveTables::WSilver.get(from);
+				Bitboard bbe = black ? MoveTables::bsilver(from) : MoveTables::wsilver(from);
 				Bitboard bb2 = bbt & bbe;
 				BB_EACH_OPE(to, bb2, {
 					if (_isMate<black>(board, Move(Piece::Silver, from, to, false, false))) { return true; }
@@ -363,81 +358,42 @@ namespace sunfish {
 			);
 		}
 
-		Bitboard bbtGold = black ? MoveTables::WGold.get(king) : MoveTables::BGold.get(king);
-		bbtGold &= movable;
-
 		// gold
 		{
+			Bitboard bbt = black ? MoveTables::wgold(king) : MoveTables::bgold(king);
+			bbt &= movable;
+
 			// drop
 			int handCount = black ? board.getBlackHand(Piece::Gold) : board.getWhiteHand(Piece::Gold);
 			if (handCount) {
-				Bitboard bb = bbtGold & ~occ;
+				Bitboard bb = bbt & ~occ;
 				BB_EACH_OPE(to, bb,
 					if (_isMate<black>(board, Move(Piece::Gold, to, false))) { return true; }
 				);
 			}
 
 			// board
-			Bitboard bb = black ? board.getBGold() : board.getWGold();
+			Bitboard bb = (black ? board.getBGold() : board.getWGold())
+				| (black ? board.getBTokin() : board.getWTokin())
+				| (black ? board.getBProLance() : board.getWProLance())
+				| (black ? board.getBProKnight() : board.getWProKnight())
+				| (black ? board.getBProSilver() : board.getWProSilver());
+			bb &= black ? AttackableTables::bgold(king) : AttackableTables::wgold(king);
 			BB_EACH_OPE(from, bb,
-				Bitboard bb2 = bbtGold & (black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from));
+				Bitboard bb2 = bbt & (black ? MoveTables::bgold(from) : MoveTables::wgold(from));
 				BB_EACH_OPE(to, bb2, {
 					if (_isMate<black>(board, Move(Piece::Gold, from, to, false, false))) { return true; }
 				});
 			);
 		}
 
-		// tokin
-		{
-			Bitboard bb = black ? board.getBTokin() : board.getWTokin();
-			BB_EACH_OPE(from, bb,
-				Bitboard bb2 = bbtGold & (black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from));
-				BB_EACH_OPE(to, bb2, {
-					if (_isMate<black>(board, Move(Piece::Tokin, from, to, false, false))) { return true; }
-				});
-			);
-		}
-
-		// promoted lance
-		{
-			Bitboard bb = black ? board.getBProLance() : board.getWProLance();
-			BB_EACH_OPE(from, bb,
-				Bitboard bb2 = bbtGold & (black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from));
-				BB_EACH_OPE(to, bb2, {
-					if (_isMate<black>(board, Move(Piece::ProLance, from, to, false, false))) { return true; }
-				});
-			);
-		}
-
-		// promoted knight
-		{
-			Bitboard bb = black ? board.getBProKnight() : board.getWProKnight();
-			BB_EACH_OPE(from, bb,
-				Bitboard bb2 = bbtGold & (black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from));
-				BB_EACH_OPE(to, bb2, {
-					if (_isMate<black>(board, Move(Piece::ProKnight, from, to, false, false))) { return true; }
-				});
-			);
-		}
-
-		// promoted silver
-		{
-			Bitboard bb = black ? board.getBProSilver() : board.getWProSilver();
-			BB_EACH_OPE(from, bb,
-				Bitboard bb2 = bbtGold & (black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from));
-				BB_EACH_OPE(to, bb2, {
-					if (_isMate<black>(board, Move(Piece::ProSilver, from, to, false, false))) { return true; }
-				});
-			);
-		}
-
 		// 馬、竜が王手できる位置
-		Bitboard bbtKing = movable & MoveTables::King.get(king);
+		Bitboard bbtKing = movable & MoveTables::king(king);
 		bbtKing &= (black ? Bitboard::BPromotable : Bitboard::WPromotable);
 
 		// bishop
 		{
-			Bitboard bbt = MoveTables::Bishop.get(king, occ);
+			Bitboard bbt = MoveTables::bishop(king, occ);
 			bbt &= movable;
 
 			// drop
@@ -451,9 +407,10 @@ namespace sunfish {
 
 			// board
 			Bitboard bb = black ? board.getBBishop() : board.getWBishop();
+			bb &= black ? AttackableTables::bbishop(king) : AttackableTables::wbishop(king);
 			bbt &= ~bbtKing;
 			BB_EACH_OPE(from, bb,
-				Bitboard bbe = MoveTables::Bishop.get(from, occ);
+				Bitboard bbe = MoveTables::bishop(from, occ);
 				Bitboard bb2 = bbt & bbe;
 				BB_EACH_OPE(to, bb2, {
 					if (to.isPromotable<black>()) {
@@ -471,7 +428,7 @@ namespace sunfish {
 
 		// rook
 		{
-			Bitboard bbt = MoveTables::Rook.get(king, occ);
+			Bitboard bbt = MoveTables::rook(king, occ);
 			bbt &= movable;
 
 			// drop
@@ -487,7 +444,7 @@ namespace sunfish {
 			Bitboard bb = black ? board.getBRook() : board.getWRook();
 			bbt &= ~bbtKing;
 			BB_EACH_OPE(from, bb,
-				Bitboard bbe = MoveTables::Rook.get(from, occ);
+				Bitboard bbe = MoveTables::rook(from, occ);
 				Bitboard bb2 = bbt & bbe;
 				BB_EACH_OPE(to, bb2, {
 					if (to.isPromotable<black>()) {
@@ -505,11 +462,12 @@ namespace sunfish {
 
 		// horse
 		{
-			Bitboard bbt = MoveTables::Horse.get(king, occ);
+			Bitboard bbt = MoveTables::horse(king, occ);
 			bbt &= movable;
 			Bitboard bb = black ? board.getBHorse() : board.getWHorse();
+			bb &= AttackableTables::horse(king);
 			BB_EACH_OPE(from, bb,
-				Bitboard bb2 = bbt & MoveTables::Horse.get(from, occ);
+				Bitboard bb2 = bbt & MoveTables::horse(from, occ);
 				BB_EACH_OPE(to, bb2, {
 					if (_isMate<black>(board, Move(Piece::Horse, from, to, false, false))) { return true; }
 				});
@@ -518,11 +476,11 @@ namespace sunfish {
 
 		// dragon
 		{
-			Bitboard bbt = MoveTables::Dragon.get(king, occ);
+			Bitboard bbt = MoveTables::dragon(king, occ);
 			bbt &= movable;
 			Bitboard bb = black ? board.getBDragon() : board.getWDragon();
 			BB_EACH_OPE(from, bb,
-				Bitboard bb2 = bbt & MoveTables::Dragon.get(from, occ);
+				Bitboard bb2 = bbt & MoveTables::dragon(from, occ);
 				BB_EACH_OPE(to, bb2, {
 					if (_isMate<black>(board, Move(Piece::Dragon, from, to, false, false))) { return true; }
 				});

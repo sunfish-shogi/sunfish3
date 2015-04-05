@@ -72,6 +72,8 @@ namespace sunfish {
 			return _leftDown[pos];
 		}
 	};
+	extern const DirectionMaskTable<true> dirMask;
+	extern const DirectionMaskTable<false> dirMask7x7;
 
 	/**
 	 * MagicNumberTable
@@ -97,6 +99,7 @@ namespace sunfish {
 			return _rightUp[pos];
 		}
 	};
+	extern const sunfish::MagicNumberTable magic;
 
 	/**
 	 * MovePatternTable
@@ -157,6 +160,7 @@ namespace sunfish {
 			return _right[pos][pattern];
 		}
 	};
+	extern const sunfish::MovePatternTable movePattern;
 
 	namespace _MoveTableType {
 		enum Type {
@@ -188,19 +192,8 @@ namespace sunfish {
 			return _table[pos];
 		}
 	};
-
-	/**
-	 * LongMoveTable
-	 * 跳び駒の移動
-	 */
-	template <MoveTableType type>
-	class LongMoveTable {
-	public:
-		LongMoveTable() {}
-		LongMoveTable(const LongMoveTable&) = delete;
-		LongMoveTable(LongMoveTable&&) = delete;
-		Bitboard get(const Position& pos, const Bitboard& bb) const;
-	};
+	extern const OneStepMoveTable<MoveTableType::Horse> horseOneStepMove;
+	extern const OneStepMoveTable<MoveTableType::Dragon> dragonOneStepMove;
 
 	/**
 	 * 利き算出テーブル
@@ -208,73 +201,192 @@ namespace sunfish {
 	class MoveTables {
 	private:
 		MoveTables();
-	public:
-		/** 先手の歩の利き */
+
 		static const OneStepMoveTable<MoveTableType::BPawn> BPawn;
-		/** 先手の桂の利き */
 		static const OneStepMoveTable<MoveTableType::BKnight> BKnight;
-		/** 先手の銀の利き */
 		static const OneStepMoveTable<MoveTableType::BSilver> BSilver;
-		/** 先手の金の利き */
 		static const OneStepMoveTable<MoveTableType::BGold> BGold;
-		/** 後手の歩の利き */
 		static const OneStepMoveTable<MoveTableType::WPawn> WPawn;
-		/** 後手の桂の利き */
 		static const OneStepMoveTable<MoveTableType::WKnight> WKnight;
-		/** 後手の銀の利き */
 		static const OneStepMoveTable<MoveTableType::WSilver> WSilver;
-		/** 後手の金の利き */
 		static const OneStepMoveTable<MoveTableType::WGold> WGold;
-		/** 1マス先のみの角の利き */
 		static const OneStepMoveTable<MoveTableType::Bishop> Bishop1;
-		/** 1マス先のみの飛車の利き */
 		static const OneStepMoveTable<MoveTableType::Rook> Rook1;
-		/** 玉の利き */
 		static const OneStepMoveTable<MoveTableType::King> King;
 
-		/** 先手の香車の利き */
-		static const LongMoveTable<MoveTableType::BLance> BLance;
-		/** 後手の香車の利き */
-		static const LongMoveTable<MoveTableType::WLance> WLance;
-		/** 角の利き */
-		static const LongMoveTable<MoveTableType::Bishop> Bishop;
-		/** 飛車の利き */
-		static const LongMoveTable<MoveTableType::Rook> Rook;
-		/** 2マス先以上の角の利き */
-		static const LongMoveTable<MoveTableType::Bishop2> Bishop2;
-		/** 2マス先以上の飛車の利き */
-		static const LongMoveTable<MoveTableType::Rook2> Rook2;
-		/** 竜の利き */
-		static const LongMoveTable<MoveTableType::Horse> Horse;
-		/** 馬の利き */
-		static const LongMoveTable<MoveTableType::Dragon> Dragon;
+	public:
+		static const Bitboard& bpawn(const Position& pos) {
+			return BPawn.get(pos);
+		}
+		static const Bitboard& bknight(const Position& pos) {
+			return BKnight.get(pos);
+		}
+		static const Bitboard& bsilver(const Position& pos) {
+			return BSilver.get(pos);
+		}
+		static const Bitboard& bgold(const Position& pos) {
+			return BGold.get(pos);
+		}
+		static const Bitboard& wpawn(const Position& pos) {
+			return WPawn.get(pos);
+		}
+		static const Bitboard& wknight(const Position& pos) {
+			return WKnight.get(pos);
+		}
+		static const Bitboard& wsilver(const Position& pos) {
+			return WSilver.get(pos);
+		}
+		static const Bitboard& wgold(const Position& pos) {
+			return WGold.get(pos);
+		}
+		static const Bitboard& bishop1(const Position& pos) {
+			return Bishop1.get(pos);
+		}
+		static const Bitboard& rook1(const Position& pos) {
+			return Rook1.get(pos);
+		}
+		static const Bitboard& king(const Position& pos) {
+			return King.get(pos);
+		}
 
-		/** 筋 */
-		static const LongMoveTable<MoveTableType::Vertical> Vertical;
-		/** 段 */
-		static const LongMoveTable<MoveTableType::Horizontal> Horizontal;
-		/** 双方向右上がり */
-		static const LongMoveTable<MoveTableType::RightUpX> RightUpX;
-		/** 双方向右下がり */
-		static const LongMoveTable<MoveTableType::RightDownX> RightDownX;
+		static const Bitboard& vertical(const Position& pos, const Bitboard& bb) {
+			// 縦方向
+			Bitboard attack = bb & dirMask7x7.file(pos);
+			unsigned b = Bitboard::isHigh(pos) ? (unsigned)(attack.high() >> ((Bitboard::HighFiles - pos.getFile()) * 9 + 1))
+																				 : (unsigned)(attack.low() >> ((9 - pos.getFile()) * 9 + 1));
+			return movePattern.file(pos, b & 0x7f);
+		}
 
-		/** 右上がり */
-		static const LongMoveTable<MoveTableType::RightUp> RightUp;
-		/** 右下がり */
-		static const LongMoveTable<MoveTableType::RightDown> RightDown;
-		/** 左上がり */
-		static const LongMoveTable<MoveTableType::LeftUp> LeftUp;
-		/** 左下がり */
-		static const LongMoveTable<MoveTableType::LeftDown> LeftDown;
-		/** 右 */
-		static const LongMoveTable<MoveTableType::Right> Right;
-		/** 左 */
-		static const LongMoveTable<MoveTableType::Left> Left;
+		static const Bitboard& horizontal(const Position& pos, const Bitboard& bb) {
+			// 横方向
+			Bitboard attack = bb & dirMask7x7.rank(pos);
+			const auto& m = magic.rank(pos);
+			unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+			return movePattern.rank(pos, b & 0x7f);
+		}
+
+		static const Bitboard& rightUpX(const Position& pos, const Bitboard& bb) {
+			// 双方向右上がり
+			Bitboard attack = bb & dirMask7x7.rightUpX(pos);
+			const auto& m = magic.rightUp(pos);
+			unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+			return movePattern.rightUpX(pos, b & 0x7f);
+		}
+
+		static const Bitboard& rightDownX(const Position& pos, const Bitboard& bb) {
+			// 双方向右下がり
+			Bitboard attack = bb & dirMask7x7.leftUpX(pos);
+			const auto& m = magic.leftUp(pos);
+			unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+			return movePattern.leftUpX(pos, b & 0x7f);
+		}
+
+		static const Bitboard& rightUp(const Position& pos, const Bitboard& bb) {
+			// 右上がり
+			Bitboard attack = bb & dirMask7x7.rightUp(pos);
+			const auto& m = magic.rightUp(pos);
+			unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+			return movePattern.rightUp(pos, b & 0x7f);
+		}
+
+		static const Bitboard& rightDown(const Position& pos, const Bitboard& bb) {
+			// 右下がり
+			Bitboard attack = bb & dirMask7x7.rightDown(pos);
+			const auto& m = magic.leftUp(pos);
+			unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+			return movePattern.rightDown(pos, b & 0x7f);
+		}
+
+		static const Bitboard& leftUp(const Position& pos, const Bitboard& bb) {
+			// 左上がり
+			Bitboard attack = bb & dirMask7x7.leftUp(pos);
+			const auto& m = magic.leftUp(pos);
+			unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+			return movePattern.leftUp(pos, b & 0x7f);
+		}
+
+		static const Bitboard& leftDown(const Position& pos, const Bitboard& bb) {
+			// 左下がり
+			Bitboard attack = bb & dirMask7x7.leftDown(pos);
+			const auto& m = magic.rightUp(pos);
+			unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+			return movePattern.leftDown(pos, b & 0x7f);
+		}
+
+		static const Bitboard& right(const Position& pos, const Bitboard& bb) {
+			// 右
+			Bitboard attack = bb & dirMask7x7.right(pos);
+			const auto& m = magic.rank(pos);
+			unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+			return movePattern.right(pos, b & 0x7f);
+		}
+
+		static const Bitboard& left(const Position& pos, const Bitboard& bb) {
+			// 左
+			Bitboard attack = bb & dirMask7x7.left(pos);
+			const auto& m = magic.rank(pos);
+			unsigned b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
+			return movePattern.left(pos, b & 0x7f);
+		}
+
+		static const Bitboard& blance(const Position& pos, const Bitboard& bb) {
+			Bitboard attack = bb & dirMask7x7.file(pos);
+			unsigned b = Bitboard::isHigh(pos) ? (unsigned)(attack.high() >> ((Bitboard::HighFiles - pos.getFile()) * 9 + 1))
+																				 : (unsigned)(attack.low() >> ((9 - pos.getFile()) * 9 + 1));
+			return movePattern.up(pos, b & 0x7f);
+		}
+
+		static const Bitboard& wlance(const Position& pos, const Bitboard& bb) {
+			Bitboard attack = bb & dirMask7x7.file(pos);
+			unsigned b = Bitboard::isHigh(pos) ? (unsigned)(attack.high() >> ((Bitboard::HighFiles - pos.getFile()) * 9 + 1))
+																				 : (unsigned)(attack.low() >> ((9 - pos.getFile()) * 9 + 1));
+			return movePattern.down(pos, b & 0x7f);
+		}
+
+		/**
+		 * 角の利き
+		 */
+		static Bitboard bishop(const Position& pos, const Bitboard& bb) {
+			return rightUpX(pos, bb) | rightDownX(pos, bb);
+		}
+
+		/**
+		 * 飛車の利き
+		 */
+		static Bitboard rook(const Position& pos, const Bitboard& bb) {
+			return vertical(pos, bb) | horizontal(pos, bb);
+		}
+
+		/**
+		 * 角の利き(距離2以上)
+		 */
+		static Bitboard bishop2(const Position& pos, const Bitboard& bb) {
+			return (rightUpX(pos, bb) | rightDownX(pos, bb)) & ~MoveTables::King.get(pos);
+		}
+
+		/**
+		 * 飛車の利き(距離2以上)
+		 */
+		static Bitboard rook2(const Position& pos, const Bitboard& bb) {
+			return (vertical(pos, bb) | horizontal(pos, bb)) & ~MoveTables::King.get(pos);
+		}
+
+		/**
+		 * 馬の利き
+		 */
+		static Bitboard horse(const Position& pos, const Bitboard& bb) {
+			// 角の利きに横1マスの移動を加える。
+			return rightUpX(pos, bb) | rightDownX(pos, bb) | horseOneStepMove.get(pos);
+		}
+
+		/**
+		 * 竜の利き
+		 */
+		static Bitboard dragon(const Position& pos, const Bitboard& bb) {
+			// 飛車の利きに斜め1マスの移動を加える。
+			return vertical(pos, bb) | horizontal(pos, bb) | dragonOneStepMove.get(pos);
+		}
 	};
-
-	extern const sunfish::DirectionMaskTable<true> dirMask;
-	extern const sunfish::MagicNumberTable magic;
-	extern const sunfish::MovePatternTable movePattern;
 
 }
 

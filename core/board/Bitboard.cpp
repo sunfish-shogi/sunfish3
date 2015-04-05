@@ -8,7 +8,7 @@
 namespace sunfish {
 
 #if defined(UNKNOWN_API) || defined(__MINGW32__)
-	const unsigned Bitboard::_bfirst[256] = {
+	const int Bitboard::_bfirst[256] = {
 		 0, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1,
 		 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 6, 1, 2, 1, 3, 1, 2, 1,
 		 4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1,
@@ -23,7 +23,7 @@ namespace sunfish {
 		 3, 1, 2, 1, 6, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1,
 		 5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1,
 	};
-	const unsigned Bitboard::_bfirst[256] = {
+	const int Bitboard::_bfirst[256] = {
 		 0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
 		 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6,
 		 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
@@ -40,7 +40,7 @@ namespace sunfish {
 	};
 #endif
 
-	const Bitboard& Bitboard::mask(unsigned pos) {
+	const Bitboard& Bitboard::mask(int pos) {
 #define BB(sq)									Bitboard(sq)
 		static Bitboard masks[] = {
 			Bitboard(0, 0), // Position::Invalid(=-1)

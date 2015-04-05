@@ -39,8 +39,8 @@ P-\n\
 
 		ASSERT_EQ(see.getBlackNum(), 1);
 		ASSERT_EQ(see.getWhiteNum(), 1);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::PawnEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::PawnEx);
+		ASSERT_EQ(see.getBlackList()[0]->value.int32(), material::PawnEx);
+		ASSERT_EQ(see.getWhiteList()[0]->value.int32(), material::PawnEx);
 	}
 
 	{
@@ -67,8 +67,8 @@ P-\n\
 
 		ASSERT_EQ(see.getBlackNum(), 1);
 		ASSERT_EQ(see.getWhiteNum(), 1);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::LanceEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::LanceEx);
+		ASSERT_EQ(see.getBlackList()[0]->value.int32(), material::LanceEx);
+		ASSERT_EQ(see.getWhiteList()[0]->value.int32(), material::LanceEx);
 	}
 
 	{
@@ -95,9 +95,9 @@ P-\n\
 
 		ASSERT_EQ(see.getBlackNum(), 1);
 		ASSERT_EQ(see.getWhiteNum(), 2);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::KnightEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::KnightEx);
-		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), material::KnightEx);
+		ASSERT_EQ(see.getBlackList()[0]->value.int32(), material::KnightEx);
+		ASSERT_EQ(see.getWhiteList()[0]->value.int32(), material::KnightEx);
+		ASSERT_EQ(see.getWhiteList()[1]->value.int32(), material::KnightEx);
 	}
 
 	{
@@ -124,9 +124,9 @@ P-\n\
 
 		ASSERT_EQ(see.getBlackNum(), 2);
 		ASSERT_EQ(see.getWhiteNum(), 1);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::SilverEx);
-		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), material::SilverEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::SilverEx);
+		ASSERT_EQ(see.getBlackList()[0]->value.int32(), material::SilverEx);
+		ASSERT_EQ(see.getBlackList()[1]->value.int32(), material::SilverEx);
+		ASSERT_EQ(see.getWhiteList()[0]->value.int32(), material::SilverEx);
 	}
 
 	{
@@ -153,10 +153,10 @@ P-\n\
 
 		ASSERT_EQ(see.getBlackNum(), 2);
 		ASSERT_EQ(see.getWhiteNum(), 2);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::GoldEx);
-		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), material::GoldEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::GoldEx);
-		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), material::GoldEx);
+		ASSERT_EQ(see.getBlackList()[0]->value.int32(), material::GoldEx);
+		ASSERT_EQ(see.getBlackList()[1]->value.int32(), material::GoldEx);
+		ASSERT_EQ(see.getWhiteList()[0]->value.int32(), material::GoldEx);
+		ASSERT_EQ(see.getWhiteList()[1]->value.int32(), material::GoldEx);
 	}
 
 	{
@@ -183,8 +183,8 @@ P-\n\
 
 		ASSERT_EQ(see.getBlackNum(), 1);
 		ASSERT_EQ(see.getWhiteNum(), 1);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::BishopEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::BishopEx);
+		ASSERT_EQ(see.getBlackList()[0]->value.int32(), material::BishopEx);
+		ASSERT_EQ(see.getWhiteList()[0]->value.int32(), material::BishopEx);
 	}
 
 	{
@@ -211,8 +211,8 @@ P-\n\
 
 		ASSERT_EQ(see.getBlackNum(), 1);
 		ASSERT_EQ(see.getWhiteNum(), 1);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::RookEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::RookEx);
+		ASSERT_EQ(see.getBlackList()[0]->value.int32(), material::RookEx);
+		ASSERT_EQ(see.getWhiteList()[0]->value.int32(), material::RookEx);
 	}
 
 	{
@@ -239,7 +239,7 @@ P-\n\
 
 		ASSERT_EQ(see.getBlackNum(), 1);
 		ASSERT_EQ(see.getWhiteNum(), 0);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::SilverEx);
+		ASSERT_EQ(see.getBlackList()[0]->value.int32(), material::SilverEx);
 	}
 
 	{
@@ -266,11 +266,11 @@ P-\n\
 
 		ASSERT_EQ(see.getBlackNum(), 2);
 		ASSERT_EQ(see.getWhiteNum(), 3);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::LanceEx);
-		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), material::KnightEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::SilverEx);
-		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), material::BishopEx);
-		ASSERT_EQ(see.getWhiteList()[2].attacker->value.int32(), material::HorseEx);
+		ASSERT_EQ(see.getBlackList()[0]->value.int32(), material::LanceEx);
+		ASSERT_EQ(see.getBlackList()[1]->value.int32(), material::KnightEx);
+		ASSERT_EQ(see.getWhiteList()[0]->value.int32(), material::SilverEx);
+		ASSERT_EQ(see.getWhiteList()[1]->value.int32(), material::BishopEx);
+		ASSERT_EQ(see.getWhiteList()[2]->value.int32(), material::HorseEx);
 	}
 
 	{
@@ -297,23 +297,23 @@ P-\n\
 
 		ASSERT_EQ(see.getBlackNum(), 6);
 		ASSERT_EQ(see.getWhiteNum(), 5);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::LanceEx);
-		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), material::KnightEx);
-		ASSERT_EQ(see.getBlackList()[2].attacker->value.int32(), material::SilverEx);
-		ASSERT_EQ(see.getBlackList()[3].attacker->value.int32(), material::BishopEx);
-		ASSERT_EQ(see.getBlackList()[4].attacker->value.int32(), material::HorseEx);
-		ASSERT_EQ(see.getBlackList()[5].attacker->value.int32(), material::DragonEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::KnightEx);
-		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), material::GoldEx);
-		ASSERT_EQ(see.getWhiteList()[2].attacker->value.int32(), material::GoldEx);
-		ASSERT_EQ(see.getWhiteList()[3].attacker->value.int32(), material::GoldEx);
-		ASSERT_EQ(see.getWhiteList()[4].attacker->value.int32(), material::DragonEx);
-		ASSERT_EQ(see.getBlackList()[0].attacker->dependOn == nullptr, true);
-		ASSERT_EQ(see.getBlackList()[1].attacker->dependOn == nullptr, true);
-		ASSERT_EQ(see.getBlackList()[2].attacker->dependOn == nullptr, true);
-		ASSERT_EQ(see.getBlackList()[3].attacker->dependOn == see.getBlackList()[4].attacker, true);
-		ASSERT_EQ(see.getBlackList()[4].attacker->dependOn == see.getBlackList()[2].attacker, true);
-		ASSERT_EQ(see.getBlackList()[5].attacker->dependOn == see.getBlackList()[0].attacker, true);
+		ASSERT_EQ(see.getBlackList()[0]->value.int32(), material::LanceEx);
+		ASSERT_EQ(see.getBlackList()[1]->value.int32(), material::KnightEx);
+		ASSERT_EQ(see.getBlackList()[2]->value.int32(), material::SilverEx);
+		ASSERT_EQ(see.getBlackList()[3]->value.int32(), material::BishopEx);
+		ASSERT_EQ(see.getBlackList()[4]->value.int32(), material::HorseEx);
+		ASSERT_EQ(see.getBlackList()[5]->value.int32(), material::DragonEx);
+		ASSERT_EQ(see.getWhiteList()[0]->value.int32(), material::KnightEx);
+		ASSERT_EQ(see.getWhiteList()[1]->value.int32(), material::GoldEx);
+		ASSERT_EQ(see.getWhiteList()[2]->value.int32(), material::GoldEx);
+		ASSERT_EQ(see.getWhiteList()[3]->value.int32(), material::GoldEx);
+		ASSERT_EQ(see.getWhiteList()[4]->value.int32(), material::DragonEx);
+		ASSERT_EQ(see.getBlackList()[0]->dependOn == nullptr, true);
+		ASSERT_EQ(see.getBlackList()[1]->dependOn == nullptr, true);
+		ASSERT_EQ(see.getBlackList()[2]->dependOn == nullptr, true);
+		ASSERT_EQ(see.getBlackList()[3]->dependOn == see.getBlackList()[4], true);
+		ASSERT_EQ(see.getBlackList()[4]->dependOn == see.getBlackList()[2], true);
+		ASSERT_EQ(see.getBlackList()[5]->dependOn == see.getBlackList()[0], true);
 	}
 
 	{
@@ -340,10 +340,10 @@ P-\n\
 
 		ASSERT_EQ(see.getBlackNum(), 2);
 		ASSERT_EQ(see.getWhiteNum(), 2);
-		ASSERT_EQ(see.getBlackList()[0].attacker->value.int32(), material::KnightEx);
-		ASSERT_EQ(see.getBlackList()[1].attacker->value.int32(), Value::PieceInfEx);
-		ASSERT_EQ(see.getWhiteList()[0].attacker->value.int32(), material::LanceEx);
-		ASSERT_EQ(see.getWhiteList()[1].attacker->value.int32(), material::KnightEx);
+		ASSERT_EQ(see.getBlackList()[0]->value.int32(), material::KnightEx);
+		ASSERT_EQ(see.getBlackList()[1]->value.int32(), Value::PieceInfEx);
+		ASSERT_EQ(see.getWhiteList()[0]->value.int32(), material::LanceEx);
+		ASSERT_EQ(see.getWhiteList()[1]->value.int32(), material::KnightEx);
 	}
 
 }

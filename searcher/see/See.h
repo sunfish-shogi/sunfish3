@@ -16,30 +16,19 @@ namespace sunfish {
 
 		struct Attacker {
 			Value value;
-			Attacker* dependOn;
 			bool used;
+			Attacker* dependOn;
 		};
 
-		struct AttackerRef {
-			Attacker* attacker;
-			bool operator>(const AttackerRef& o) const {
-				return attacker->value > o.attacker->value;
-			}
-			bool operator<(const AttackerRef& o) const {
-				return attacker->value < o.attacker->value;
-			}
-			bool operator==(const AttackerRef& o) const {
-				return attacker->value == o.attacker->value;
-			}
-		};
+		using AttackerRef = Attacker*;
 
 	private:
 
 		// 8(近接) + 4(香) + 2(角/馬) + 2(飛/竜)
 		Attacker _b[16];
 		Attacker _w[16];
-		AttackerRef _bref[16];
-		AttackerRef _wref[16];
+		AttackerRef _bref[32];
+		AttackerRef _wref[32];
 		int _bnum;
 		int _wnum;
 
@@ -68,25 +57,6 @@ namespace sunfish {
 		template <bool black>
 		void generateKnightAttacker(const Board& board, const Position& from);
 
-		template <bool shallow>
-		void generateAttackers(const Board& board, const Position& to, const Bitboard& occ, const Position& exceptPos, Direction exceptDir, HSideType sideTypeH, VSideType sideTypeV);
-
-		template <bool shallow>
-		void generateAttackers(const Board& board, const Move& move, HSideType sideTypeH, VSideType sideTypeV) {
-			if (move.isHand()) {
-  			auto to = move.to();
-  			auto occ = board.getBOccupy() | board.getWOccupy();
-				generateAttackers<shallow>(board, to, occ, Position::Invalid, Direction::None, sideTypeH, sideTypeV);
-			} else {
-  			auto to = move.to();
-  			auto from = move.from();
-  			auto exceptMask = ~Bitboard::mask(from);
-  			auto occ = (board.getBOccupy() | board.getWOccupy()) & exceptMask;
-  			Direction exceptDir = to.dir(from);
-				generateAttackers<shallow>(board, to, occ, from, exceptDir, sideTypeH, sideTypeV);
-			}
-		}
-
 		Value search(bool black, Value value, Value alpha, Value beta);
 
 	public:
@@ -95,9 +65,7 @@ namespace sunfish {
 		Value search(const Board& board, const Move& move, Value alpha, Value beta);
 
 		template <bool shallow = false>
-		void generateAttackers(const Board& board, const Move& move) {
-			generateAttackers<shallow>(board, move, move.to().sideTypeH(), move.to().sideTypeV());
-		}
+		void generateAttackers(const Board& board, const Move& move);
 
 		const AttackerRef* getBlackList() const {
 			return _bref;

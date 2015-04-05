@@ -239,27 +239,27 @@ namespace sunfish {
 			switch (PinDirTable::get(pos, _posBKing)) {
 			case PinDir::Up: {
 				// 上
-				Bitboard bb = MoveTables::Vertical.get(pos, occ);
+				Bitboard bb = MoveTables::vertical(pos, occ);
 				return bb & _bbBKing && bb & (_bbWLance | _bbWRook | _bbWDragon);
 			}
 			case PinDir::Down: {
 				// 下
-				Bitboard bb = MoveTables::Vertical.get(pos, occ);
+				Bitboard bb = MoveTables::vertical(pos, occ);
 				return bb & _bbBKing && bb & (_bbWRook | _bbWDragon);
 			}
 			case PinDir::Hor: {
 				// 横
-				Bitboard bb = MoveTables::Horizontal.get(pos, occ);
+				Bitboard bb = MoveTables::horizontal(pos, occ);
 				return bb & _bbBKing && bb & (_bbWRook | _bbWDragon);
 			}
 			case PinDir::RightUp: {
 				// 右上がり/左下がり
-				Bitboard bb = MoveTables::RightUpX.get(pos, occ);
+				Bitboard bb = MoveTables::rightUpX(pos, occ);
 				return bb & _bbBKing && bb & (_bbWBishop | _bbWHorse);
 			}
 			case PinDir::RightDown: {
 				// 右下がり/左上がり
-				Bitboard bb = MoveTables::RightDownX.get(pos, occ);
+				Bitboard bb = MoveTables::rightDownX(pos, occ);
 				return bb & _bbBKing && bb & (_bbWBishop | _bbWHorse);
 			}
 			default:
@@ -271,27 +271,27 @@ namespace sunfish {
 			switch (PinDirTable::get(pos, _posWKing)) {
 			case PinDir::Up: {
 				// 上
-				Bitboard bb = MoveTables::Vertical.get(pos, occ);
+				Bitboard bb = MoveTables::vertical(pos, occ);
 				return bb & _bbWKing && bb & (_bbBRook | _bbBDragon);
 			}
 			case PinDir::Down: {
 				// 下
-				Bitboard bb = MoveTables::Vertical.get(pos, occ);
+				Bitboard bb = MoveTables::vertical(pos, occ);
 				return bb & _bbWKing && bb & (_bbBLance | _bbBRook | _bbBDragon);
 			}
 			case PinDir::Hor: {
 				// 横
-				Bitboard bb = MoveTables::Horizontal.get(pos, occ);
+				Bitboard bb = MoveTables::horizontal(pos, occ);
 				return bb & _bbWKing && bb & (_bbBRook | _bbBDragon);
 			}
 			case PinDir::RightUp: {
 				// 右上がり/左下がり
-				Bitboard bb = MoveTables::RightUpX.get(pos, occ);
+				Bitboard bb = MoveTables::rightUpX(pos, occ);
 				return bb & _bbWKing && bb & (_bbBBishop | _bbBHorse);
 			}
 			case PinDir::RightDown: {
 				// 右下がり/左上がり
-				Bitboard bb = MoveTables::RightDownX.get(pos, occ);
+				Bitboard bb = MoveTables::rightDownX(pos, occ);
 				return bb & _bbWKing && bb & (_bbBBishop | _bbBHorse);
 			}
 			default:
@@ -359,34 +359,34 @@ namespace sunfish {
 	bool Board::_isChecking(const Position& king, const Bitboard& occ) const {
 		if (black) {
 			// 1マス移動
-			if (MoveTables::BPawn.get(king) & _bbWPawn ||
-					MoveTables::BKnight.get(king) & _bbWKnight ||
-					MoveTables::BSilver.get(king) & _bbWSilver ||
-					MoveTables::BGold.get(king) & (_bbWGold | _bbWTokin | _bbWProLance | _bbWProKnight | _bbWProSilver) ||
-					MoveTables::King.get(king) & (_bbWKing | _bbWHorse | _bbWDragon)) {
+			if (MoveTables::bpawn(king) & _bbWPawn ||
+					MoveTables::bknight(king) & _bbWKnight ||
+					MoveTables::bsilver(king) & _bbWSilver ||
+					MoveTables::bgold(king) & (_bbWGold | _bbWTokin | _bbWProLance | _bbWProKnight | _bbWProSilver) ||
+					MoveTables::king(king) & (_bbWKing | _bbWHorse | _bbWDragon)) {
 				return true;
 			}
 
 			// 跳び駒の利き
-			if (MoveTables::BLance.get(king, occ) & _bbWLance ||
-					MoveTables::Bishop.get(king, occ) & (_bbWBishop | _bbWHorse) ||
-					MoveTables::Rook.get(king, occ) & (_bbWRook | _bbWDragon)) {
+			if (MoveTables::blance(king, occ) & _bbWLance ||
+					MoveTables::bishop(king, occ) & (_bbWBishop | _bbWHorse) ||
+					MoveTables::rook(king, occ) & (_bbWRook | _bbWDragon)) {
 				return true;
 			}
 		} else {
 			// 1マス移動
-			if (MoveTables::WPawn.get(king) & _bbBPawn ||
-					MoveTables::WKnight.get(king) & _bbBKnight ||
-					MoveTables::WSilver.get(king) & _bbBSilver ||
-					MoveTables::WGold.get(king) & (_bbBGold | _bbBTokin | _bbBProLance | _bbBProKnight | _bbBProSilver) ||
-					MoveTables::King.get(king) & (_bbBKing | _bbBHorse | _bbBDragon)) {
+			if (MoveTables::wpawn(king) & _bbBPawn ||
+					MoveTables::wknight(king) & _bbBKnight ||
+					MoveTables::wsilver(king) & _bbBSilver ||
+					MoveTables::wgold(king) & (_bbBGold | _bbBTokin | _bbBProLance | _bbBProKnight | _bbBProSilver) ||
+					MoveTables::king(king) & (_bbBKing | _bbBHorse | _bbBDragon)) {
 				return true;
 			}
 
 			// 跳び駒の利き
-			if (MoveTables::WLance.get(king, occ) & _bbBLance ||
-					MoveTables::Bishop.get(king, occ) & (_bbBBishop | _bbBHorse) ||
-					MoveTables::Rook.get(king, occ) & (_bbBRook | _bbBDragon)) {
+			if (MoveTables::wlance(king, occ) & _bbBLance ||
+					MoveTables::bishop(king, occ) & (_bbBBishop | _bbBHorse) ||
+					MoveTables::rook(king, occ) & (_bbBRook | _bbBDragon)) {
 				return true;
 			}
 		}
@@ -413,8 +413,8 @@ namespace sunfish {
 		dir == DirectionEx::LeftUpKnight ? move.to().leftUpKnight() : \
 		dir == DirectionEx::LeftDownKnight ? move.to().leftDownKnight() : \
 		dir == DirectionEx::RightUpKnight ? move.to().rightUpKnight() : move.to().rightDownKnight()))
-#define LONG_ATTACK_CHECK(PieceType) (MoveTables::PieceType.get(move.to(), getBOccupy() | getWOccupy()).check(black ? _posWKing : _posBKing))
-#define LONG_ATTACK_CHECK_LANCE ((black ? MoveTables::BLance.get(move.to(), getBOccupy() | getWOccupy()) : MoveTables::WLance.get(move.to(), getBOccupy() | getWOccupy())).check(black ? _posWKing : _posBKing))
+#define LONG_ATTACK_CHECK(PieceType) (MoveTables::PieceType(move.to(), getBOccupy() | getWOccupy()).check(black ? _posWKing : _posBKing))
+#define LONG_ATTACK_CHECK_LANCE ((black ? MoveTables::blance(move.to(), getBOccupy() | getWOccupy()) : MoveTables::wlance(move.to(), getBOccupy() | getWOccupy())).check(black ? _posWKing : _posBKing))
 
 		auto piece = move.promote() ? move.piece().promote() : move.piece();
 
@@ -461,7 +461,7 @@ namespace sunfish {
 		}
 		case Piece::Bishop: {
 			if (dir == DirectionEx::LongLeftUp || dir == DirectionEx::LongLeftDown || dir == DirectionEx::LongRightUp || dir == DirectionEx::LongRightDown) {
-				return LONG_ATTACK_CHECK(Bishop);
+				return LONG_ATTACK_CHECK(bishop);
 			} else if (dir == DirectionEx::LeftUp || dir == DirectionEx::LeftDown || dir == DirectionEx::RightUp || dir == DirectionEx::RightDown) {
 				return SHORT_ATTACK_CHECK;
 			}
@@ -469,7 +469,7 @@ namespace sunfish {
 		}
 		case Piece::Rook: {
 			if (dir == DirectionEx::LongUp || dir == DirectionEx::LongDown || dir == DirectionEx::LongLeft || dir == DirectionEx::LongRight) {
-				return LONG_ATTACK_CHECK(Rook);
+				return LONG_ATTACK_CHECK(rook);
 			} else if (dir == DirectionEx::Up || dir == DirectionEx::Down || dir == DirectionEx::Left || dir == DirectionEx::Right) {
 				return SHORT_ATTACK_CHECK;
 			}
@@ -477,7 +477,7 @@ namespace sunfish {
 		}
 		case Piece::Horse: {
 			if (dir == DirectionEx::LongLeftUp || dir == DirectionEx::LongLeftDown || dir == DirectionEx::LongRightUp || dir == DirectionEx::LongRightDown) {
-				return LONG_ATTACK_CHECK(Bishop);
+				return LONG_ATTACK_CHECK(bishop);
 			} else if (dir == DirectionEx::Up || dir == DirectionEx::Down || dir == DirectionEx::Left || dir == DirectionEx::Right ||
 								 dir == DirectionEx::LeftUp || dir == DirectionEx::LeftDown || dir == DirectionEx::RightUp || dir == DirectionEx::RightDown) {
 				return SHORT_ATTACK_CHECK;
@@ -486,7 +486,7 @@ namespace sunfish {
 		}
 		case Piece::Dragon: {
 			if (dir == DirectionEx::LongUp || dir == DirectionEx::LongDown || dir == DirectionEx::LongLeft || dir == DirectionEx::LongRight) {
-				return LONG_ATTACK_CHECK(Rook);
+				return LONG_ATTACK_CHECK(rook);
 			} else if (dir == DirectionEx::Up || dir == DirectionEx::Down || dir == DirectionEx::Left || dir == DirectionEx::Right ||
 								 dir == DirectionEx::LeftUp || dir == DirectionEx::LeftDown || dir == DirectionEx::RightUp || dir == DirectionEx::RightDown) {
 				return SHORT_ATTACK_CHECK;
@@ -513,31 +513,31 @@ namespace sunfish {
 
 		if (black) {
 			if (dir == Direction::Down) {
-				if (MoveTables::WLance.get(king, occ) & (_bbBLance | _bbBRook | _bbBDragon)) {
+				if (MoveTables::wlance(king, occ) & (_bbBLance | _bbBRook | _bbBDragon)) {
 					return true;
 				}
 			} else if (dir == Direction::Up || dir == Direction::Left || dir == Direction::Right) {
-				if (MoveTables::Rook.get(king, occ) & (_bbBRook | _bbBDragon)) {
+				if (MoveTables::rook(king, occ) & (_bbBRook | _bbBDragon)) {
 					return true;
 				}
 			} else {
 				assert(dir == Direction::LeftUp || dir == Direction::LeftDown || dir == Direction::RightUp || dir == Direction::RightDown);
-				if (MoveTables::Bishop.get(king, occ) & (_bbBBishop | _bbBHorse)) {
+				if (MoveTables::bishop(king, occ) & (_bbBBishop | _bbBHorse)) {
 					return true;
 				}
 			}
 		} else {
 			if (dir == Direction::Up) {
-				if (MoveTables::BLance.get(king, occ) & (_bbWLance | _bbWRook | _bbWDragon)) {
+				if (MoveTables::blance(king, occ) & (_bbWLance | _bbWRook | _bbWDragon)) {
 					return true;
 				}
 			} else if (dir == Direction::Down || dir == Direction::Left || dir == Direction::Right) {
-				if (MoveTables::Rook.get(king, occ) & (_bbWRook | _bbWDragon)) {
+				if (MoveTables::rook(king, occ) & (_bbWRook | _bbWDragon)) {
 					return true;
 				}
 			} else {
 				assert(dir == Direction::LeftUp || dir == Direction::LeftDown || dir == Direction::RightUp || dir == Direction::RightDown);
-				if (MoveTables::Bishop.get(king, occ) & (_bbWBishop | _bbWHorse)) {
+				if (MoveTables::bishop(king, occ) & (_bbWBishop | _bbWHorse)) {
 					return true;
 				}
 			}
@@ -606,7 +606,7 @@ namespace sunfish {
 		auto pawn = !black ? _posBKing.up() : _posWKing.down();
 
 		// king
-		auto bb = MoveTables::King.get(king);
+		auto bb = MoveTables::king(king);
 		bb &= !black ? ~_bbBOccupy : ~_bbWOccupy;
 		BB_EACH_OPE(to, bb, {
 			auto occ2 = occ;
@@ -618,7 +618,7 @@ namespace sunfish {
 
 		// knight
 		bb = !black ? _bbBKnight : _bbWKnight;
-		bb &= !black ? MoveTables::WKnight.get(pawn) : MoveTables::BKnight.get(pawn);
+		bb &= !black ? MoveTables::wknight(pawn) : MoveTables::bknight(pawn);
 		BB_EACH_OPE(from, bb,
 			if (_isValidMove<!black>(Piece::Knight, from, pawn)) {
 				return false;
@@ -627,7 +627,7 @@ namespace sunfish {
 
 		// silver
 		bb = !black ? _bbBSilver : _bbWSilver;
-		bb &= !black ? MoveTables::WSilver.get(pawn) : MoveTables::BSilver.get(pawn);
+		bb &= !black ? MoveTables::wsilver(pawn) : MoveTables::bsilver(pawn);
 		BB_EACH_OPE(from, bb, {
 			if (_isValidMove<!black>(Piece::Silver, from, pawn)) {
 				return false;
@@ -636,7 +636,7 @@ namespace sunfish {
 
 		// gold
 		bb = !black ? _bbBGold : _bbWGold;
-		bb &= !black ? MoveTables::WGold.get(pawn) : MoveTables::BGold.get(pawn);
+		bb &= !black ? MoveTables::wgold(pawn) : MoveTables::bgold(pawn);
 		BB_EACH_OPE(from, bb,
 			if (_isValidMove<!black>(Piece::Gold, from, pawn)) {
 				return false;
@@ -645,7 +645,7 @@ namespace sunfish {
 
 		// bishop
 		bb = !black ? _bbBBishop : _bbWBishop;
-		bb &= MoveTables::Bishop.get(pawn, occ);
+		bb &= MoveTables::bishop(pawn, occ);
 		BB_EACH_OPE(from, bb,
 			if (_isValidMove<!black>(Piece::Bishop, from, pawn)) {
 				return false;
@@ -654,7 +654,7 @@ namespace sunfish {
 
 		// rook
 		bb = !black ? _bbBRook : _bbWRook;
-		bb &= MoveTables::Rook.get(pawn, occ);
+		bb &= MoveTables::rook(pawn, occ);
 		BB_EACH_OPE(from, bb,
 			if (_isValidMove<!black>(Piece::Rook, from, pawn)) {
 				return false;
@@ -663,7 +663,7 @@ namespace sunfish {
 
 		// pawnkin
 		bb = !black ? _bbBTokin : _bbWTokin;
-		bb &= !black ? MoveTables::WGold.get(pawn) : MoveTables::BGold.get(pawn);
+		bb &= !black ? MoveTables::wgold(pawn) : MoveTables::bgold(pawn);
 		BB_EACH_OPE(from, bb,
 			if (_isValidMove<!black>(Piece::Tokin, from, pawn)) {
 				return false;
@@ -672,7 +672,7 @@ namespace sunfish {
 
 		// promoted lance
 		bb = !black ? _bbBProLance : _bbWProLance;
-		bb &= !black ? MoveTables::WGold.get(pawn) : MoveTables::BGold.get(pawn);
+		bb &= !black ? MoveTables::wgold(pawn) : MoveTables::bgold(pawn);
 		BB_EACH_OPE(from, bb,
 			if (_isValidMove<!black>(Piece::ProLance, from, pawn)) {
 				return false;
@@ -681,7 +681,7 @@ namespace sunfish {
 
 		// promoted knight
 		bb = !black ? _bbBProKnight : _bbWProKnight;
-		bb &= !black ? MoveTables::WGold.get(pawn) : MoveTables::BGold.get(pawn);
+		bb &= !black ? MoveTables::wgold(pawn) : MoveTables::bgold(pawn);
 		BB_EACH_OPE(from, bb,
 			if (_isValidMove<!black>(Piece::ProKnight, from, pawn)) {
 				return false;
@@ -690,7 +690,7 @@ namespace sunfish {
 
 		// promoted silver
 		bb = !black ? _bbBProSilver : _bbWProSilver;
-		bb &= !black ? MoveTables::WGold.get(pawn) : MoveTables::BGold.get(pawn);
+		bb &= !black ? MoveTables::wgold(pawn) : MoveTables::bgold(pawn);
 		BB_EACH_OPE(from, bb,
 			if (_isValidMove<!black>(Piece::ProSilver, from, pawn)) {
 				return false;
@@ -699,7 +699,7 @@ namespace sunfish {
 
 		// horse
 		bb = !black ? _bbBHorse : _bbWHorse;
-		bb &= MoveTables::Horse.get(pawn, occ);
+		bb &= MoveTables::horse(pawn, occ);
 		BB_EACH_OPE(from, bb,
 			if (_isValidMove<!black>(Piece::Horse, from, pawn)) {
 				return false;
@@ -708,7 +708,7 @@ namespace sunfish {
 
 		// dragon
 		bb = !black ? _bbBDragon : _bbWDragon;
-		bb &= MoveTables::Dragon.get(pawn, occ);
+		bb &= MoveTables::dragon(pawn, occ);
 		BB_EACH_OPE(from, bb,
 			if (_isValidMove<!black>(Piece::Dragon, from, pawn)) {
 				return false;
@@ -866,79 +866,79 @@ namespace sunfish {
 				}
 				break;
 			case Piece::Lance:
-				bb = black ? MoveTables::BLance.get(from, occ) : MoveTables::WLance.get(from, occ);
+				bb = black ? MoveTables::blance(from, occ) : MoveTables::wlance(from, occ);
 				if (!bb.check(to)) {
 					return false;
 				}
 				break;
 			case Piece::Knight:
-				bb = black ? MoveTables::BKnight.get(from) : MoveTables::WKnight.get(from);
+				bb = black ? MoveTables::bknight(from) : MoveTables::wknight(from);
 				if (!bb.check(to)) {
 					return false;
 				}
 				break;
 			case Piece::Silver:
-				bb = black ? MoveTables::BSilver.get(from) : MoveTables::WSilver.get(from);
+				bb = black ? MoveTables::bsilver(from) : MoveTables::wsilver(from);
 				if (!bb.check(to)) {
 					return false;
 				}
 				break;
 			case Piece::Gold:
-				bb = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
+				bb = black ? MoveTables::bgold(from) : MoveTables::wgold(from);
 				if (!bb.check(to)) {
 					return false;
 				}
 				break;
 			case Piece::Bishop:
-				bb = MoveTables::Bishop.get(from, occ);
+				bb = MoveTables::bishop(from, occ);
 				if (!bb.check(to)) {
 					return false;
 				}
 				break;
 			case Piece::Rook:
-				bb = MoveTables::Rook.get(from, occ);
+				bb = MoveTables::rook(from, occ);
 				if (!bb.check(to)) {
 					return false;
 				}
 				break;
 			case Piece::King:
-				bb = MoveTables::King.get(from);
+				bb = MoveTables::king(from);
 				if (!bb.check(to)) {
 					return false;
 				}
 				break;
 			case Piece::Tokin:
-				bb = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
+				bb = black ? MoveTables::bgold(from) : MoveTables::wgold(from);
 				if (!bb.check(to)) {
 					return false;
 				}
 				break;
 			case Piece::ProLance:
-				bb = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
+				bb = black ? MoveTables::bgold(from) : MoveTables::wgold(from);
 				if (!bb.check(to)) {
 					return false;
 				}
 				break;
 			case Piece::ProKnight:
-				bb = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
+				bb = black ? MoveTables::bgold(from) : MoveTables::wgold(from);
 				if (!bb.check(to)) {
 					return false;
 				}
 				break;
 			case Piece::ProSilver:
-				bb = black ? MoveTables::BGold.get(from) : MoveTables::WGold.get(from);
+				bb = black ? MoveTables::bgold(from) : MoveTables::wgold(from);
 				if (!bb.check(to)) {
 					return false;
 				}
 				break;
 			case Piece::Horse:
-				bb = MoveTables::Horse.get(from, occ);
+				bb = MoveTables::horse(from, occ);
 				if (!bb.check(to)) {
 					return false;
 				}
 				break;
 			case Piece::Dragon:
-				bb = MoveTables::Dragon.get(from, occ);
+				bb = MoveTables::dragon(from, occ);
 				if (!bb.check(to)) {
 					return false;
 				}
