@@ -1357,7 +1357,7 @@ search_end:
 		}
 
 		int limit = _config.limitEnable ? _config.limitSeconds : 0;
-		if (_timeManager.isEasy(limit, _timer.get())) {
+		if (!_config.ponder && _timeManager.isEasy(limit, _timer.get())) {
 			return false;
 		}
 

@@ -31,6 +31,7 @@ namespace sunfish {
 			int wokerSize;
 			bool limitEnable;
 			int limitSeconds;
+			bool ponder;
 		};
 
 		static const int DefaultMaxDepth = 7;
@@ -125,6 +126,7 @@ namespace sunfish {
 			_config.wokerSize = 1;
 			_config.limitEnable = true;
 			_config.limitSeconds = 10;
+			_config.ponder = false;
 		}
 
 		/**

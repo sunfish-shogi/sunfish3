@@ -354,6 +354,7 @@ lab_end:
 		auto searchConfig = _searchConfigBase;
 		searchConfig.maxDepth = 32;
 		searchConfig.limitEnable = false;
+		searchConfig.ponder = true;
 		_searcher.setConfig(searchConfig);
 
 		// 探索
