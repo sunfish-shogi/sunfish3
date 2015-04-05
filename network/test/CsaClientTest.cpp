@@ -21,7 +21,7 @@ TEST(CsaClient, test) {
 	};
 
 	ASSERT_EQ(probe("LOGIN:sunfish OK"), sunfish::CsaClient::RECV_LOGIN_OK);
-	ASSERT_EQ(probe("LOGIN:incorect"), sunfish::CsaClient::RECV_LOGIN_INC);
+	ASSERT_EQ(probe("LOGIN:incorrect"), sunfish::CsaClient::RECV_LOGIN_INC);
 	ASSERT_EQ(probe("LOGOUT:completed"), sunfish::CsaClient::RECV_LOGOUT);
 	ASSERT_EQ(probe("%TORYO"), sunfish::CsaClient::RECV_MOVE_EX);
 	ASSERT_EQ(probe("+7776FU"), sunfish::CsaClient::RECV_MOVE_B);
