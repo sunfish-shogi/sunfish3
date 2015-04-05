@@ -58,7 +58,7 @@ namespace sunfish {
 	const CsaClient::ReceiveFlagSet* CsaClient::getFlagSets() {
 		static const ReceiveFlagSet flagSets[RECV_NUM] = {
 			{ Wildcard("LOGIN:* OK"), RECV_LOGIN_OK, NULL, NULL },
-			{ Wildcard("LOGIN:incorect"), RECV_LOGIN_INC, NULL, NULL },
+			{ Wildcard("LOGIN:incorrect"), RECV_LOGIN_INC, NULL, NULL },
 			{ Wildcard("LOGOUT:completed"), RECV_LOGOUT, NULL, NULL },
 			{ Wildcard("%*"), RECV_MOVE_EX, NULL, NULL },
 			{ Wildcard("+*"), RECV_MOVE_B, NULL, NULL },
