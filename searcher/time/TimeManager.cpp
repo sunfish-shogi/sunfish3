@@ -31,7 +31,7 @@ namespace sunfish {
 	}
 
 	bool TimeManager::isEasy(double limit, double elapsed) {
-		CONSTEXPR int easyDepth = 4;
+		CONSTEXPR int easyDepth = 5;
 
 		if (_depth <= easyDepth) {
 			return false;
@@ -41,7 +41,7 @@ namespace sunfish {
 		const auto& prev = _stack[_depth-1];
 		const auto& curr = _stack[_depth];
 
-		double r = elapsed / std::max(std::min(limit, 3600.0) * 0.10, 3.0);
+		double r = elapsed / std::max(std::min(limit, 3600.0) * 0.30, 3.0);
 
 		if (curr.firstValue >= easy.firstValue - (256 * r) && curr.firstValue <= easy.firstValue + (512 * r) &&
 				curr.firstValue >= prev.firstValue - (64 * r) && curr.firstValue <= prev.firstValue + (256 * r)) {
@@ -60,7 +60,7 @@ namespace sunfish {
 		}
 
 		if (curr.firstMove == easy.firstMove &&
-				curr.firstValue >= easy.firstValue && curr.firstValue <= easy.firstValue + (256 * r)) {
+				curr.firstValue >= easy.firstValue && curr.firstValue <= easy.firstValue + (128 * r)) {
 			return true;
 		}
 
