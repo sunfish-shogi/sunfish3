@@ -4,6 +4,9 @@
  */
 
 #include "Searcher.h"
+#include "tree/Worker.h"
+#include "tree/NodeStat.h"
+#include "see/See.h"
 #include "core/move/MoveGenerator.h"
 #include "logger/Logger.h"
 #include <iomanip>
@@ -54,17 +57,105 @@ namespace sunfish {
 	}
 
 	/**
+	 * tree の再確保
+	 */
+	void Searcher::reallocateTrees() {
+		if (_trees != nullptr) {
+			delete[] _trees;
+		}
+		_trees = new Tree[_config.treeSize];
+	}
+
+	/**
+	 * worker の再確保
+	 */
+	void Searcher::reallocateWorkers() {
+		if (_workers != nullptr) {
+			delete[] _workers;
+		}
+		_workers = new Worker[_config.workerSize];
+	}
+
+	/**
+	 * worker の取得
+	 */
+	Worker& Searcher::getWorker(Tree& tree) {
+		return _workers[tree.getTlp().workerId];
+	}
+
+	void Searcher::mergeInfo() {
+		memset(&_info, 0, sizeof(SearchInfoBase));
+		for (int id = 0; id < _config.workerSize; id++) {
+			auto& worker = _workers[id];
+			_info.failHigh                += worker.info.failHigh;
+			_info.failHighFirst           += worker.info.failHighFirst;
+			_info.failHighIsHash          += worker.info.failHighIsHash;
+			_info.failHighIsKiller1       += worker.info.failHighIsKiller1;
+			_info.failHighIsKiller2       += worker.info.failHighIsKiller2;
+			_info.hashProbed              += worker.info.hashProbed;
+			_info.hashHit                 += worker.info.hashHit;
+			_info.hashExact               += worker.info.hashExact;
+			_info.hashLower               += worker.info.hashLower;
+			_info.hashUpper               += worker.info.hashUpper;
+			_info.hashStore               += worker.info.hashStore;
+			_info.hashNew                 += worker.info.hashNew;
+			_info.hashUpdate              += worker.info.hashUpdate;
+			_info.hashCollision           += worker.info.hashCollision;
+			_info.hashReject              += worker.info.hashReject;
+			_info.mateProbed              += worker.info.mateProbed;
+			_info.mateHit                 += worker.info.mateHit;
+			_info.expand                  += worker.info.expand;
+			_info.expandHashMove          += worker.info.expandHashMove;
+			_info.shekProbed              += worker.info.shekProbed;
+			_info.shekSuperior            += worker.info.shekSuperior;
+			_info.shekInferior            += worker.info.shekInferior;
+			_info.shekEqual               += worker.info.shekEqual;
+			_info.nullMovePruning         += worker.info.nullMovePruning;
+			_info.nullMovePruningTried    += worker.info.nullMovePruningTried;
+			_info.futilityPruning         += worker.info.futilityPruning;
+			_info.extendedFutilityPruning += worker.info.extendedFutilityPruning;
+			_info.expanded                += worker.info.expanded;
+			_info.checkExtension          += worker.info.checkExtension;
+			_info.onerepExtension         += worker.info.onerepExtension;
+			_info.recapExtension          += worker.info.recapExtension;
+			_info.split                   += worker.info.split;
+			_info.node                    += worker.info.node;
+			_info.qnode                   += worker.info.qnode;
+		}
+	}
+
+	/**
 	 * 前処理
 	 */
 	void Searcher::before(const Board& initialBoard) {
 
-		// ツリーの初期化
-		// TODO: 全treeに適用
-		auto& tree = _trees[0];
-		tree.init(initialBoard, _eval, _record);
+		int mainTreeId = 0;
+		int mainWorkerId = 0;
 
-		// 探索情報収集準備
-		memset(&_info, 0, sizeof(_info));
+		// tree の初期化
+		for (int id = 0; id < _config.treeSize; id++) {
+			auto& tree = _trees[id];
+			tree.init(id, initialBoard, _eval, _record);
+		}
+		_idleTreeCount.store(_config.treeSize - 1);
+
+		// worker の初期化
+		for (int id = 0; id < _config.workerSize; id++) {
+			auto& worker = _workers[id];
+			worker.init(id, this);
+			if (id != mainWorkerId) {
+				worker.startOnNewThread();
+			}
+		}
+		_idleWorkerCount.store(_config.workerSize - 1);
+
+		// 最初の tree を確保
+		auto& tree0 = _trees[mainTreeId];
+		auto& worker0 = _workers[mainWorkerId];
+		tree0.use(mainWorkerId);
+		worker0.startOnCurrentThread(mainTreeId);
+
+		// timer 初期化
 		_timer.set();
 
 		// transposition table
@@ -73,8 +164,8 @@ namespace sunfish {
 		// hisotory heuristic
 		_history.reduce();
 
-		_forceInterrupt = false;
-		_isRunning = true;
+		_forceInterrupt.store(false);
+		_isRunning.store(true);
 
 		_timeManager.init();
 	}
@@ -84,19 +175,27 @@ namespace sunfish {
 	 */
 	void Searcher::after() {
 
-		auto& tree = _trees[0];
+		// tree の解放
+		for (int i = 0; i < _config.treeSize; i++) {
+			auto& tree = _trees[i];
+			tree.release(_record);
+		}
+
+		// worker の停止
+		for (int id = 1; id < _config.workerSize; id++) {
+			auto& worker = _workers[id];
+			worker.stop();
+		}
 
 		// 探索情報収集
+		auto& tree0 = _trees[0];
 		_info.time = _timer.get();
 		_info.nps = (_info.node + _info.qnode) / _info.time;
-		_info.move = tree.getPv().get(0).move;
+		_info.move = tree0.getPv().get(0).move;
+		mergeInfo();
 
-		// ツリーの解放
-		// TODO: 全treeに適用
-		tree.release(_record);
-
-		_isRunning = false;
-		_forceInterrupt = false;
+		_isRunning.store(false);
+		_forceInterrupt.store(false);
 
 	}
 
@@ -119,8 +218,10 @@ namespace sunfish {
 	/**
 	 * 探索中断判定
 	 */
-	inline bool Searcher::isInterrupted() {
-		if (_forceInterrupt) {
+	inline bool Searcher::isInterrupted(Tree& tree) {
+		if (tree.getTlp().shutdown.load()) {
+		}
+		if (_forceInterrupt.load()) {
 			return true;
 		}
 		if (_config.limitEnable && _timer.get() >= _config.limitSeconds) {
@@ -133,15 +234,17 @@ namespace sunfish {
 	 * 探索を強制的に打ち切ります。
 	 */
 	void Searcher::forceInterrupt() {
-		_forceInterrupt = true;
+		_forceInterrupt.store(true);
 	}
 
 	/**
 	 * sort moves by see
 	 */
 	void Searcher::sortSee(Tree& tree, int offset, Value standPat, Value alpha, bool enableKiller, bool estimate, bool exceptSmallCapture, bool isQuies) {
+		See see;
 		const auto& board = tree.getBoard();
 		auto& node = tree.getCurrentNode();
+		auto& worker = getWorker(tree);
 #if !ENABLE_KILLER_MOVE
 		assert(node.killer1.isEmpty());
 		assert(node.killer2.isEmpty());
@@ -172,16 +275,16 @@ namespace sunfish {
 			if (isQuies) {
 				// futility pruning
 				if (standPat + tree.estimate(move, _eval) <= alpha) {
-					_info.futilityPruning++;
+					worker.info.futilityPruning++;
 					ite = tree.getMoves().remove(ite);
 					continue;
 				}
 			}
 
 #if SHALLOW_SEE
-			value = _see.search<true>(board, move, -1, Value::PieceInf);
+			value = see.search<true>(board, move, -1, Value::PieceInf);
 #else
-			value = _see.search<false>(board, move, -1, Value::PieceInf);
+			value = see.search<false>(board, move, -1, Value::PieceInf);
 #endif
 			if (estimate) {
 				value += tree.estimate<true>(move, _eval);
@@ -412,6 +515,7 @@ namespace sunfish {
 
 		auto& moves = tree.getMoves();
 		auto& node = tree.getCurrentNode();
+		auto& worker = getWorker(tree);
 		const auto& board = tree.getBoard();
 
 		while (true) {
@@ -441,7 +545,7 @@ namespace sunfish {
 					if (!hashMove.isEmpty() && board.isValidMoveStrict(hashMove)) {
 						tree.addMove(hashMove);
 						tree.setThroughPhase(true);
-						_info.expandHashMove++;
+						worker.info.expandHashMove++;
 					}
 					node.genPhase = GenPhase::Capture;
 				}
@@ -605,7 +709,8 @@ namespace sunfish {
 		}
 #endif
 
-		_info.qnode++;
+		auto& worker = getWorker(tree);
+		worker.info.qnode++;
 
 		// stand-pat
 		Value standPat = tree.getValue() * (black ? 1 : -1);
@@ -624,9 +729,9 @@ namespace sunfish {
 		{
 			// search mate in 1 ply
 			bool mate;
-			_info.mateProbed++;
+			worker.info.mateProbed++;
 			if (_mt.get(tree.getBoard().getHash(), mate)) {
-				_info.mateHit++;
+				worker.info.mateHit++;
 			} else {
 				mate = Mate::mate1Ply(tree.getBoard());
 				_mt.set(tree.getBoard().getHash(), mate);
@@ -658,7 +763,7 @@ namespace sunfish {
 			tree.unmakeMove();
 
 			// 中断判定
-			if (isInterrupted()) {
+			if (isInterrupted(tree)) {
 				return Value::Zero;
 			}
 
@@ -721,7 +826,8 @@ namespace sunfish {
 
 		} else {
 			if (node.expStat & Killer1Done) {
-				Value val = _see.search<false>(board, move, -1, Value::PieceInf) - capVal + 1;
+				See see;
+				Value val = see.search<false>(board, move, -1, Value::PieceInf) - capVal + 1;
 				node.kvalue1 = Value::min(node.kvalue1, val);
 			}
 			node.killer2 = node.killer1;
@@ -765,22 +871,25 @@ namespace sunfish {
 #endif
 
 #if ENABLE_SHEK
+
+		auto& worker = getWorker(tree);
+
 		// SHEK
 		ShekStat shekStat = tree.checkShek();
-		_info.shekProbed++;
+		worker.info.shekProbed++;
 		switch (shekStat) {
 			case ShekStat::Superior:
 				// 既出の局面に対して優位な局面
-				_info.shekSuperior++;
+				worker.info.shekSuperior++;
 				return Value::Inf - tree.getPly();
 
 			case ShekStat::Inferior:
 				// 既出の局面に対して劣る局面
-				_info.shekInferior++;
+				worker.info.shekInferior++;
 				return -Value::Inf + tree.getPly();
 
 			case ShekStat::Equal:
-				_info.shekEqual++;
+				worker.info.shekEqual++;
 				switch(tree.getCheckRepStatus()) {
 				case RepStatus::Win:
 					return Value::Inf - tree.getPly();
@@ -824,7 +933,7 @@ namespace sunfish {
 			}
 		}
 
-		_info.node++;
+		worker.info.node++;
 
 		uint64_t hash = tree.getBoard().getHash();
 		bool isNullWindow = (beta == alpha + 1);
@@ -833,7 +942,7 @@ namespace sunfish {
 		Move hashMove = Move::empty();
 		{
 			TTE tte;
-			_info.hashProbed++;
+			worker.info.hashProbed++;
 			if (_tt.get(hash, tte)) {
 				if (depth < search_param::REC_THRESHOLD ||
 						tte.getDepth() >= search_func::recDepth(depth)) {
@@ -844,19 +953,19 @@ namespace sunfish {
 					if (stat.isHashCut() && isNullWindow) {
 						// 現在のノードに対して優位な条件の場合
 						if (tte.getDepth() >= depth ||
-								(ttv >= Value::Mate && (valueType == TTE::Lower || valueType == TTE::Exact)) ||
-								(ttv <= -Value::Mate && (valueType == TTE::Upper || valueType == TTE::Exact))) {
+								((valueType == TTE::Lower || valueType == TTE::Exact) && ttv >= Value::Mate) ||
+								((valueType == TTE::Upper || valueType == TTE::Exact) && ttv <= -Value::Mate)) {
 							if (valueType == TTE::Exact) {
 								// 確定値
-								_info.hashExact++;
+								worker.info.hashExact++;
 								return ttv;
 							} else if (valueType == TTE::Lower && ttv >= beta) {
 								// 下界値
-								_info.hashLower++;
+								worker.info.hashLower++;
 								return ttv;
 							} else if (valueType == TTE::Upper && ttv <= alpha) {
 								// 上界値
-								_info.hashUpper++;
+								worker.info.hashUpper++;
 								return ttv;
 							}
 						}
@@ -888,7 +997,7 @@ namespace sunfish {
 						stat.setMateThreat();
 					}
 				}
-				_info.hashHit++;
+				worker.info.hashHit++;
 			}
 		}
 
@@ -903,9 +1012,9 @@ namespace sunfish {
 			if (stat.isMate()) {
 				// search mate in 1 ply
 				bool mate;
-				_info.mateProbed++;
+				worker.info.mateProbed++;
 				if (_mt.get(tree.getBoard().getHash(), mate)) {
-					_info.mateHit++;
+					worker.info.mateHit++;
 				} else {
 					mate = Mate::mate1Ply(tree.getBoard());
 					_mt.set(tree.getBoard().getHash(), mate);
@@ -922,7 +1031,7 @@ namespace sunfish {
 				auto newStat = NodeStat().unsetNullMove();
 				int newDepth = search_func::nullDepth(depth);
 
-				_info.nullMovePruningTried++;
+				worker.info.nullMovePruningTried++;
 
 				// make move
 				tree.makeNullMove();
@@ -933,14 +1042,14 @@ namespace sunfish {
 				tree.unmakeNullMove();
 
 				// 中断判定
-				if (isInterrupted()) {
+				if (isInterrupted(tree)) {
 					return Value::Zero;
 				}
 
 				// beta-cut
 				if (currval >= beta) {
 					tree.updatePvNull(depth);
-					_info.nullMovePruning++;
+					worker.info.nullMovePruning++;
 					alpha = beta;
 					if (newDepth < Depth1Ply) {
 						goto hash_store;
@@ -962,7 +1071,7 @@ namespace sunfish {
 			search(tree, black, search_func::recDepth(depth), alpha, beta, newStat);
 
 			// 中断判定
-			if (isInterrupted()) {
+			if (isInterrupted(tree)) {
 				return Value::Zero;
 			}
 
@@ -974,7 +1083,7 @@ namespace sunfish {
 		}
 
 		tree.initGenPhase();
-		_info.expand++;
+		worker.info.expand++;
 #if ENABLE_HASH_MOVE
 		tree.setHash(hashMove);
 #else
@@ -983,7 +1092,7 @@ namespace sunfish {
 		while (nextMove(tree)) {
 			Move move = *tree.getCurrentMove();
 
-			_info.expanded++;
+			worker.info.expanded++;
 
 			// depth
 			int newDepth = depth - Depth1Ply;
@@ -1008,14 +1117,14 @@ namespace sunfish {
 			if (isCheckCurr) {
 				// check
 				newDepth += search_param::EXT_CHECK;
-				_info.checkExtension++;
+				worker.info.checkExtension++;
 
 			} else if (isCheckPrev && count == 0 && tree.getGenPhase() == GenPhase::End && tree.getNextMove() == tree.getEnd()) {
 				// one-reply
 				newDepth += search_param::EXT_ONEREP;
-				_info.onerepExtension++;
+				worker.info.onerepExtension++;
 
-			} else if (!isCheckPrev && stat.isRecapture() && tree.isRecapture() &&
+			} else if (!isCheckPrev && stat.isRecapture() && tree.isRecapture(move) &&
 								 (move == tree.getCapture1() ||
 									(move == tree.getCapture2() && tree.getCapture1Value() < tree.getCapture2Value() + 180))
 								 ) {
@@ -1027,7 +1136,7 @@ namespace sunfish {
 					newDepth += search_param::EXT_RECAP;
 				}
 				newStat.unsetRecapture();
-				_info.recapExtension++;
+				worker.info.recapExtension++;
 
 			}
 
@@ -1049,17 +1158,19 @@ namespace sunfish {
 				else if (newDepth >= Depth1Ply) { futAlpha -= search_param::EFUT_MGN1; }
 				if (standPat + tree.estimate(move, _eval) <= futAlpha) {
 					count++;
-					_info.futilityPruning++;
+					worker.info.futilityPruning++;
 					continue;
 				}
 			}
 
 			if (newDepth < Depth1Ply * 2 && isNullWindow && !isCheck &&
 					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
-					!tree.isPriorMove(move) &&
-					_see.search<true>(board, move, -1, 0) < Value::Zero) {
-				count++;
-				continue;
+					!tree.isPriorMove(move)) {
+				See see;
+				if (see.search<true>(board, move, -1, 0) < Value::Zero) {
+					count++;
+					continue;
+				}
 			}
 
 			// make move
@@ -1076,7 +1187,7 @@ namespace sunfish {
 						(newDepth < Depth1Ply * 3 && newStandPat + search_param::EFUT_MGN2 <= alpha)) {
 					tree.unmakeMove();
 					count++;
-					_info.extendedFutilityPruning++;
+					worker.info.extendedFutilityPruning++;
 					continue;
 				}
 			}
@@ -1090,12 +1201,12 @@ namespace sunfish {
 				// nega-scout
 				currval = -search(tree, !black, newDepth, -alpha-1, -alpha, newStat);
 
-				if (!isInterrupted() && currval > alpha && reduced > 0) {
+				if (!isInterrupted(tree) && currval > alpha && reduced > 0) {
 					newDepth += reduced;
 					currval = -search(tree, !black, newDepth, -alpha-1, -alpha, newStat);
 				}
 
-				if (!isInterrupted() && currval > alpha && currval < beta && !isNullWindow) {
+				if (!isInterrupted(tree) && currval > alpha && currval < beta && !isNullWindow) {
 					currval = -search(tree, !black, newDepth, -beta, -alpha, newStat);
 				}
 
@@ -1105,7 +1216,7 @@ namespace sunfish {
 			tree.unmakeMove();
 
 			// 中断判定
-			if (isInterrupted()) {
+			if (isInterrupted(tree)) {
 				return Value::Zero;
 			}
 
@@ -1119,20 +1230,38 @@ namespace sunfish {
 
 				// beta-cut
 				if (currval >= beta) {
-					_info.failHigh++;
+					worker.info.failHigh++;
 					if (count == 0) {
-						_info.failHighFirst++;
+						worker.info.failHighFirst++;
 					}
 					if (move == tree.getHash()) {
-						_info.failHighIsHash++;
+						worker.info.failHighIsHash++;
 					} else if (move == tree.getKiller1()) {
-						_info.failHighIsKiller1++;
+						worker.info.failHighIsKiller1++;
 					} else if (move == tree.getKiller2()) {
-						_info.failHighIsKiller2++;
+						worker.info.failHighIsKiller2++;
 					}
 					break;
 				}
 			}
+
+			// split
+			if ((depth >= Depth1Ply * 4 || (depth >= Depth1Ply * 3 && _rootDepth <= Depth1Ply * 12)) &&
+					tree.getEnd() - tree.getCurrentMove() >= _config.workerSize &&
+					_idleWorkerCount.load() >= 1 && _idleTreeCount.load() >= 2) {
+				if (split(tree, black, depth, alpha, beta, best, standPat, stat)) {
+					worker.info.split++;
+					if (isInterrupted(tree)) {
+						return Value::Zero;
+					}
+					if (tree.getTlp().alpha > alpha) {
+						alpha = tree.getTlp().alpha;
+						best = tree.getTlp().best;
+					}
+					break;
+				}
+			}
+
 			count++;
 
 		}
@@ -1152,18 +1281,311 @@ hash_store:
 		{
 			TTStatus status = _tt.entry(hash, oldAlpha, beta, alpha, depth, tree.getPly(), Move::serialize16(best), stat);
 			switch (status) {
-				case TTStatus::New: _info.hashNew++; break;
-				case TTStatus::Update: _info.hashUpdate++; break;
-				case TTStatus::Collide: _info.hashCollision++; break;
-				case TTStatus::Reject: _info.hashReject++; break;
+				case TTStatus::New: worker.info.hashNew++; break;
+				case TTStatus::Update: worker.info.hashUpdate++; break;
+				case TTStatus::Collide: worker.info.hashCollision++; break;
+				case TTStatus::Reject: worker.info.hashReject++; break;
 				default: break;
 			}
-			_info.hashStore++;
+			worker.info.hashStore++;
 		}
 
 search_end:
 		return alpha;
 
+	}
+
+	void Searcher::releaseTree(int tid) {
+		auto& tree = _trees[tid];
+		auto& parent = _trees[tree.getTlp().parentTreeId];
+		tree.unuse();
+		_idleTreeCount.fetch_add(1);
+		parent.getTlp().childCount.fetch_sub(1);
+	}
+
+	/**
+	 * split
+	 */
+	bool Searcher::split(Tree& parent, bool black, int depth, Value alpha, Value beta, Move best, Value standPat, NodeStat stat) {
+		int currTreeId = Tree::InvalidId;
+
+		{
+			std::lock_guard<std::mutex> lock(_splitMutex);
+
+			if (_idleTreeCount.load() <= 1 || _idleWorkerCount.load() == 0) {
+				return false;
+			}
+
+			// カレントスレッドに割り当てる tree を決定
+			for (int tid = 1; tid < _config.treeSize; tid++) {
+				auto& tree = _trees[tid];
+				if (!tree.getTlp().used) {
+					currTreeId = tid;
+					tree.use(parent, parent.getTlp().workerId);
+					_idleTreeCount.fetch_sub(1);
+					break;
+				}
+			}
+
+			// 他の worker と tree を確保
+			int childCount = 1;
+			for (int wid = 0; wid < _config.workerSize; wid++) {
+				auto& worker = _workers[wid];
+				if (!worker.job.load()) {
+					for (int tid = 1; tid < _config.treeSize; tid++) {
+						auto& tree = _trees[tid];
+						if (!tree.getTlp().used) {
+							tree.use(parent, wid);
+							_idleTreeCount.fetch_sub(1);
+
+							worker.setJob(tid);
+							_idleWorkerCount.fetch_sub(1);
+
+							childCount++;
+
+							if (_idleTreeCount.load() == 0 || _idleWorkerCount.load() == 0) {
+								goto lab_assign_end;
+							}
+
+							break;
+						}
+					}
+				}
+			}
+			lab_assign_end:
+				;
+
+			parent.getTlp().childCount.store(childCount);
+			parent.getTlp().black    = black;
+			parent.getTlp().depth    = depth;
+			parent.getTlp().alpha    = alpha;
+			parent.getTlp().beta     = beta;
+			parent.getTlp().best     = best;
+			parent.getTlp().standPat = standPat;
+			parent.getTlp().stat     = stat;
+		}
+
+		auto& tree = _trees[currTreeId];
+		auto& worker = _workers[parent.getTlp().workerId];
+		worker.swapTree(currTreeId);
+		searchTlp(tree);
+		worker.swapTree(parent.getTlp().treeId);
+
+		{
+			std::lock_guard<std::mutex> lock(_splitMutex);
+			tree.unuse();
+			_idleTreeCount.fetch_add(1);
+			parent.getTlp().childCount.fetch_sub(1);
+		}
+
+		if (!tree.getTlp().shutdown.load()) {
+			// suspend
+			worker.waitForJob(&parent);
+		} else {
+			// wait for brothers
+			while (true) {
+				if (parent.getTlp().childCount.load() == 0) {
+					break;
+				}
+				std::this_thread::yield();
+			}
+		}
+
+		return true;
+	}
+
+	void Searcher::searchTlp(Tree& tree) {
+		{
+			std::lock_guard<std::mutex> lock(_splitMutex);
+		}
+
+		auto& parent = _trees[tree.getTlp().parentTreeId];
+		auto& worker = getWorker(tree);
+
+		bool black = parent.getTlp().black;
+		int depth = parent.getTlp().depth;
+		Value beta = parent.getTlp().beta;
+		Value standPat = parent.getTlp().standPat;
+		NodeStat stat = parent.getTlp().stat;
+
+		tree.initGenPhase();
+
+		while (true) {
+			Move move;
+			Value alpha;
+			const auto& board = tree.getBoard();
+			bool isCheckCurr;
+			bool isCheckPrev = tree.isChecking();
+			bool isCheck;
+			bool isPriorMove;
+			Piece captured;
+
+			{
+				std::lock_guard<std::mutex> lock(parent.getMutex());
+
+				if (!nextMove(parent)) {
+					return;
+				}
+
+				move = *parent.getCurrentMove();
+				alpha = parent.getTlp().alpha;
+				captured = board.getBoardPiece(move.to());
+				isCheckCurr = board.isCheck(move);
+				isCheck = isCheckCurr || isCheckPrev;
+				isPriorMove = parent.isPriorMove(move);
+
+				if (!isCheckCurr && captured.isEmpty() &&
+						(!move.promote() || move.piece() == Piece::Silver)) {
+					parent.getCurrentNode().histMoves.add(move);
+				}
+			}
+
+			tree.addMove(move);
+			tree.selectNextMove();
+
+			// depth
+			int newDepth = depth - Depth1Ply;
+                          
+			// stat
+			NodeStat newStat = NodeStat::Default;
+
+			bool isNullWindow = (beta == alpha + 1);
+
+			// extensions
+			if (isCheckCurr) {
+				// check
+				newDepth += search_param::EXT_CHECK;
+				worker.info.checkExtension++;
+
+			} else if (!isCheckPrev && stat.isRecapture() && parent.isRecapture(move) &&
+								 (move == parent.getCapture1() ||
+									(move == parent.getCapture2() && parent.getCapture1Value() < parent.getCapture2Value() + 180))
+								 ) {
+				// recapture
+				Move fmove = parent.getFrontMove();
+				if (!move.promote() && fmove.piece() == fmove.captured()) {
+					newDepth += search_param::EXT_RECAP2;
+				} else {
+					newDepth += search_param::EXT_RECAP;
+				}
+				newStat.unsetRecapture();
+				worker.info.recapExtension++;
+
+			}
+
+			// late move reduction
+			int reduced = 0;
+#if ENABLE_LMR
+			if (newDepth >= Depth1Ply && !isCheckPrev && !stat.isMateThreat() &&
+					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
+					!isPriorMove) {
+				reduced = getReductionDepth(move, isNullWindow);
+				newDepth -= reduced;
+			}
+#endif // ENABLE_LMR
+
+			// futility pruning
+			if (!isCheck && newDepth < Depth1Ply * 3 && alpha > -Value::Mate) {
+				Value futAlpha = alpha;
+				if (newDepth >= Depth1Ply * 2) { futAlpha -= search_param::EFUT_MGN2; }
+				else if (newDepth >= Depth1Ply) { futAlpha -= search_param::EFUT_MGN1; }
+				if (standPat + tree.estimate(move, _eval) <= futAlpha) {
+					worker.info.futilityPruning++;
+					continue;
+				}
+			}
+
+			if (newDepth < Depth1Ply * 2 && isNullWindow && !isCheck &&
+					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
+					!isPriorMove) {
+				See see;
+				if (see.search<true>(board, move, -1, 0) < Value::Zero) {
+					continue;
+				}
+			}
+
+			if (!tree.makeMove(_eval)) {
+				continue;
+			}
+
+			Value newStandPat = tree.getValue() * (black ? 1 : -1);
+
+			// extended futility pruning
+			if (!isCheck && alpha > -Value::Mate) {
+				if ((newDepth < Depth1Ply && newStandPat <= alpha) ||
+						(newDepth < Depth1Ply * 2 && newStandPat + search_param::EFUT_MGN1 <= alpha) ||
+						(newDepth < Depth1Ply * 3 && newStandPat + search_param::EFUT_MGN2 <= alpha)) {
+					tree.unmakeMove();
+					worker.info.extendedFutilityPruning++;
+					continue;
+				}
+			}
+
+			// nega-scout
+			Value currval = -search(tree, !black, newDepth, -alpha-1, -alpha, newStat);
+
+			if (!isInterrupted(tree) && currval > alpha && reduced > 0) {
+				newDepth += reduced;
+				currval = -search(tree, !black, newDepth, -alpha-1, -alpha, newStat);
+			}
+
+			if (!isInterrupted(tree) && currval > alpha && currval < beta && !isNullWindow) {
+				currval = -search(tree, !black, newDepth, -beta, -alpha, newStat);
+			}
+
+			// unmake move
+			tree.unmakeMove();
+
+			// 中断判定
+			if (isInterrupted(tree)) {
+				return;
+			}
+
+			{
+				std::lock_guard<std::mutex> lock(parent.getMutex());
+
+				if (tree.getTlp().shutdown.load()) {
+					return;
+				}
+
+				// 値更新
+				if (currval > parent.getTlp().alpha) {
+					parent.getTlp().alpha = currval;
+					parent.getTlp().best = move;
+					if (!isNullWindow) {
+						parent.updatePv(depth, tree);
+					}
+
+					// beta-cut
+					if (currval >= parent.getTlp().beta) {
+						worker.info.failHigh++;
+						if (move == parent.getHash()) {
+							worker.info.failHighIsHash++;
+						} else if (move == parent.getKiller1()) {
+							worker.info.failHighIsKiller1++;
+						} else if (move == parent.getKiller2()) {
+							worker.info.failHighIsKiller2++;
+						}
+						shutdownSiblings(parent);
+					}
+				}
+			}
+		}
+	}
+
+	void Searcher::shutdownSiblings(Tree& parent) {
+		std::lock_guard<std::mutex> lock(_splitMutex);
+
+		for (int id = 0; id < _config.treeSize; id++) {
+			int parentId = _trees[id].getTlp().parentTreeId;
+			while (parentId != Tree::InvalidId) {
+				if (parentId == parent.getTlp().treeId) {
+					_trees[id].getTlp().shutdown.store(true);
+					break;
+				}
+				parentId = _trees[parentId].getTlp().parentTreeId;
+			}
+		}
 	}
 
 	/**
@@ -1175,6 +1597,8 @@ search_end:
 		bool black = board.isBlack();
 		int count = 0;
 		Value oldAlpha = alpha;
+
+		_rootDepth = depth;
 
 		while (nextMove(tree)) {
 			Move move = *tree.getCurrentMove();
@@ -1224,13 +1648,13 @@ search_end:
 				// nega-scout
 				currval = -search(tree, !black, newDepth, -alpha-1, -alpha);
 
-				if (!isInterrupted() && currval >= alpha + 1 && reduced != 0) {
+				if (!isInterrupted(tree) && currval >= alpha + 1 && reduced != 0) {
 					// full depth
 					newDepth += reduced;
 					currval = -search(tree, !black, newDepth, -alpha-1, -alpha);
 				}
 
-				if (!isInterrupted() && currval >= alpha + 1) {
+				if (!isInterrupted(tree) && currval >= alpha + 1) {
 					// full window search
 					currval = -search(tree, !black, newDepth, -beta, -alpha);
 				}
@@ -1240,7 +1664,7 @@ search_end:
 			tree.unmakeMove();
 
 			// 中断判定
-			if (isInterrupted()) {
+			if (isInterrupted(tree)) {
 				return alpha;
 			}
 
@@ -1286,9 +1710,7 @@ search_end:
 	 * @return {負けたか中断された場合にfalseを返します。}
 	 */
 	bool Searcher::searchAsp(int depth, Move& best, Value* pval /* = nullptr */) {
-
-		// tree
-		auto& tree = _trees[0];
+		auto& tree0 = _trees[0];
 
 		bool hasPrevVal = pval != nullptr && (*pval != -Value::Inf);
 		Value baseVal = hasPrevVal ? *pval : 0;
@@ -1306,10 +1728,10 @@ search_end:
 			const Value alpha = alphas[lower];
 			const Value beta = betas[upper];
 
-			value = searchRoot(tree, depth, alpha, beta, best);
+			value = searchRoot(tree0, depth, alpha, beta, best);
 
 			// 中断判定
-			if (isInterrupted()) {
+			if (isInterrupted(tree0)) {
 				return false;
 			}
 
@@ -1325,7 +1747,7 @@ search_end:
 				lower++;
 				assert(lower < wmax);
 				retry = true;
-				tree.selectFirstMove();
+				tree0.selectFirstMove();
 			}
 
 			// beta 値を広げる
@@ -1333,7 +1755,7 @@ search_end:
 				upper++;
 				assert(upper < wmax);
 				retry = true;
-				tree.selectPreviousMove();
+				tree0.selectPreviousMove();
 			}
 
 			if (!retry) { break; }
@@ -1344,8 +1766,8 @@ search_end:
 			showEndOfIterate(depth / Depth1Ply);
 		}
 
-		tree.setSortValues(_rootValues);
-		tree.sortAll();
+		tree0.setSortValues(_rootValues);
+		tree0.sortAll();
 
 		_info.eval = value;
 		if (pval != nullptr) {
@@ -1366,6 +1788,8 @@ search_end:
 	}
 
 	void Searcher::showPv(int depth, const Pv& pv, const Value& value) {
+		mergeInfo();
+
 		uint64_t node = _info.node + _info.qnode;
 
 		std::ostringstream oss;
@@ -1382,6 +1806,8 @@ search_end:
 	}
 
 	void Searcher::showEndOfIterate(int depth) {
+		mergeInfo();
+
 		uint64_t node = _info.node + _info.qnode;
 		double seconds = _timer.get();
 
@@ -1398,16 +1824,15 @@ search_end:
 	}
 
 	void Searcher::generateMovesOnRoot() {
-		// tree
-		auto& tree = _trees[0];
+		auto& tree0 = _trees[0];
 
-		auto& moves = tree.getMoves();
-		const auto& board = tree.getBoard();
+		auto& moves = tree0.getMoves();
+		const auto& board = tree0.getBoard();
 
 		// 合法手生成
-		tree.initGenPhase();
+		tree0.initGenPhase();
 		MoveGenerator::generate(board, moves);
-		tree.resetGenPhase();
+		tree0.resetGenPhase();
 
 		// 非合法手除去
 		for (auto ite = moves.begin(); ite != moves.end();) {
@@ -1424,29 +1849,28 @@ search_end:
 	 * @return {負けたか深さ1で中断された場合にfalseを返します。}
 	 */
 	bool Searcher::idsearch(Move& best) {
-
-		auto& tree = _trees[0];
+		auto& tree0 = _trees[0];
 		bool result = false;
 
 		generateMovesOnRoot();
 
-		Value value = searchRoot(tree, Depth1Ply, -Value::Inf, Value::Inf, best, true);
-		tree.setSortValues(_rootValues);
-		tree.sortAll();
+		Value value = searchRoot(tree0, Depth1Ply, -Value::Inf, Value::Inf, best, true);
+		tree0.setSortValues(_rootValues);
+		tree0.sortAll();
 
 		for (int depth = 1; depth <= _config.maxDepth; depth++) {
 			bool cont = searchAsp(depth * Depth1Ply + Depth1Ply / 2, best, &value);
 
 #if DEBUG_ROOT_MOVES
 			std::ostringstream oss;
-			for (auto ite = tree.getBegin(); ite != tree.getEnd(); ite++) {
-				oss << ' ' << (*ite).toString() << '[' << tree.getSortValue(ite) << ']';
+			for (auto ite = tree0.getBegin(); ite != tree0.getEnd(); ite++) {
+				oss << ' ' << (*ite).toString() << '[' << tree0.getSortValue(ite) << ']';
 			}
 			Loggers::debug << oss.str();
 #endif
 
 #if ENABLE_STORE_PV
-			storePv(tree, tree.getPv(), 0);
+			storePv(tree0, tree0.getPv(), 0);
 #endif // ENABLE_STORE_PV
 
 			if (value >= Value::Mate) {

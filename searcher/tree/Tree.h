@@ -7,9 +7,13 @@
 #define __SUNFISH_TREE__
 
 #include "Pv.h"
+#include "NodeStat.h"
 #include "../eval/Evaluator.h"
 #include "../shek/ShekTable.h"
 #include "core/move/Moves.h"
+#include "core/def.h"
+#include <atomic>
+#include <mutex>
 #include <vector>
 #include <cstdint>
 #include <cassert>
@@ -42,7 +46,8 @@ namespace sunfish {
 	class Tree {
 	public:
 
-		static const int StackSize = 64;
+		static CONSTEXPR int StackSize = 64;
+		static CONSTEXPR int InvalidId = -1;
 
 	private:
 
@@ -94,11 +99,33 @@ namespace sunfish {
 		CheckHist _checkHist[1024];
 		int _checkHistCount;
 
+		std::mutex _mutex;
+
+		struct Tlp {
+			int treeId;
+			int parentTreeId;
+			int workerId;
+			bool used;
+			std::atomic<int> childCount;
+			std::atomic<bool> shutdown;
+			bool black;
+			int depth;
+			Value alpha;
+			Value beta;
+			Move best;
+			Value standPat;
+			NodeStat stat;
+		} _tlp;
+
+		void clearStack();
+
+		void fastCopy(Tree& parent);
+
 	public:
 
 		Tree();
 
-		void init(const Board& board, Evaluator& eval, const std::vector<Move>& record);
+		void init(int id, const Board& board, Evaluator& eval, const std::vector<Move>& record);
 		void release(const std::vector<Move>& record);
 
 		int getPly() const {
@@ -132,13 +159,12 @@ namespace sunfish {
 			return _stack[_ply].move;
 		}
 
-		bool isRecapture() const {
+		bool isRecapture(const Move& move) const {
 			assert(_ply >= 1);
 			assert(_stack[_ply].ite != _stack[_ply].moves.begin());
-			const auto& m0 = _stack[_ply].move;
-			const auto& m1 = *(_stack[_ply].ite - 1);
-			return !m0.isEmpty() && m0.to() == m1.to() &&
-				(m0.isCapturing() || (m0.promote() && m0.piece() != Piece::Silver));
+			const auto& fmove = _stack[_ply].move;
+			return !fmove.isEmpty() && fmove.to() == move.to() &&
+				(fmove.isCapturing() || (fmove.promote() && fmove.piece() != Piece::Silver));
 		}
 
 		Moves::iterator getNextMove() {
@@ -377,8 +403,14 @@ namespace sunfish {
 		void updatePv(int depth) {
 			auto& curr = _stack[_ply];
 			auto& next = _stack[_ply+1];
-			assert(_stack[_ply].ite != _stack[_ply].moves.begin());
-			auto& move = *(_stack[_ply].ite-1);
+			auto& move = *getCurrentMove();
+			curr.pv.set(move, depth, next.pv);
+		}
+
+		void updatePv(int depth, Tree& child) {
+			auto& curr = _stack[_ply];
+			auto& next = child._stack[_ply+1];
+			auto& move = *child.getCurrentMove();
 			curr.pv.set(move, depth, next.pv);
 		}
 
@@ -479,6 +511,33 @@ namespace sunfish {
 		const Move& __debug__getPreFrontMove() const {
 			assert(_ply >= 2);
 			return _stack[_ply-1].move;
+		}
+
+		void use(int wid) {
+			_tlp.used = true;
+			_tlp.workerId = wid;
+			_tlp.parentTreeId = InvalidId;
+			_tlp.shutdown.store(false);
+		}
+
+		void use(Tree& parent, int wid) {
+			fastCopy(parent);
+			_tlp.used = true;
+			_tlp.workerId = wid;
+			_tlp.parentTreeId = parent._tlp.treeId;
+			_tlp.shutdown.store(false);
+		}
+
+		void unuse() {
+			_tlp.used = false;
+		}
+
+		std::mutex& getMutex() {
+			return _mutex;
+		}
+
+		Tlp& getTlp() {
+			return _tlp;
 		}
 
 	};

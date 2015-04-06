@@ -7,17 +7,20 @@
 #define __SUNFISH_SEARCHER__
 
 #include "Mate.h"
-#include "see/See.h"
+#include "SearchInfo.h"
 #include "tree/Tree.h"
-#include "tree/NodeStat.h"
 #include "history/History.h"
 #include "tt/TT.h"
 #include "time/TimeManager.h"
 #include "core/record/Record.h"
 #include "core/util/Timer.h"
+#include <mutex>
 #include <atomic>
 
 namespace sunfish {
+
+	class Tree;
+	struct Worker;
 
 	class Searcher {
 	public:
@@ -28,7 +31,7 @@ namespace sunfish {
 		struct Config {
 			int maxDepth;
 			int treeSize;
-			int wokerSize;
+			int workerSize;
 			bool limitEnable;
 			int limitSeconds;
 			bool ponder;
@@ -36,62 +39,20 @@ namespace sunfish {
 
 		static const int DefaultMaxDepth = 7;
 
-		/** 探索情報 */
-		struct Info {
-			uint64_t failHigh;
-			uint64_t failHighFirst;
-			uint64_t failHighIsHash;
-			uint64_t failHighIsKiller1;
-			uint64_t failHighIsKiller2;
-			uint64_t hashProbed;
-			uint64_t hashHit;
-			uint64_t hashExact;
-			uint64_t hashLower;
-			uint64_t hashUpper;
-			uint64_t hashStore;
-			uint64_t hashNew;
-			uint64_t hashUpdate;
-			uint64_t hashCollision;
-			uint64_t hashReject;
-			uint64_t mateProbed;
-			uint64_t mateHit;
-			uint64_t expand;
-			uint64_t expandHashMove;
-			uint64_t shekProbed;
-			uint64_t shekSuperior;
-			uint64_t shekInferior;
-			uint64_t shekEqual;
-			uint64_t nullMovePruning;
-			uint64_t nullMovePruningTried;
-			uint64_t futilityPruning;
-			uint64_t extendedFutilityPruning;
-			uint64_t expanded;
-			uint64_t checkExtension;
-			uint64_t onerepExtension;
-			uint64_t recapExtension;
-			uint64_t node;
-			uint64_t qnode;
-			double time;
-			double nps;
-			Move move;
-			Value eval;
-			int lastDepth;
-		};
-
 	private:
 
 		Config _config;
-		Info _info;
+		SearchInfo _info;
 		Timer _timer;
 
 		/** tree */
 		Tree* _trees;
 
+		/** worker */
+		Worker* _workers;
+
 		/** 評価関数 */
 		Evaluator _eval;
-
-		/** static exchange evaluation */
-		See _see;
 
 		/** history heuristic */
 		History _history;
@@ -108,6 +69,10 @@ namespace sunfish {
 		/** values of child node of root node */
 		int _rootValues[1024];
 
+		int _rootDepth;
+
+		std::mutex _splitMutex;
+
 		/** 中断フラグ */
 		std::atomic<bool> _forceInterrupt;
 
@@ -123,21 +88,28 @@ namespace sunfish {
 		void initConfig() {
 			_config.maxDepth = DefaultMaxDepth;
 			_config.treeSize = 1;
-			_config.wokerSize = 1;
+			_config.workerSize = 1;
 			_config.limitEnable = true;
 			_config.limitSeconds = 10;
 			_config.ponder = false;
 		}
 
 		/**
-		 * ツリーの再確保
+		 * tree の再確保
 		 */
-		void reallocateTrees() {
-			if (_trees != nullptr) {
-				delete[] _trees;
-			}
-			_trees = new Tree[_config.treeSize];
-		}
+		void reallocateTrees();
+
+		/**
+		 * worker の再確保
+		 */
+		void reallocateWorkers();
+
+		/**
+		 * worker の取得
+		 */
+		Worker& getWorker(Tree& tree);
+
+		void mergeInfo();
 
 		/**
 		 * 前処理
@@ -152,7 +124,7 @@ namespace sunfish {
 		/**
 		 * 探索中断判定
 		 */
-		bool isInterrupted();
+		bool isInterrupted(Tree& tree);
 
 		/**
 		 * sort moves by see
@@ -215,6 +187,15 @@ namespace sunfish {
 		Value search(Tree& tree, bool black, int depth, Value alpha, Value beta, NodeStat stat = NodeStat::Default);
 
 		/**
+		 * split
+		 */
+		bool split(Tree& parent, bool black, int depth, Value alpha, Value beta, Move best, Value standPat, NodeStat stat);
+
+		void searchTlp(Tree& tree);
+
+		void shutdownSiblings(Tree& parent);
+
+		/**
 		 * search on root node
 		 */
 		Value searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move& best, bool forceFullWindow = false);
@@ -239,11 +220,15 @@ namespace sunfish {
 
 	public:
 
+		std::atomic<int> _idleTreeCount;
+		std::atomic<int> _idleWorkerCount;
+
 		/**
 		 * コンストラクタ
 		 */
 		Searcher()
 		: _trees(nullptr)
+		, _workers(nullptr)
 		, _forceInterrupt(false)
 		, _isRunning(false)
 		{
@@ -256,6 +241,7 @@ namespace sunfish {
 		 */
 		void init() {
 			reallocateTrees();
+			reallocateWorkers();
 		}
 
 		/**
@@ -266,6 +252,9 @@ namespace sunfish {
 			_config = config;
 			if (_config.treeSize != org.treeSize) {
 				reallocateTrees();
+			}
+			if (_config.workerSize != org.workerSize) {
+				reallocateWorkers();
 			}
 		}
 
@@ -279,7 +268,7 @@ namespace sunfish {
 		/**
 		 * 探索情報を取得します。
 		 */
-		const Info& getInfo() const {
+		const SearchInfo& getInfo() const {
 			return _info;
 		}
 
@@ -302,7 +291,7 @@ namespace sunfish {
 		 * 探索中かチェックします。
 		 */
 		bool isRunning() const {
-			return _isRunning;
+			return _isRunning.load();
 		}
 
 		/**
@@ -336,6 +325,29 @@ namespace sunfish {
 		 */
 		void clearHistory() {
 			_history.init();
+		}
+
+		std::mutex& getSplitMutex() {
+			return _splitMutex;
+		}
+
+		void addIdleWorker() {
+			_idleWorkerCount.fetch_add(1);
+		}
+
+		void reduceIdleWorker() {
+			_idleWorkerCount.fetch_sub(1);
+		}
+
+		void releaseTree(int tid);
+
+		void searchTlp(int tid) {
+			auto& tree = _trees[tid];
+			searchTlp(tree);
+		}
+
+		static int standardTreeSize(int workerSize) {
+			return workerSize * 4 - 3;
 		}
 
 	};

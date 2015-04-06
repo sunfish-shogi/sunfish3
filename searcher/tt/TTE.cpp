@@ -68,6 +68,8 @@ namespace sunfish {
 		_1.mateThreat = stat.isMateThreat();
 		_1.age = newAge;
 
+		_2.checkSum = calcCheckSum();
+
 		return true;
 
 	}
@@ -94,6 +96,8 @@ namespace sunfish {
 		}
 		_1.mateThreat = false;
 		_1.age = newAge;
+
+		_2.checkSum = calcCheckSum();
 	}
 
 	TTStatus TTEs::set(const TTE& entity) {

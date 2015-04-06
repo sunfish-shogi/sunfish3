@@ -86,7 +86,7 @@ P-00FU00FU00FU\n\
 		moves.push_back(Move(Piece::Silver, P37, P28, false));
 		moves.push_back(Move(Piece::King, P17, P26, false));
 
-		tree.init(board, eval, moves);
+		tree.init(0, board, eval, moves);
 		ASSERT_EQ((int)RepStatus::None, (int)tree.getCheckRepStatus());
 		tree.initGenPhase();
 		tree.addMove(Move(Piece::Silver, P28, P37, false));
@@ -121,7 +121,7 @@ P-00FU00FU00FU\n\
 		moves.push_back(Move(Piece::Silver, P37, P28, false));
 		moves.push_back(Move(Piece::King, P17, P26, false));
 
-		tree.init(board, eval, moves);
+		tree.init(0, board, eval, moves);
 		ASSERT_EQ((int)RepStatus::None, (int)tree.getCheckRepStatus());
 		tree.initGenPhase();
 		tree.addMove(Move(Piece::Silver, P28, P37, false));

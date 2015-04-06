@@ -58,6 +58,7 @@ namespace sunfish {
 		config.autoWhite = true;
 		config.maxDepth = 15;
 		config.limitSeconds = 3;
+		config.worker = 1;
 		config.inFileName = "";
 		config.outFileName = "console.csa";
 		return config;
@@ -500,7 +501,7 @@ namespace sunfish {
 		return true;
 	}
 
-	void ConsoleManager::showSearchInfo(const Searcher::Info& info) {
+	void ConsoleManager::showSearchInfo(const SearchInfo& info) {
 		auto format = [](int64_t value) {
 			std::ostringstream oss;
 			oss << std::setw(8) << (value);
@@ -520,6 +521,7 @@ namespace sunfish {
 		lines.emplace_back("time           ", format (info.time));
 		lines.emplace_back("nps            ", format (std::ceil(info.nps)));
 		lines.emplace_back("eval           ", format (info.eval.int32()));
+		lines.emplace_back("split          ", format (info.split));
 		lines.emplace_back("fail high first", format2(info.failHighFirst, info.failHigh));
 		lines.emplace_back("fail high hash ", format2(info.failHighIsHash, info.failHigh));
 		lines.emplace_back("fail high kill1", format2(info.failHighIsKiller1, info.failHigh));

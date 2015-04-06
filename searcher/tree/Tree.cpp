@@ -14,7 +14,7 @@ namespace sunfish {
 		_shekTable.init();
 	}
 
-	void Tree::init(const Board& board, Evaluator& eval, const std::vector<Move>& record) {
+	void Tree::init(int id, const Board& board, Evaluator& eval, const std::vector<Move>& record) {
 		_ply = 0;
 		_board = board;
 #ifndef NDEBUG
@@ -39,9 +39,14 @@ namespace sunfish {
 			_checkHist[i].hash = tmpBoard.getHash();
 		}
 		_checkHistCount = record.size();
+
+		_tlp.treeId = id;
+		_tlp.used = false;
 	}
 
 	void Tree::release(const std::vector<Move>& record) {
+		clearStack();
+
 		// SHEK
 		Board board = _board;
 		for (int i = (int)record.size()-1; i >= 0; i--) {
@@ -127,6 +132,56 @@ namespace sunfish {
 
 	bool Tree::__debug__matchPath(const char* path) const {
 		return __debug__getPath() == path;
+	}
+
+	void Tree::clearStack() {
+		while (_ply >= 1) {
+			auto& curr = _stack[_ply];
+			_ply--;
+			if (!curr.move.isEmpty()) {
+				_board.unmakeMove(curr.move);
+				_shekTable.unset(_board);
+			} else {
+				_board.unmakeNullMove();
+			}
+		}
+	}
+
+	void Tree::fastCopy(Tree& parent) {
+		clearStack();
+
+		for (int ply = 1; ply <= parent._ply; ply++) {
+			Move move = parent._stack[ply].move;
+			if (!move.isEmpty()) {
+				_shekTable.set(_board);
+				_board.makeMove(move);
+			} else {
+				_board.makeNullMove();
+			}
+			_ply++;
+
+			auto& curr = _stack[_ply];
+			auto& parentCurr = parent._stack[_ply];
+			curr.move = move;
+			curr.checking = parentCurr.checking;
+			curr.valuePair = parentCurr.valuePair;
+
+			auto& child = _stack[_ply+1];
+			auto& parentChild = parent._stack[_ply+1];
+			child.killer1 = parentChild.killer1;
+			child.killer2 = parentChild.killer2;
+			child.nocap1 = parentChild.nocap1;
+			child.nocap2 = parentChild.nocap2;
+		}
+
+		_checkHistCount = parent._checkHistCount;
+		for (int i = 0; i < _checkHistCount; i++) {
+			_checkHist[i].check = parent._checkHist[i].check;
+			_checkHist[i].hash =  parent._checkHist[i].hash;
+		}
+
+		assert(parent._ply == _ply);
+		assert(parent._board.getHash() == _board.getHash());
 	}
 
 }

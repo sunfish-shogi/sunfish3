@@ -304,7 +304,7 @@ lab_end:
 
 		// 探索が開始されていることを確認
 		if (enablePonder) {
-			while (!_searcher.isRunning() && !_ponderCompleted) {
+			while (!_searcher.isRunning() && !_ponderCompleted.load()) {
 				std::this_thread::yield();
 			}
 
@@ -348,7 +348,7 @@ lab_end:
 	 * Ponder
 	 */
 	void CsaClient::ponder() {
-		assert(_ponderCompleted == false);
+		assert(_ponderCompleted.load() == false);
 
 		// 相手番探索設定
 		auto searchConfig = _searchConfigBase;
@@ -365,7 +365,7 @@ lab_end:
 		_searcher.clearRecord();
 		Loggers::message << "end ponder";
 
-		_ponderCompleted = true;
+		_ponderCompleted.store(true);
 	}
 
 	/**

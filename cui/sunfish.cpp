@@ -53,6 +53,7 @@ int main(int argc, char** argv, char** /*envp*/) {
 	po.addOption("white", "w", "[auto/manual]", true);
 	po.addOption("depth", "d", "max depth (default: 15)", true);
 	po.addOption("time", "t", "max time for 1 move (default: 3)", true);
+	po.addOption("worker", "r", "the number of worker threads", true);
 	po.addOption("book", "generate book", true);
 	po.addOption("network", "n", "network mode");
 	po.addOption("problem", "p", "solve problems");
@@ -150,6 +151,12 @@ int main(int argc, char** argv, char** /*envp*/) {
 	if (po.has("depth")) {
 		int depth = std::stoi(po.getValue("depth"));
 		config.maxDepth = depth;
+	}
+
+	// worker
+	if (po.has("worker")) {
+		int worker = std::stoi(po.getValue("worker"));
+		config.worker = worker;
 	}
 
 	// 最大思考時間

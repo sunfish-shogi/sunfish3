@@ -46,6 +46,7 @@ namespace sunfish {
 			bool autoWhite;
 			int maxDepth;
 			int limitSeconds;
+			int worker;
 			std::string inFileName;
 			std::string outFileName;
 		};
@@ -120,6 +121,13 @@ namespace sunfish {
 			return _config.limitSeconds;
 		}
 
+		void setWorker(int worker) {
+			_config.worker = worker;
+		}
+		int getWorker() const {
+			return _config.worker;
+		}
+
 		void setInFileName(const std::string& inFileName) {
 			_config.inFileName = inFileName;
 		}
@@ -145,14 +153,14 @@ namespace sunfish {
 			Searcher::Config searcherConfig = std::move(searcherConfigOrg);
 			searcherConfig.maxDepth = config.maxDepth;
 			searcherConfig.limitSeconds = config.limitSeconds;
-			searcherConfig.treeSize = 1;
-			searcherConfig.wokerSize = 1;
+			searcherConfig.treeSize = Searcher::standardTreeSize(config.worker);
+			searcherConfig.workerSize = config.worker;
 			return searcherConfig;
 		}
 
 		bool play();
 
-		static void showSearchInfo(const Searcher::Info& info);
+		static void showSearchInfo(const SearchInfo& info);
 
 	};
 }
