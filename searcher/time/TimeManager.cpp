@@ -41,48 +41,27 @@ namespace sunfish {
 		const auto& prev = _stack[_depth-1];
 		const auto& curr = _stack[_depth];
 
-		if (elapsed >= std::max(std::min(limit, 3600.0) * 0.30, 10.0)) {
-			if (curr.firstValue >= easy.firstValue - 256 && curr.firstValue <= easy.firstValue + 512 &&
-					curr.firstValue >= prev.firstValue - 64 && curr.firstValue <= prev.firstValue + 256) {
-				return true;
-			}
+		double r = elapsed / std::max(std::min(limit, 3600.0) * 0.10, 3.0);
 
-			if (curr.firstMove == easy.firstMove && curr.firstMove == prev.firstMove &&
-					curr.firstValue >= easy.firstValue - 256 && curr.firstValue <= easy.firstValue + 512 &&
-					curr.firstValue >= prev.firstValue - 128 && curr.firstValue <= prev.firstValue + 256) {
-				return true;
-			}
+		if (curr.firstValue >= easy.firstValue - (256 * r) && curr.firstValue <= easy.firstValue + (512 * r) &&
+				curr.firstValue >= prev.firstValue - (64 * r) && curr.firstValue <= prev.firstValue + (256 * r)) {
+			return true;
+		}
 
-			if (curr.firstMove == prev.firstMove &&
-					curr.firstValue >= prev.firstValue && curr.firstValue <= prev.firstValue + 256) {
-				return true;
-			}
+		if (curr.firstMove == easy.firstMove && curr.firstMove == prev.firstMove &&
+				curr.firstValue >= easy.firstValue - (256 * r) && curr.firstValue <= easy.firstValue + (512 * r) &&
+				curr.firstValue >= prev.firstValue - (128 * r) && curr.firstValue <= prev.firstValue + (256 * r)) {
+			return true;
+		}
 
-			if (curr.firstMove == easy.firstMove &&
-					curr.firstValue >= easy.firstValue && curr.firstValue <= easy.firstValue + 256) {
-				return true;
-			}
-		} else if (elapsed >= std::max(std::min(limit, 3600.0) * 0.10, 3.0)) {
-			if (curr.firstValue >= easy.firstValue - 256 && curr.firstValue <= easy.firstValue + 256 &&
-					curr.firstValue >= prev.firstValue && curr.firstValue <= prev.firstValue + 128) {
-				return true;
-			}
+		if (curr.firstMove == prev.firstMove &&
+				curr.firstValue >= prev.firstValue && curr.firstValue <= prev.firstValue + (256 * r)) {
+			return true;
+		}
 
-			if (curr.firstMove == easy.firstMove && curr.firstMove == prev.firstMove &&
-					curr.firstValue >= easy.firstValue - 256 && curr.firstValue <= easy.firstValue + 256 &&
-					curr.firstValue >= prev.firstValue - 128 && curr.firstValue <= prev.firstValue + 128) {
-				return true;
-			}
-
-			if (curr.firstMove == prev.firstMove &&
-					curr.firstValue >= prev.firstValue && curr.firstValue <= prev.firstValue + 128) {
-				return true;
-			}
-
-			if (curr.firstMove == easy.firstMove &&
-					curr.firstValue >= easy.firstValue && curr.firstValue <= easy.firstValue + 128) {
-				return true;
-			}
+		if (curr.firstMove == easy.firstMove &&
+				curr.firstValue >= easy.firstValue && curr.firstValue <= easy.firstValue + (256 * r)) {
+			return true;
 		}
 
 		return false;
