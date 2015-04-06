@@ -10,6 +10,7 @@
 #include <vector>
 #include <ctime>
 #include <mutex>
+#include <memory>
 
 #define __FILE_LINE__ (__FILE__ ":" __L2STR(__LINE__))
 #define __L2STR(l) __L2STR__(l)
@@ -21,26 +22,25 @@ namespace sunfish {
 	public:
 		class SubLogger {
 		private:
-			Logger& logger;
-			int* pcount;
+			struct Data {
+				Logger* plogger;
+				std::lock_guard<std::mutex> lock;
+				Data(Logger* plogger, std::mutex& mutex) : plogger(plogger), lock(mutex) {
+				}
+				~Data() {
+					plogger->printNoLock("\n");
+				}
+			};
+			std::shared_ptr<Data> data;
 
 		public:
-			SubLogger(const SubLogger& org) : logger(org.logger), pcount(org.pcount) {
-				(*pcount)++;
+			SubLogger(const SubLogger& org) = default;
+			SubLogger(Logger* plogger, std::mutex& mutex) {
+				data = std::make_shared<Data>(plogger, mutex);
 			}
-			SubLogger(Logger& logger) : logger(logger), pcount(new int(1)) {
-			}
-			~SubLogger() {
-				(*pcount)--;
-				if (*pcount == 0) {
-					delete pcount;
-					logger.print("\n");
-				}
-			}
-
 			template <class T>
 			SubLogger& operator<<(T t) {
-				logger.print(t);
+				data->plogger->printNoLock(t);
 				return *this;
 			}
 		};
@@ -79,8 +79,7 @@ namespace sunfish {
 			addStream(o, false, false, nullptr, nullptr);
 		}
 
-		template <class T> void print(const T t, bool top = false) {
-			std::lock_guard<std::mutex> lock(_mutex);
+		template <class T> void printNoLock(const T t, bool top = false) {
 			std::vector<Stream>::iterator it;
 			for (it = _os.begin(); it != _os.end(); it++) {
 				if (it->before != nullptr) {
@@ -111,10 +110,16 @@ namespace sunfish {
 			}
 		}
 
+		template <class T> void print(const T t) {
+			std::lock_guard<std::mutex> lock(_mutex);
+			printNoLock(t);
+		}
+
 		template <class T>
 		SubLogger operator<<(const T t) {
-			print(t, true);
-			return SubLogger(*this);
+			SubLogger s(this, _mutex);
+			printNoLock(t, true);
+			return s;
 		}
 
 	};
