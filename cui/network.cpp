@@ -11,7 +11,7 @@ using namespace sunfish;
 int network() {
 
 	// logger settings
-	std::ofstream fout("network.log", std::ios::out);
+	std::ofstream fout("network.log", std::ios::out | std::ios::app);
 	if (fout) {
 		Loggers::error.addStream(fout);
 		Loggers::warning.addStream(fout);

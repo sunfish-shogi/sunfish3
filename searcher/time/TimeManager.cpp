@@ -5,7 +5,10 @@
 
 #include "TimeManager.h"
 #include "core/def.h"
+#include "logger/Logger.h"
 #include <cassert>
+
+#define ENABLE_EASY_LOG						1
 
 namespace sunfish {
 
@@ -41,26 +44,53 @@ namespace sunfish {
 		const auto& prev = _stack[_depth-1];
 		const auto& curr = _stack[_depth];
 
-		double r = elapsed / std::max(std::min(limit, 3600.0) * 0.30, 3.0);
+		limit = std::min(limit, 3600.0);
+
+		if (elapsed < std::max(limit * 0.02, 5.0)) {
+			return false;
+		}
+
+		double r = elapsed / std::max(limit * 0.20, 3.0);
+
+#if ENABLE_EASY_LOG
+		{
+			int easyDiff = curr.firstValue.int32() - easy.firstValue.int32();
+			int prevDiff = curr.firstValue.int32() - prev.firstValue.int32();
+			int isSame = curr.firstMove == easy.firstMove ? 1 : 0;
+			Loggers::message << "time_manager," << r << ',' << easyDiff << ',' << prevDiff << ',' << isSame << ',';
+		}
+#endif
 
 		if (curr.firstValue >= easy.firstValue - (256 * r) && curr.firstValue <= easy.firstValue + (512 * r) &&
 				curr.firstValue >= prev.firstValue - (64 * r) && curr.firstValue <= prev.firstValue + (256 * r)) {
+#if ENABLE_EASY_LOG
+			Loggers::message << __FILE_LINE__;
+#endif
 			return true;
 		}
 
 		if (curr.firstMove == easy.firstMove && curr.firstMove == prev.firstMove &&
 				curr.firstValue >= easy.firstValue - (256 * r) && curr.firstValue <= easy.firstValue + (512 * r) &&
 				curr.firstValue >= prev.firstValue - (128 * r) && curr.firstValue <= prev.firstValue + (256 * r)) {
+#if ENABLE_EASY_LOG
+			Loggers::message << __FILE_LINE__;
+#endif
 			return true;
 		}
 
 		if (curr.firstMove == prev.firstMove &&
 				curr.firstValue >= prev.firstValue && curr.firstValue <= prev.firstValue + (256 * r)) {
+#if ENABLE_EASY_LOG
+			Loggers::message << __FILE_LINE__;
+#endif
 			return true;
 		}
 
 		if (curr.firstMove == easy.firstMove &&
 				curr.firstValue >= easy.firstValue && curr.firstValue <= easy.firstValue + (128 * r)) {
+#if ENABLE_EASY_LOG
+			Loggers::message << __FILE_LINE__;
+#endif
 			return true;
 		}
 
