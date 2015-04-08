@@ -102,6 +102,12 @@ namespace sunfish {
 		// 定跡読み込み
 		_book.readFile();
 
+		// 探索設定
+		_searchConfigBase = _searcher.getConfig();
+		_searchConfigBase.maxDepth = _config.getInt(CONF_DEPTH);
+		_searchConfigBase.limitEnable = _config.getInt(CONF_LIMIT) != 0;
+		_searchConfigBase.limitSeconds = _config.getInt(CONF_LIMIT);
+
 		// 連続対局
 		int repeatCount = _config.getInt(CONF_REPEAT);
 		for (int i = 0; i < repeatCount; i++) {
@@ -152,12 +158,6 @@ namespace sunfish {
 			// 探索エージェントの初期化
 			// TODO: 評価パラメータのロードを初回のみにする。
 			_searcher.init();
-
-			// 探索設定
-			_searchConfigBase = _searcher.getConfig();
-			_searchConfigBase.maxDepth = _config.getInt(CONF_DEPTH);
-			_searchConfigBase.limitEnable = _config.getInt(CONF_LIMIT) != 0;
-			_searchConfigBase.limitSeconds = _config.getInt(CONF_LIMIT);
 
 			// 残り時間の初期化
 			_blackTime.init(_gameSummary.totalTime, _gameSummary.readoff);
