@@ -46,11 +46,11 @@ namespace sunfish {
 
 		limit = std::min(limit, 3600.0);
 
-		if (elapsed < std::max(limit * 0.02, 5.0)) {
+		if (elapsed < std::max(limit * 0.02, 3.0)) {
 			return false;
 		}
 
-		double r = elapsed / std::max(limit * 0.20, 3.0);
+		double r = elapsed / std::max(limit * 0.25, 3.0);
 
 #if ENABLE_EASY_LOG
 		{
