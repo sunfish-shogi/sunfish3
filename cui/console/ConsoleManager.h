@@ -153,8 +153,8 @@ namespace sunfish {
 			Searcher::Config searcherConfig = std::move(searcherConfigOrg);
 			searcherConfig.maxDepth = config.maxDepth;
 			searcherConfig.limitSeconds = config.limitSeconds;
-			searcherConfig.treeSize = Searcher::standardTreeSize(config.worker);
 			searcherConfig.workerSize = config.worker;
+			searcherConfig.treeSize = Searcher::standardTreeSize(config.worker);
 			return searcherConfig;
 		}
 

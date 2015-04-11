@@ -107,6 +107,8 @@ namespace sunfish {
 		_searchConfigBase.maxDepth = _config.getInt(CONF_DEPTH);
 		_searchConfigBase.limitEnable = _config.getInt(CONF_LIMIT) != 0;
 		_searchConfigBase.limitSeconds = _config.getInt(CONF_LIMIT);
+		_searchConfigBase.workerSize = _config.getInt(CONF_WORKER);
+		_searchConfigBase.treeSize = Searcher::standardTreeSize(_searchConfigBase.workerSize);
 
 		// 連続対局
 		int repeatCount = _config.getInt(CONF_REPEAT);
