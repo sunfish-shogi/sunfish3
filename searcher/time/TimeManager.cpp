@@ -70,8 +70,7 @@ namespace sunfish {
 		}
 
 		if (curr.firstMove == easy.firstMove && curr.firstMove == prev.firstMove &&
-				curr.firstValue >= easy.firstValue - (256 * r) && curr.firstValue <= easy.firstValue + (512 * r) &&
-				curr.firstValue >= prev.firstValue - (128 * r) && curr.firstValue <= prev.firstValue + (256 * r)) {
+				curr.firstValue >= prev.firstValue - (128 * r) && curr.firstValue <= prev.firstValue + (512 * r)) {
 #if ENABLE_EASY_LOG
 			Loggers::message << __FILE_LINE__;
 #endif
@@ -79,7 +78,7 @@ namespace sunfish {
 		}
 
 		if (curr.firstMove == prev.firstMove &&
-				curr.firstValue >= prev.firstValue && curr.firstValue <= prev.firstValue + (256 * r)) {
+				curr.firstValue >= prev.firstValue - (64 * r) && curr.firstValue <= prev.firstValue + (256 * r)) {
 #if ENABLE_EASY_LOG
 			Loggers::message << __FILE_LINE__;
 #endif
@@ -87,7 +86,7 @@ namespace sunfish {
 		}
 
 		if (curr.firstMove == easy.firstMove &&
-				curr.firstValue >= easy.firstValue && curr.firstValue <= easy.firstValue + (128 * r)) {
+				curr.firstValue >= easy.firstValue - (128 * r) && curr.firstValue <= easy.firstValue + (512 * r)) {
 #if ENABLE_EASY_LOG
 			Loggers::message << __FILE_LINE__;
 #endif
