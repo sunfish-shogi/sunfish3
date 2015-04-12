@@ -175,16 +175,16 @@ namespace sunfish {
 	 */
 	void Searcher::after() {
 
-		// tree の解放
-		for (int i = 0; i < _config.treeSize; i++) {
-			auto& tree = _trees[i];
-			tree.release(_record);
-		}
-
 		// worker の停止
 		for (int id = 1; id < _config.workerSize; id++) {
 			auto& worker = _workers[id];
 			worker.stop();
+		}
+
+		// tree の解放
+		for (int i = 0; i < _config.treeSize; i++) {
+			auto& tree = _trees[i];
+			tree.release(_record);
 		}
 
 		// 探索情報収集
