@@ -167,6 +167,14 @@ namespace sunfish {
 				(fmove.isCapturing() || (fmove.promote() && fmove.piece() != Piece::Silver));
 		}
 
+		bool isRecaptureOnFrontier() const {
+			assert(_ply >= 2);
+			const auto& move = _stack[_ply].move;
+			const auto& fmove = _stack[_ply-1].move;
+			return !fmove.isEmpty() && fmove.to() == move.to() &&
+				(fmove.isCapturing() || (fmove.promote() && fmove.piece() != Piece::Silver));
+		}
+
 		Moves::iterator getNextMove() {
 			return _stack[_ply].ite;
 		}

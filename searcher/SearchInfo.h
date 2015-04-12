@@ -40,6 +40,8 @@ namespace sunfish {
 		uint64_t nullMovePruningTried;
 		uint64_t futilityPruning;
 		uint64_t extendedFutilityPruning;
+		uint64_t razoring;
+		uint64_t razoringTried;
 		uint64_t expanded;
 		uint64_t checkExtension;
 		uint64_t onerepExtension;

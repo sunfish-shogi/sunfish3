@@ -12,6 +12,7 @@
 #include <iomanip>
 
 #define ENABLE_LMR										1
+#define ENABLE_RAZORING								1
 #define ENABLE_HASH_MOVE							1
 #define ENABLE_KILLER_MOVE						1
 #define ENABLE_PRECEDE_KILLER					0 // should be 0
@@ -37,6 +38,7 @@ namespace sunfish {
 		CONSTEXPR int EXT_RECAP = Searcher::Depth1Ply * 1 / 4;
 		CONSTEXPR int EXT_RECAP2 = Searcher::Depth1Ply * 1 / 2;
 		CONSTEXPR int REC_THRESHOLD = Searcher::Depth1Ply * 3;
+		CONSTEXPR int RAZOR_DEPTH = Searcher::Depth1Ply * 3;
 	}
 
 	namespace search_func {
@@ -46,13 +48,11 @@ namespace sunfish {
 							depth - Searcher::Depth1Ply * 3);
 		}
 		inline int nullDepth(int depth) {
-#if 1
-			// same to bonanza
 			return (depth < Searcher::Depth1Ply * 26 / 4 ? depth - Searcher::Depth1Ply * 12 / 4 :
 							(depth <= Searcher::Depth1Ply * 30 / 4 ? Searcher::Depth1Ply * 14 / 4 : depth - Searcher::Depth1Ply * 16 / 4));
-#else
-			return depth - Searcher::Depth1Ply * 7 / 2;
-#endif
+		}
+		inline int razorMargin(int depth) {
+			return 512 + 64 / Searcher::Depth1Ply * depth;
 		}
 	}
 
@@ -87,40 +87,42 @@ namespace sunfish {
 		memset(&_info, 0, sizeof(SearchInfoBase));
 		for (int id = 0; id < _config.workerSize; id++) {
 			auto& worker = _workers[id];
-			_info.failHigh                += worker.info.failHigh;
-			_info.failHighFirst           += worker.info.failHighFirst;
-			_info.failHighIsHash          += worker.info.failHighIsHash;
-			_info.failHighIsKiller1       += worker.info.failHighIsKiller1;
-			_info.failHighIsKiller2       += worker.info.failHighIsKiller2;
-			_info.hashProbed              += worker.info.hashProbed;
-			_info.hashHit                 += worker.info.hashHit;
-			_info.hashExact               += worker.info.hashExact;
-			_info.hashLower               += worker.info.hashLower;
-			_info.hashUpper               += worker.info.hashUpper;
-			_info.hashStore               += worker.info.hashStore;
-			_info.hashNew                 += worker.info.hashNew;
-			_info.hashUpdate              += worker.info.hashUpdate;
-			_info.hashCollision           += worker.info.hashCollision;
-			_info.hashReject              += worker.info.hashReject;
-			_info.mateProbed              += worker.info.mateProbed;
-			_info.mateHit                 += worker.info.mateHit;
-			_info.expand                  += worker.info.expand;
-			_info.expandHashMove          += worker.info.expandHashMove;
-			_info.shekProbed              += worker.info.shekProbed;
-			_info.shekSuperior            += worker.info.shekSuperior;
-			_info.shekInferior            += worker.info.shekInferior;
-			_info.shekEqual               += worker.info.shekEqual;
-			_info.nullMovePruning         += worker.info.nullMovePruning;
-			_info.nullMovePruningTried    += worker.info.nullMovePruningTried;
-			_info.futilityPruning         += worker.info.futilityPruning;
-			_info.extendedFutilityPruning += worker.info.extendedFutilityPruning;
-			_info.expanded                += worker.info.expanded;
-			_info.checkExtension          += worker.info.checkExtension;
-			_info.onerepExtension         += worker.info.onerepExtension;
-			_info.recapExtension          += worker.info.recapExtension;
-			_info.split                   += worker.info.split;
-			_info.node                    += worker.info.node;
-			_info.qnode                   += worker.info.qnode;
+			_info.failHigh                   += worker.info.failHigh;
+			_info.failHighFirst              += worker.info.failHighFirst;
+			_info.failHighIsHash             += worker.info.failHighIsHash;
+			_info.failHighIsKiller1          += worker.info.failHighIsKiller1;
+			_info.failHighIsKiller2          += worker.info.failHighIsKiller2;
+			_info.hashProbed                 += worker.info.hashProbed;
+			_info.hashHit                    += worker.info.hashHit;
+			_info.hashExact                  += worker.info.hashExact;
+			_info.hashLower                  += worker.info.hashLower;
+			_info.hashUpper                  += worker.info.hashUpper;
+			_info.hashStore                  += worker.info.hashStore;
+			_info.hashNew                    += worker.info.hashNew;
+			_info.hashUpdate                 += worker.info.hashUpdate;
+			_info.hashCollision              += worker.info.hashCollision;
+			_info.hashReject                 += worker.info.hashReject;
+			_info.mateProbed                 += worker.info.mateProbed;
+			_info.mateHit                    += worker.info.mateHit;
+			_info.expand                     += worker.info.expand;
+			_info.expandHashMove             += worker.info.expandHashMove;
+			_info.shekProbed                 += worker.info.shekProbed;
+			_info.shekSuperior               += worker.info.shekSuperior;
+			_info.shekInferior               += worker.info.shekInferior;
+			_info.shekEqual                  += worker.info.shekEqual;
+			_info.nullMovePruning            += worker.info.nullMovePruning;
+			_info.nullMovePruningTried       += worker.info.nullMovePruningTried;
+			_info.futilityPruning            += worker.info.futilityPruning;
+			_info.extendedFutilityPruning    += worker.info.extendedFutilityPruning;
+			_info.razoring                   += worker.info.razoring;
+			_info.razoringTried              += worker.info.razoringTried;
+			_info.expanded                   += worker.info.expanded;
+			_info.checkExtension             += worker.info.checkExtension;
+			_info.onerepExtension            += worker.info.onerepExtension;
+			_info.recapExtension             += worker.info.recapExtension;
+			_info.split                      += worker.info.split;
+			_info.node                       += worker.info.node;
+			_info.qnode                      += worker.info.qnode;
 		}
 	}
 
@@ -1026,43 +1028,60 @@ namespace sunfish {
 			}
 #endif
 
-			// null move pruning
-			if (isNullWindow && stat.isNullMove() && beta <= standPat && depth >= Depth1Ply * 2) {
-				auto newStat = NodeStat().unsetNullMove();
-				int newDepth = search_func::nullDepth(depth);
-
-				worker.info.nullMovePruningTried++;
-
-				// make move
-				tree.makeNullMove();
-
-				Value currval = -search(tree, !black, newDepth, -beta, -beta+1, newStat);
-
-				// unmake move
-				tree.unmakeNullMove();
-
-				// 中断判定
-				if (isInterrupted(tree)) {
-					return Value::Zero;
-				}
-
-				// beta-cut
-				if (currval >= beta) {
-					tree.updatePvNull(depth);
-					worker.info.nullMovePruning++;
-					alpha = beta;
-					if (newDepth < Depth1Ply) {
-						goto hash_store;
+			if (isNullWindow && !stat.isMateThreat()) {
+#if ENABLE_RAZORING
+				if (alpha > -Value::Mate && beta < Value::Mate && tree.getPly() >= 2 &&
+						hashMove.isEmpty() && !tree.isCheckingOnFrontier() && !tree.isRecaptureOnFrontier() &&
+						depth <= search_param::RAZOR_DEPTH) {
+					Value razorBeta = beta - search_func::razorMargin(depth);
+					if (standPat < razorBeta) {
+						worker.info.razoringTried++;
+						Value qval = qsearch(tree, black, 0, razorBeta-1, razorBeta);
+						if (qval < razorBeta) {
+							worker.info.razoring++;
+							return qval;
+						}
 					}
-					goto search_end;
 				}
+#endif
 
-				// mate threat
-				if (currval <= -Value::Mate) {
-					stat.setMateThreat();
+				// null move pruning
+				if (stat.isNullMove() && beta <= standPat && depth >= Depth1Ply * 2) {
+					auto newStat = NodeStat().unsetNullMove();
+					int newDepth = search_func::nullDepth(depth);
+
+					worker.info.nullMovePruningTried++;
+
+					// make move
+					tree.makeNullMove();
+
+					Value currval = -search(tree, !black, newDepth, -beta, -beta+1, newStat);
+
+					// unmake move
+					tree.unmakeNullMove();
+
+					// 中断判定
+					if (isInterrupted(tree)) {
+						return Value::Zero;
+					}
+
+					// beta-cut
+					if (currval >= beta) {
+						tree.updatePvNull(depth);
+						worker.info.nullMovePruning++;
+						alpha = beta;
+						if (newDepth < Depth1Ply) {
+							goto hash_store;
+						}
+						goto search_end;
+					}
+
+					// mate threat
+					if (currval <= -Value::Mate) {
+						stat.setMateThreat();
+					}
 				}
 			}
-
 		}
 
 		// recursive iterative-deepening search
