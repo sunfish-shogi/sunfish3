@@ -20,7 +20,7 @@ namespace sunfish {
 	void Worker::startOnNewThread() {
 		job.store(false);
 		shutdown.store(false);
-		thread = std::thread(std::bind(std::mem_fun(&Worker::waitForJob), this));
+		thread = std::thread(std::bind(std::mem_fun(&Worker::waitForJob), this, nullptr));
 	}
 
 	void Worker::startOnCurrentThread(int tid) {
