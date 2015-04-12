@@ -182,8 +182,8 @@ namespace sunfish {
 		}
 
 		// tree の解放
-		for (int i = 0; i < _config.treeSize; i++) {
-			auto& tree = _trees[i];
+		for (int id = 0; id < _config.treeSize; id++) {
+			auto& tree = _trees[id];
 			tree.release(_record);
 		}
 
