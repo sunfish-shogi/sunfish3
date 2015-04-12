@@ -6,6 +6,7 @@
 #include "Worker.h"
 #include "Tree.h"
 #include "../Searcher.h"
+#include <functional>
 
 namespace sunfish {
 
@@ -19,9 +20,7 @@ namespace sunfish {
 	void Worker::startOnNewThread() {
 		job.store(false);
 		shutdown.store(false);
-		thread = std::thread([this]() {
-				waitForJob(nullptr);
-		});
+		thread = std::thread(std::bind(std::mem_fun(&Worker::waitForJob), this));
 	}
 
 	void Worker::startOnCurrentThread(int tid) {
