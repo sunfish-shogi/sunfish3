@@ -25,7 +25,6 @@ int profile(const ConsoleManager::Config& config, bool full) {
 	Searcher searcher;
 	auto searcherConfig = ConsoleManager::buildSearcherConfig(searcher.getConfig(), config);
 	searcher.setConfig(searcherConfig);
-	searcher.init();
 
 	const char* data[] = {
 R"(

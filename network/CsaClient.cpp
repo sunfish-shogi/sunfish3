@@ -107,8 +107,9 @@ namespace sunfish {
 		_searchConfigBase.maxDepth = _config.getInt(CONF_DEPTH);
 		_searchConfigBase.limitEnable = _config.getInt(CONF_LIMIT) != 0;
 		_searchConfigBase.limitSeconds = _config.getInt(CONF_LIMIT);
-		_searchConfigBase.workerSize = _config.getInt(CONF_WORKER);
+		_searchConfigBase.workerSize = std::max(_config.getInt(CONF_WORKER), 1);
 		_searchConfigBase.treeSize = Searcher::standardTreeSize(_searchConfigBase.workerSize);
+		_searcher.setConfig(_searchConfigBase);
 
 		// 連続対局
 		int repeatCount = _config.getInt(CONF_REPEAT);
@@ -156,10 +157,6 @@ namespace sunfish {
 
 			// 棋譜の初期化
 			_record.init(_board);
-
-			// 探索エージェントの初期化
-			// TODO: 評価パラメータのロードを初回のみにする。
-			_searcher.init();
 
 			// 残り時間の初期化
 			_blackTime.init(_gameSummary.totalTime, _gameSummary.readoff);
@@ -291,12 +288,10 @@ lab_end:
 
 		std::thread ponderThread;
 
-		// 相手番中の思考開始
 		if (enablePonder) {
-			_ponderCompleted = false;
-			ponderThread = std::thread([this]() {
-				ponder();
-			});
+			// 相手番中の思考開始
+			_ponderCompleted.store(false);
+			ponderThread = std::thread(std::bind(std::mem_fn(&CsaClient::ponder), this));
 		}
 
 		// 相手番の指し手を受信
@@ -304,15 +299,18 @@ lab_end:
 		unsigned mask = _gameSummary.black ? RECV_MOVE_W : RECV_MOVE_B;
 		unsigned flags = waitReceive(mask | RECV_END_MSK, &recvStr);
 
-		// 探索が開始されていることを確認
 		if (enablePonder) {
+			// 探索が開始されていることを確認
 			while (!_searcher.isRunning() && !_ponderCompleted.load()) {
 				std::this_thread::yield();
 			}
 
 			// 相手番中の思考終了
+			Loggers::message << "force interrupt";
 			_searcher.forceInterrupt();
+			Loggers::message << "join...";
 			ponderThread.join();
+			Loggers::message << "completed";
 		}
 
 		if (flags & mask) {

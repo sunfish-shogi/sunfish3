@@ -16,8 +16,6 @@ namespace sunfish {
 	}
 
 	void Solver::solve() {
-		_searcher.init();
-
 		for (const auto& problem : _problems) {
 			solve(problem);
 		}

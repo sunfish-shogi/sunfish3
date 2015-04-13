@@ -462,7 +462,6 @@ namespace sunfish {
 
 		auto searcherConfig = buildSearcherConfig(_searcher.getConfig(), _config);
 		_searcher.setConfig(searcherConfig);
-		_searcher.init();
 
 		printBoard(_record.getBoard());
 

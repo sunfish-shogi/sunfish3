@@ -57,6 +57,44 @@ namespace sunfish {
 	}
 
 	/**
+	 * コンストラクタ
+	 */
+	Searcher::Searcher()
+	: _trees(nullptr)
+	, _workers(nullptr)
+	, _forceInterrupt(false)
+	, _isRunning(false) {
+		initConfig();
+		_history.init();
+	}
+
+	/**
+	 * デストラクタ
+	 */
+	Searcher::~Searcher() {
+		releaseTrees();
+		releaseWorkers();
+	}
+
+	/**
+	 * tree の確保
+	 */
+	void Searcher::allocateTrees() {
+		if (_trees == nullptr) {
+			_trees = new Tree[_config.treeSize];
+		}
+	}
+
+	/**
+	 * worker の確保
+	 */
+	void Searcher::allocateWorkers() {
+		if (_workers == nullptr) {
+			_workers = new Worker[_config.workerSize];
+		}
+	}
+
+	/**
 	 * tree の再確保
 	 */
 	void Searcher::reallocateTrees() {
@@ -74,6 +112,26 @@ namespace sunfish {
 			delete[] _workers;
 		}
 		_workers = new Worker[_config.workerSize];
+	}
+
+	/**
+	 * tree の解放
+	 */
+	void Searcher::releaseTrees() {
+		if (_trees != nullptr) {
+			delete[] _trees;
+			_trees = nullptr;
+		}
+	}
+
+	/**
+	 * worker の解放
+	 */
+	void Searcher::releaseWorkers() {
+		if (_workers != nullptr) {
+			delete[] _workers;
+			_workers = nullptr;
+		}
 	}
 
 	/**
@@ -131,8 +189,15 @@ namespace sunfish {
 	 */
 	void Searcher::before(const Board& initialBoard) {
 
+		if (_isRunning.load()) {
+			Loggers::error << __FILE_LINE__ << ": Searcher is already running!!!";
+		}
+
 		int mainTreeId = 0;
 		int mainWorkerId = 0;
+
+		allocateTrees();
+		allocateWorkers();
 
 		// tree の初期化
 		for (int id = 0; id < _config.treeSize; id++) {
@@ -176,6 +241,10 @@ namespace sunfish {
 	 * 後処理
 	 */
 	void Searcher::after() {
+
+		if (!_isRunning.load()) {
+			Loggers::error << __FILE_LINE__ << ": Searcher is not running???";
+		}
 
 		// worker の停止
 		for (int id = 1; id < _config.workerSize; id++) {

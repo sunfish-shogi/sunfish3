@@ -95,6 +95,16 @@ namespace sunfish {
 		}
 
 		/**
+		 * tree の確保
+		 */
+		void allocateTrees();
+
+		/**
+		 * worker の確保
+		 */
+		void allocateWorkers();
+
+		/**
 		 * tree の再確保
 		 */
 		void reallocateTrees();
@@ -103,6 +113,16 @@ namespace sunfish {
 		 * worker の再確保
 		 */
 		void reallocateWorkers();
+
+		/**
+		 * tree の解放
+		 */
+		void releaseTrees();
+
+		/**
+		 * worker の解放
+		 */
+		void releaseWorkers();
 
 		/**
 		 * worker の取得
@@ -226,23 +246,12 @@ namespace sunfish {
 		/**
 		 * コンストラクタ
 		 */
-		Searcher()
-		: _trees(nullptr)
-		, _workers(nullptr)
-		, _forceInterrupt(false)
-		, _isRunning(false)
-		{
-			initConfig();
-			_history.init();
-		}
+		Searcher();
 
 		/**
-		 * 初期化
+		 * デストラクタ
 		 */
-		void init() {
-			reallocateTrees();
-			reallocateWorkers();
-		}
+		~Searcher();
 
 		/**
 		 * 設定を反映します。
