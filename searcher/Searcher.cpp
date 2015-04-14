@@ -39,6 +39,7 @@ namespace sunfish {
 		CONSTEXPR int EXT_RECAP2 = Searcher::Depth1Ply * 1 / 2;
 		CONSTEXPR int REC_THRESHOLD = Searcher::Depth1Ply * 3;
 		CONSTEXPR int RAZOR_DEPTH = Searcher::Depth1Ply * 4;
+		CONSTEXPR int QUIES_RELIEVE_PLY = 7;
 	}
 
 	namespace search_func {
@@ -52,7 +53,7 @@ namespace sunfish {
 							(depth <= Searcher::Depth1Ply * 30 / 4 ? Searcher::Depth1Ply * 14 / 4 : depth - Searcher::Depth1Ply * 16 / 4));
 		}
 		inline int razorMargin(int depth) {
-			return 256 + 32 / Searcher::Depth1Ply * std::max(depth, 0);
+			return 512 + 32 / Searcher::Depth1Ply * std::max(depth, 0);
 		}
 	}
 
@@ -711,7 +712,7 @@ namespace sunfish {
 
 				} else {
 					MoveGenerator::generateCap(board, moves);
-					if (qply >= 7) {
+					if (qply >= search_param::QUIES_RELIEVE_PLY) {
   					sortSee(tree, 0, standPat, alpha, false, false, true, true);
 					} else {
   					sortSee(tree, 0, standPat, alpha, false, false, false, true);
@@ -1101,8 +1102,7 @@ namespace sunfish {
 #if ENABLE_RAZORING
 				// razoring
 				if (depth < search_param::RAZOR_DEPTH && hashMove.isEmpty() &&
-						alpha > -Value::Mate && beta < Value::Mate && tree.getPly() >= 2 &&
-						!tree.isCheckingOnFrontier() && !tree.isRecaptureOnFrontier()) {
+						alpha > -Value::Mate && beta < Value::Mate && tree.getPly() >= 2) {
 					Value razorAlpha = alpha - search_func::razorMargin(depth);
 					if (standPat <= razorAlpha) {
 						worker.info.razoringTried++;
