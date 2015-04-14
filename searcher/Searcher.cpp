@@ -13,6 +13,7 @@
 
 #define ENABLE_LMR										1
 #define ENABLE_RAZORING								1
+#define ENABLE_MOVE_COUNT_PRUNING			0 // should be 0
 #define ENABLE_HASH_MOVE							1
 #define ENABLE_KILLER_MOVE						1
 #define ENABLE_PRECEDE_KILLER					0 // should be 0
@@ -54,6 +55,15 @@ namespace sunfish {
 		}
 		inline int razorMargin(int depth) {
 			return 512 + 32 / Searcher::Depth1Ply * std::max(depth, 0);
+		}
+		inline int futilityMoveCounts(bool improving, int depth) {
+			int d = (depth * depth) / (Searcher::Depth1Ply * Searcher::Depth1Ply);
+			if (improving) {
+				d = d * 19 / 10;
+			} else {
+				d = d * 13 / 10;
+			}
+			return 18 + d;
 		}
 	}
 
@@ -173,6 +183,7 @@ namespace sunfish {
 			_info.nullMovePruningTried       += worker.info.nullMovePruningTried;
 			_info.futilityPruning            += worker.info.futilityPruning;
 			_info.extendedFutilityPruning    += worker.info.extendedFutilityPruning;
+			_info.moveCountPruning           += worker.info.moveCountPruning;
 			_info.razoring                   += worker.info.razoring;
 			_info.razoringTried              += worker.info.razoringTried;
 			_info.expanded                   += worker.info.expanded;
@@ -549,7 +560,7 @@ namespace sunfish {
 	/**
 	 * get LMR depth
 	 */
-	int Searcher::getReductionDepth(const Move& move, bool isNullWindow) {
+	int Searcher::getReductionDepth(bool improving, int depth, int count, const Move& move, bool isNullWindow) {
 		auto key = History::getKey(move);
 		auto data = _history.getData(key);
 		auto good = History::getGoodCount(data) + 1;
@@ -557,27 +568,41 @@ namespace sunfish {
 
 		assert(good < appear);
 
+		int reduced = 0;
+
 		if (!isNullWindow) {
 			if (good * 20 < appear) {
-				return Depth1Ply * 3 / 2;
+				reduced += Depth1Ply * 3 / 2;
 			} else if (good * 7 < appear) {
-				return Depth1Ply * 2 / 2;
+				reduced += Depth1Ply * 2 / 2;
 			} else if (good * 3 < appear) {
-				return Depth1Ply * 1 / 2;
+				reduced += Depth1Ply * 1 / 2;
 			}
 		} else {
 			if (good * 10 < appear) {
-				return Depth1Ply * 4 / 2;
+				reduced += Depth1Ply * 4 / 2;
 			} else if (good * 6 < appear) {
-				return Depth1Ply * 3 / 2;
+				reduced += Depth1Ply * 3 / 2;
 			} else if (good * 4 < appear) {
-				return Depth1Ply * 2 / 2;
+				reduced +=  Depth1Ply * 2 / 2;
 			} else if (good * 2 < appear) {
-				return Depth1Ply * 1 / 2;
+				reduced += Depth1Ply * 1 / 2;
 			}
 		}
 
-		return 0;
+		if (!improving && depth < Depth1Ply * 9) {
+			if (count >= 24) {
+				reduced += Depth1Ply * 4 / 2;
+			} else if (count >= 18) {
+				reduced += Depth1Ply * 3 / 2;
+			} else if (count >= 12) {
+				reduced += Depth1Ply * 2 / 2;
+			} else if (count >= 6) {
+				reduced += Depth1Ply * 1 / 2;
+			}
+		}
+
+		return reduced;
 	}
 
 	/**
@@ -592,9 +617,10 @@ namespace sunfish {
 
 		while (true) {
 
-			if (!tree.isThroughPhase() &&
-					tree.getNextMove() != tree.getEnd()) {
+			if (!tree.isThroughPhase() && tree.getNextMove() != tree.getEnd()) {
 				tree.selectNextMove();
+				node.count++;
+
 				const Move& move = *tree.getCurrentMove();
 				if (move == node.hash) {
 					node.expStat |= HashDone;
@@ -607,6 +633,7 @@ namespace sunfish {
 				} else if (move == node.capture2) {
 					node.expStat |= Capture2Done;
 				}
+
 				return true;
 			}
 
@@ -642,6 +669,7 @@ namespace sunfish {
 				}
 
 			case GenPhase::History1:
+				node.count = 0;
 				MoveGenerator::generateNoCap(board, moves);
 				MoveGenerator::generateDrop(board, moves);
 				exceptPriorMoves(tree);
@@ -1074,8 +1102,10 @@ namespace sunfish {
 		}
 
 		Value standPat = tree.getValue() * (black ? 1 : -1);
+		bool improving = !tree.hasPrefrontierNode() ||
+			standPat >= tree.getPrefrontValue() * (black ? 1 : -1);
 
-		int count = 0;
+		bool isFirst = true;
 		Move best = Move::empty();
 
 		if (!tree.isChecking()) {
@@ -1196,6 +1226,7 @@ namespace sunfish {
 			bool isCheckPrev = tree.isChecking();
 			bool isCheck = isCheckCurr || isCheckPrev;
 			Piece captured = board.getBoardPiece(move.to());
+			int count = tree.getCurrentNode().count;
 
 			if (!isCheckCurr && captured.isEmpty() &&
 					(!move.promote() || move.piece() == Piece::Silver)) {
@@ -1208,7 +1239,7 @@ namespace sunfish {
 				newDepth += search_param::EXT_CHECK;
 				worker.info.checkExtension++;
 
-			} else if (isCheckPrev && count == 0 && tree.getGenPhase() == GenPhase::End && tree.getNextMove() == tree.getEnd()) {
+			} else if (isCheckPrev && isFirst && tree.getGenPhase() == GenPhase::End && tree.getNextMove() == tree.getEnd()) {
 				// one-reply
 				newDepth += search_param::EXT_ONEREP;
 				worker.info.onerepExtension++;
@@ -1232,13 +1263,26 @@ namespace sunfish {
 			// late move reduction
 			int reduced = 0;
 #if ENABLE_LMR
-			if (count != 0 && newDepth >= Depth1Ply && !isCheckPrev && !stat.isMateThreat() &&
+			if (!isFirst && !isCheckPrev && newDepth >= Depth1Ply && !stat.isMateThreat() &&
 					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
 					!tree.isPriorMove(move)) {
-				reduced = getReductionDepth(move, isNullWindow);
+				reduced = getReductionDepth(improving, newDepth, count, move, isNullWindow);
 				newDepth -= reduced;
 			}
 #endif // ENABLE_LMR
+
+#if ENABLE_MOVE_COUNT_PRUNING
+			// move count based pruning
+			if (!isCheckPrev && newDepth < Depth1Ply * 8 &&
+					alpha > -Value::Mate && !stat.isMateThreat() &&
+					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
+					!tree.isPriorMove(move) &&
+					count >= search_func::futilityMoveCounts(improving, depth)) {
+				isFirst = false;
+				worker.info.moveCountPruning++;
+				continue;
+			}
+#endif
 
 			// futility pruning
 			if (!isCheck && newDepth < Depth1Ply * 3 && alpha > -Value::Mate) {
@@ -1246,18 +1290,19 @@ namespace sunfish {
 				if (newDepth >= Depth1Ply * 2) { futAlpha -= search_param::EFUT_MGN2; }
 				else if (newDepth >= Depth1Ply) { futAlpha -= search_param::EFUT_MGN1; }
 				if (standPat + tree.estimate(move, _eval) <= futAlpha) {
-					count++;
+					isFirst = false;
 					worker.info.futilityPruning++;
 					continue;
 				}
 			}
 
-			if (newDepth < Depth1Ply * 2 && isNullWindow && !isCheck &&
+			// prune moves with negative SEE
+			if (!isCheck && newDepth < Depth1Ply * 2 && isNullWindow &&
 					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
 					!tree.isPriorMove(move)) {
 				See see;
 				if (see.search<true>(board, move, -1, 0) < Value::Zero) {
-					count++;
+					isFirst = false;
 					continue;
 				}
 			}
@@ -1275,7 +1320,7 @@ namespace sunfish {
 						(newDepth < Depth1Ply * 2 && newStandPat + search_param::EFUT_MGN1 <= alpha) ||
 						(newDepth < Depth1Ply * 3 && newStandPat + search_param::EFUT_MGN2 <= alpha)) {
 					tree.unmakeMove();
-					count++;
+					isFirst = false;
 					worker.info.extendedFutilityPruning++;
 					continue;
 				}
@@ -1283,7 +1328,7 @@ namespace sunfish {
 
 			// reccursive call
 			Value currval;
-			if (count == 0) {
+			if (isFirst) {
 				currval = -search(tree, !black, newDepth, -beta, -alpha, newStat);
 
 			} else {
@@ -1320,7 +1365,7 @@ namespace sunfish {
 				// beta-cut
 				if (currval >= beta) {
 					worker.info.failHigh++;
-					if (count == 0) {
+					if (isFirst) {
 						worker.info.failHighFirst++;
 					}
 					if (move == tree.getHash()) {
@@ -1338,7 +1383,7 @@ namespace sunfish {
 			if ((depth >= Depth1Ply * 4 || (depth >= Depth1Ply * 3 && _rootDepth <= Depth1Ply * 12)) &&
 					tree.getEnd() - tree.getCurrentMove() >= _config.workerSize &&
 					_idleWorkerCount.load() >= 1 && _idleTreeCount.load() >= 2) {
-				if (split(tree, black, depth, alpha, beta, best, standPat, stat)) {
+				if (split(tree, black, depth, alpha, beta, best, standPat, stat, improving)) {
 					worker.info.split++;
 					if (isInterrupted(tree)) {
 						return Value::Zero;
@@ -1351,7 +1396,7 @@ namespace sunfish {
 				}
 			}
 
-			count++;
+			isFirst = false;
 
 		}
 
@@ -1395,7 +1440,7 @@ search_end:
 	/**
 	 * split
 	 */
-	bool Searcher::split(Tree& parent, bool black, int depth, Value alpha, Value beta, Move best, Value standPat, NodeStat stat) {
+	bool Searcher::split(Tree& parent, bool black, int depth, Value alpha, Value beta, Move best, Value standPat, NodeStat stat, bool improving) {
 		int currTreeId = Tree::InvalidId;
 
 		{
@@ -1445,13 +1490,14 @@ search_end:
 				;
 
 			parent.getTlp().childCount.store(childCount);
-			parent.getTlp().black    = black;
-			parent.getTlp().depth    = depth;
-			parent.getTlp().alpha    = alpha;
-			parent.getTlp().beta     = beta;
-			parent.getTlp().best     = best;
-			parent.getTlp().standPat = standPat;
-			parent.getTlp().stat     = stat;
+			parent.getTlp().black     = black;
+			parent.getTlp().depth     = depth;
+			parent.getTlp().alpha     = alpha;
+			parent.getTlp().beta      = beta;
+			parent.getTlp().best      = best;
+			parent.getTlp().standPat  = standPat;
+			parent.getTlp().stat      = stat;
+			parent.getTlp().improving = improving;
 		}
 
 		auto& tree = _trees[currTreeId];
@@ -1496,6 +1542,7 @@ search_end:
 		Value beta = parent.getTlp().beta;
 		Value standPat = parent.getTlp().standPat;
 		NodeStat stat = parent.getTlp().stat;
+		bool improving = parent.getTlp().improving;
 
 		tree.initGenPhase();
 
@@ -1508,6 +1555,7 @@ search_end:
 			bool isCheck;
 			bool isPriorMove;
 			Piece captured;
+			int count;
 
 			{
 				std::lock_guard<std::mutex> lock(parent.getMutex());
@@ -1517,6 +1565,7 @@ search_end:
 				}
 
 				move = *parent.getCurrentMove();
+				count = parent.getCurrentNode().count;
 				alpha = parent.getTlp().alpha;
 				captured = board.getBoardPiece(move.to());
 				isCheckCurr = board.isCheck(move);
@@ -1565,13 +1614,25 @@ search_end:
 			// late move reduction
 			int reduced = 0;
 #if ENABLE_LMR
-			if (newDepth >= Depth1Ply && !isCheckPrev && !stat.isMateThreat() &&
+			if (!isCheckPrev && newDepth >= Depth1Ply && !stat.isMateThreat() &&
 					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
 					!isPriorMove) {
-				reduced = getReductionDepth(move, isNullWindow);
+				reduced = getReductionDepth(improving, newDepth, count, move, isNullWindow);
 				newDepth -= reduced;
 			}
 #endif // ENABLE_LMR
+
+#if ENABLE_MOVE_COUNT_PRUNING
+			// move count based pruning
+			if (!isCheckPrev && newDepth < Depth1Ply * 8 &&
+					alpha > -Value::Mate && !stat.isMateThreat() &&
+					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
+					!tree.isPriorMove(move) &&
+					count >= search_func::futilityMoveCounts(improving, depth)) {
+				worker.info.moveCountPruning++;
+				continue;
+			}
+#endif
 
 			// futility pruning
 			if (!isCheck && newDepth < Depth1Ply * 3 && alpha > -Value::Mate) {
@@ -1684,7 +1745,7 @@ search_end:
 			bool forceFullWindow /* = false */) {
 		const auto& board = tree.getBoard();
 		bool black = board.isBlack();
-		int count = 0;
+		bool isFirst = true;
 		Value oldAlpha = alpha;
 
 		_rootDepth = depth;
@@ -1709,13 +1770,9 @@ search_end:
 			// late move reduction
 			int reduced = 0;
 #if ENABLE_LMR
-			if (count != 0 && newDepth >= Depth1Ply * 2 && !isCheckPrev &&
+			if (!isFirst && newDepth >= Depth1Ply * 2 && !isCheckPrev &&
 					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver)) {
-#if 0
-				reduced = getReductionDepth(move, false);
-#else
 				reduced = Depth1Ply;
-#endif
 				newDepth -= reduced;
 			}
 #endif // ENABLE_LMR
@@ -1729,7 +1786,7 @@ search_end:
 			if (forceFullWindow) {
 				currval = -search(tree, !black, newDepth, -beta, -oldAlpha);
 
-			} else if (count == 0) {
+			} else if (isFirst) {
 				// full window search
 				currval = -search(tree, !black, newDepth, -beta, -alpha);
 
@@ -1757,7 +1814,7 @@ search_end:
 				return alpha;
 			}
 
-			if (count == 0 && currval <= alpha && currval > -Value::Mate) {
+			if (isFirst && currval <= alpha && currval > -Value::Mate) {
 				return currval;
 			}
 
@@ -1788,7 +1845,7 @@ search_end:
 				}
 			}
 
-			count++;
+			isFirst = false;
 		}
 
 		return alpha;

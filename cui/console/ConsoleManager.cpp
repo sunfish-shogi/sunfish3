@@ -541,6 +541,7 @@ namespace sunfish {
 		lines.emplace_back("null mv pruning", format2(info.nullMovePruning, info.nullMovePruningTried));
 		lines.emplace_back("fut pruning    ", format (info.futilityPruning));
 		lines.emplace_back("ext fut pruning", format (info.extendedFutilityPruning));
+		lines.emplace_back("mov cnt pruning", format (info.moveCountPruning));
 		lines.emplace_back("razoring       ", format2(info.razoring, info.razoringTried));
 		lines.emplace_back("check extension", format2(info.checkExtension, info.expanded));
 		lines.emplace_back("1rep extension ", format2(info.onerepExtension, info.expanded));

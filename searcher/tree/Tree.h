@@ -59,6 +59,7 @@ namespace sunfish {
 			ExpStat expStat;
 			bool isThroughPhase;
 			Moves::iterator ite;
+			int count;
 			bool checking;
 			Pv pv;
 			ValuePair valuePair;
@@ -115,6 +116,7 @@ namespace sunfish {
 			Move best;
 			Value standPat;
 			NodeStat stat;
+			bool improving;
 		} _tlp;
 
 		void clearStack();
@@ -280,6 +282,7 @@ namespace sunfish {
 			node.expStat = 0x00;
 			node.isThroughPhase = false;
 			node.ite = node.moves.begin();
+			node.count = 0;
 			node.capture1 = Move::empty();
 			node.capture2 = Move::empty();
 			node.cvalue1 = -Value::Inf;
@@ -292,6 +295,7 @@ namespace sunfish {
 			node.expStat = 0x00;
 			node.isThroughPhase = false;
 			node.ite = node.moves.begin();
+			node.count = 0;
 			node.capture1 = Move::empty();
 			node.capture2 = Move::empty();
 			node.cvalue1 = -Value::Inf;
@@ -303,9 +307,18 @@ namespace sunfish {
 			return node.valuePair.value();
 		}
 
+		Value getPrefrontValue() const {
+			auto& node = _stack[_ply-2];
+			return node.valuePair.value();
+		}
+
 		const ValuePair& getValuePair() const {
 			auto& node = _stack[_ply];
 			return node.valuePair;
+		}
+
+		bool hasPrefrontierNode() const {
+			return _ply >= 2;
 		}
 
 		template <bool positionalOnly = false>

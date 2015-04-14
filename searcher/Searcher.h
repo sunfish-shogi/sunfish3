@@ -174,7 +174,7 @@ namespace sunfish {
 		/**
 		 * get LMR depth
 		 */
-		int getReductionDepth(const Move& move, bool isNullWindow);
+		int getReductionDepth(bool improving, int depth, int moveCount, const Move& move, bool isNullWindow);
 
 		/**
 		 * get next move
@@ -209,7 +209,7 @@ namespace sunfish {
 		/**
 		 * split
 		 */
-		bool split(Tree& parent, bool black, int depth, Value alpha, Value beta, Move best, Value standPat, NodeStat stat);
+		bool split(Tree& parent, bool black, int depth, Value alpha, Value beta, Move best, Value standPat, NodeStat stat, bool improving);
 
 		void searchTlp(Tree& tree);
 
