@@ -38,7 +38,7 @@ namespace sunfish {
 		CONSTEXPR int EXT_RECAP = Searcher::Depth1Ply * 1 / 4;
 		CONSTEXPR int EXT_RECAP2 = Searcher::Depth1Ply * 1 / 2;
 		CONSTEXPR int REC_THRESHOLD = Searcher::Depth1Ply * 3;
-		CONSTEXPR int RAZOR_DEPTH = Searcher::Depth1Ply * 3;
+		CONSTEXPR int RAZOR_DEPTH = Searcher::Depth1Ply * 4;
 	}
 
 	namespace search_func {
@@ -52,7 +52,7 @@ namespace sunfish {
 							(depth <= Searcher::Depth1Ply * 30 / 4 ? Searcher::Depth1Ply * 14 / 4 : depth - Searcher::Depth1Ply * 16 / 4));
 		}
 		inline int razorMargin(int depth) {
-			return 512 + 64 / Searcher::Depth1Ply * depth;
+			return 256 + 32 / Searcher::Depth1Ply * std::max(depth, 0);
 		}
 	}
 
@@ -1097,16 +1097,17 @@ namespace sunfish {
 			}
 #endif
 
-			if (isNullWindow && !stat.isMateThreat()) {
+			if (!stat.isMateThreat()) {
 #if ENABLE_RAZORING
-				if (alpha > -Value::Mate && beta < Value::Mate && tree.getPly() >= 2 &&
-						hashMove.isEmpty() && !tree.isCheckingOnFrontier() && !tree.isRecaptureOnFrontier() &&
-						depth <= search_param::RAZOR_DEPTH) {
-					Value razorBeta = beta - search_func::razorMargin(depth);
-					if (standPat < razorBeta) {
+				// razoring
+				if (depth < search_param::RAZOR_DEPTH && hashMove.isEmpty() &&
+						alpha > -Value::Mate && beta < Value::Mate && tree.getPly() >= 2 &&
+						!tree.isCheckingOnFrontier() && !tree.isRecaptureOnFrontier()) {
+					Value razorAlpha = alpha - search_func::razorMargin(depth);
+					if (standPat <= razorAlpha) {
 						worker.info.razoringTried++;
-						Value qval = qsearch(tree, black, 0, razorBeta-1, razorBeta);
-						if (qval < razorBeta) {
+						Value qval = qsearch(tree, black, 0, razorAlpha, razorAlpha+1);
+						if (qval <= razorAlpha) {
 							worker.info.razoring++;
 							return qval;
 						}
@@ -1115,7 +1116,7 @@ namespace sunfish {
 #endif
 
 				// null move pruning
-				if (stat.isNullMove() && beta <= standPat && depth >= Depth1Ply * 2) {
+				if (isNullWindow && stat.isNullMove() && beta <= standPat && depth >= Depth1Ply * 2) {
 					auto newStat = NodeStat().unsetNullMove();
 					int newDepth = search_func::nullDepth(depth);
 
