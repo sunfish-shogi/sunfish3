@@ -50,6 +50,13 @@ namespace sunfish {
 			return false;
 		}
 
+		if (elapsed >= limit * 0.85) {
+#if ENABLE_EASY_LOG
+			Loggers::message << __FILE_LINE__;
+#endif
+			return true;
+		}
+
 		double r = elapsed / std::max(limit * 0.25, 3.0);
 
 #if ENABLE_EASY_LOG
