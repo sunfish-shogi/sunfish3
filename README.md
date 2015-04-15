@@ -51,3 +51,8 @@ rm eval.bin
 cp path/to/bonanza/fv.bin ./fv.bin
 ./sunfish
 ```
+
+License
+-------
+
+MIT License
