@@ -22,6 +22,55 @@ namespace sunfish {
 	class Tree;
 	struct Worker;
 
+	class Gains {
+	private:
+
+		static CONSTEXPR int From = Position::N + Piece::KindNum;
+		Value _gains2d[Piece::Num][Position::N];
+		Value _gains3d[From][Piece::Num][Position::N];
+
+		static int from(const Move& move) {
+			if (move.isHand()) {
+				int result = Position::N + (uint8_t)move.piece() - Piece::KindBegin;
+				assert(result >= Position::N);
+				assert(result < From);
+				return result;
+			} else {
+				int result = move.from();
+				assert(result >= 0);
+				assert(result < Position::N);
+				return result;
+			}
+		}
+
+	public:
+
+		void clear() {
+			memset(&_gains2d[0][0], 0, sizeof(_gains2d));
+			memset(&_gains3d[0][0][0], 0, sizeof(_gains3d));
+		}
+
+		void update(const Move& move, Value gain) {
+			assert(move.piece() < Piece::Num);
+			assert(move.to() >= 0);
+			assert(move.to() < Position::N);
+			Value& ref2d = _gains2d[move.piece()][move.to()];
+			Value& ref3d = _gains3d[from(move)][move.piece()][move.to()];
+			ref2d = Value::max(ref2d, gain);
+			ref3d = Value::max(ref3d, gain);
+		}
+
+		Value get(const Move& move) {
+			assert(move.piece() < Piece::Num);
+			assert(move.to() >= 0);
+			assert(move.to() < Position::N);
+			Value g2d = _gains2d[move.piece()][move.to()];
+			Value g3d = _gains3d[from(move)][move.piece()][move.to()];
+			return g3d != Value::Zero ? (g3d - g2d) / 2 : g2d;
+		}
+
+	};
+
 	class Searcher {
 	public:
 
@@ -59,6 +108,9 @@ namespace sunfish {
 
 		/** transposition table */
 		TT _tt;
+
+		/** gains */
+		Gains _gains;
 
 		/** mate table */
 		MateTable _mt;

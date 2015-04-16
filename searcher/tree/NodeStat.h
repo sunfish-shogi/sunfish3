@@ -6,6 +6,8 @@
 #ifndef __SUNFISH_NODESTAT__
 #define __SUNFISH_NODESTAT__
 
+#include <cstdint>
+
 namespace sunfish {
 
 	class NodeStat {
@@ -24,17 +26,17 @@ namespace sunfish {
 
 	private:
 
-		unsigned _stat;
+		uint32_t _stat;
 
-		void set(unsigned flag) {
+		void set(uint32_t flag) {
 			_stat |= flag;
 		}
 
-		void unset(unsigned flag) {
+		void unset(uint32_t flag) {
 			_stat &= ~flag;
 		}
 
-		bool is(unsigned flag) const {
+		bool is(uint32_t flag) const {
 			return _stat & flag;
 		}
 
@@ -42,7 +44,7 @@ namespace sunfish {
 		NodeStat() : _stat(Default) {
 		}
 
-		NodeStat(unsigned stat) : _stat(stat) {
+		NodeStat(uint32_t stat) : _stat(stat) {
 		}
 
 		NodeStat(const NodeStat& src) : _stat(src._stat) {
@@ -68,7 +70,7 @@ namespace sunfish {
 		__METHOD__(Recursion);
 		__METHOD__(MateThreat);
 
-		operator unsigned() const {
+		operator uint32_t() const {
 			return _stat;
 		}
 	};

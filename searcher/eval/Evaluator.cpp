@@ -20,11 +20,6 @@ namespace {
 
 	using namespace sunfish;
 
-	namespace eval_param {
-		CONSTEXPR int FUT_KING_MGN = 1000;
-		CONSTEXPR int FUT_MGN = 800;
-	}
-
 	inline int kpp_index(int x, int y) {
 		assert(x >= y);
 		return x*(x+1)/2+y;
@@ -1079,10 +1074,6 @@ namespace sunfish {
 
 		auto valuePair = ValuePair(material, positional);
 		auto value = black ? valuePair.value() : -valuePair.value();
-
-		if (!positionalOnly) {
-			value += isKing ? eval_param::FUT_KING_MGN : eval_param::FUT_MGN;
-		}
 
 		return value;
 	}

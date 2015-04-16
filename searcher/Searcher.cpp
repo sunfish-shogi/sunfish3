@@ -243,6 +243,9 @@ namespace sunfish {
 		// hisotory heuristic
 		_history.reduce();
 
+		// gains
+		_gains.clear();
+
 		_forceInterrupt.store(false);
 		_isRunning.store(true);
 
@@ -357,7 +360,7 @@ namespace sunfish {
 
 			if (isQuies) {
 				// futility pruning
-				if (standPat + tree.estimate(move, _eval) <= alpha) {
+				if (standPat + tree.estimate(move, _eval) + _gains.get(move) <= alpha) {
 					worker.info.futilityPruning++;
 					ite = tree.getMoves().remove(ite);
 					continue;
@@ -1102,8 +1105,22 @@ namespace sunfish {
 		}
 
 		Value standPat = tree.getValue() * (black ? 1 : -1);
-		bool improving = !tree.hasPrefrontierNode() ||
-			standPat >= tree.getPrefrontValue() * (black ? 1 : -1);
+		bool improving = true;
+
+		if (tree.hasPrefrontierNode()) {
+			// calculate gain
+			Value fvalue = tree.getPrefrontValue() * (black ? 1 : -1);
+			Value gain = standPat - fvalue;
+
+			// update gain
+			Move fmove = tree.getFrontMove();
+			if (!fmove.isEmpty()) {
+				_gains.update(fmove, -gain);
+			}
+
+			// check improving
+			improving = gain >= Value::Zero;
+		}
 
 		bool isFirst = true;
 		Move best = Move::empty();
@@ -1289,7 +1306,7 @@ namespace sunfish {
 				Value futAlpha = alpha;
 				if (newDepth >= Depth1Ply * 2) { futAlpha -= search_param::EFUT_MGN2; }
 				else if (newDepth >= Depth1Ply) { futAlpha -= search_param::EFUT_MGN1; }
-				if (standPat + tree.estimate(move, _eval) <= futAlpha) {
+				if (standPat + tree.estimate(move, _eval) + _gains.get(move) <= futAlpha) {
 					isFirst = false;
 					worker.info.futilityPruning++;
 					continue;
@@ -1639,7 +1656,7 @@ search_end:
 				Value futAlpha = alpha;
 				if (newDepth >= Depth1Ply * 2) { futAlpha -= search_param::EFUT_MGN2; }
 				else if (newDepth >= Depth1Ply) { futAlpha -= search_param::EFUT_MGN1; }
-				if (standPat + tree.estimate(move, _eval) <= futAlpha) {
+				if (standPat + tree.estimate(move, _eval) + _gains.get(move) <= futAlpha) {
 					worker.info.futilityPruning++;
 					continue;
 				}
