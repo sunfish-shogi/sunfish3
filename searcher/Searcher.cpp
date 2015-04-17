@@ -1106,16 +1106,6 @@ namespace sunfish {
 		bool improving = !tree.hasPrefrontierNode() ||
 			standPat >= tree.getPrefrontValue() * (black ? 1 : -1);
 
-		{
-			// update gain
-			Move fmove = tree.getFrontMove();
-			if (!fmove.isEmpty()) {
-				Value fvalue = tree.getFrontValue() * (black ? 1 : -1);
-				Value gain = -(standPat - fvalue);
-				_gains.update(fmove, gain);
-			}
-		}
-
 		bool isFirst = true;
 		Move best = Move::empty();
 
@@ -1362,6 +1352,9 @@ namespace sunfish {
 			if (isInterrupted(tree)) {
 				return Value::Zero;
 			}
+
+			// update gain
+			_gains.update(move, newStandPat - standPat - tree.estimate(move, _eval));
 
 			// 値更新
 			if (currval > alpha) {
@@ -1697,6 +1690,9 @@ search_end:
 			if (isInterrupted(tree)) {
 				return;
 			}
+
+			// update gain
+			_gains.update(move, newStandPat - standPat - tree.estimate(move, _eval));
 
 			{
 				std::lock_guard<std::mutex> lock(parent.getMutex());
