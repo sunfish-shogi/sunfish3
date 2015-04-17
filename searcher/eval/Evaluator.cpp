@@ -564,7 +564,7 @@ namespace sunfish {
 #endif // ENABLE_KPP
 
 #if ENABLE_HASHTABLE
-		_hashTable.set(board.getNoTurnHash(), positional);
+		_evaluateCache.set(board.getNoTurnHash(), positional);
 #endif
 
 		return positional;
@@ -588,7 +588,7 @@ namespace sunfish {
 
 		// ハッシュ表から引く
 #if ENABLE_HASHTABLE
-		if (_hashTable.get(board.getNoTurnHash(), positional)) {
+		if (_evaluateCache.get(board.getNoTurnHash(), positional)) {
 			if (!captured.isEmpty()) {
 				if (black) {
   				material += material::pieceExchange(captured);
@@ -907,7 +907,7 @@ namespace sunfish {
 #endif // ENABLE_KPP
 
 #if ENABLE_HASHTABLE
-		_hashTable.set(board.getNoTurnHash(), positional);
+		_evaluateCache.set(board.getNoTurnHash(), positional);
 #endif
 
 		return ValuePair(material, positional);
@@ -923,6 +923,15 @@ namespace sunfish {
 	 */
 	template <bool black, bool isKing, bool positionalOnly>
 	Value Evaluator::_estimate(const Board& board, const Move& move) {
+
+		Value value;
+
+#if ENABLE_HASHTABLE
+		uint64_t hash = board.getHash() ^ (uint64_t)Move::serialize(move);
+		if (_estimateCache.get(hash, value)) {
+			return value;
+		}
+#endif
 
 		Value material = 0;
 		Value positional = 0;
@@ -1073,7 +1082,11 @@ namespace sunfish {
 		}
 
 		auto valuePair = ValuePair(material, positional);
-		auto value = black ? valuePair.value() : -valuePair.value();
+		value = black ? valuePair.value() : -valuePair.value();
+
+#if ENABLE_HASHTABLE
+		_estimateCache.set(hash, value);
+#endif
 
 		return value;
 	}
