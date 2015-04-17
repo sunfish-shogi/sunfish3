@@ -1073,8 +1073,8 @@ namespace sunfish {
 						}
 						// 十分なマージンを加味して beta 値を超える場合
 						if ((valueType == TTE::Lower || valueType == TTE::Exact) &&
-								tree.isChecking() && tree.isCheckingOnFrontier()) {
-							if (depth <= Depth1Ply * 3 && ttv >= beta + search_param::EFUT_MGN) {
+								!tree.isChecking() && !tree.isCheckingOnFrontier()) {
+							if (depth < Depth1Ply * 3 && ttv >= beta + search_param::EFUT_MGN) {
 								return beta;
 							}
 						}
@@ -1759,7 +1759,7 @@ search_end:
 			// depth
 			int newDepth = depth - Depth1Ply;
 
-			bool isCheckPrev = board.isChecking(); // TODO: tree.isChecking を使えるようにする
+			bool isCheckPrev = board.isChecking();
 			bool isCheckCurr = board.isCheck(move);
 			Piece captured = board.getBoardPiece(move.to());
 
