@@ -32,8 +32,7 @@
 namespace sunfish {
 
 	namespace search_param {
-		CONSTEXPR int EFUT_MGN1 = 800;
-		CONSTEXPR int EFUT_MGN2 = 800;
+		CONSTEXPR int EFUT_MGN = 800;
 		CONSTEXPR int EXT_CHECK = Searcher::Depth1Ply;
 		CONSTEXPR int EXT_ONEREP = Searcher::Depth1Ply * 1 / 2;
 		CONSTEXPR int EXT_RECAP = Searcher::Depth1Ply * 1 / 4;
@@ -1075,8 +1074,7 @@ namespace sunfish {
 						// 十分なマージンを加味して beta 値を超える場合
 						if ((valueType == TTE::Lower || valueType == TTE::Exact) &&
 								tree.isChecking() && tree.isCheckingOnFrontier()) {
-							if ((depth <= Depth1Ply * 2 && ttv >= beta + search_param::EFUT_MGN1) ||
-									(depth <= Depth1Ply * 3 && ttv >= beta + search_param::EFUT_MGN2)) {
+							if (depth <= Depth1Ply * 3 && ttv >= beta + search_param::EFUT_MGN) {
 								return beta;
 							}
 						}
@@ -1105,21 +1103,17 @@ namespace sunfish {
 		}
 
 		Value standPat = tree.getValue() * (black ? 1 : -1);
-		bool improving = true;
+		bool improving = !tree.hasPrefrontierNode() ||
+			standPat >= tree.getPrefrontValue() * (black ? 1 : -1);
 
-		if (tree.hasPrefrontierNode()) {
-			// calculate gain
-			Value fvalue = tree.getPrefrontValue() * (black ? 1 : -1);
-			Value gain = standPat - fvalue;
-
+		{
 			// update gain
 			Move fmove = tree.getFrontMove();
 			if (!fmove.isEmpty()) {
-				_gains.update(fmove, -gain);
+				Value fvalue = tree.getFrontValue() * (black ? 1 : -1);
+				Value gain = -(standPat - fvalue);
+				_gains.update(fmove, gain);
 			}
-
-			// check improving
-			improving = gain >= Value::Zero;
 		}
 
 		bool isFirst = true;
@@ -1304,8 +1298,7 @@ namespace sunfish {
 			// futility pruning
 			if (!isCheck && newDepth < Depth1Ply * 3 && alpha > -Value::Mate) {
 				Value futAlpha = alpha;
-				if (newDepth >= Depth1Ply * 2) { futAlpha -= search_param::EFUT_MGN2; }
-				else if (newDepth >= Depth1Ply) { futAlpha -= search_param::EFUT_MGN1; }
+				if (newDepth >= Depth1Ply) { futAlpha -= search_param::EFUT_MGN; }
 				if (standPat + tree.estimate(move, _eval) + _gains.get(move) <= futAlpha) {
 					isFirst = false;
 					worker.info.futilityPruning++;
@@ -1334,8 +1327,7 @@ namespace sunfish {
 			// extended futility pruning
 			if (!isCheck && alpha > -Value::Mate) {
 				if ((newDepth < Depth1Ply && newStandPat <= alpha) ||
-						(newDepth < Depth1Ply * 2 && newStandPat + search_param::EFUT_MGN1 <= alpha) ||
-						(newDepth < Depth1Ply * 3 && newStandPat + search_param::EFUT_MGN2 <= alpha)) {
+						(newDepth < Depth1Ply * 3 && newStandPat + search_param::EFUT_MGN <= alpha)) {
 					tree.unmakeMove();
 					isFirst = false;
 					worker.info.extendedFutilityPruning++;
@@ -1654,8 +1646,7 @@ search_end:
 			// futility pruning
 			if (!isCheck && newDepth < Depth1Ply * 3 && alpha > -Value::Mate) {
 				Value futAlpha = alpha;
-				if (newDepth >= Depth1Ply * 2) { futAlpha -= search_param::EFUT_MGN2; }
-				else if (newDepth >= Depth1Ply) { futAlpha -= search_param::EFUT_MGN1; }
+				if (newDepth >= Depth1Ply) { futAlpha -= search_param::EFUT_MGN; }
 				if (standPat + tree.estimate(move, _eval) + _gains.get(move) <= futAlpha) {
 					worker.info.futilityPruning++;
 					continue;
@@ -1680,8 +1671,7 @@ search_end:
 			// extended futility pruning
 			if (!isCheck && alpha > -Value::Mate) {
 				if ((newDepth < Depth1Ply && newStandPat <= alpha) ||
-						(newDepth < Depth1Ply * 2 && newStandPat + search_param::EFUT_MGN1 <= alpha) ||
-						(newDepth < Depth1Ply * 3 && newStandPat + search_param::EFUT_MGN2 <= alpha)) {
+						(newDepth < Depth1Ply * 3 && newStandPat + search_param::EFUT_MGN <= alpha)) {
 					tree.unmakeMove();
 					worker.info.extendedFutilityPruning++;
 					continue;

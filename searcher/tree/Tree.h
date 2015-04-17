@@ -307,6 +307,11 @@ namespace sunfish {
 			return node.valuePair.value();
 		}
 
+		Value getFrontValue() const {
+			auto& node = _stack[_ply-1];
+			return node.valuePair.value();
+		}
+
 		Value getPrefrontValue() const {
 			auto& node = _stack[_ply-2];
 			return node.valuePair.value();
