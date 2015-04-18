@@ -122,9 +122,9 @@ namespace sunfish {
 
 		Table* _t;
 
-		EvaluateTable _evaluateCache;
+		EvaluateTable<22> _evaluateCache;
 
-		EvaluateTable _estimateCache;
+		EvaluateTable<22> _estimateCache;
 
 		void alloc();
 		void free();

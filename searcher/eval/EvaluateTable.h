@@ -12,19 +12,22 @@
 
 namespace sunfish {
 
-	class EvaluateTable : public HashTable<EvaluateEntity> {
+	template <int KeyLength>
+	class EvaluateTable : public HashTable<EvaluateEntity<KeyLength>> {
 	public:
-		EvaluateTable() : HashTable<EvaluateEntity>(EvaluateEntity::KeyLength) {
+		using BaseType = HashTable<EvaluateEntity<KeyLength>>;
+
+		EvaluateTable() : BaseType(KeyLength) {
 		}
 		EvaluateTable(const EvaluateTable&) = delete;
 		EvaluateTable(EvaluateTable&&) = delete;
 
 		bool get(uint64_t hash, Value& value) const {
-			return getEntity(hash).get(hash, value);
+			return BaseType::getEntity(hash).get(hash, value);
 		}
 
 		void set(uint64_t hash, const Value& value) {
-			getEntity(hash).set(hash, value);
+			BaseType::getEntity(hash).set(hash, value);
 		}
 	};
 

@@ -12,10 +12,8 @@
 
 namespace sunfish {
 
+	template <int KeyLength>
 	class EvaluateEntity {
-	public:
-		static CONSTEXPR int KeyLength = 21;
-
 	private:
 		static CONSTEXPR int ValueInf = 1U << (KeyLength - 1);
 		static CONSTEXPR uint64_t ValueMask = (uint64_t)((1U << KeyLength) - 1U);

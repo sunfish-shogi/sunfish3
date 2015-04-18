@@ -8,6 +8,7 @@
 
 #include "Mate.h"
 #include "SearchInfo.h"
+#include "eval/EvaluateTable.h"
 #include "tree/Tree.h"
 #include "history/History.h"
 #include "tt/TT.h"
@@ -104,6 +105,8 @@ namespace sunfish {
 
 		int _rootDepth;
 
+		EvaluateTable<22> _seeCache;
+
 		std::mutex _splitMutex;
 
 		/** 中断フラグ */
@@ -178,6 +181,12 @@ namespace sunfish {
 		 * 探索中断判定
 		 */
 		bool isInterrupted(Tree& tree);
+
+		/**
+		 * get see value
+		 */
+		template <bool shallow>
+		Value searchSee(const Board& board, const Move& move, Value alpha, Value beta);
 
 		/**
 		 * sort moves by see

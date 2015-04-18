@@ -16,7 +16,6 @@
 #define ENABLE_MOVE_COUNT_PRUNING			0 // should be 0
 #define ENABLE_HASH_MOVE							1
 #define ENABLE_KILLER_MOVE						1
-#define ENABLE_PRECEDE_KILLER					0 // should be 0
 #define ENABLE_SHEK										1
 #define ENABLE_MATE_1PLY							1
 #define ENABLE_STORE_PV								1
@@ -323,10 +322,34 @@ namespace sunfish {
 	}
 
 	/**
+	 * get see value
+	 */
+	template <bool shallow>
+	Value Searcher::searchSee(const Board& board, const Move& move, Value alpha, Value beta) {
+		Value value;
+		uint64_t hash;
+
+		if (!shallow) {
+			hash = board.getHash() ^ (uint64_t)Move::serialize(move);
+			if (_seeCache.get(hash, value)) {
+				return value;
+			}
+		}
+
+		See see;
+		value = see.search<shallow>(board, move, alpha, beta);
+
+		if (!shallow && value > alpha && value < beta) {
+			_seeCache.set(hash, value);
+		}
+
+		return value;
+	}
+
+	/**
 	 * sort moves by see
 	 */
 	void Searcher::sortSee(Tree& tree, int offset, Value standPat, Value alpha, bool enableKiller, bool estimate, bool exceptSmallCapture, bool isQuies) {
-		See see;
 		const auto& board = tree.getBoard();
 		auto& node = tree.getCurrentNode();
 		auto& worker = getWorker(tree);
@@ -367,9 +390,9 @@ namespace sunfish {
 			}
 
 #if SHALLOW_SEE
-			value = see.search<true>(board, move, -1, Value::PieceInf);
+			value = searchSee<true>(board, move, -1, Value::PieceInf);
 #else
-			value = see.search<false>(board, move, -1, Value::PieceInf);
+			value = searchSee<false>(board, move, -1, Value::PieceInf);
 #endif
 			if (estimate) {
 				value += tree.estimate<true>(move, _eval);
@@ -398,21 +421,13 @@ namespace sunfish {
 				if (move == node.killer1) {
 					node.expStat |= Killer1Added;
 					auto captured = board.getBoardPiece(move.to());
-#if ENABLE_PRECEDE_KILLER
-					value = Value::Inf;
-#else
 					Value kvalue = tree.getKiller1Value() + material::pieceExchange(captured);
 					value = Value::max(value, kvalue);
-#endif
 				} else if (move == node.killer2) {
 					node.expStat |= Killer2Added;
 					auto captured = board.getBoardPiece(move.to());
-#if ENABLE_PRECEDE_KILLER
-					value = Value::Inf-1;
-#else
 					Value kvalue = tree.getKiller2Value() + material::pieceExchange(captured);
 					value = Value::max(value, kvalue);
-#endif
 				}
 			}
 
@@ -427,24 +442,16 @@ namespace sunfish {
 					&& board.isValidMoveStrict(node.killer1)) {
 				node.expStat |= Killer1Added;
 				auto ite = tree.addMove(node.killer1);
-#if ENABLE_PRECEDE_KILLER
-				tree.setSortValue(ite, Value::Inf);
-#else
 				Value kvalue = tree.getKiller1Value();
 				tree.setSortValue(ite, kvalue.int32());
-#endif
 			}
 			if (!(node.expStat & Killer2Added) && node.killer2 != node.hash
 					&& tree.getKiller2Value() >= Value::Zero
 					&& board.isValidMoveStrict(node.killer2)) {
 				node.expStat |= Killer2Added;
 				auto ite = tree.addMove(node.killer2);
-#if ENABLE_PRECEDE_KILLER
-				tree.setSortValue(ite, Value::Inf);
-#else
 				Value kvalue = tree.getKiller2Value();
 				tree.setSortValue(ite, kvalue.int32());
-#endif
 			}
 		}
 
@@ -928,8 +935,7 @@ namespace sunfish {
 
 		} else {
 			if (node.expStat & Killer1Done) {
-				See see;
-				Value val = see.search<false>(board, move, -1, Value::PieceInf) - capVal + 1;
+				Value val = searchSee<false>(board, move, -1, Value::PieceInf) - capVal + 1;
 				node.kvalue1 = Value::min(node.kvalue1, val);
 			}
 			node.killer2 = node.killer1;
@@ -1018,8 +1024,9 @@ namespace sunfish {
 			return qsearch(tree, black, 0, alpha, beta);
 		}
 
-		// distance pruning
 		Value oldAlpha = alpha;
+
+		// distance pruning
 		{
 			Value value = -Value::Inf + tree.getPly();
 			if (value > alpha) {
@@ -1300,8 +1307,7 @@ namespace sunfish {
 			if (!isCheck && newDepth < Depth1Ply * 2 && isNullWindow &&
 					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
 					!tree.isPriorMove(move)) {
-				See see;
-				if (see.search<true>(board, move, -1, 0) < Value::Zero) {
+				if (searchSee<true>(board, move, -1, 0) < Value::Zero) {
 					isFirst = false;
 					continue;
 				}
@@ -1649,8 +1655,7 @@ search_end:
 			if (newDepth < Depth1Ply * 2 && isNullWindow && !isCheck &&
 					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
 					!isPriorMove) {
-				See see;
-				if (see.search<true>(board, move, -1, 0) < Value::Zero) {
+				if (searchSee<true>(board, move, -1, 0) < Value::Zero) {
 					continue;
 				}
 			}

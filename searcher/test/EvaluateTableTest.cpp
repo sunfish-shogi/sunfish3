@@ -11,7 +11,7 @@
 using namespace sunfish;
 
 TEST(SeeTest, testEvaluateTable) {
-	EvaluateTable table;
+	EvaluateTable<21> table;
 
 	uint64_t hash1 = 0x8f70ac3b2973d012LL;
 	uint64_t hash2 = 0x9b2185ef180294ceLL;

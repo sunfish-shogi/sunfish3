@@ -247,26 +247,18 @@ namespace sunfish {
 
 	Value See::search(bool black, Value value, Value alpha, Value beta) {
 
-#define SEARCH(i, c) if (i < _ ## c ## num) { \
-			auto att = _ ## c ## ref[i]; \
-			if (!att->used && (att->dependOn == nullptr || att->dependOn->used)) { \
-				if (value - att->value >= beta) { return beta; } \
-				att->used = true; \
-				auto result = Value::max(0, value - search(!black, att->value, -beta+value, -alpha+value)); \
-				att->used = false; \
-				return result; \
-			} \
-	}
-		if (black) {
-			SEARCH(0, b); SEARCH(1, b); SEARCH(2, b); SEARCH(3, b);
-			SEARCH(4, b); SEARCH(5, b); SEARCH(6, b); SEARCH(7, b);
-			SEARCH(8, b); SEARCH(9, b); SEARCH(10, b); SEARCH(11, b);
-			SEARCH(12, b); SEARCH(13, b); SEARCH(14, b); SEARCH(15, b);
-		} else {
-			SEARCH(0, w); SEARCH(1, w); SEARCH(2, w); SEARCH(3, w);
-			SEARCH(4, w); SEARCH(5, w); SEARCH(6, w); SEARCH(7, w);
-			SEARCH(8, w); SEARCH(9, w); SEARCH(10, w); SEARCH(11, w);
-			SEARCH(12, w); SEARCH(13, w); SEARCH(14, w); SEARCH(15, w);
+		auto ref = black ? _bref : _wref;
+		int num = black ? _bnum : _wnum;
+
+		for (int i = 0; i < num; i++) {
+			auto att = ref[i];
+			if (!att->used && (att->dependOn == nullptr || att->dependOn->used)) {
+				if (value - att->value >= beta) { return beta; }
+				att->used = true;
+				auto result = Value::max(0, value - search(!black, att->value, -beta+value, -alpha+value));
+				att->used = false;
+				return result;
+			}
 		}
 
 		return 0;
