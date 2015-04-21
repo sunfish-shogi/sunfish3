@@ -274,7 +274,7 @@ TEST(EvaluatorTest, testEstimate) {
 		// 57桂不成
 		Move move(Piece::Knight, P45, P57, false);
 		Value value = eval.estimate(board, move);
-		ASSERT_EQ(value.int32(), material::PawnEx + 800);
+		ASSERT_EQ(value.int32(), material::PawnEx);
 
 		// 57桂成
 		move = Move(Piece::Knight, P45, P57, true);
@@ -282,17 +282,17 @@ TEST(EvaluatorTest, testEstimate) {
 		ASSERT_EQ(value.int32(),
 				material::PawnEx
 				+ material::Pro_knight
-				- material::Knight + 800);
+				- material::Knight);
 
 		// 55角
 		move = Move(Piece::Bishop, P55);
 		value = eval.estimate(board, move);
-		ASSERT_EQ(value.int32(), 800);
+		ASSERT_EQ(value.int32(), 0);
 
 		// 62玉
 		move = Move(Piece::King, P51, P62, false);
 		value = eval.estimate(board, move);
-		ASSERT_EQ(value.int32(), 1000);
+		ASSERT_EQ(value.int32(), 0);
 	}
 
 }
