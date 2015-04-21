@@ -12,6 +12,7 @@
 #include <iomanip>
 
 #define ENABLE_LMR										1
+#define ENABLE_SMOOTH_FUT							1
 #define ENABLE_RAZORING								1
 #define ENABLE_MOVE_COUNT_PRUNING			0 // should be 0
 #define ENABLE_HASH_MOVE							1
@@ -31,7 +32,11 @@
 namespace sunfish {
 
 	namespace search_param {
-		CONSTEXPR int EFUT_MGN = 800;
+#if ENABLE_SMOOTH_FUT
+		CONSTEXPR int FUT_DEPTH = Searcher::Depth1Ply * 9;
+#else
+		CONSTEXPR int FUT_DEPTH = Searcher::Depth1Ply * 3;
+#endif
 		CONSTEXPR int EXT_CHECK = Searcher::Depth1Ply;
 		CONSTEXPR int EXT_ONEREP = Searcher::Depth1Ply * 1 / 2;
 		CONSTEXPR int EXT_RECAP = Searcher::Depth1Ply * 1 / 4;
@@ -50,6 +55,14 @@ namespace sunfish {
 		inline int nullDepth(int depth) {
 			return (depth < Searcher::Depth1Ply * 26 / 4 ? depth - Searcher::Depth1Ply * 12 / 4 :
 							(depth <= Searcher::Depth1Ply * 30 / 4 ? Searcher::Depth1Ply * 14 / 4 : depth - Searcher::Depth1Ply * 16 / 4));
+		}
+		inline int futilityMargin(int depth) {
+#if ENABLE_SMOOTH_FUT
+			return (depth < Searcher::Depth1Ply * 3 ? 800 :
+							128 + 270 / Searcher::Depth1Ply * std::max(depth, 0));
+#else
+			return 800;
+#endif
 		}
 		inline int razorMargin(int depth) {
 			return 512 + 32 / Searcher::Depth1Ply * std::max(depth, 0);
@@ -1081,7 +1094,7 @@ namespace sunfish {
 						// 十分なマージンを加味して beta 値を超える場合
 						if ((valueType == TTE::Lower || valueType == TTE::Exact) &&
 								!tree.isChecking() && !tree.isCheckingOnFrontier()) {
-							if (depth < Depth1Ply * 3 && ttv >= beta + search_param::EFUT_MGN) {
+							if (depth < search_param::FUT_DEPTH && ttv >= beta + search_func::futilityMargin(depth)) {
 								return beta;
 							}
 						}
@@ -1293,9 +1306,9 @@ namespace sunfish {
 #endif
 
 			// futility pruning
-			if (!isCheck && newDepth < Depth1Ply * 3 && alpha > -Value::Mate) {
+			if (!isCheck && newDepth < search_param::FUT_DEPTH && alpha > -Value::Mate) {
 				Value futAlpha = alpha;
-				if (newDepth >= Depth1Ply) { futAlpha -= search_param::EFUT_MGN; }
+				if (newDepth >= Depth1Ply) { futAlpha -= search_func::futilityMargin(newDepth); }
 				if (standPat + tree.estimate(move, _eval) + _gains.get(move) <= futAlpha) {
 					isFirst = false;
 					worker.info.futilityPruning++;
@@ -1323,7 +1336,7 @@ namespace sunfish {
 			// extended futility pruning
 			if (!isCheck && alpha > -Value::Mate) {
 				if ((newDepth < Depth1Ply && newStandPat <= alpha) ||
-						(newDepth < Depth1Ply * 3 && newStandPat + search_param::EFUT_MGN <= alpha)) {
+						(newDepth < search_param::FUT_DEPTH && newStandPat + search_func::futilityMargin(newDepth) <= alpha)) {
 					tree.unmakeMove();
 					isFirst = false;
 					worker.info.extendedFutilityPruning++;
@@ -1643,9 +1656,9 @@ search_end:
 #endif
 
 			// futility pruning
-			if (!isCheck && newDepth < Depth1Ply * 3 && alpha > -Value::Mate) {
+			if (!isCheck && newDepth < search_param::FUT_DEPTH && alpha > -Value::Mate) {
 				Value futAlpha = alpha;
-				if (newDepth >= Depth1Ply) { futAlpha -= search_param::EFUT_MGN; }
+				if (newDepth >= Depth1Ply) { futAlpha -= search_func::futilityMargin(newDepth); }
 				if (standPat + tree.estimate(move, _eval) + _gains.get(move) <= futAlpha) {
 					worker.info.futilityPruning++;
 					continue;
@@ -1669,7 +1682,7 @@ search_end:
 			// extended futility pruning
 			if (!isCheck && alpha > -Value::Mate) {
 				if ((newDepth < Depth1Ply && newStandPat <= alpha) ||
-						(newDepth < Depth1Ply * 3 && newStandPat + search_param::EFUT_MGN <= alpha)) {
+						(newDepth < search_param::FUT_DEPTH && newStandPat + search_func::futilityMargin(newDepth) <= alpha)) {
 					tree.unmakeMove();
 					worker.info.extendedFutilityPruning++;
 					continue;
