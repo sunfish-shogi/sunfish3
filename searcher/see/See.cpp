@@ -169,50 +169,87 @@ namespace sunfish {
     		generateAttackerR<shallow, Direction::dirname>(board, exceptPos, occ, nullptr); \
   		} \
 		}
+#define GEN_HV(sideTypeH, sideTypeV) \
+		GEN(Up, \
+				sideTypeH == HSideType::Top, \
+				sideTypeH == HSideType::Top2); \
+		GEN(Down, \
+				sideTypeH == HSideType::Bottom, \
+				sideTypeH == HSideType::Bottom2); \
+		GEN(Left, \
+				sideTypeV == VSideType::Left, \
+				sideTypeV == VSideType::Left2); \
+		GEN(Right, \
+				sideTypeV == VSideType::Right, \
+				sideTypeV == VSideType::Right2); \
+		GEN(LeftUp, \
+				sideTypeH == HSideType::Top || sideTypeV == VSideType::Left, \
+				sideTypeH == HSideType::Top2 || sideTypeV == VSideType::Left2); \
+		GEN(RightUp, \
+				sideTypeH == HSideType::Top || sideTypeV == VSideType::Right, \
+				sideTypeH == HSideType::Top2 || sideTypeV == VSideType::Right2); \
+		GEN(LeftDown, \
+				sideTypeH == HSideType::Bottom || sideTypeV == VSideType::Left, \
+				sideTypeH == HSideType::Bottom2 || sideTypeV == VSideType::Left2); \
+		GEN(RightDown, \
+				sideTypeH == HSideType::Bottom || sideTypeV == VSideType::Right, \
+				sideTypeH == HSideType::Bottom2 || sideTypeV == VSideType::Right2); \
+		if (sideTypeH != HSideType::Bottom && sideTypeH != HSideType::Bottom2) { \
+			if (exceptDir != Direction::LeftDownKnight && sideTypeV != VSideType::Left) { \
+				generateKnightAttacker<true>(board, to.left().down(2)); \
+			} \
+			if (exceptDir != Direction::RightDownKnight && sideTypeV != VSideType::Right) { \
+				generateKnightAttacker<true>(board, to.right().down(2)); \
+			} \
+		} \
+		if (sideTypeH != HSideType::Top && sideTypeH != HSideType::Top2) { \
+			if (exceptDir != Direction::LeftUpKnight && sideTypeV != VSideType::Left) { \
+				generateKnightAttacker<false>(board, to.left().up(2)); \
+			} \
+			if (exceptDir != Direction::RightUpKnight && sideTypeV != VSideType::Right) { \
+				generateKnightAttacker<false>(board, to.right().up(2)); \
+			} \
+		}
+#define GEN_H(sideTypeH) \
+		switch (sideTypeV) { \
+		case VSideType::None: \
+			GEN_HV(sideTypeH, VSideType::None); \
+			break; \
+		case VSideType::Left: \
+			GEN_HV(sideTypeH, VSideType::Left); \
+			break; \
+		case VSideType::Right: \
+			GEN_HV(sideTypeH, VSideType::Right); \
+			break; \
+		case VSideType::Left2: \
+			GEN_HV(sideTypeH, VSideType::Left2); \
+			break; \
+		case VSideType::Right2: \
+			GEN_HV(sideTypeH, VSideType::Right2); \
+			break; \
+		}
 
-		GEN(Up,
-				sideTypeH == HSideType::Top,
-				sideTypeH == HSideType::Top2);
-		GEN(Down,
-				sideTypeH == HSideType::Bottom,
-				sideTypeH == HSideType::Bottom2);
-		GEN(Left,
-				sideTypeV == VSideType::Left,
-				sideTypeV == VSideType::Left2);
-		GEN(Right,
-				sideTypeV == VSideType::Right,
-				sideTypeV == VSideType::Right2);
-		GEN(LeftUp,
-				sideTypeH == HSideType::Top || sideTypeV == VSideType::Left,
-				sideTypeH == HSideType::Top2 || sideTypeV == VSideType::Left2);
-		GEN(RightUp,
-				sideTypeH == HSideType::Top || sideTypeV == VSideType::Right,
-				sideTypeH == HSideType::Top2 || sideTypeV == VSideType::Right2);
-		GEN(LeftDown,
-				sideTypeH == HSideType::Bottom || sideTypeV == VSideType::Left,
-				sideTypeH == HSideType::Bottom2 || sideTypeV == VSideType::Left2);
-		GEN(RightDown,
-				sideTypeH == HSideType::Bottom || sideTypeV == VSideType::Right,
-				sideTypeH == HSideType::Bottom2 || sideTypeV == VSideType::Right2);
+		switch (sideTypeH) {
+		case HSideType::None:
+			GEN_H(HSideType::None);
+			break;
+		case HSideType::Top:
+			GEN_H(HSideType::Top);
+			break;
+		case HSideType::Bottom:
+			GEN_H(HSideType::Bottom);
+			break;
+		case HSideType::Top2:
+			GEN_H(HSideType::Top2);
+			break;
+		case HSideType::Bottom2:
+			GEN_H(HSideType::Bottom2);
+			break;
+		}
+
+#undef GEN_H
+#undef GEN_HV
 #undef GEN
-
-		// 桂馬
-		if (sideTypeH != HSideType::Bottom && sideTypeH != HSideType::Bottom2) {
-			if (exceptDir != Direction::LeftDownKnight && sideTypeV != VSideType::Left) {
-				generateKnightAttacker<true>(board, to.left().down(2));
-			}
-			if (exceptDir != Direction::RightDownKnight && sideTypeV != VSideType::Right) {
-				generateKnightAttacker<true>(board, to.right().down(2));
-			}
-		}
-		if (sideTypeH != HSideType::Top && sideTypeH != HSideType::Top2) {
-			if (exceptDir != Direction::LeftUpKnight && sideTypeV != VSideType::Left) {
-  			generateKnightAttacker<false>(board, to.left().up(2));
-  		}
-  		if (exceptDir != Direction::RightUpKnight && sideTypeV != VSideType::Right) {
-  			generateKnightAttacker<false>(board, to.right().up(2));
-  		}
-		}
 
 		assert(_bnum < (int)(sizeof(_b) / sizeof(_b[0])) - 1);
 		assert(_wnum < (int)(sizeof(_w) / sizeof(_w[0])) - 1);
