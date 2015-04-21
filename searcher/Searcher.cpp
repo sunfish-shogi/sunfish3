@@ -331,7 +331,7 @@ namespace sunfish {
 
 		if (!shallow) {
 			hash = board.getHash() ^ (uint64_t)Move::serialize(move);
-			if (_seeCache.get(hash, value)) {
+			if (_seeCache.get(hash, value, alpha, beta)) {
 				return value;
 			}
 		}
@@ -339,8 +339,8 @@ namespace sunfish {
 		See see;
 		value = see.search<shallow>(board, move, alpha, beta);
 
-		if (!shallow && value > alpha && value < beta) {
-			_seeCache.set(hash, value);
+		if (!shallow) {
+			_seeCache.set(hash, value, alpha, beta);
 		}
 
 		return value;

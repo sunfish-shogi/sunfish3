@@ -9,6 +9,7 @@
 #include "Mate.h"
 #include "SearchInfo.h"
 #include "eval/EvaluateTable.h"
+#include "see/SeeTable.h"
 #include "tree/Tree.h"
 #include "history/History.h"
 #include "tt/TT.h"
@@ -105,7 +106,7 @@ namespace sunfish {
 
 		int _rootDepth;
 
-		EvaluateTable<22> _seeCache;
+		SeeTable<22> _seeCache;
 
 		std::mutex _splitMutex;
 

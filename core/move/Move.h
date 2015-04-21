@@ -67,7 +67,7 @@ namespace sunfish {
 
 		// serialization
 		static uint32_t serialize(const Move& obj) {
-			return obj._move;
+			return obj._move & (FROM | TO | PROMOTE | PIECE);
 		}
 		static Move deserialize(uint32_t value) {
 			Move move;
