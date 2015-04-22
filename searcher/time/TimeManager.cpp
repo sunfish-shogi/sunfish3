@@ -10,6 +10,15 @@
 
 #define ENABLE_EASY_LOG						1
 
+namespace {
+
+	double sigmoid(double x) {
+		constexpr double g = 4.0;
+		return 1.0 / (1.0 + exp((-g)*x));
+	}
+
+}
+
 namespace sunfish {
 
 	void TimeManager::init() {
@@ -57,19 +66,20 @@ namespace sunfish {
 			return true;
 		}
 
-		double r = elapsed / std::max(limit * 0.25, 3.0);
+		double baseTime = std::max(limit * 0.25, 3.0);
+		double r = 5.0 * sigmoid(0.7 * (elapsed - baseTime) / baseTime);
 
 #if ENABLE_EASY_LOG
 		{
 			int easyDiff = curr.firstValue.int32() - easy.firstValue.int32();
 			int prevDiff = curr.firstValue.int32() - prev.firstValue.int32();
 			int isSame = curr.firstMove == easy.firstMove ? 1 : 0;
-			Loggers::message << "time_manager," << r << ',' << easyDiff << ',' << prevDiff << ',' << isSame << ',';
+			Loggers::message << "time_manager," << r << ',' << easyDiff << ',' << prevDiff << ',' << isSame;
 		}
 #endif
 
-		if (curr.firstValue >= easy.firstValue - (256 * r) && curr.firstValue <= easy.firstValue + (512 * r) &&
-				curr.firstValue >= prev.firstValue - (64 * r) && curr.firstValue <= prev.firstValue + (256 * r)) {
+		if (curr.firstValue >= easy.firstValue - (32 * r) && curr.firstValue <= easy.firstValue + (512 * r) &&
+				curr.firstValue >= prev.firstValue - (16 * r) && curr.firstValue <= prev.firstValue + (256 * r)) {
 #if ENABLE_EASY_LOG
 			Loggers::message << __FILE_LINE__;
 #endif
@@ -77,23 +87,7 @@ namespace sunfish {
 		}
 
 		if (curr.firstMove == easy.firstMove && curr.firstMove == prev.firstMove &&
-				curr.firstValue >= prev.firstValue - (128 * r) && curr.firstValue <= prev.firstValue + (512 * r)) {
-#if ENABLE_EASY_LOG
-			Loggers::message << __FILE_LINE__;
-#endif
-			return true;
-		}
-
-		if (curr.firstMove == prev.firstMove &&
-				curr.firstValue >= prev.firstValue - (64 * r) && curr.firstValue <= prev.firstValue + (256 * r)) {
-#if ENABLE_EASY_LOG
-			Loggers::message << __FILE_LINE__;
-#endif
-			return true;
-		}
-
-		if (curr.firstMove == easy.firstMove &&
-				curr.firstValue >= easy.firstValue - (128 * r) && curr.firstValue <= easy.firstValue + (512 * r)) {
+				curr.firstValue >= prev.firstValue - (32 * r) && curr.firstValue <= prev.firstValue + (512 * r)) {
 #if ENABLE_EASY_LOG
 			Loggers::message << __FILE_LINE__;
 #endif
