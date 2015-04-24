@@ -1401,8 +1401,8 @@ namespace sunfish {
 			}
 
 			// split
-			if ((depth >= Depth1Ply * 4 || (depth >= Depth1Ply * 3 && _rootDepth <= Depth1Ply * 12)) &&
-					tree.getEnd() - tree.getCurrentMove() >= _config.workerSize &&
+			if ((depth >= Depth1Ply * 4 || (depth >= Depth1Ply * 3 && _rootDepth < Depth1Ply * 12)) &&
+					(!isCheckPrev || tree.getEnd() - tree.getCurrentMove() >= 4) &&
 					_idleWorkerCount.load() >= 1 && _idleTreeCount.load() >= 2) {
 				if (split(tree, black, depth, alpha, beta, best, standPat, stat, improving)) {
 					worker.info.split++;
