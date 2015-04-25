@@ -5,6 +5,7 @@
 
 #include "Mate.h"
 #include "core/move/MoveTable.h"
+#include "core/move/MoveGenerator.h"
 #include "core/util/Data.h"
 
 #include "logger/Logger.h"
@@ -245,51 +246,63 @@ namespace sunfish {
 		const auto& king = black ? board.getWKingPosition() : board.getBKingPosition();
 
 		// 成金が王手できる位置
-		Bitboard bbtTokin = movable & (black ? MoveTables::wgold(king) : MoveTables::bgold(king));
-		bbtTokin &= (black ? Bitboard::BPromotable : Bitboard::WPromotable);
+		Bitboard bbtGold = movable & (black ? MoveTables::wgold(king) : MoveTables::bgold(king));
 
-		// pawn
+		// gold
 		{
-			// board
-			Bitboard bb = black ? board.getBPawn() : board.getWPawn();
-			bb &= black ? AttackableTables::bpawn(king) : AttackableTables::wpawn(king);
-			bb &= movable;
-			BB_EACH_OPE(to, bb,
-				if (to.isPromotable<black>()) {
-					if (_isMate<black>(board, Move(Piece::Pawn, black ? to.down() : to.up(), to, true, false))) { return true; }
-				} else {
-					if (_isMate<black>(board, Move(Piece::Pawn, black ? to.down() : to.up(), to, false, false))) { return true; }
-				}
-			);
-		}
-
-		// lance
-		{
-			Bitboard bbt = black ? MoveTables::wlance(king, occ) : MoveTables::blance(king, occ);
-			bbt &= movable;
-
 			// drop
-			int handCount = black ? board.getBlackHand(Piece::Lance) : board.getWhiteHand(Piece::Lance);
+			int handCount = black ? board.getBlackHand(Piece::Gold) : board.getWhiteHand(Piece::Gold);
 			if (handCount) {
-				Bitboard bb = bbt & ~occ;
+				Bitboard bb = bbtGold & ~occ;
 				BB_EACH_OPE(to, bb,
-					if (_isMate<black>(board, Move(Piece::Lance, to, false))) { return true; }
+					if (_isMate<black>(board, Move(Piece::Gold, to, false))) { return true; }
 				);
 			}
 
 			// board
-			Bitboard bb = black ? board.getBLance() : board.getWLance();
-			bb &= black ? AttackableTables::blance(king) : AttackableTables::wlance(king);
-			bbt &= ~bbtTokin;
+			Bitboard bb = (black ? board.getBGold() : board.getWGold())
+				| (black ? board.getBTokin() : board.getWTokin())
+				| (black ? board.getBProLance() : board.getWProLance())
+				| (black ? board.getBProKnight() : board.getWProKnight())
+				| (black ? board.getBProSilver() : board.getWProSilver());
+			bb &= black ? AttackableTables::bgold(king) : AttackableTables::wgold(king);
 			BB_EACH_OPE(from, bb,
-				Bitboard bbe = black ? MoveTables::blance(from, occ) : MoveTables::wlance(from, occ);
+				Bitboard bb2 = bbtGold & (black ? MoveTables::bgold(from) : MoveTables::wgold(from));
+				BB_EACH_OPE(to, bb2, {
+					if (_isMate<black>(board, Move(Piece::Gold, from, to, false, false))) { return true; }
+				});
+			);
+		}
+
+		bbtGold &= (black ? Bitboard::BPromotable : Bitboard::WPromotable);
+
+		// silver
+		{
+			Bitboard bbt = black ? MoveTables::wsilver(king) : MoveTables::bsilver(king);
+			bbt &= movable;
+
+			// drop
+			int handCount = black ? board.getBlackHand(Piece::Silver) : board.getWhiteHand(Piece::Silver);
+			if (handCount) {
+				Bitboard bb = bbt & ~occ;
+				BB_EACH_OPE(to, bb,
+					if (_isMate<black>(board, Move(Piece::Silver, to, false))) { return true; }
+				);
+			}
+
+			// board
+			Bitboard bb = black ? board.getBSilver() : board.getWSilver();
+			bb &= black ? AttackableTables::bsilver(king) : AttackableTables::wsilver(king);
+			bbt &= ~bbtGold;
+			BB_EACH_OPE(from, bb,
+				Bitboard bbe = black ? MoveTables::bsilver(from) : MoveTables::wsilver(from);
 				Bitboard bb2 = bbt & bbe;
 				BB_EACH_OPE(to, bb2, {
-					if (_isMate<black>(board, Move(Piece::Lance, from, to, false, false))) { return true; }
+					if (_isMate<black>(board, Move(Piece::Silver, from, to, false, false))) { return true; }
 				});
-				bb2 = bbtTokin & bbe;
+				bb2 = bbtGold & bbe;
 				BB_EACH_OPE(to, bb2, {
-					if (_isMate<black>(board, Move(Piece::Lance, from, to, true, false))) { return true; }
+					if (_isMate<black>(board, Move(Piece::Silver, from, to, true, false))) { return true; }
 				});
 			);
 		}
@@ -320,69 +333,71 @@ namespace sunfish {
 				BB_EACH_OPE(to, bb2, {
 					if (_isMate<black>(board, Move(Piece::Knight, from, to, false, false))) { return true; }
 				});
-				bb2 = bbtTokin & bbe;
+				bb2 = bbtGold & bbe;
 				BB_EACH_OPE(to, bb2, {
 					if (_isMate<black>(board, Move(Piece::Knight, from, to, true, false))) { return true; }
 				});
 			);
 		}
 
-		// silver
+		// pawn
 		{
-			Bitboard bbt = black ? MoveTables::wsilver(king) : MoveTables::bsilver(king);
-			bbt &= movable;
-
-			// drop
-			int handCount = black ? board.getBlackHand(Piece::Silver) : board.getWhiteHand(Piece::Silver);
-			if (handCount) {
-				Bitboard bb = bbt & ~occ;
+			Position to = black ? king.safetyDown() : king.safetyUp();
+			if (to.isValid()) {
+				Bitboard bb = black ? board.getBPawn() : board.getWPawn();
+				bb &= black ? AttackableTables::bpawn(king) : AttackableTables::wpawn(king);
+				if (black) {
+					bb.cheepRightShift(1);
+				} else {
+					bb.cheepLeftShift(1);
+				}
+				bb &= bbtGold | Bitboard::mask(to);
+				bb &= movable;
 				BB_EACH_OPE(to, bb,
-					if (_isMate<black>(board, Move(Piece::Silver, to, false))) { return true; }
+					if (to.isPromotable<black>()) {
+						if (_isMate<black>(board, Move(Piece::Pawn, black ? to.down() : to.up(), to, true, false))) { return true; }
+					} else {
+						if (_isMate<black>(board, Move(Piece::Pawn, black ? to.down() : to.up(), to, false, false))) { return true; }
+					}
 				);
 			}
-
-			// board
-			Bitboard bb = black ? board.getBSilver() : board.getWSilver();
-			bb &= black ? AttackableTables::bsilver(king) : AttackableTables::wsilver(king);
-			bbt &= ~bbtTokin;
-			BB_EACH_OPE(from, bb,
-				Bitboard bbe = black ? MoveTables::bsilver(from) : MoveTables::wsilver(from);
-				Bitboard bb2 = bbt & bbe;
-				BB_EACH_OPE(to, bb2, {
-					if (_isMate<black>(board, Move(Piece::Silver, from, to, false, false))) { return true; }
-				});
-				bb2 = bbtTokin & bbe;
-				BB_EACH_OPE(to, bb2, {
-					if (_isMate<black>(board, Move(Piece::Silver, from, to, true, false))) { return true; }
-				});
-			);
 		}
 
-		// gold
+		// lance
 		{
-			Bitboard bbt = black ? MoveTables::wgold(king) : MoveTables::bgold(king);
+			Bitboard bbt = black ? MoveTables::wlance(king, occ) : MoveTables::blance(king, occ);
 			bbt &= movable;
 
 			// drop
-			int handCount = black ? board.getBlackHand(Piece::Gold) : board.getWhiteHand(Piece::Gold);
+			int handCount = black ? board.getBlackHand(Piece::Lance) : board.getWhiteHand(Piece::Lance);
 			if (handCount) {
-				Bitboard bb = bbt & ~occ;
-				BB_EACH_OPE(to, bb,
-					if (_isMate<black>(board, Move(Piece::Gold, to, false))) { return true; }
-				);
+				Position to = black ? king.safetyDown() : king.safetyUp();
+				if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto mate1ply_lance_drop_end; }
+				if (_isMate<black>(board, Move(Piece::Lance, to, false))) { return true; }
+
+				to = black ? to.safetyDown() : to.safetyUp();
+				if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto mate1ply_lance_drop_end; }
+				if (_isMate<black>(board, Move(Piece::Lance, to, false))) { return true; }
+
+				to = black ? to.safetyDown() : to.safetyUp();
+				if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto mate1ply_lance_drop_end; }
+				if (_isMate<black>(board, Move(Piece::Lance, to, false))) { return true; }
 			}
+mate1ply_lance_drop_end:
 
 			// board
-			Bitboard bb = (black ? board.getBGold() : board.getWGold())
-				| (black ? board.getBTokin() : board.getWTokin())
-				| (black ? board.getBProLance() : board.getWProLance())
-				| (black ? board.getBProKnight() : board.getWProKnight())
-				| (black ? board.getBProSilver() : board.getWProSilver());
-			bb &= black ? AttackableTables::bgold(king) : AttackableTables::wgold(king);
+			Bitboard bb = black ? board.getBLance() : board.getWLance();
+			bb &= black ? AttackableTables::blance(king) : AttackableTables::wlance(king);
+			bbt &= ~bbtGold;
 			BB_EACH_OPE(from, bb,
-				Bitboard bb2 = bbt & (black ? MoveTables::bgold(from) : MoveTables::wgold(from));
+				Bitboard bbe = black ? MoveTables::blance(from, occ) : MoveTables::wlance(from, occ);
+				Bitboard bb2 = bbt & bbe;
 				BB_EACH_OPE(to, bb2, {
-					if (_isMate<black>(board, Move(Piece::Gold, from, to, false, false))) { return true; }
+					if (_isMate<black>(board, Move(Piece::Lance, from, to, false, false))) { return true; }
+				});
+				bb2 = bbtGold & bbe;
+				BB_EACH_OPE(to, bb2, {
+					if (_isMate<black>(board, Move(Piece::Lance, from, to, true, false))) { return true; }
 				});
 			);
 		}
@@ -399,10 +414,19 @@ namespace sunfish {
 			// drop
 			int handCount = black ? board.getBlackHand(Piece::Bishop) : board.getWhiteHand(Piece::Bishop);
 			if (handCount) {
-				Bitboard bb = bbt & ~occ;
-				BB_EACH_OPE(to, bb,
-					if (_isMate<black>(board, Move(Piece::Bishop, to, false))) { return true; }
-				);
+#define GEN_CHECK_DROP_BISHOP(dir) { \
+	Position to = black ? king.safety ## dir() : king.safety ## dir(); \
+	if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto mate1ply_bishop_drop_end ## dir; } \
+	if (_isMate<black>(board, Move(Piece::Bishop, to, false))) { return true; } \
+	to = black ? to.safety ## dir() : to.safety ## dir(); \
+	if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto mate1ply_bishop_drop_end ## dir; } \
+	if (_isMate<black>(board, Move(Piece::Bishop, to, false))) { return true; } \
+mate1ply_bishop_drop_end ## dir: ; \
+}
+				GEN_CHECK_DROP_BISHOP(LeftUp);
+				GEN_CHECK_DROP_BISHOP(LeftDown);
+				GEN_CHECK_DROP_BISHOP(RightUp);
+				GEN_CHECK_DROP_BISHOP(RightDown);
 			}
 
 			// board
@@ -434,10 +458,22 @@ namespace sunfish {
 			// drop
 			int handCount = black ? board.getBlackHand(Piece::Rook) : board.getWhiteHand(Piece::Rook);
 			if (handCount) {
-				Bitboard bb = bbt & ~occ;
-				BB_EACH_OPE(to, bb,
-					if (_isMate<black>(board, Move(Piece::Rook, to, false))) { return true; }
-				);
+#define GEN_CHECK_DROP_ROOK(dir) { \
+	Position to = black ? king.safety ## dir() : king.safety ## dir(); \
+	if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto mate1ply_rook_drop_end ## dir; } \
+	if (_isMate<black>(board, Move(Piece::Rook, to, false))) { return true; } \
+	to = black ? to.safety ## dir() : to.safety ## dir(); \
+	if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto mate1ply_rook_drop_end ## dir; } \
+	if (_isMate<black>(board, Move(Piece::Rook, to, false))) { return true; } \
+	to = black ? to.safety ## dir() : to.safety ## dir(); \
+	if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto mate1ply_rook_drop_end ## dir; } \
+	if (_isMate<black>(board, Move(Piece::Rook, to, false))) { return true; } \
+mate1ply_rook_drop_end ## dir: ; \
+}
+				GEN_CHECK_DROP_ROOK(Left);
+				GEN_CHECK_DROP_ROOK(Right);
+				GEN_CHECK_DROP_ROOK(Up);
+				GEN_CHECK_DROP_ROOK(Down);
 			}
 
 			// board
@@ -491,5 +527,119 @@ namespace sunfish {
 	}
 	template bool Mate::_mate1Ply<true>(const Board&);
 	template bool Mate::_mate1Ply<false>(const Board&);
+
+	inline
+	bool Mate::isIneffectiveEvasion(const Board& board, const Move& move, const Move& check, const Bitboard& occ) {
+		assert(board.getBoardPiece(move.to()).isEmpty());
+
+		if (move.piece() == Piece::King) {
+			return false;
+		}
+
+		bool black = board.isBlack();
+		Position king = black ? board.getBKingPosition() : board.getWKingPosition();
+		if (check.piece() == Piece::Lance &&
+				move.to() == black ? king.safetyUp(2) : king.safetyDown(2)) {
+			return false;
+		}
+
+		if (black ? _isProtected<true>(board, move.to(), occ, occ, king)
+				: _isProtected<false>(board, move.to(), occ, occ, king)) {
+			return true;
+		}
+
+		return true;
+	}
+
+	bool Mate::evade(Tree& tree, const Move& check) {
+		const Board& board = tree.getBoard();
+		Moves& moves = tree.getMoves();
+		bool black = board.isBlack();
+		Bitboard occ = board.getBOccupy() | board.getWOccupy();
+
+		moves.clear();
+		MoveGenerator::generateEvasion(board, moves);
+
+		for (auto ite = tree.getBegin(); ite != tree.getEnd(); ) {
+			const Move& move = *ite;
+			bool cap = !board.getBoardPiece(move.to()).isEmpty();
+
+			if (!cap && isIneffectiveEvasion(board, move, check, occ)) {
+				ite = tree.getMoves().remove(ite);
+				continue;
+			}
+
+			// 逆王手
+			if (board.isCheck(move)) {
+				return true;
+			}
+			
+#if 0 // ただで取られる手を除外
+			if (cap && (black ? !_isProtected<false>(board, move.to(), occ, occ, Position::Invalid)
+					: !_isProtected<true>(board, move.to(), occ, occ, Position::Invalid))) {
+				return true;
+			}
+#endif
+
+			Piece piece = move.piece();
+			if (piece == Piece::Pawn) {
+				tree.setSortValue(ite, 6);
+			} else if (piece == Piece::Lance) {
+				tree.setSortValue(ite, 5);
+			} else if (piece == Piece::Knight) {
+				tree.setSortValue(ite, 4);
+			} else if (piece == Piece::Bishop) {
+				tree.setSortValue(ite, 3);
+			} else if (piece.hand()) {
+				tree.setSortValue(ite, 2);
+			} else if (piece != Piece::King) {
+				tree.setSortValue(ite, 1);
+			} else {
+				tree.setSortValue(ite, 0);
+			}
+
+			ite++;
+		}
+
+		tree.sortAll();
+
+		for (const auto& move : moves) {
+			if (!tree.makeMoveFast(move)) {
+				continue;
+			}
+
+			if (!mate1Ply(board)) {
+				tree.unmakeMoveFast();
+				return true;
+			}
+
+			tree.unmakeMoveFast();
+		}
+
+		return false;
+	}
+
+	bool Mate::mate3Ply(Tree& tree) {
+		const Board& board = tree.getBoard();
+		Moves& moves = tree.getMoves();
+
+		moves.clear();
+		MoveGenerator::generateCheckLight(board, moves);
+
+		for (const auto& move : moves) {
+			if (!tree.makeMoveFast(move)) {
+				continue;
+			}
+
+			if (!evade(tree, move)) {
+				tree.unmakeMoveFast();
+				return true;
+			}
+
+			tree.unmakeMoveFast();
+		}
+
+		return false;
+	}
 
 }

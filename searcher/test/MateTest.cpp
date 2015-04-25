@@ -661,6 +661,324 @@ P-\n\
 		ASSERT_EQ(false, mate);
 	}
 
+	{
+		// 突き歩詰
+		std::string src = "\
+P1 *  *  *  *  *  *  *  *  * \n\
+P2 *  *  *  *  *  *  *  * -KY\n\
+P3 *  *  *  *  *  *  *  * -OU\n\
+P4 *  *  *  *  *  *  *  *  * \n\
+P5 *  *  *  *  *  *  * +RY+FU\n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		bool mate = Mate::mate1Ply(board);
+		ASSERT_EQ(true, mate);
+	}
+
+	{
+		// 打ち歩詰(不詰)
+		std::string src = "\
+P1 *  *  *  *  *  *  *  *  * \n\
+P2 *  *  *  *  *  *  *  * -KY\n\
+P3 *  *  *  *  *  *  *  * -OU\n\
+P4 *  *  *  *  *  *  *  *  * \n\
+P5 *  *  *  *  *  *  * +RY * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+00FU\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		bool mate = Mate::mate1Ply(board);
+		ASSERT_EQ(false, mate);
+	}
+
+}
+
+TEST(MateTest, testMate3Ply) {
+	Tree tree;
+	Evaluator eval(Evaluator::InitType::Zero);
+
+	{
+		std::string src = "\
+P1 *  *  *  *  *  *  *  *  * \n\
+P2 *  *  *  * -OU *  *  *  * \n\
+P3 *  *  *  *  *  *  *  *  * \n\
+P4 *  *  *  * +FU *  *  *  * \n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+00KI00KI\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		tree.init(0, board, eval, std::vector<Move>());
+
+		bool mate = Mate::mate3Ply(tree);
+		ASSERT_EQ(true, mate);
+	}
+
+	{
+		std::string src = "\
+P1 *  *  *  *  *  *  *  *  * \n\
+P2 *  *  *  * -OU *  *  *  * \n\
+P3 *  *  *  *  *  *  *  *  * \n\
+P4 *  *  *  * +FU *  *  *  * \n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+00KI00GI\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		tree.init(0, board, eval, std::vector<Move>());
+
+		bool mate = Mate::mate3Ply(tree);
+		ASSERT_EQ(false, mate);
+	}
+
+	{
+		std::string src = "\
+P1 *  *  *  * -OU *  *  *  * \n\
+P2 *  *  *  *  *  *  *  *  * \n\
+P3 *  *  *  *  *  *  *  *  * \n\
+P4 *  *  *  *  *  *  *  *  * \n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  * -FU *  *  *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  * +OU *  *  *  * \n\
+P9 *  *  *  *  *  *  *  *  * \n\
+P+\n\
+P-00KI00KI\n\
+-\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		tree.init(0, board, eval, std::vector<Move>());
+
+		bool mate = Mate::mate3Ply(tree);
+		ASSERT_EQ(true, mate);
+	}
+
+	{
+		std::string src = "\
+P1 *  *  *  * -OU *  *  *  * \n\
+P2 *  *  *  *  *  *  *  *  * \n\
+P3 *  *  *  *  *  *  *  *  * \n\
+P4 *  *  *  *  *  *  *  *  * \n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  * -FU *  *  *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  * +OU *  *  *  * \n\
+P9 *  *  *  *  *  *  *  *  * \n\
+P+\n\
+P-00KI00GI\n\
+-\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		tree.init(0, board, eval, std::vector<Move>());
+
+		bool mate = Mate::mate3Ply(tree);
+		ASSERT_EQ(false, mate);
+	}
+
+	{
+		std::string src = "\
+P1 *  *  *  *  *  *  * -GI+KA\n\
+P2 *  *  *  *  *  *  *  *  * \n\
+P3 *  *  *  *  *  *  * -OU * \n\
+P4 *  *  *  *  *  * +FU *  * \n\
+P5 *  *  *  *  *  *  * -FU-FU\n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		tree.init(0, board, eval, std::vector<Move>());
+
+		bool mate = Mate::mate3Ply(tree);
+		ASSERT_EQ(false, mate);
+	}
+
+	{
+		std::string src = "\
+P1 *  *  *  *  *  *  * -GI+KA\n\
+P2 *  *  *  *  *  *  *  *  * \n\
+P3 *  *  *  *  *  *  * -OU * \n\
+P4 *  *  *  *  *  * +FU *  * \n\
+P5 *  *  *  *  *  *  * -FU-FU\n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+00KI\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		tree.init(0, board, eval, std::vector<Move>());
+
+		bool mate = Mate::mate3Ply(tree);
+		ASSERT_EQ(false, mate);
+	}
+
+	{
+		std::string src = "\
+P1 *  *  *  *  *  *  * -GI+KA\n\
+P2 *  *  *  *  *  *  *  *  * \n\
+P3 *  *  *  *  *  *  * -OU * \n\
+P4 *  *  *  *  *  * +FU * -FU\n\
+P5 *  *  *  *  *  *  * -FU * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+00KI\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		tree.init(0, board, eval, std::vector<Move>());
+
+		bool mate = Mate::mate3Ply(tree);
+		ASSERT_EQ(true, mate);
+	}
+
+	{
+		std::string src = "\
+P1 *  *  * -FU-OU * -KI *  * \n\
+P2 *  *  * -KY *  *  *  *  * \n\
+P3 *  *  * +KA * -FU *  *  * \n\
+P4 *  *  *  *  *  * +FU *  * \n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  * -RY *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+00HI\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		tree.init(0, board, eval, std::vector<Move>());
+
+		bool mate = Mate::mate3Ply(tree);
+		ASSERT_EQ(true, mate);
+	}
+
+	{
+		std::string src = "\
+P1 *  *  * -FU-OU * -KI *  * \n\
+P2 *  *  * -KY *  *  *  *  * \n\
+P3 *  *  * +KA-FU-FU *  *  * \n\
+P4 *  *  *  *  *  * +FU *  * \n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  *  *  *  *  *  * \n\
+P7 *  *  * -RY *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+00HI\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		tree.init(0, board, eval, std::vector<Move>());
+
+		bool mate = Mate::mate3Ply(tree);
+		ASSERT_EQ(false, mate);
+	}
+
+	{
+		std::string src = "\
+P1 *  *  *  *  *  *  *  *  * \n\
+P2 *  *  *  *  *  *  * -KI * \n\
+P3 *  *  *  *  * +HI *  *  * \n\
+P4 *  *  *  *  *  * -FU-OU-KY\n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  *  *  * +GI * -FU\n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+00KY00KA\n\
+P-\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		tree.init(0, board, eval, std::vector<Move>());
+
+		bool mate = Mate::mate3Ply(tree);
+		ASSERT_EQ(true, mate);
+	}
+
+	{
+		std::string src = "\
+P1 *  *  *  *  *  *  *  *  * \n\
+P2 *  *  *  *  *  *  * -KI * \n\
+P3 *  *  *  *  * +HI *  *  * \n\
+P4 *  *  *  *  *  * -FU-OU-KY\n\
+P5 *  *  *  *  *  *  *  *  * \n\
+P6 *  *  *  *  *  * +GI * -FU\n\
+P7 *  *  *  *  *  *  *  *  * \n\
+P8 *  *  *  *  *  *  *  *  * \n\
+P9 *  *  *  * +OU *  *  *  * \n\
+P+00KY00KA\n\
+P-00FU\n\
++\n\
+";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+		tree.init(0, board, eval, std::vector<Move>());
+
+		bool mate = Mate::mate3Ply(tree);
+		ASSERT_EQ(false, mate);
+	}
+
 }
 
 #endif // !defined(NDEBUG)

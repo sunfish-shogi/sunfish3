@@ -5,6 +5,7 @@
 
 #include "./MoveGenerator.h"
 #include "./MoveTable.h"
+#include "../util/Data.h"
 #include "logger/Logger.h"
 
 namespace sunfish {
@@ -377,15 +378,16 @@ namespace sunfish {
 	 */
 	template <bool black>
 	void MoveGenerator::_generateEvasion(const Board& board, Moves& moves) {
-		Bitboard occ = board.getBOccupy() | board.getWOccupy();
 		const auto& king = black ? board.getBKingPosition() : board.getWKingPosition();
 
 		bool shortAttack = false;
 		int longAttack = 0;
 		Bitboard shortAttacker;
 		Bitboard longMask;
-		Bitboard tempAttacker;
 		Bitboard longAttacker;
+
+		Bitboard occ = board.getBOccupy() | board.getWOccupy();
+		Bitboard tempAttacker;
 
 		if (black) {
 
@@ -673,7 +675,7 @@ namespace sunfish {
 	/**
 	 * 王手を生成
 	 */
-	template <bool black>
+	template <bool black, bool light>
 	void MoveGenerator::_generateCheck(const Board& board, Moves& moves) {
 		// TODO: 開き王手の生成
 		const auto& occ = board.getBOccupy() | board.getWOccupy();
@@ -681,70 +683,65 @@ namespace sunfish {
 		const auto& king = black ? board.getWKingPosition() : board.getBKingPosition();
 
 		// 金が王手できる位置
-		Bitboard bbtTokin = movable & (black ? MoveTables::wgold(king) : MoveTables::bgold(king));
-		bbtTokin &= (black ? Bitboard::BPromotable : Bitboard::WPromotable);
+		Bitboard bbtGold = black ? MoveTables::wgold(king) : MoveTables::bgold(king);
+		bbtGold &= movable;
 
-		// pawn
+		// gold
 		{
 			// drop
-			Position to = black ? king.safetyDown() : king.safetyUp();
-			if (to.isValid()) {
-				if (!occ.check(to)) {
-					int handCount = black ? board.getBlackHand(Piece::Pawn) : board.getWhiteHand(Piece::Pawn);
-					if (handCount) {
-						const Bitboard& bbPawn = black ? board.getBPawn() : board.getWPawn();
-						// 2歩チェック
-						if (!(bbPawn & Bitboard::file(king.getFile()))) {
-							moves.add(Move(Piece::Pawn, to, false));
-						}
-					}
-				}
-
-				// board
-				Bitboard bb = black ? board.getBPawn() : board.getWPawn();
-				if (black) {
-					bb.cheepRightShift(1);
-				} else {
-					bb.cheepLeftShift(1);
-				}
-				bb &= bbtTokin | Bitboard::mask(to);
-				bb &= movable;
-				BB_EACH_OPE(to, bb,
-					if (to.isPromotable<black>()) {
-						moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, true, false));
-					} else {
-						moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, false, false));
-					}
-				);
-			}
-		}
-
-		// lance
-		{
-			Bitboard bbt = black ? MoveTables::wlance(king, occ) : MoveTables::blance(king, occ);
-			bbt &= movable;
-
-			// drop
-			int handCount = black ? board.getBlackHand(Piece::Lance) : board.getWhiteHand(Piece::Lance);
+			int handCount = black ? board.getBlackHand(Piece::Gold) : board.getWhiteHand(Piece::Gold);
 			if (handCount) {
-				Bitboard bb = bbt & ~occ;
+				Bitboard bb = bbtGold & ~occ;
 				BB_EACH_OPE(to, bb,
-					moves.add(Move(Piece::Lance, to, false));
+					moves.add(Move(Piece::Gold, to, false));
 				);
 			}
 
 			// board
-			Bitboard bb = black ? board.getBLance() : board.getWLance();
-			bbt &= ~bbtTokin;
+			Bitboard bb = (black ? board.getBGold() : board.getWGold())
+				| (black ? board.getBTokin() : board.getWTokin())
+				| (black ? board.getBProLance() : board.getWProLance())
+				| (black ? board.getBProKnight() : board.getWProKnight())
+				| (black ? board.getBProSilver() : board.getWProSilver());
+			bb &= black ? AttackableTables::bgold(king) : AttackableTables::wgold(king);
 			BB_EACH_OPE(from, bb,
-				Bitboard bbe = black ? MoveTables::blance(from, occ) : MoveTables::wlance(from, occ);
+				Bitboard bb2 = bbtGold & (black ? MoveTables::bgold(from) : MoveTables::wgold(from));
+				Piece piece = board.getBoardPiece(from).kindOnly();
+				BB_EACH_OPE(to, bb2, {
+					moves.add(Move(piece, from, to, false, false));
+				});
+			);
+		}
+
+		bbtGold &= (black ? Bitboard::BPromotable : Bitboard::WPromotable);
+
+		// silver
+		{
+			Bitboard bbt = black ? MoveTables::wsilver(king) : MoveTables::bsilver(king);
+			bbt &= movable;
+
+			// drop
+			int handCount = black ? board.getBlackHand(Piece::Silver) : board.getWhiteHand(Piece::Silver);
+			if (handCount) {
+				Bitboard bb = bbt & ~occ;
+				BB_EACH_OPE(to, bb,
+					moves.add(Move(Piece::Silver, to, false));
+				);
+			}
+
+			// board
+			Bitboard bb = black ? board.getBSilver() : board.getWSilver();
+			bb &= black ? AttackableTables::bsilver(king) : AttackableTables::wsilver(king);
+			bbt &= ~bbtGold;
+			BB_EACH_OPE(from, bb,
+				Bitboard bbe = black ? MoveTables::bsilver(from) : MoveTables::wsilver(from);
 				Bitboard bb2 = bbt & bbe;
 				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::Lance, from, to, false, false));
+					moves.add(Move(Piece::Silver, from, to, false, false));
 				});
-				bb2 = bbtTokin & bbe;
+				bb2 = bbtGold & bbe;
 				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::Lance, from, to, true, false));
+					moves.add(Move(Piece::Silver, from, to, true, false));
 				});
 			);
 		}
@@ -766,6 +763,7 @@ namespace sunfish {
 
 			// board
 			Bitboard bb = black ? board.getBKnight() : board.getWKnight();
+			bb &= black ? AttackableTables::bknight(king) : AttackableTables::wknight(king);
 			Bitboard bbt = Bitboard::mask(to1) | Bitboard::mask(to2);
 			bbt &= movable;
 			BB_EACH_OPE(from, bb,
@@ -774,107 +772,91 @@ namespace sunfish {
 				BB_EACH_OPE(to, bb2, {
 					moves.add(Move(Piece::Knight, from, to, false, false));
 				});
-				bb2 = bbtTokin & bbe;
+				bb2 = bbtGold & bbe;
 				BB_EACH_OPE(to, bb2, {
 					moves.add(Move(Piece::Knight, from, to, true, false));
 				});
 			);
 		}
 
-		// silver
+		// pawn
 		{
-			Bitboard bbt = black ? MoveTables::wsilver(king) : MoveTables::bsilver(king);
+			// drop
+			Position to = black ? king.safetyDown() : king.safetyUp();
+			if (to.isValid()) {
+				if (!occ.check(to)) {
+					int handCount = black ? board.getBlackHand(Piece::Pawn) : board.getWhiteHand(Piece::Pawn);
+					if (handCount) {
+						const Bitboard& bbPawn = black ? board.getBPawn() : board.getWPawn();
+						// 2歩チェック
+						if (!(bbPawn & Bitboard::file(king.getFile()))) {
+							moves.add(Move(Piece::Pawn, to, false));
+						}
+					}
+				}
+
+				// board
+				Bitboard bb = black ? board.getBPawn() : board.getWPawn();
+				bb &= black ? AttackableTables::bpawn(king) : AttackableTables::wpawn(king);
+				if (black) {
+					bb.cheepRightShift(1);
+				} else {
+					bb.cheepLeftShift(1);
+				}
+				bb &= bbtGold | Bitboard::mask(to);
+				bb &= movable;
+				BB_EACH_OPE(to, bb,
+					if (to.isPromotable<black>()) {
+						moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, true, false));
+					} else {
+						moves.add(Move(Piece::Pawn, black ? to.down() : to.up(), to, false, false));
+					}
+				);
+			}
+		}
+
+		// lance
+		{
+			Bitboard bbt = black ? MoveTables::wlance(king, occ) : MoveTables::blance(king, occ);
 			bbt &= movable;
 
 			// drop
-			int handCount = black ? board.getBlackHand(Piece::Silver) : board.getWhiteHand(Piece::Silver);
+			int handCount = black ? board.getBlackHand(Piece::Lance) : board.getWhiteHand(Piece::Lance);
 			if (handCount) {
-				Bitboard bb = bbt & ~occ;
-				BB_EACH_OPE(to, bb,
-					moves.add(Move(Piece::Silver, to, false));
-				);
+				if (!light) {
+					Bitboard bb = bbt & ~occ;
+					BB_EACH_OPE(to, bb,
+						moves.add(Move(Piece::Lance, to, false));
+					);
+				} else {
+					Position to = black ? king.safetyDown() : king.safetyUp();
+					if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto gencheck_lance_drop_end; }
+					moves.add(Move(Piece::Lance, to, false));
+
+					to = black ? to.safetyDown() : to.safetyUp();
+					if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto gencheck_lance_drop_end; }
+					moves.add(Move(Piece::Lance, to, false));
+
+					to = black ? to.safetyDown() : to.safetyUp();
+					if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto gencheck_lance_drop_end; }
+					moves.add(Move(Piece::Lance, to, false));
+				}
 			}
+gencheck_lance_drop_end:
 
 			// board
-			Bitboard bb = black ? board.getBSilver() : board.getWSilver();
-			bbt &= ~bbtTokin;
+			Bitboard bb = black ? board.getBLance() : board.getWLance();
+			bb &= black ? AttackableTables::blance(king) : AttackableTables::wlance(king);
+			bbt &= ~bbtGold;
 			BB_EACH_OPE(from, bb,
-				Bitboard bbe = black ? MoveTables::bsilver(from) : MoveTables::wsilver(from);
+				Bitboard bbe = black ? MoveTables::blance(from, occ) : MoveTables::wlance(from, occ);
 				Bitboard bb2 = bbt & bbe;
 				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::Silver, from, to, false, false));
+					moves.add(Move(Piece::Lance, from, to, false, false));
 				});
-				bb2 = bbtTokin & bbe;
+				bb2 = bbtGold & bbe;
 				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::Silver, from, to, true, false));
-				});
-			);
-		}
-
-		Bitboard bbtGold = black ? MoveTables::wgold(king) : MoveTables::bgold(king);
-		bbtGold &= movable;
-
-		// gold
-		{
-			// drop
-			int handCount = black ? board.getBlackHand(Piece::Gold) : board.getWhiteHand(Piece::Gold);
-			if (handCount) {
-				Bitboard bb = bbtGold & ~occ;
-				BB_EACH_OPE(to, bb,
-					moves.add(Move(Piece::Gold, to, false));
-				);
-			}
-
-			// board
-			Bitboard bb = black ? board.getBGold() : board.getWGold();
-			BB_EACH_OPE(from, bb,
-				Bitboard bb2 = bbtGold & (black ? MoveTables::bgold(from) : MoveTables::wgold(from));
-				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::Gold, from, to, false, false));
-				});
-			);
-		}
-
-		// tokin
-		{
-			Bitboard bb = black ? board.getBTokin() : board.getWTokin();
-			BB_EACH_OPE(from, bb,
-				Bitboard bb2 = bbtGold & (black ? MoveTables::bgold(from) : MoveTables::wgold(from));
-				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::Tokin, from, to, false, false));
-				});
-			);
-		}
-
-		// promoted lance
-		{
-			Bitboard bb = black ? board.getBProLance() : board.getWProLance();
-			BB_EACH_OPE(from, bb,
-				Bitboard bb2 = bbtGold & (black ? MoveTables::bgold(from) : MoveTables::wgold(from));
-				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::ProLance, from, to, false, false));
-				});
-			);
-		}
-
-		// promoted knight
-		{
-			Bitboard bb = black ? board.getBProKnight() : board.getWProKnight();
-			BB_EACH_OPE(from, bb,
-				Bitboard bb2 = bbtGold & (black ? MoveTables::bgold(from) : MoveTables::wgold(from));
-				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::ProKnight, from, to, false, false));
-				});
-			);
-		}
-
-		// promoted silver
-		{
-			Bitboard bb = black ? board.getBProSilver() : board.getWProSilver();
-			BB_EACH_OPE(from, bb,
-				Bitboard bb2 = bbtGold & (black ? MoveTables::bgold(from) : MoveTables::wgold(from));
-				BB_EACH_OPE(to, bb2, {
-					moves.add(Move(Piece::ProSilver, from, to, false, false));
+					moves.add(Move(Piece::Lance, from, to, true, false));
 				});
 			);
 		}
@@ -891,14 +873,31 @@ namespace sunfish {
 			// drop
 			int handCount = black ? board.getBlackHand(Piece::Bishop) : board.getWhiteHand(Piece::Bishop);
 			if (handCount) {
-				Bitboard bb = bbt & ~occ;
-				BB_EACH_OPE(to, bb,
-					moves.add(Move(Piece::Bishop, to, false));
-				);
+				if (!light) {
+					Bitboard bb = bbt & ~occ;
+					BB_EACH_OPE(to, bb,
+						moves.add(Move(Piece::Bishop, to, false));
+					);
+				} else {
+#define GEN_CHECK_DROP_BISHOP(dir) { \
+	Position to = black ? king.safety ## dir() : king.safety ## dir(); \
+	if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto gencheck_bishop_drop_end ## dir; } \
+	moves.add(Move(Piece::Bishop, to, false)); \
+	to = black ? to.safety ## dir() : to.safety ## dir(); \
+	if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto gencheck_bishop_drop_end ## dir; } \
+	moves.add(Move(Piece::Bishop, to, false)); \
+gencheck_bishop_drop_end ## dir: ; \
+}
+					GEN_CHECK_DROP_BISHOP(LeftUp);
+					GEN_CHECK_DROP_BISHOP(LeftDown);
+					GEN_CHECK_DROP_BISHOP(RightUp);
+					GEN_CHECK_DROP_BISHOP(RightDown);
+				}
 			}
 
 			// board
 			Bitboard bb = black ? board.getBBishop() : board.getWBishop();
+			bb &= black ? AttackableTables::bbishop(king) : AttackableTables::wbishop(king);
 			bbt &= ~bbtKing;
 			BB_EACH_OPE(from, bb,
 				Bitboard bbe = MoveTables::bishop(from, occ);
@@ -925,10 +924,29 @@ namespace sunfish {
 			// drop
 			int handCount = black ? board.getBlackHand(Piece::Rook) : board.getWhiteHand(Piece::Rook);
 			if (handCount) {
-				Bitboard bb = bbt & ~occ;
-				BB_EACH_OPE(to, bb,
-					moves.add(Move(Piece::Rook, to, false));
-				);
+				if (!light) {
+					Bitboard bb = bbt & ~occ;
+					BB_EACH_OPE(to, bb,
+						moves.add(Move(Piece::Rook, to, false));
+					);
+				} else {
+#define GEN_CHECK_DROP_ROOK(dir) { \
+	Position to = black ? king.safety ## dir() : king.safety ## dir(); \
+	if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto gencheck_rook_drop_end ## dir; } \
+	moves.add(Move(Piece::Rook, to, false)); \
+	to = black ? to.safety ## dir() : to.safety ## dir(); \
+	if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto gencheck_rook_drop_end ## dir; } \
+	moves.add(Move(Piece::Rook, to, false)); \
+	to = black ? to.safety ## dir() : to.safety ## dir(); \
+	if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto gencheck_rook_drop_end ## dir; } \
+	moves.add(Move(Piece::Rook, to, false)); \
+gencheck_rook_drop_end ## dir: ; \
+}
+					GEN_CHECK_DROP_ROOK(Left);
+					GEN_CHECK_DROP_ROOK(Right);
+					GEN_CHECK_DROP_ROOK(Up);
+					GEN_CHECK_DROP_ROOK(Down);
+				}
 			}
 
 			// board
@@ -956,6 +974,7 @@ namespace sunfish {
 			Bitboard bbt = MoveTables::horse(king, occ);
 			bbt &= movable;
 			Bitboard bb = black ? board.getBHorse() : board.getWHorse();
+			bb &= AttackableTables::horse(king);
 			BB_EACH_OPE(from, bb,
 				Bitboard bb2 = bbt & MoveTables::horse(from, occ);
 				BB_EACH_OPE(to, bb2, {
@@ -978,6 +997,8 @@ namespace sunfish {
 		}
 
 	}
-	template void MoveGenerator::_generateCheck<true>(const Board& board, Moves& moves);
-	template void MoveGenerator::_generateCheck<false>(const Board& board, Moves& moves);
+	template void MoveGenerator::_generateCheck<true, true>(const Board& board, Moves& moves);
+	template void MoveGenerator::_generateCheck<false, true>(const Board& board, Moves& moves);
+	template void MoveGenerator::_generateCheck<true, false>(const Board& board, Moves& moves);
+	template void MoveGenerator::_generateCheck<false, false>(const Board& board, Moves& moves);
 }

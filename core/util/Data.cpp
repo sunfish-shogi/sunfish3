@@ -131,8 +131,9 @@ namespace sunfish {
 			}
 
 			if (PieceType == Piece::BKnight) {
-				bb.set(king.safetyDown(2).safetyLeft());
-				bb.set(king.safetyDown(2).safetyRight());
+				bb.set(king.safetyDown(4).safetyLeft(2));
+				bb.set(king.safetyDown(4));
+				bb.set(king.safetyDown(4).safetyRight(2));
 				if (king.safetyUp() != Position::Invalid && king.safetyUp().isPromotable<true>()) {
 					bb.set(king.safetyDown().safetyLeft());
 					bb.set(king.safetyDown().safetyRight());
@@ -152,8 +153,9 @@ namespace sunfish {
 			}
 
 			if (PieceType == Piece::WKnight) {
-				bb.set(king.safetyUp(2).safetyLeft());
-				bb.set(king.safetyUp(2).safetyRight());
+				bb.set(king.safetyUp(4).safetyLeft(2));
+				bb.set(king.safetyUp(4));
+				bb.set(king.safetyUp(4).safetyRight(2));
 				if (king.safetyDown() != Position::Invalid && king.safetyDown().isPromotable<false>()) {
 					bb.set(king.safetyUp().safetyLeft());
 					bb.set(king.safetyUp().safetyRight());

@@ -20,6 +20,7 @@
 #define ENABLE_KILLER_MOVE						1
 #define ENABLE_SHEK										1
 #define ENABLE_MATE_1PLY							1
+#define ENABLE_MATE_3PLY							1
 #define ENABLE_STORE_PV								1
 #define SHALLOW_SEE                   0 // should be 0
 
@@ -29,6 +30,10 @@
 #define DEBUG_NODE										0
 
 #define ITERATE_INFO_THRESHOLD        3 // must be greater than or equal to 2
+
+#if ENABLE_MATE_3PLY && !ENABLE_MATE_1PLY
+# error
+#endif
 
 namespace sunfish {
 
@@ -392,8 +397,7 @@ namespace sunfish {
 				auto captured = tree.getBoard().getBoardPiece(move.to()).kindOnly();
 				if ((captured == Piece::Pawn && !move.promote()) ||
 						(captured.isEmpty() && move.piece() != Piece::Pawn)) {
-					tree.setSortValue(ite, -Value::Inf);
-					ite++;
+					ite = tree.getMoves().remove(ite);
 					continue;
 				}
 			}
@@ -852,19 +856,27 @@ namespace sunfish {
 			return standPat;
 		}
 
-#if ENABLE_MATE_1PLY
+#if ENABLE_MATE_1PLY || ENABLE_MATE_3PLY
 		{
-			// search mate in 1 ply
+			// search mate in 3 ply
 			bool mate;
 			worker.info.mateProbed++;
 			if (_mt.get(tree.getBoard().getHash(), mate)) {
 				worker.info.mateHit++;
 			} else {
+# if ENABLE_MATE_3PLY
+				mate = Mate::mate3Ply(tree);
+# else
 				mate = Mate::mate1Ply(tree.getBoard());
+# endif
 				_mt.set(tree.getBoard().getHash(), mate);
 			}
 			if (mate) {
+# if ENABLE_MATE_3PLY
+				return Value::Inf - tree.getPly() - 3;
+# else
 				return Value::Inf - tree.getPly() - 1;
+#endif
 			}
 		}
 #endif
@@ -1136,19 +1148,27 @@ namespace sunfish {
 
 		if (!tree.isChecking()) {
 
-#if ENABLE_MATE_1PLY
+#if ENABLE_MATE_1PLY || ENABLE_MATE_3PLY
 			if (stat.isMate()) {
-				// search mate in 1 ply
+				// search mate in 3 ply
 				bool mate;
 				worker.info.mateProbed++;
 				if (_mt.get(tree.getBoard().getHash(), mate)) {
 					worker.info.mateHit++;
 				} else {
+# if ENABLE_MATE_3PLY
+					mate = Mate::mate3Ply(tree);
+# else
 					mate = Mate::mate1Ply(tree.getBoard());
+# endif
 					_mt.set(tree.getBoard().getHash(), mate);
 				}
 				if (mate) {
+# if ENABLE_MATE_3PLY
+					alpha = Value::Inf - tree.getPly() - 3;
+# else
 					alpha = Value::Inf - tree.getPly() - 1;
+# endif
 					goto hash_store;
 				}
 			}

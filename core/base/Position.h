@@ -82,6 +82,7 @@ namespace sunfish {
 	class Position {
 	private:
 
+		static const int DistanceTable[17][17];
 		static const Direction DirectionTable[17][17];
 		static const DirectionEx DirectionTableEx[17][17];
 		static const HSideType HSideTypeTable[81];
@@ -308,6 +309,11 @@ namespace sunfish {
 				return _index - (FileN - 1) * RankN + 1;
 			}
 			return _index + RankN;
+		}
+		int distance(const Position& to) const {
+			int rank = to._index % RankN - _index % RankN + 8;
+			int file = to._index / RankN - _index / RankN + 8;
+			return DistanceTable[rank][file];
 		}
 		Direction dir(const Position& to) const {
 			int rank = to._index % RankN - _index % RankN + 8;

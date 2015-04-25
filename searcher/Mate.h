@@ -6,6 +6,7 @@
 #ifndef __SUNFISH_MATE__
 #define __SUNFISH_MATE__
 
+#include "tree/Tree.h"
 #include "table/HashTable.h"
 #include "core/def.h"
 #include "core/board/Board.h"
@@ -85,6 +86,10 @@ namespace sunfish {
 		template<bool black>
 		static bool _mate1Ply(const Board& board);
 
+		static bool isIneffectiveEvasion(const Board& board, const Move& move, const Move& check, const Bitboard& occ);
+
+		static bool evade(Tree& tree, const Move& check);
+
 	public:
 
 		/**
@@ -99,6 +104,13 @@ namespace sunfish {
 				return _mate1Ply<false>(board);
 			}
 		}
+
+		/**
+		 * 3手詰めを探します。
+		 * 王手の局面では使用できません。
+		 * TODO: 開き王手の生成
+		 */
+		static bool mate3Ply(Tree& tree);
 
 	};
 

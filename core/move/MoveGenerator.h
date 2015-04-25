@@ -37,7 +37,7 @@ namespace sunfish {
 		static void _generateEvasionShort(const Board& board, Moves& moves, const Bitboard& attacker);
 		template <bool black>
 		static void _generateKing(const Board& board, Moves& moves);
-		template <bool black>
+		template <bool black, bool light>
 		static void _generateCheck(const Board& board, Moves& moves);
 
 	public:
@@ -121,9 +121,24 @@ namespace sunfish {
 		 */
 		static void generateCheck(const Board& board, Moves& moves) {
 			if (board.isBlack()) {
-				_generateCheck<true>(board, moves);
+				_generateCheck<true, false>(board, moves);
 			} else {
-				_generateCheck<false>(board, moves);
+				_generateCheck<false, false>(board, moves);
+			}
+		}
+
+		/**
+		 * 王手を生成します。
+		 * 王手がかかっていない場合のみに使用します。
+		 * 打ち歩詰めや王手放置の手を含む可能性があります。
+		 * 詰将棋に効果のない遠くからの王手を除外します。
+		 * TODO: 開き王手の生成
+		 */
+		static void generateCheckLight(const Board& board, Moves& moves) {
+			if (board.isBlack()) {
+				_generateCheck<true, true>(board, moves);
+			} else {
+				_generateCheck<false, true>(board, moves);
 			}
 		}
 

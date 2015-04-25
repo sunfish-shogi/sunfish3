@@ -447,15 +447,15 @@ TEST(MoveGeneratorTest, testCheck) {
 		Moves moves;
 		MoveGenerator::generateCheck(board, moves);
 		ASSERT_EQ(9, moves.size());
-		ASSERT_EQ(Move(Piece::Pawn, P45), moves[0]);
-		ASSERT_EQ(Move(Piece::Silver, P55), moves[1]);
-		ASSERT_EQ(Move(Piece::Silver, P45), moves[2]);
-		ASSERT_EQ(Move(Piece::Silver, P33), moves[3]);
-		ASSERT_EQ(Move(Piece::Silver, P35), moves[4]);
-		ASSERT_EQ(Move(Piece::Silver, P64, P53, false), moves[5]);
-		ASSERT_EQ(Move(Piece::Silver, P64, P55, false), moves[6]);
-		ASSERT_EQ(Move(Piece::Silver, P56, P55, false), moves[7]);
-		ASSERT_EQ(Move(Piece::Silver, P56, P45, false), moves[8]);
+		ASSERT_EQ(Move(Piece::Silver, P55), moves[0]);
+		ASSERT_EQ(Move(Piece::Silver, P45), moves[1]);
+		ASSERT_EQ(Move(Piece::Silver, P33), moves[2]);
+		ASSERT_EQ(Move(Piece::Silver, P35), moves[3]);
+		ASSERT_EQ(Move(Piece::Silver, P64, P53, false), moves[4]);
+		ASSERT_EQ(Move(Piece::Silver, P64, P55, false), moves[5]);
+		ASSERT_EQ(Move(Piece::Silver, P56, P55, false), moves[6]);
+		ASSERT_EQ(Move(Piece::Silver, P56, P45, false), moves[7]);
+		ASSERT_EQ(Move(Piece::Pawn, P45), moves[8]);
 	}
 
 	{
@@ -503,14 +503,14 @@ TEST(MoveGeneratorTest, testCheck) {
 		Moves moves;
 		MoveGenerator::generateCheck(board, moves);
 		ASSERT_EQ(8, moves.size());
-		ASSERT_EQ(Move(Piece::Pawn, P46, P45, false), moves[0]);
-		ASSERT_EQ(Move(Piece::Knight, P56), moves[1]);
-		ASSERT_EQ(Move(Piece::Knight, P36), moves[2]);
-		ASSERT_EQ(Move(Piece::Knight, P28, P36, false), moves[3]);
-		ASSERT_EQ(Move(Piece::Gold, P53, P54, false), moves[4]);
-		ASSERT_EQ(Move(Piece::Gold, P53, P43, false), moves[5]);
-		ASSERT_EQ(Move(Piece::Gold, P25, P34, false), moves[6]);
-		ASSERT_EQ(Move(Piece::Gold, P25, P35, false), moves[7]);
+		ASSERT_EQ(Move(Piece::Gold, P53, P54, false), moves[0]);
+		ASSERT_EQ(Move(Piece::Gold, P53, P43, false), moves[1]);
+		ASSERT_EQ(Move(Piece::Gold, P25, P34, false), moves[2]);
+		ASSERT_EQ(Move(Piece::Gold, P25, P35, false), moves[3]);
+		ASSERT_EQ(Move(Piece::Knight, P56), moves[4]);
+		ASSERT_EQ(Move(Piece::Knight, P36), moves[5]);
+		ASSERT_EQ(Move(Piece::Knight, P28, P36, false), moves[6]);
+		ASSERT_EQ(Move(Piece::Pawn, P46, P45, false), moves[7]);
 	}
 
 	{
@@ -535,14 +535,14 @@ TEST(MoveGeneratorTest, testCheck) {
 		Moves moves;
 		MoveGenerator::generateCheck(board, moves);
 		ASSERT_EQ(8, moves.size());
-		ASSERT_EQ(Move(Piece::Lance, P45), moves[0]);
-		ASSERT_EQ(Move(Piece::Lance, P46), moves[1]);
-		ASSERT_EQ(Move(Piece::Lance, P49, P47, false), moves[2]);
-		ASSERT_EQ(Move(Piece::Gold, P55), moves[3]);
-		ASSERT_EQ(Move(Piece::Gold, P43), moves[4]);
-		ASSERT_EQ(Move(Piece::Gold, P45), moves[5]);
-		ASSERT_EQ(Move(Piece::Gold, P34), moves[6]);
-		ASSERT_EQ(Move(Piece::Gold, P35), moves[7]);
+		ASSERT_EQ(Move(Piece::Gold, P55), moves[0]);
+		ASSERT_EQ(Move(Piece::Gold, P43), moves[1]);
+		ASSERT_EQ(Move(Piece::Gold, P45), moves[2]);
+		ASSERT_EQ(Move(Piece::Gold, P34), moves[3]);
+		ASSERT_EQ(Move(Piece::Gold, P35), moves[4]);
+		ASSERT_EQ(Move(Piece::Lance, P45), moves[5]);
+		ASSERT_EQ(Move(Piece::Lance, P46), moves[6]);
+		ASSERT_EQ(Move(Piece::Lance, P49, P47, false), moves[7]);
 	}
 
 	{
@@ -665,15 +665,15 @@ TEST(MoveGeneratorTest, testCheck) {
 		Moves moves;
 		MoveGenerator::generateCheck(board, moves);
 		ASSERT_EQ(9, moves.size());
-		ASSERT_EQ(Move(Piece::Tokin, P55, P54, false), moves[0]);
-		ASSERT_EQ(Move(Piece::Tokin, P55, P44, false), moves[1]);
-		ASSERT_EQ(Move(Piece::ProLance, P45, P54, false), moves[2]);
-		ASSERT_EQ(Move(Piece::ProLance, P45, P44, false), moves[3]);
-		ASSERT_EQ(Move(Piece::ProLance, P45, P34, false), moves[4]);
-		ASSERT_EQ(Move(Piece::ProKnight, P35, P44, false), moves[5]);
-		ASSERT_EQ(Move(Piece::ProKnight, P35, P34, false), moves[6]);
-		ASSERT_EQ(Move(Piece::ProSilver, P52, P53, false), moves[7]);
-		ASSERT_EQ(Move(Piece::ProSilver, P52, P42, false), moves[8]);
+		ASSERT_EQ(Move(Piece::ProSilver, P52, P53, false), moves[0]);
+		ASSERT_EQ(Move(Piece::ProSilver, P52, P42, false), moves[1]);
+		ASSERT_EQ(Move(Piece::Tokin, P55, P54, false), moves[2]);
+		ASSERT_EQ(Move(Piece::Tokin, P55, P44, false), moves[3]);
+		ASSERT_EQ(Move(Piece::ProLance, P45, P54, false), moves[4]);
+		ASSERT_EQ(Move(Piece::ProLance, P45, P44, false), moves[5]);
+		ASSERT_EQ(Move(Piece::ProLance, P45, P34, false), moves[6]);
+		ASSERT_EQ(Move(Piece::ProKnight, P35, P44, false), moves[7]);
+		ASSERT_EQ(Move(Piece::ProKnight, P35, P34, false), moves[8]);
 	}
 
 	{
@@ -697,15 +697,15 @@ TEST(MoveGeneratorTest, testCheck) {
 		Moves moves;
 		MoveGenerator::generateCheck(board, moves);
 		ASSERT_EQ(9, moves.size());
-		ASSERT_EQ(Move(Piece::Pawn, P45), moves[0]);
-		ASSERT_EQ(Move(Piece::Silver, P55), moves[1]);
-		ASSERT_EQ(Move(Piece::Silver, P45), moves[2]);
-		ASSERT_EQ(Move(Piece::Silver, P35), moves[3]);
-		ASSERT_EQ(Move(Piece::Silver, P37), moves[4]);
-		ASSERT_EQ(Move(Piece::Silver, P66, P55, false), moves[5]);
-		ASSERT_EQ(Move(Piece::Silver, P66, P57, false), moves[6]);
-		ASSERT_EQ(Move(Piece::Silver, P54, P55, false), moves[7]);
-		ASSERT_EQ(Move(Piece::Silver, P54, P45, false), moves[8]);
+		ASSERT_EQ(Move(Piece::Silver, P55), moves[0]);
+		ASSERT_EQ(Move(Piece::Silver, P45), moves[1]);
+		ASSERT_EQ(Move(Piece::Silver, P35), moves[2]);
+		ASSERT_EQ(Move(Piece::Silver, P37), moves[3]);
+		ASSERT_EQ(Move(Piece::Silver, P66, P55, false), moves[4]);
+		ASSERT_EQ(Move(Piece::Silver, P66, P57, false), moves[5]);
+		ASSERT_EQ(Move(Piece::Silver, P54, P55, false), moves[6]);
+		ASSERT_EQ(Move(Piece::Silver, P54, P45, false), moves[7]);
+		ASSERT_EQ(Move(Piece::Pawn, P45), moves[8]);
 	}
 
 	{
@@ -753,14 +753,14 @@ TEST(MoveGeneratorTest, testCheck) {
 		Moves moves;
 		MoveGenerator::generateCheck(board, moves);
 		ASSERT_EQ(8, moves.size());
-		ASSERT_EQ(Move(Piece::Pawn, P44, P45, false), moves[0]);
-		ASSERT_EQ(Move(Piece::Knight, P54), moves[1]);
-		ASSERT_EQ(Move(Piece::Knight, P34), moves[2]);
-		ASSERT_EQ(Move(Piece::Knight, P22, P34, false), moves[3]);
-		ASSERT_EQ(Move(Piece::Gold, P57, P56, false), moves[4]);
-		ASSERT_EQ(Move(Piece::Gold, P57, P47, false), moves[5]);
-		ASSERT_EQ(Move(Piece::Gold, P25, P35, false), moves[6]);
-		ASSERT_EQ(Move(Piece::Gold, P25, P36, false), moves[7]);
+		ASSERT_EQ(Move(Piece::Gold, P57, P56, false), moves[0]);
+		ASSERT_EQ(Move(Piece::Gold, P57, P47, false), moves[1]);
+		ASSERT_EQ(Move(Piece::Gold, P25, P35, false), moves[2]);
+		ASSERT_EQ(Move(Piece::Gold, P25, P36, false), moves[3]);
+		ASSERT_EQ(Move(Piece::Knight, P54), moves[4]);
+		ASSERT_EQ(Move(Piece::Knight, P34), moves[5]);
+		ASSERT_EQ(Move(Piece::Knight, P22, P34, false), moves[6]);
+		ASSERT_EQ(Move(Piece::Pawn, P44, P45, false), moves[7]);
 	}
 
 	{
@@ -785,14 +785,14 @@ TEST(MoveGeneratorTest, testCheck) {
 		Moves moves;
 		MoveGenerator::generateCheck(board, moves);
 		ASSERT_EQ(8, moves.size());
-		ASSERT_EQ(Move(Piece::Lance, P44), moves[0]);
-		ASSERT_EQ(Move(Piece::Lance, P45), moves[1]);
-		ASSERT_EQ(Move(Piece::Lance, P41, P43, false), moves[2]);
-		ASSERT_EQ(Move(Piece::Gold, P55), moves[3]);
-		ASSERT_EQ(Move(Piece::Gold, P45), moves[4]);
-		ASSERT_EQ(Move(Piece::Gold, P47), moves[5]);
-		ASSERT_EQ(Move(Piece::Gold, P35), moves[6]);
-		ASSERT_EQ(Move(Piece::Gold, P36), moves[7]);
+		ASSERT_EQ(Move(Piece::Gold, P55), moves[0]);
+		ASSERT_EQ(Move(Piece::Gold, P45), moves[1]);
+		ASSERT_EQ(Move(Piece::Gold, P47), moves[2]);
+		ASSERT_EQ(Move(Piece::Gold, P35), moves[3]);
+		ASSERT_EQ(Move(Piece::Gold, P36), moves[4]);
+		ASSERT_EQ(Move(Piece::Lance, P44), moves[5]);
+		ASSERT_EQ(Move(Piece::Lance, P45), moves[6]);
+		ASSERT_EQ(Move(Piece::Lance, P41, P43, false), moves[7]);
 	}
 
 	{
@@ -917,13 +917,100 @@ TEST(MoveGeneratorTest, testCheck) {
 		ASSERT_EQ(9, moves.size());
 		ASSERT_EQ(Move(Piece::Tokin, P55, P56, false), moves[0]);
 		ASSERT_EQ(Move(Piece::Tokin, P55, P46, false), moves[1]);
-		ASSERT_EQ(Move(Piece::ProLance, P45, P56, false), moves[2]);
-		ASSERT_EQ(Move(Piece::ProLance, P45, P46, false), moves[3]);
-		ASSERT_EQ(Move(Piece::ProLance, P45, P36, false), moves[4]);
-		ASSERT_EQ(Move(Piece::ProKnight, P35, P46, false), moves[5]);
-		ASSERT_EQ(Move(Piece::ProKnight, P35, P36, false), moves[6]);
-		ASSERT_EQ(Move(Piece::ProSilver, P58, P57, false), moves[7]);
-		ASSERT_EQ(Move(Piece::ProSilver, P58, P48, false), moves[8]);
+		ASSERT_EQ(Move(Piece::ProSilver, P58, P57, false), moves[2]);
+		ASSERT_EQ(Move(Piece::ProSilver, P58, P48, false), moves[3]);
+		ASSERT_EQ(Move(Piece::ProLance, P45, P56, false), moves[4]);
+		ASSERT_EQ(Move(Piece::ProLance, P45, P46, false), moves[5]);
+		ASSERT_EQ(Move(Piece::ProLance, P45, P36, false), moves[6]);
+		ASSERT_EQ(Move(Piece::ProKnight, P35, P46, false), moves[7]);
+		ASSERT_EQ(Move(Piece::ProKnight, P35, P36, false), moves[8]);
+	}
+}
+
+TEST(MoveGeneratorTest, testCheckLight) {
+	{
+		std::string src =
+"P1 *  *  *  *  *  *  *  *  * \n"
+"P2 *  *  *  *  *  *  *  *  * \n"
+"P3 *  *  *  *  *  *  *  *  * \n"
+"P4 *  *  *  *  *  *  *  *  * \n"
+"P5 *  *  *  * -OU *  *  *  * \n"
+"P6 *  *  *  *  *  *  *  *  * \n"
+"P7 *  *  *  *  *  *  *  *  * \n"
+"P8 *  *  *  *  *  *  *  *  * \n"
+"P9 *  *  * +OU *  *  *  *  * \n"
+"P+00KY00KA00HI\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		Moves moves;
+		MoveGenerator::generateCheckLight(board, moves);
+		ASSERT_EQ(23, moves.size());
+		ASSERT_EQ(Move(Piece::Lance, P56), moves[0]);
+		ASSERT_EQ(Move(Piece::Lance, P57), moves[1]);
+		ASSERT_EQ(Move(Piece::Lance, P58), moves[2]);
+		ASSERT_EQ(Move(Piece::Bishop, P64), moves[3]);
+		ASSERT_EQ(Move(Piece::Bishop, P73), moves[4]);
+		ASSERT_EQ(Move(Piece::Bishop, P66), moves[5]);
+		ASSERT_EQ(Move(Piece::Bishop, P77), moves[6]);
+		ASSERT_EQ(Move(Piece::Bishop, P44), moves[7]);
+		ASSERT_EQ(Move(Piece::Bishop, P33), moves[8]);
+		ASSERT_EQ(Move(Piece::Bishop, P46), moves[9]);
+		ASSERT_EQ(Move(Piece::Bishop, P37), moves[10]);
+		ASSERT_EQ(Move(Piece::Rook, P65), moves[11]);
+		ASSERT_EQ(Move(Piece::Rook, P75), moves[12]);
+		ASSERT_EQ(Move(Piece::Rook, P85), moves[13]);
+		ASSERT_EQ(Move(Piece::Rook, P45), moves[14]);
+		ASSERT_EQ(Move(Piece::Rook, P35), moves[15]);
+		ASSERT_EQ(Move(Piece::Rook, P25), moves[16]);
+		ASSERT_EQ(Move(Piece::Rook, P54), moves[17]);
+		ASSERT_EQ(Move(Piece::Rook, P53), moves[18]);
+		ASSERT_EQ(Move(Piece::Rook, P52), moves[19]);
+		ASSERT_EQ(Move(Piece::Rook, P56), moves[20]);
+		ASSERT_EQ(Move(Piece::Rook, P57), moves[21]);
+		ASSERT_EQ(Move(Piece::Rook, P58), moves[22]);
+	}
+
+	{
+		std::string src =
+"P1 *  *  *  *  *  *  *  *  * \n"
+"P2 *  *  *  *  *  *  *  *  * \n"
+"P3 *  *  *  *  * -FU *  *  * \n"
+"P4 *  *  *  *  *  *  *  *  * \n"
+"P5 *  *  *  *  *  *  * -OU * \n"
+"P6 *  *  *  *  *  *  *  *  * \n"
+"P7 *  *  *  *  *  *  *  *  * \n"
+"P8 *  *  *  *  *  *  * +FU * \n"
+"P9 *  *  * +OU *  *  *  *  * \n"
+"P+00KY00KA00HI\n"
+"P-\n"
+"+\n";
+		std::istringstream iss(src);
+		Board board;
+		CsaReader::readBoard(iss, board);
+
+		Moves moves;
+		MoveGenerator::generateCheckLight(board, moves);
+		ASSERT_EQ(16, moves.size());
+		ASSERT_EQ(Move(Piece::Lance, P26), moves[0]);
+		ASSERT_EQ(Move(Piece::Lance, P27), moves[1]);
+		ASSERT_EQ(Move(Piece::Bishop, P34), moves[2]);
+		ASSERT_EQ(Move(Piece::Bishop, P36), moves[3]);
+		ASSERT_EQ(Move(Piece::Bishop, P47), moves[4]);
+		ASSERT_EQ(Move(Piece::Bishop, P14), moves[5]);
+		ASSERT_EQ(Move(Piece::Bishop, P16), moves[6]);
+		ASSERT_EQ(Move(Piece::Rook, P35), moves[7]);
+		ASSERT_EQ(Move(Piece::Rook, P45), moves[8]);
+		ASSERT_EQ(Move(Piece::Rook, P55), moves[9]);
+		ASSERT_EQ(Move(Piece::Rook, P15), moves[10]);
+		ASSERT_EQ(Move(Piece::Rook, P24), moves[11]);
+		ASSERT_EQ(Move(Piece::Rook, P23), moves[12]);
+		ASSERT_EQ(Move(Piece::Rook, P22), moves[13]);
+		ASSERT_EQ(Move(Piece::Rook, P26), moves[14]);
+		ASSERT_EQ(Move(Piece::Rook, P27), moves[15]);
 	}
 }
 
