@@ -11,7 +11,7 @@
 #include "logger/Logger.h"
 #include <iomanip>
 
-#define ENABLE_HIST_REUSE							0
+#define ENABLE_HIST_REUSE							1
 #define ENABLE_LMR										1
 #define ENABLE_SMOOTH_FUT							1
 #define ENABLE_RAZORING								1
