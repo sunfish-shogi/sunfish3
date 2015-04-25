@@ -11,6 +11,7 @@
 #include "logger/Logger.h"
 #include <iomanip>
 
+#define ENABLE_HIST_REUSE							0
 #define ENABLE_LMR										1
 #define ENABLE_SMOOTH_FUT							1
 #define ENABLE_RAZORING								1
@@ -252,7 +253,11 @@ namespace sunfish {
 		_tt.evolve(); // 世代更新
 
 		// hisotory heuristic
+#if ENABLE_HIST_REUSE
 		_history.reduce();
+#else
+		_history.init();
+#endif
 
 		// gains
 		_gains.clear();
