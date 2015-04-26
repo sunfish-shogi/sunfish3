@@ -57,12 +57,12 @@ namespace sunfish {
 			return (depth < Searcher::Depth1Ply * 26 / 4 ? depth - Searcher::Depth1Ply * 12 / 4 :
 							(depth <= Searcher::Depth1Ply * 30 / 4 ? Searcher::Depth1Ply * 14 / 4 : depth - Searcher::Depth1Ply * 16 / 4));
 		}
-		inline int futilityMargin(int depth) {
+		inline int futilityMargin(int depth, int count) {
 #if ENABLE_SMOOTH_FUT
 			return (depth < Searcher::Depth1Ply * 3 ? 800 :
-							128 + 270 / Searcher::Depth1Ply * std::max(depth, 0));
+							128 + 270 / Searcher::Depth1Ply * std::max(depth, 0)) - 8 * count;
 #else
-			return 800;
+			return 800 - 8 * count;
 #endif
 		}
 		inline int razorMargin(int depth) {
@@ -1099,7 +1099,7 @@ namespace sunfish {
 						// 十分なマージンを加味して beta 値を超える場合
 						if ((valueType == TTE::Lower || valueType == TTE::Exact) &&
 								!tree.isChecking() && !tree.isCheckingOnFrontier()) {
-							if (depth < search_param::FUT_DEPTH && ttv >= beta + search_func::futilityMargin(depth)) {
+							if (depth < search_param::FUT_DEPTH && ttv >= beta + search_func::futilityMargin(depth, 0)) {
 								return beta;
 							}
 						}
@@ -1313,7 +1313,7 @@ namespace sunfish {
 			// futility pruning
 			if (!isCheck && newDepth < search_param::FUT_DEPTH && alpha > -Value::Mate) {
 				Value futAlpha = alpha;
-				if (newDepth >= Depth1Ply) { futAlpha -= search_func::futilityMargin(newDepth); }
+				if (newDepth >= Depth1Ply) { futAlpha -= search_func::futilityMargin(newDepth, count); }
 				if (standPat + tree.estimate(move, _eval) + _gains.get(move) <= futAlpha) {
 					isFirst = false;
 					worker.info.futilityPruning++;
@@ -1341,7 +1341,7 @@ namespace sunfish {
 			// extended futility pruning
 			if (!isCheck && alpha > -Value::Mate) {
 				if ((newDepth < Depth1Ply && newStandPat <= alpha) ||
-						(newDepth < search_param::FUT_DEPTH && newStandPat + search_func::futilityMargin(newDepth) <= alpha)) {
+						(newDepth < search_param::FUT_DEPTH && newStandPat + search_func::futilityMargin(newDepth, count) <= alpha)) {
 					tree.unmakeMove();
 					isFirst = false;
 					worker.info.extendedFutilityPruning++;
@@ -1663,7 +1663,7 @@ search_end:
 			// futility pruning
 			if (!isCheck && newDepth < search_param::FUT_DEPTH && alpha > -Value::Mate) {
 				Value futAlpha = alpha;
-				if (newDepth >= Depth1Ply) { futAlpha -= search_func::futilityMargin(newDepth); }
+				if (newDepth >= Depth1Ply) { futAlpha -= search_func::futilityMargin(newDepth, count); }
 				if (standPat + tree.estimate(move, _eval) + _gains.get(move) <= futAlpha) {
 					worker.info.futilityPruning++;
 					continue;
@@ -1687,7 +1687,7 @@ search_end:
 			// extended futility pruning
 			if (!isCheck && alpha > -Value::Mate) {
 				if ((newDepth < Depth1Ply && newStandPat <= alpha) ||
-						(newDepth < search_param::FUT_DEPTH && newStandPat + search_func::futilityMargin(newDepth) <= alpha)) {
+						(newDepth < search_param::FUT_DEPTH && newStandPat + search_func::futilityMargin(newDepth, count) <= alpha)) {
 					tree.unmakeMove();
 					worker.info.extendedFutilityPruning++;
 					continue;
