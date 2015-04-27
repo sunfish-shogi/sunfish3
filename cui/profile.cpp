@@ -28,6 +28,20 @@ int profile(const ConsoleManager::Config& config, bool full) {
 
 	const char* data[] = {
 R"(
+P1-KY-KE * -KI *  *  *  *  * 
+P2 * -OU-GI-GI *  *  *  *  * 
+P3 * -FU-FU-FU * -FU-KE *  * 
+P4-FU *  *  * +GI *  *  * -FU
+P5 *  * +GI *  *  * -FU *  * 
+P6+FU+HI *  * +UM *  *  *  * 
+P7 * +FU+KE+FU+OU * +FU * +KE
+P8 *  * +KI *  *  *  *  *  * 
+P9+KY *  * -RY *  *  *  * +KY
+P+00FU00FU00FU00KI00KI
+P-00FU00FU00FU00FU00KY00KA
+-
+)",
+R"(
 P1-KY *  *  *  *  * -OU-KE-KY
 P2 *  *  *  *  *  * -KI *  * 
 P3 *  * +GI *  * -KI * -FU * 

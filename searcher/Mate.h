@@ -74,7 +74,7 @@ namespace sunfish {
 
 		Mate();
 
-		template<bool black>
+		template<bool black, bool recursive = true>
 		static bool _isProtected(const Board& board, const Position& to, const Bitboard& occ, const Bitboard& occNoAttacker, const Position& king);
 
 		template<bool black>

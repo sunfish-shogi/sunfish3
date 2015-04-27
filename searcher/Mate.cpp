@@ -13,7 +13,7 @@
 
 namespace sunfish {
 
-	template<bool black>
+	template<bool black, bool recursive>
 	bool Mate::_isProtected(const Board& board, const Position& to, const Bitboard& occ, const Bitboard& occNoAttacker, const Position& king) {
 		// pawn
 		Bitboard bb = (black ? board.getBPawn() : board.getWPawn()) & occNoAttacker;
@@ -84,7 +84,7 @@ namespace sunfish {
 		// king
 		if (king.isValid()) {
 			if (MoveTables::king(king).check(to) &&
-					!_isProtected<!black>(board, to, occ, occNoAttacker, Position::Invalid)) {
+					(!recursive || !_isProtected<!black>(board, to, occ, occNoAttacker, Position::Invalid))) {
 				return true;
 			}
 		}
@@ -554,7 +554,6 @@ mate1ply_rook_drop_end ## dir: ; \
 	bool Mate::evade(Tree& tree, const Move& check) {
 		const Board& board = tree.getBoard();
 		Moves& moves = tree.getMoves();
-		bool black = board.isBlack();
 		Bitboard occ = board.getBOccupy() | board.getWOccupy();
 
 		moves.clear();
@@ -573,13 +572,6 @@ mate1ply_rook_drop_end ## dir: ; \
 			if (board.isCheck(move)) {
 				return true;
 			}
-			
-#if 0 // ただで取られる手を除外
-			if (cap && (black ? !_isProtected<false>(board, move.to(), occ, occ, Position::Invalid)
-					: !_isProtected<true>(board, move.to(), occ, occ, Position::Invalid))) {
-				return true;
-			}
-#endif
 
 			Piece piece = move.piece();
 			if (piece == Piece::Pawn) {
@@ -622,11 +614,31 @@ mate1ply_rook_drop_end ## dir: ; \
 	bool Mate::mate3Ply(Tree& tree) {
 		const Board& board = tree.getBoard();
 		Moves& moves = tree.getMoves();
+		bool black = board.isBlack();
+		Bitboard occ = board.getBOccupy() | board.getWOccupy();
 
 		moves.clear();
 		MoveGenerator::generateCheckLight(board, moves);
 
 		for (const auto& move : moves) {
+#if 1 // ただで取られる手を除外
+			Position to = move.to();
+			Bitboard attacker = Bitboard::mask(to);
+			Bitboard occWithAttacker = occ | attacker;
+			Bitboard occNoAttacker = occ & ~attacker;
+			if (black) {
+				if (!_isProtected<true, false>(board, to, occWithAttacker, occNoAttacker, board.getBKingPosition()) &&
+						_isProtected<false, false>(board, to, occWithAttacker, occNoAttacker, board.getWKingPosition())) {
+					continue;
+				}
+			} else {
+				if (!_isProtected<false, false>(board, to, occWithAttacker, occNoAttacker, board.getWKingPosition()) &&
+						_isProtected<true, false>(board, to, occWithAttacker, occNoAttacker, board.getBKingPosition())) {
+					continue;
+				}
+			}
+#endif
+
 			if (!tree.makeMoveFast(move)) {
 				continue;
 			}
