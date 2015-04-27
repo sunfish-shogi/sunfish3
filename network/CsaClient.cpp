@@ -230,6 +230,7 @@ lab_end:
   		BookResult bookResult = _book.selectRandom(hash);
   		if (!bookResult.move.isEmpty() && board.isValidMove(bookResult.move)) {
 				myMove.move = bookResult.move;
+				myMove.value = Value::Zero;
 				Loggers::message << "book hit: " << myMove.move.toString() << " (" << bookResult.count << "/" << bookResult.total << ")";
 				ok = true;
   		}
