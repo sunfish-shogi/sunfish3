@@ -15,7 +15,7 @@
 #define ENABLE_LMR										1
 #define ENABLE_SMOOTH_FUT							1
 #define ENABLE_RAZORING								1
-#define ENABLE_MOVE_COUNT_PRUNING			0 // should be 0
+#define ENABLE_MOVE_COUNT_PRUNING			1
 #define ENABLE_HASH_MOVE							1
 #define ENABLE_KILLER_MOVE						1
 #define ENABLE_SHEK										1
@@ -74,13 +74,9 @@ namespace sunfish {
 			return 512 + 32 / Searcher::Depth1Ply * std::max(depth, 0);
 		}
 		inline int futilityMoveCounts(bool improving, int depth) {
-			int d = (depth * depth) / (Searcher::Depth1Ply * Searcher::Depth1Ply);
-			if (improving) {
-				d = d * 19 / 10;
-			} else {
-				d = d * 13 / 10;
-			}
-			return 18 + d;
+			int x = improving ? Searcher::Depth1Ply * 1 / 4 : 0;
+			int d = ((depth + x) * (depth + x)) / (Searcher::Depth1Ply * Searcher::Depth1Ply);
+			return 3 + d * 3 / 10;
 		}
 	}
 
@@ -1320,7 +1316,7 @@ namespace sunfish {
 #if ENABLE_MOVE_COUNT_PRUNING
 			// move count based pruning
 			if (!isCheckPrev && newDepth < Depth1Ply * 8 &&
-					alpha > -Value::Mate && !stat.isMateThreat() &&
+					alpha > oldAlpha && !stat.isMateThreat() &&
 					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
 					!tree.isPriorMove(move) &&
 					count >= search_func::futilityMoveCounts(improving, depth)) {
@@ -1671,7 +1667,7 @@ search_end:
 #if ENABLE_MOVE_COUNT_PRUNING
 			// move count based pruning
 			if (!isCheckPrev && newDepth < Depth1Ply * 8 &&
-					alpha > -Value::Mate && !stat.isMateThreat() &&
+					/*alpha > oldAlpha &&*/ !stat.isMateThreat() &&
 					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
 					!tree.isPriorMove(move) &&
 					count >= search_func::futilityMoveCounts(improving, depth)) {
