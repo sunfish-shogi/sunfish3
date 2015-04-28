@@ -43,6 +43,8 @@ namespace sunfish {
 		uint64_t moveCountPruning;
 		uint64_t razoring;
 		uint64_t razoringTried;
+		uint64_t probcut;
+		uint64_t probcutTried;
 		uint64_t expanded;
 		uint64_t checkExtension;
 		uint64_t onerepExtension;

@@ -16,6 +16,7 @@
 #define ENABLE_SMOOTH_FUT							1
 #define ENABLE_RAZORING								1
 #define ENABLE_MOVE_COUNT_PRUNING			1
+#define ENABLE_PROBCUT								1
 #define ENABLE_HASH_MOVE							1
 #define ENABLE_KILLER_MOVE						1
 #define ENABLE_SHEK										1
@@ -27,6 +28,7 @@
 #define ENABLE_MOVE_COUNT_EXPT				0
 #define ENABLE_FUT_EXPT								0
 #define ENABLE_RAZOR_EXPT							0
+#define ENABLE_PROBCUT_EXPT						0
 
 // debugging flags
 #define DEBUG_ROOT_MOVES							0
@@ -55,6 +57,10 @@ namespace sunfish {
 #if ENABLE_RAZOR_EXPT
 		uint64_t razor_succ;
 		uint64_t razor_fail;
+#endif
+#if ENABLE_PROBCUT_EXPT
+		uint64_t probcut_succ;
+		uint64_t probcut_fail;
 #endif
 	};
 
@@ -221,6 +227,8 @@ namespace sunfish {
 			_info.moveCountPruning           += worker.info.moveCountPruning;
 			_info.razoring                   += worker.info.razoring;
 			_info.razoringTried              += worker.info.razoringTried;
+			_info.probcut                    += worker.info.probcut;
+			_info.probcutTried               += worker.info.probcutTried;
 			_info.expanded                   += worker.info.expanded;
 			_info.checkExtension             += worker.info.checkExtension;
 			_info.onerepExtension            += worker.info.onerepExtension;
@@ -249,6 +257,10 @@ namespace sunfish {
 #if ENABLE_RAZOR_EXPT
 		expt::razor_succ = 0llu;
 		expt::razor_fail = 0llu;
+#endif
+#if ENABLE_PROBCUT_EXPT
+		expt::probcut_succ = 0llu;
+		expt::probcut_fail = 0llu;
 #endif
 
 		if (_isRunning.load()) {
@@ -327,6 +339,11 @@ namespace sunfish {
 		double razor_succ_rate = (double)expt::razor_succ / (expt::razor_succ + expt::razor_fail) * 100.0;
 		std::cout << "razoring:" << std::endl;
 		std::cout << "  succ: " << expt::razor_succ << "/" << (expt::razor_succ + expt::razor_fail) << " (" << razor_succ_rate << "%)" << std::endl;
+#endif
+#if ENABLE_PROBCUT_EXPT
+		double probcut_succ_rate = (double)expt::probcut_succ / (expt::probcut_succ + expt::probcut_fail) * 100.0;
+		std::cout << "probcut:" << std::endl;
+		std::cout << "  succ: " << expt::probcut_succ << "/" << (expt::probcut_succ + expt::probcut_fail) << " (" << probcut_succ_rate << "%)" << std::endl;
 #endif
 
 		if (!_isRunning.load()) {
@@ -1203,6 +1220,9 @@ namespace sunfish {
 #if ENABLE_RAZOR_EXPT
 		bool isRazoring = false;
 #endif
+#if ENABLE_PROBCUT_EXPT
+		bool isProbcut = false;
+#endif
 
 		if (!tree.isChecking()) {
 
@@ -1289,6 +1309,25 @@ namespace sunfish {
 						stat.setMateThreat();
 					}
 				}
+
+#if ENABLE_PROBCUT
+				if (isNullWindow && depth >= Depth1Ply * 5 && beta > -Value::Mate && beta < Value::Mate) {
+					Value pcBeta = beta + 200;
+					int bcDepth = depth - Depth1Ply * 4;
+
+					Value val = search(tree, black, bcDepth, pcBeta-1, pcBeta, stat);
+
+					worker.info.probcutTried++;
+					if (val >= pcBeta) {
+#if ENABLE_PROBCUT_EXPT
+						isProbcut = true;
+#else
+						worker.info.probcut++;
+						return pcBeta;
+#endif
+					}
+				}
+#endif
 			}
 		}
 
@@ -1576,6 +1615,13 @@ hash_store:
 			if (isRazoring) { expt::razor_fail++; }
 		} else {
 			if (isRazoring) { expt::razor_succ++; }
+		}
+#endif
+#if ENABLE_PROBCUT_EXPT
+		if (alpha >= beta) {
+			if (isProbcut) { expt::probcut_succ++; }
+		} else {
+			if (isProbcut) { expt::probcut_fail++; }
 		}
 #endif
 
