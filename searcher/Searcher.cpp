@@ -24,6 +24,10 @@
 #define ENABLE_STORE_PV								1
 #define SHALLOW_SEE                   0 // should be 0
 
+#define ENABLE_MOVE_COUNT_EXPT				0
+#define ENABLE_FUT_EXPT								0
+#define ENABLE_RAZOR_EXPT							0
+
 // debugging flags
 #define DEBUG_ROOT_MOVES							0
 #define DEBUG_TREE										0
@@ -36,6 +40,23 @@
 #endif
 
 namespace sunfish {
+
+	namespace expt {
+#if ENABLE_MOVE_COUNT_EXPT
+		uint64_t count_sum;
+		uint64_t count_num;
+		uint64_t count_succ;
+		uint64_t count_fail;
+#endif
+#if ENABLE_FUT_EXPT
+		uint64_t fut_succ;
+		uint64_t fut_fail;
+#endif
+#if ENABLE_RAZOR_EXPT
+		uint64_t razor_succ;
+		uint64_t razor_fail;
+#endif
+	};
 
 	namespace search_param {
 #if ENABLE_SMOOTH_FUT
@@ -64,20 +85,20 @@ namespace sunfish {
 		}
 		inline int futilityMargin(int depth, int count) {
 #if ENABLE_SMOOTH_FUT
-			return (depth < Searcher::Depth1Ply * 3 ? 800 :
-							128 + 270 / Searcher::Depth1Ply * std::max(depth, 0)) - 8 * count;
+			return (depth < Searcher::Depth1Ply * 3 ? 400 :
+							140 / Searcher::Depth1Ply * std::max(depth, 0)) - 8 * count;
 #else
-			return 800 - 8 * count;
+			return 400 - 8 * count;
 #endif
 		}
 		inline int razorMargin(int depth) {
-			return 512 + 32 / Searcher::Depth1Ply * std::max(depth, 0);
+			return 256 + 64 / Searcher::Depth1Ply * std::max(depth, 0);
 		}
 		inline int futilityMoveCounts(bool improving, int depth) {
-			int d = depth + (improving ? Searcher::Depth1Ply * 1 / 2 : 0);
+			int d = depth + (improving ? Searcher::Depth1Ply * 1 / 4 : 0);
 			int x = (d * d) / (Searcher::Depth1Ply * Searcher::Depth1Ply);
-			int a = improving ? 10 : 7;
-			return 3 + x * a / 10;
+			int a = improving ? 9 : 6;
+			return 2 + x * a / 10;
 		}
 	}
 
@@ -215,6 +236,21 @@ namespace sunfish {
 	 */
 	void Searcher::before(const Board& initialBoard) {
 
+#if ENABLE_MOVE_COUNT_EXPT
+		expt::count_sum = 0llu;
+		expt::count_num = 0llu;
+		expt::count_succ = 0llu;
+		expt::count_fail = 0llu;
+#endif
+#if ENABLE_FUT_EXPT
+		expt::fut_succ = 0llu;
+		expt::fut_fail = 0llu;
+#endif
+#if ENABLE_RAZOR_EXPT
+		expt::razor_succ = 0llu;
+		expt::razor_fail = 0llu;
+#endif
+
 		if (_isRunning.load()) {
 			Loggers::error << __FILE_LINE__ << ": Searcher is already running!!!";
 		}
@@ -274,6 +310,24 @@ namespace sunfish {
 	 * 後処理
 	 */
 	void Searcher::after() {
+
+#if ENABLE_MOVE_COUNT_EXPT
+		double count_ave = (double)expt::count_sum / expt::count_num;
+		double count_succ_rate = (double)expt::count_succ / (expt::count_succ + expt::count_fail) * 100.0;
+		std::cout << "move count based pruning:" << std::endl;
+		std::cout << "  ave : " << count_ave << std::endl;
+		std::cout << "  succ: " << expt::count_succ << "/" << (expt::count_succ + expt::count_fail) << " (" << count_succ_rate << "%)" << std::endl;
+#endif
+#if ENABLE_FUT_EXPT
+		double fut_succ_rate = (double)expt::fut_succ / (expt::fut_succ + expt::fut_fail) * 100.0;
+		std::cout << "futility pruning:" << std::endl;
+		std::cout << "  succ: " << expt::fut_succ << "/" << (expt::fut_succ + expt::fut_fail) << " (" << fut_succ_rate << "%)" << std::endl;
+#endif
+#if ENABLE_RAZOR_EXPT
+		double razor_succ_rate = (double)expt::razor_succ / (expt::razor_succ + expt::razor_fail) * 100.0;
+		std::cout << "razoring:" << std::endl;
+		std::cout << "  succ: " << expt::razor_succ << "/" << (expt::razor_succ + expt::razor_fail) << " (" << razor_succ_rate << "%)" << std::endl;
+#endif
 
 		if (!_isRunning.load()) {
 			Loggers::error << __FILE_LINE__ << ": Searcher is not running???";
@@ -1143,6 +1197,13 @@ namespace sunfish {
 		bool isFirst = true;
 		Move best = Move::empty();
 
+#if ENABLE_MOVE_COUNT_EXPT
+		int bestCount = 0;
+#endif
+#if ENABLE_RAZOR_EXPT
+		bool isRazoring = false;
+#endif
+
 		if (!tree.isChecking()) {
 
 #if ENABLE_MATE_1PLY || ENABLE_MATE_3PLY
@@ -1175,14 +1236,18 @@ namespace sunfish {
 #if ENABLE_RAZORING
 				// razoring
 				if (depth < search_param::RAZOR_DEPTH && hashMove.isEmpty() &&
-						alpha > -Value::Mate && beta < Value::Mate && tree.getPly() >= 2) {
+						alpha > -Value::Mate && beta < Value::Mate) {
 					Value razorAlpha = alpha - search_func::razorMargin(depth);
 					if (standPat <= razorAlpha) {
 						worker.info.razoringTried++;
 						Value qval = qsearch(tree, black, 0, razorAlpha, razorAlpha+1);
 						if (qval <= razorAlpha) {
+#if ENABLE_RAZOR_EXPT
+							isRazoring = true;
+#else
 							worker.info.razoring++;
 							return qval;
+#endif
 						}
 					}
 				}
@@ -1314,6 +1379,10 @@ namespace sunfish {
 			}
 #endif // ENABLE_LMR
 
+#if ENABLE_MOVE_COUNT_EXPT
+			bool isMoveCountPrun = false;
+#endif
+
 #if ENABLE_MOVE_COUNT_PRUNING
 			// move count based pruning
 			if (!isCheckPrev && newDepth < Depth1Ply * 12 &&
@@ -1321,10 +1390,18 @@ namespace sunfish {
 					captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
 					!tree.isPriorMove(move) &&
 					count >= search_func::futilityMoveCounts(improving, depth)) {
+#if ENABLE_MOVE_COUNT_EXPT
+				isMoveCountPrun = true;
+#else
 				isFirst = false;
 				worker.info.moveCountPruning++;
 				continue;
+#endif
 			}
+#endif
+
+#if ENABLE_FUT_EXPT
+			bool isFutPrun = false;
 #endif
 
 			// futility pruning
@@ -1332,9 +1409,13 @@ namespace sunfish {
 				Value futAlpha = alpha;
 				if (newDepth >= Depth1Ply) { futAlpha -= search_func::futilityMargin(newDepth, count); }
 				if (standPat + tree.estimate(move, _eval) + _gains.get(move) <= futAlpha) {
+#if ENABLE_FUT_EXPT
+					isFutPrun = true;
+#else
 					isFirst = false;
 					worker.info.futilityPruning++;
 					continue;
+#endif
 				}
 			}
 
@@ -1359,10 +1440,14 @@ namespace sunfish {
 			if (!isCheck && alpha > -Value::Mate) {
 				if ((newDepth < Depth1Ply && newStandPat <= alpha) ||
 						(newDepth < search_param::FUT_DEPTH && newStandPat + search_func::futilityMargin(newDepth, count) <= alpha)) {
+#if ENABLE_FUT_EXPT
+					isFutPrun = true;
+#else
 					tree.unmakeMove();
 					isFirst = false;
 					worker.info.extendedFutilityPruning++;
 					continue;
+#endif
 				}
 			}
 
@@ -1399,6 +1484,14 @@ namespace sunfish {
 
 			// 値更新
 			if (currval > alpha) {
+#if ENABLE_MOVE_COUNT_EXPT
+				bestCount = count;
+				if (isMoveCountPrun) { expt::count_fail++; }
+#endif
+#if ENABLE_FUT_EXPT
+				if (isFutPrun) { expt::fut_fail++; }
+#endif
+
 				alpha = currval;
 				best = move;
 				if (!isNullWindow) {
@@ -1420,6 +1513,13 @@ namespace sunfish {
 					}
 					break;
 				}
+			} else {
+#if ENABLE_MOVE_COUNT_EXPT
+				if (isMoveCountPrun) { expt::count_succ++; }
+#endif
+#if ENABLE_FUT_EXPT
+				if (isFutPrun) { expt::fut_succ++; }
+#endif
 			}
 
 			// split
@@ -1466,6 +1566,18 @@ hash_store:
 			}
 			worker.info.hashStore++;
 		}
+
+#if ENABLE_MOVE_COUNT_EXPT
+		expt::count_sum += bestCount;
+		expt::count_num++;
+#endif
+#if ENABLE_RAZOR_EXPT
+		if (oldAlpha != alpha) {
+			if (isRazoring) { expt::razor_fail++; }
+		} else {
+			if (isRazoring) { expt::razor_succ++; }
+		}
+#endif
 
 search_end:
 		return alpha;

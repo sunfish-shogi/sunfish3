@@ -41,7 +41,7 @@ namespace sunfish {
 			assert(move.to() >= 0);
 			assert(move.to() < Position::N);
 			Value& ref = _gains[move.piece()][move.to()];
-			ref = Value::max(ref, gain);
+			ref = Value::max(ref - 1, gain);
 		}
 
 		Value get(const Move& move) {
