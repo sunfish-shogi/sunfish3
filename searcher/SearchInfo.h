@@ -45,6 +45,8 @@ namespace sunfish {
 		uint64_t razoringTried;
 		uint64_t probcut;
 		uint64_t probcutTried;
+		uint64_t singular;
+		uint64_t singularChecked;
 		uint64_t expanded;
 		uint64_t checkExtension;
 		uint64_t onerepExtension;

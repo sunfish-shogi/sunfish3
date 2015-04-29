@@ -544,6 +544,7 @@ namespace sunfish {
 		lines.emplace_back("mov cnt pruning", format (info.moveCountPruning));
 		lines.emplace_back("razoring       ", format2(info.razoring, info.razoringTried));
 		lines.emplace_back("probcut        ", format2(info.probcut, info.probcutTried));
+		lines.emplace_back("singular       ", format2(info.singular, info.singularChecked));
 		lines.emplace_back("check extension", format2(info.checkExtension, info.expanded));
 		lines.emplace_back("1rep extension ", format2(info.onerepExtension, info.expanded));
 		lines.emplace_back("recap extension", format2(info.recapExtension, info.expanded));

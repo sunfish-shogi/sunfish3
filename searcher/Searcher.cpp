@@ -23,6 +23,7 @@
 #define ENABLE_MATE_1PLY							1
 #define ENABLE_MATE_3PLY							1
 #define ENABLE_STORE_PV								1
+#define ENABLE_SINGULAR_EXTENSION     1
 #define SHALLOW_SEE                   0 // should be 0
 
 #define ENABLE_MOVE_COUNT_EXPT				0
@@ -44,6 +45,7 @@
 namespace sunfish {
 
 	namespace expt {
+
 		class PruningCounter {
 			uint64_t succ_[64];
 			uint64_t fail_[64];
@@ -78,6 +80,7 @@ namespace sunfish {
 				}
 			}
 		};
+
 #if ENABLE_MOVE_COUNT_EXPT
 		uint64_t count_sum;
 		uint64_t count_num;
@@ -92,9 +95,11 @@ namespace sunfish {
 #if ENABLE_PROBCUT_EXPT
 		PruningCounter probcut;
 #endif
-	};
+
+	}
 
 	namespace search_param {
+
 #if ENABLE_SMOOTH_FUT
 		CONSTEXPR int FUT_DEPTH = Searcher::Depth1Ply * 9;
 #else
@@ -107,18 +112,22 @@ namespace sunfish {
 		CONSTEXPR int REC_THRESHOLD = Searcher::Depth1Ply * 3;
 		CONSTEXPR int RAZOR_DEPTH = Searcher::Depth1Ply * 4;
 		CONSTEXPR int QUIES_RELIEVE_PLY = 7;
+
 	}
 
 	namespace search_func {
+
 		inline int recDepth(int depth) {
 			return (depth < Searcher::Depth1Ply * 9 / 2 ?
 							Searcher::Depth1Ply * 3 / 2 :
 							depth - Searcher::Depth1Ply * 3);
 		}
+
 		inline int nullDepth(int depth) {
 			return (depth < Searcher::Depth1Ply * 26 / 4 ? depth - Searcher::Depth1Ply * 12 / 4 :
 							(depth <= Searcher::Depth1Ply * 30 / 4 ? Searcher::Depth1Ply * 14 / 4 : depth - Searcher::Depth1Ply * 16 / 4));
 		}
+
 		inline int futilityMargin(int depth, int count) {
 #if ENABLE_SMOOTH_FUT
 			return (depth < Searcher::Depth1Ply * 3 ? 400 :
@@ -127,15 +136,24 @@ namespace sunfish {
 			return 400 - 8 * count;
 #endif
 		}
+
 		inline int razorMargin(int depth) {
 			return 256 + 64 / Searcher::Depth1Ply * std::max(depth, 0);
 		}
+
 		inline int futilityMoveCounts(bool improving, int depth) {
 			int d = depth + (improving ? Searcher::Depth1Ply * 1 / 4 : 0);
 			int x = (d * d) / (Searcher::Depth1Ply * Searcher::Depth1Ply);
 			int a = improving ? 9 : 6;
 			return 2 + x * a / 10;
 		}
+
+		inline uint64_t excludedHash(const Move& move) {
+			constexpr uint64_t key = 0xc7ebffd8801628a7llu;
+			uint32_t m = Move::serialize(move);
+			return key ^ m;
+		}
+
 	}
 
 	/**
@@ -259,6 +277,8 @@ namespace sunfish {
 			_info.razoringTried              += worker.info.razoringTried;
 			_info.probcut                    += worker.info.probcut;
 			_info.probcutTried               += worker.info.probcutTried;
+			_info.singular                   += worker.info.singular;
+			_info.singularChecked            += worker.info.singularChecked;
 			_info.expanded                   += worker.info.expanded;
 			_info.checkExtension             += worker.info.checkExtension;
 			_info.onerepExtension            += worker.info.onerepExtension;
@@ -1163,53 +1183,61 @@ namespace sunfish {
 		uint64_t hash = tree.getBoard().getHash();
 		bool isNullWindow = (beta == alpha + 1);
 
+		if (!tree.getExcluded().isEmpty()) {
+			hash ^= search_func::excludedHash(tree.getExcluded());
+		}
+
 		// transposition table
 		Move hashMove = Move::empty();
+		Value hashValue;
+		uint32_t hashValueType;
+		int hashDepth;
 		{
 			TTE tte;
 			worker.info.hashProbed++;
 			if (_tt.get(hash, tte)) {
+				hashDepth = tte.getDepth();
 				if (depth < search_param::REC_THRESHOLD ||
-						tte.getDepth() >= search_func::recDepth(depth)) {
-					auto ttv = tte.getValue(tree.getPly());
-					auto valueType = tte.getValueType();
+						hashDepth >= search_func::recDepth(depth)) {
+					hashValue = tte.getValue(tree.getPly());
+					hashValueType = tte.getValueType();
 
 					// 前回の結果で枝刈り
 					if (stat.isHashCut() && isNullWindow) {
 						// 現在のノードに対して優位な条件の場合
-						if (tte.getDepth() >= depth ||
-								((valueType == TTE::Lower || valueType == TTE::Exact) && ttv >= Value::Mate) ||
-								((valueType == TTE::Upper || valueType == TTE::Exact) && ttv <= -Value::Mate)) {
-							if (valueType == TTE::Exact) {
+						if (hashDepth >= depth ||
+								((hashValueType == TTE::Lower || hashValueType == TTE::Exact) && hashValue >= Value::Mate) ||
+								((hashValueType == TTE::Upper || hashValueType == TTE::Exact) && hashValue <= -Value::Mate)) {
+							if (hashValueType == TTE::Exact) {
 								// 確定値
 								worker.info.hashExact++;
-								return ttv;
-							} else if (valueType == TTE::Lower && ttv >= beta) {
+								return hashValue;
+							} else if (hashValueType == TTE::Lower && hashValue >= beta) {
 								// 下界値
 								worker.info.hashLower++;
-								return ttv;
-							} else if (valueType == TTE::Upper && ttv <= alpha) {
+								return hashValue;
+							} else if (hashValueType == TTE::Upper && hashValue <= alpha) {
 								// 上界値
 								worker.info.hashUpper++;
-								return ttv;
+								return hashValue;
 							}
 						}
 						// 十分なマージンを加味して beta 値を超える場合
-						if ((valueType == TTE::Lower || valueType == TTE::Exact) &&
+						if ((hashValueType == TTE::Lower || hashValueType == TTE::Exact) &&
 								!tree.isChecking() && !tree.isCheckingOnFrontier()) {
-							if (depth < search_param::FUT_DEPTH && ttv >= beta + search_func::futilityMargin(depth, 0)) {
+							if (depth < search_param::FUT_DEPTH && hashValue >= beta + search_func::futilityMargin(depth, 0)) {
 								return beta;
 							}
 						}
 					}
 
-					if (valueType == TTE::Upper || valueType == TTE::Exact) {
+					if (hashValueType == TTE::Upper || hashValueType == TTE::Exact) {
 						// alpha 値を割るなら recursion 不要
-						if (ttv <= alpha && tte.getDepth() >= search_func::recDepth(depth)) {
+						if (hashValue <= alpha && hashDepth >= search_func::recDepth(depth)) {
 							stat.unsetRecursion();
 						}
 						// beta を超えないなら null move pruning を省略
-						if (ttv < beta && tte.getDepth() >= search_func::nullDepth(depth)) {
+						if (hashValue < beta && hashDepth >= search_func::nullDepth(depth)) {
 							stat.unsetNullMove();
 						}
 					}
@@ -1231,6 +1259,7 @@ namespace sunfish {
 
 		bool isFirst = true;
 		Move best = Move::empty();
+		bool doSingularExtension = false;
 
 #if ENABLE_RAZOR_EXPT
 		bool isRazoring = false;
@@ -1360,8 +1389,41 @@ namespace sunfish {
 			TTE tte;
 			if (_tt.get(hash, tte)) {
 				hashMove = Move::deserialize16(tte.getMove(), tree.getBoard());
+				hashValue = tte.getValue(tree.getPly());
+				hashValueType = tte.getValueType();
+				hashDepth = tte.getDepth();
 			}
 		}
+
+#if ENABLE_SINGULAR_EXTENSION
+		// singular extension
+		if (!hashMove.isEmpty() &&
+				tree.getExcluded().isEmpty() &&
+				!tree.isChecking() &&
+				depth >= Depth1Ply * 8 &&
+				hashValue < Value::Mate &&
+				hashValue > -Value::Mate &&
+				(hashValueType == TTE::Lower || hashValueType == TTE::Exact) &&
+				hashDepth >= depth - Depth1Ply * 3 &&
+				tree.getBoard().isValidMoveStrict(hashMove) &&
+				!tree.getBoard().isCheck(hashMove) &&
+				!(stat.isRecapture() && tree.isRecapture(hashMove) &&
+					(hashMove == tree.getCapture1() ||
+					(hashMove == tree.getCapture2() && tree.getCapture1Value() < tree.getCapture2Value() + 180)))) {
+			auto newStat = NodeStat(stat).unsetNullMove().unsetMate().unsetHashCut();
+			Value sBeta = hashValue - 2 * depth / Depth1Ply;
+
+			tree.setExcluded(hashMove);
+			Value val = search(tree, black, depth / 2, sBeta-1, sBeta, newStat);
+			tree.setExcluded(Move::empty());
+
+			worker.info.singularChecked++;
+			if (val < sBeta) {
+				worker.info.singular++;
+				doSingularExtension = true;
+			}
+		}
+#endif
 
 		tree.initGenPhase();
 		worker.info.expand++;
@@ -1373,11 +1435,15 @@ namespace sunfish {
 		while (nextMove(tree)) {
 			Move move = *tree.getCurrentMove();
 
+			if (move == tree.getExcluded()) {
+				continue;
+			}
+
 			worker.info.expanded++;
 
 			// depth
 			int newDepth = depth - Depth1Ply;
-                          
+
 			// stat
 			NodeStat newStat = NodeStat::Default;
 
@@ -1420,6 +1486,8 @@ namespace sunfish {
 				newStat.unsetRecapture();
 				worker.info.recapExtension++;
 
+			} else if (move == hashMove && doSingularExtension) {
+				newDepth += Depth1Ply;
 			}
 
 			// late move reduction

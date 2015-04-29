@@ -74,6 +74,7 @@ namespace sunfish {
 			Value cvalue2;
 			Move nocap1;
 			Move nocap2;
+			Move excluded;
 		};
 
 		struct CheckHist {
@@ -365,6 +366,7 @@ namespace sunfish {
 			child.killer2 = Move::empty();
 			child.nocap1 = Move::empty();
 			child.nocap2 = Move::empty();
+			child.excluded = Move::empty();
 			return true;
 		}
 
@@ -400,6 +402,7 @@ namespace sunfish {
 			child.killer2 = Move::empty();
 			child.nocap1 = Move::empty();
 			child.nocap2 = Move::empty();
+			child.excluded = Move::empty();
 		}
 
 		void unmakeNullMove() {
@@ -521,6 +524,16 @@ namespace sunfish {
 		Value getCapture2Value() const {
 			auto& curr = _stack[_ply];
 			return curr.cvalue2;
+		}
+
+		const Move& getExcluded() const {
+			auto& curr = _stack[_ply];
+			return curr.excluded;
+		}
+
+		void setExcluded(const Move& move) {
+			auto& curr = _stack[_ply];
+			curr.excluded = move;
 		}
 
 		const Pv& __debug__getNextPv() const {
