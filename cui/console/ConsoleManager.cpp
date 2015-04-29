@@ -224,8 +224,8 @@ namespace sunfish {
 			std::cout << "done.\n";
 			std::cout << std::endl;
 
-			const auto& info = _searcher.getInfo();
-			showSearchInfo(info);
+			std::cout << _searcher.getInfoString();
+			std::cout << std::endl;
 		}
 
 		if (ok) {
@@ -498,88 +498,5 @@ namespace sunfish {
 		}
 
 		return true;
-	}
-
-	void ConsoleManager::showSearchInfo(const SearchInfo& info) {
-		auto format = [](int64_t value) {
-			std::ostringstream oss;
-			oss << std::setw(8) << (value);
-			return oss.str();
-		};
-		auto format2 = [](int64_t value, int64_t total) {
-			std::ostringstream oss;
-			oss << std::setw(8) << (value) << '/' << std::setw(8) << (total)
-				<< " (" << std::setw(5) << std::fixed << std::setprecision(1)<< ((double)(value) / ((total)!=0?(total):1) * 100.0) << "%)";
-			return oss.str();
-		};
-
-		std::vector<std::pair<std::string, std::string>> lines;
-		lines.emplace_back("nodes          ", format (info.node));
-		lines.emplace_back("quies-nodes    ", format (info.qnode));
-		lines.emplace_back("all-nodes      ", format ((info.node + info.qnode)));
-		lines.emplace_back("time           ", format (info.time));
-		lines.emplace_back("nps            ", format (std::ceil(info.nps)));
-		lines.emplace_back("eval           ", format (info.eval.int32()));
-		lines.emplace_back("split          ", format (info.split));
-		lines.emplace_back("fail high first", format2(info.failHighFirst, info.failHigh));
-		lines.emplace_back("fail high hash ", format2(info.failHighIsHash, info.failHigh));
-		lines.emplace_back("fail high kill1", format2(info.failHighIsKiller1, info.failHigh));
-		lines.emplace_back("fail high kill2", format2(info.failHighIsKiller2, info.failHigh));
-		lines.emplace_back("expand hash    ", format2(info.expandHashMove, info.expand));
-		lines.emplace_back("hash hit       ", format2(info.hashHit, info.hashProbed));
-		lines.emplace_back("hash extract   ", format2(info.hashExact, info.hashProbed));
-		lines.emplace_back("hash lower     ", format2(info.hashLower, info.hashProbed));
-		lines.emplace_back("hash upper     ", format2(info.hashUpper, info.hashProbed));
-		lines.emplace_back("hash new       ", format2(info.hashNew, info.hashStore));
-		lines.emplace_back("hash update    ", format2(info.hashUpdate, info.hashStore));
-		lines.emplace_back("hash collide   ", format2(info.hashCollision, info.hashStore));
-		lines.emplace_back("hash reject    ", format2(info.hashReject, info.hashStore));
-		lines.emplace_back("mate hit       ", format2(info.mateHit, info.mateProbed));
-		lines.emplace_back("shek superior  ", format2(info.shekSuperior, info.shekProbed));
-		lines.emplace_back("shek inferior  ", format2(info.shekInferior, info.shekProbed));
-		lines.emplace_back("shek equal     ", format2(info.shekEqual, info.shekProbed));
-		lines.emplace_back("null mv pruning", format2(info.nullMovePruning, info.nullMovePruningTried));
-		lines.emplace_back("fut pruning    ", format (info.futilityPruning));
-		lines.emplace_back("ext fut pruning", format (info.extendedFutilityPruning));
-		lines.emplace_back("mov cnt pruning", format (info.moveCountPruning));
-		lines.emplace_back("razoring       ", format2(info.razoring, info.razoringTried));
-		lines.emplace_back("probcut        ", format2(info.probcut, info.probcutTried));
-		lines.emplace_back("singular       ", format2(info.singular, info.singularChecked));
-		lines.emplace_back("check extension", format2(info.checkExtension, info.expanded));
-		lines.emplace_back("1rep extension ", format2(info.onerepExtension, info.expanded));
-		lines.emplace_back("recap extension", format2(info.recapExtension, info.expanded));
-
-		int columns = 2;
-		int rows = (lines.size() + columns - 1) / columns;
-		int maxLength[columns];
-		memset(maxLength, 0, sizeof(int) * columns);
-
-		for (int row = 0; row < rows; row++) {
-			for (int column = 0; column < columns; column++) {
-				int index = column * rows + row;
-				if (index >= (int)lines.size()) { continue; }
-				int length = lines[index].first.length() + lines[index].second.length();
-				maxLength[column] = std::max(maxLength[column], length);
-			}
-		}
-
-		std::cout << "Search Info:\n";
-		for (int row = 0; row < rows; row++) {
-			std::cout << "  ";
-			for (int column = 0; column < columns; column++) {
-				int index = column * rows + row;
-				if (index >= (int)lines.size()) { continue; }
-				int length = lines[index].first.length() + lines[index].second.length();
-				int padding = maxLength[column] - length + 1;
-				std::cout << " * " << lines[index].first << ":" << lines[index].second;
-				bool isLastColumn = column == columns - 1;
-				if (isLastColumn) { break; }
-				for (int i = 0; i < padding; i++) {
-					std::cout << ' ';
-				}
-			}
-			std::cout << '\n';
-		}
-		std::cout << std::endl;
 	}
 }

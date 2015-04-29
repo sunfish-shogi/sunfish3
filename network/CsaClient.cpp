@@ -249,6 +249,8 @@ lab_end:
 			_searcher.clearRecord();
   		Loggers::message << "end search";
 
+			Loggers::message << _searcher.getInfoString();
+
 			if (ok) {
 				myMove.value = _searcher.getInfo().eval;
 			}

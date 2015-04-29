@@ -324,6 +324,8 @@ namespace sunfish {
 			return _info;
 		}
 
+		std::string getInfoString() const;
+
 		/**
 		 * SHEK と千日手検出のための過去の棋譜をクリアします。
 		 */

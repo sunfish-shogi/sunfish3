@@ -160,8 +160,6 @@ namespace sunfish {
 
 		bool play();
 
-		static void showSearchInfo(const SearchInfo& info);
-
 	};
 }
 

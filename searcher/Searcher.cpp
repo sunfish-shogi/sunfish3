@@ -412,6 +412,91 @@ namespace sunfish {
 
 	}
 
+	std::string Searcher::getInfoString() const {
+		auto format = [](int64_t value) {
+			std::ostringstream oss;
+			oss << std::setw(8) << (value);
+			return oss.str();
+		};
+		auto format2 = [](int64_t value, int64_t total) {
+			std::ostringstream oss;
+			oss << std::setw(8) << (value) << '/' << std::setw(8) << (total)
+				<< " (" << std::setw(5) << std::fixed << std::setprecision(1)<< ((double)(value) / ((total)!=0?(total):1) * 100.0) << "%)";
+			return oss.str();
+		};
+
+		std::vector<std::pair<std::string, std::string>> lines;
+		lines.emplace_back("nodes          ", format (_info.node));
+		lines.emplace_back("quies-nodes    ", format (_info.qnode));
+		lines.emplace_back("all-nodes      ", format ((_info.node + _info.qnode)));
+		lines.emplace_back("time           ", format (_info.time));
+		lines.emplace_back("nps            ", format (std::ceil(_info.nps)));
+		lines.emplace_back("eval           ", format (_info.eval.int32()));
+		lines.emplace_back("split          ", format (_info.split));
+		lines.emplace_back("fail high first", format2(_info.failHighFirst, _info.failHigh));
+		lines.emplace_back("fail high hash ", format2(_info.failHighIsHash, _info.failHigh));
+		lines.emplace_back("fail high kill1", format2(_info.failHighIsKiller1, _info.failHigh));
+		lines.emplace_back("fail high kill2", format2(_info.failHighIsKiller2, _info.failHigh));
+		lines.emplace_back("expand hash    ", format2(_info.expandHashMove, _info.expand));
+		lines.emplace_back("hash hit       ", format2(_info.hashHit, _info.hashProbed));
+		lines.emplace_back("hash extract   ", format2(_info.hashExact, _info.hashProbed));
+		lines.emplace_back("hash lower     ", format2(_info.hashLower, _info.hashProbed));
+		lines.emplace_back("hash upper     ", format2(_info.hashUpper, _info.hashProbed));
+		lines.emplace_back("hash new       ", format2(_info.hashNew, _info.hashStore));
+		lines.emplace_back("hash update    ", format2(_info.hashUpdate, _info.hashStore));
+		lines.emplace_back("hash collide   ", format2(_info.hashCollision, _info.hashStore));
+		lines.emplace_back("hash reject    ", format2(_info.hashReject, _info.hashStore));
+		lines.emplace_back("mate hit       ", format2(_info.mateHit, _info.mateProbed));
+		lines.emplace_back("shek superior  ", format2(_info.shekSuperior, _info.shekProbed));
+		lines.emplace_back("shek inferior  ", format2(_info.shekInferior, _info.shekProbed));
+		lines.emplace_back("shek equal     ", format2(_info.shekEqual, _info.shekProbed));
+		lines.emplace_back("null mv pruning", format2(_info.nullMovePruning, _info.nullMovePruningTried));
+		lines.emplace_back("fut pruning    ", format (_info.futilityPruning));
+		lines.emplace_back("ext fut pruning", format (_info.extendedFutilityPruning));
+		lines.emplace_back("mov cnt pruning", format (_info.moveCountPruning));
+		lines.emplace_back("razoring       ", format2(_info.razoring, _info.razoringTried));
+		lines.emplace_back("probcut        ", format2(_info.probcut, _info.probcutTried));
+		lines.emplace_back("singular       ", format2(_info.singular, _info.singularChecked));
+		lines.emplace_back("check extension", format2(_info.checkExtension, _info.expanded));
+		lines.emplace_back("1rep extension ", format2(_info.onerepExtension, _info.expanded));
+		lines.emplace_back("recap extension", format2(_info.recapExtension, _info.expanded));
+
+		int columns = 2;
+		int rows = (lines.size() + columns - 1) / columns;
+		int maxLength[columns];
+		memset(maxLength, 0, sizeof(int) * columns);
+
+		for (int row = 0; row < rows; row++) {
+			for (int column = 0; column < columns; column++) {
+				int index = column * rows + row;
+				if (index >= (int)lines.size()) { continue; }
+				int length = lines[index].first.length() + lines[index].second.length();
+				maxLength[column] = std::max(maxLength[column], length);
+			}
+		}
+
+		std::ostringstream oss;
+		oss << "Search Info:\n";
+		for (int row = 0; row < rows; row++) {
+			oss << "  ";
+			for (int column = 0; column < columns; column++) {
+				int index = column * rows + row;
+				if (index >= (int)lines.size()) { continue; }
+				int length = lines[index].first.length() + lines[index].second.length();
+				int padding = maxLength[column] - length + 1;
+				oss << " * " << lines[index].first << ":" << lines[index].second;
+				bool isLastColumn = column == columns - 1;
+				if (isLastColumn) { break; }
+				for (int i = 0; i < padding; i++) {
+					oss << ' ';
+				}
+			}
+			oss << '\n';
+		}
+
+		return oss.str();
+	}
+
 	/**
 	 * SHEK と千日手検出のための過去の棋譜をクリアします。
 	 */

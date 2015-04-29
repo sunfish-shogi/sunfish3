@@ -126,8 +126,7 @@ P-00KI00GI00FU
 			Loggers::message << move.toString();
 		}
 
-		const auto& info = searcher.getInfo();
-		ConsoleManager::showSearchInfo(info);
+		Loggers::message << searcher.getInfoString();
 
 		if (!full) {
 			break;
