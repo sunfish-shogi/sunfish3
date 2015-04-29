@@ -44,23 +44,53 @@
 namespace sunfish {
 
 	namespace expt {
+		class PruningCounter {
+			uint64_t succ_[64];
+			uint64_t fail_[64];
+			int index(int depth) const {
+				return std::min(std::max(depth / Searcher::Depth1Ply, 0), 64);
+			}
+		public:
+			void clear() {
+				memset(succ_, 0, sizeof(succ_));
+				memset(fail_, 0, sizeof(fail_));
+			}
+			void succ(int depth) {
+				succ_[index(depth)]++;
+			}
+			void fail(int depth) {
+				fail_[index(depth)]++;
+			}
+			uint64_t succ(int depth) const {
+				return succ_[index(depth)];
+			}
+			uint64_t fail(int depth) const {
+				return fail_[index(depth)];
+			}
+			void print() const {
+				for (int i = 0; i < 64; i++) {
+					uint64_t s = succ_[i];
+					uint64_t f = fail_[i];
+					if (s != 0 || f != 0) {
+						double r = (double)s / (s + f) * 100.0;
+						Loggers::message << "  " << i << ": " << s << "/" << (s+f) << " (" << r << "%)";
+					}
+				}
+			}
+		};
 #if ENABLE_MOVE_COUNT_EXPT
 		uint64_t count_sum;
 		uint64_t count_num;
-		uint64_t count_succ;
-		uint64_t count_fail;
+		PruningCounter move_count_based_pruning;
 #endif
 #if ENABLE_FUT_EXPT
-		uint64_t fut_succ;
-		uint64_t fut_fail;
+		PruningCounter futility_pruning;
 #endif
 #if ENABLE_RAZOR_EXPT
-		uint64_t razor_succ;
-		uint64_t razor_fail;
+		PruningCounter razoring;
 #endif
 #if ENABLE_PROBCUT_EXPT
-		uint64_t probcut_succ;
-		uint64_t probcut_fail;
+		PruningCounter probcut;
 #endif
 	};
 
@@ -245,22 +275,16 @@ namespace sunfish {
 	void Searcher::before(const Board& initialBoard) {
 
 #if ENABLE_MOVE_COUNT_EXPT
-		expt::count_sum = 0llu;
-		expt::count_num = 0llu;
-		expt::count_succ = 0llu;
-		expt::count_fail = 0llu;
+		expt::move_count_based_pruning.clear();
 #endif
 #if ENABLE_FUT_EXPT
-		expt::fut_succ = 0llu;
-		expt::fut_fail = 0llu;
+		expt::futility_pruning.clear();
 #endif
 #if ENABLE_RAZOR_EXPT
-		expt::razor_succ = 0llu;
-		expt::razor_fail = 0llu;
+		expt::razoring.clear();
 #endif
 #if ENABLE_PROBCUT_EXPT
-		expt::probcut_succ = 0llu;
-		expt::probcut_fail = 0llu;
+		expt::probcut.clear();
 #endif
 
 		if (_isRunning.load()) {
@@ -324,26 +348,20 @@ namespace sunfish {
 	void Searcher::after() {
 
 #if ENABLE_MOVE_COUNT_EXPT
-		double count_ave = (double)expt::count_sum / expt::count_num;
-		double count_succ_rate = (double)expt::count_succ / (expt::count_succ + expt::count_fail) * 100.0;
-		std::cout << "move count based pruning:" << std::endl;
-		std::cout << "  ave : " << count_ave << std::endl;
-		std::cout << "  succ: " << expt::count_succ << "/" << (expt::count_succ + expt::count_fail) << " (" << count_succ_rate << "%)" << std::endl;
+		Loggers::message << "move count based pruning:";
+		expt::move_count_based_pruning.print();
 #endif
 #if ENABLE_FUT_EXPT
-		double fut_succ_rate = (double)expt::fut_succ / (expt::fut_succ + expt::fut_fail) * 100.0;
-		std::cout << "futility pruning:" << std::endl;
-		std::cout << "  succ: " << expt::fut_succ << "/" << (expt::fut_succ + expt::fut_fail) << " (" << fut_succ_rate << "%)" << std::endl;
+		Loggers::message << "futility pruning:";
+		expt::futility_pruning.print();
 #endif
 #if ENABLE_RAZOR_EXPT
-		double razor_succ_rate = (double)expt::razor_succ / (expt::razor_succ + expt::razor_fail) * 100.0;
-		std::cout << "razoring:" << std::endl;
-		std::cout << "  succ: " << expt::razor_succ << "/" << (expt::razor_succ + expt::razor_fail) << " (" << razor_succ_rate << "%)" << std::endl;
+		Loggers::message << "razoring:";
+		expt::razoring.print();
 #endif
 #if ENABLE_PROBCUT_EXPT
-		double probcut_succ_rate = (double)expt::probcut_succ / (expt::probcut_succ + expt::probcut_fail) * 100.0;
-		std::cout << "probcut:" << std::endl;
-		std::cout << "  succ: " << expt::probcut_succ << "/" << (expt::probcut_succ + expt::probcut_fail) << " (" << probcut_succ_rate << "%)" << std::endl;
+		Loggers::message << "probcut:";
+		expt::probcut.print();
 #endif
 
 		if (!_isRunning.load()) {
@@ -1214,9 +1232,6 @@ namespace sunfish {
 		bool isFirst = true;
 		Move best = Move::empty();
 
-#if ENABLE_MOVE_COUNT_EXPT
-		int bestCount = 0;
-#endif
 #if ENABLE_RAZOR_EXPT
 		bool isRazoring = false;
 #endif
@@ -1524,11 +1539,10 @@ namespace sunfish {
 			// 値更新
 			if (currval > alpha) {
 #if ENABLE_MOVE_COUNT_EXPT
-				bestCount = count;
-				if (isMoveCountPrun) { expt::count_fail++; }
+				if (isMoveCountPrun) { expt::move_count_based_pruning.fail(newDepth); }
 #endif
 #if ENABLE_FUT_EXPT
-				if (isFutPrun) { expt::fut_fail++; }
+				if (isFutPrun) { expt::futility_pruning.fail(newDepth); }
 #endif
 
 				alpha = currval;
@@ -1554,10 +1568,10 @@ namespace sunfish {
 				}
 			} else {
 #if ENABLE_MOVE_COUNT_EXPT
-				if (isMoveCountPrun) { expt::count_succ++; }
+				if (isMoveCountPrun) { expt::move_count_based_pruning.succ(newDepth); }
 #endif
 #if ENABLE_FUT_EXPT
-				if (isFutPrun) { expt::fut_succ++; }
+				if (isFutPrun) { expt::futility_pruning.succ(newDepth); }
 #endif
 			}
 
@@ -1606,22 +1620,18 @@ hash_store:
 			worker.info.hashStore++;
 		}
 
-#if ENABLE_MOVE_COUNT_EXPT
-		expt::count_sum += bestCount;
-		expt::count_num++;
-#endif
 #if ENABLE_RAZOR_EXPT
 		if (oldAlpha != alpha) {
-			if (isRazoring) { expt::razor_fail++; }
+			if (isRazoring) { expt::razoring.fail(depth); }
 		} else {
-			if (isRazoring) { expt::razor_succ++; }
+			if (isRazoring) { expt::razoring.succ(depth); }
 		}
 #endif
 #if ENABLE_PROBCUT_EXPT
 		if (alpha >= beta) {
-			if (isProbcut) { expt::probcut_succ++; }
+			if (isProbcut) { expt::probcut.succ(depth); }
 		} else {
-			if (isProbcut) { expt::probcut_fail++; }
+			if (isProbcut) { expt::probcut.fail(depth); }
 		}
 #endif
 
