@@ -161,8 +161,7 @@ int main(int argc, char** argv, char** /*envp*/) {
 
 	// 最大思考時間
 	if (po.has("time")) {
-		int time = std::stoi(po.getValue("time"));
-		config.limitSeconds = time;
+		config.limitSeconds = std::stod(po.getValue("time"));
 	}
 
 	if (po.has("problem")) {

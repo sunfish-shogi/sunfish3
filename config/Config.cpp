@@ -97,6 +97,11 @@ namespace sunfish {
 		return std::stoi(value);
 	}
 
+	double Config::getDouble(const std::string& name) const {
+		std::string value = getString(name);
+		return std::stod(value);
+	}
+
 	bool Config::getBool(const std::string& name) const {
 		std::string value = getString(name);
 		if (value == "true") {

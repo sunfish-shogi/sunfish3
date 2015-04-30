@@ -65,7 +65,7 @@ namespace sunfish {
 			int treeSize;
 			int workerSize;
 			bool limitEnable;
-			int limitSeconds;
+			double limitSeconds;
 			bool ponder;
 		};
 
@@ -127,7 +127,7 @@ namespace sunfish {
 			_config.treeSize = 1;
 			_config.workerSize = 1;
 			_config.limitEnable = true;
-			_config.limitSeconds = 10;
+			_config.limitSeconds = 10.0;
 			_config.ponder = false;
 		}
 

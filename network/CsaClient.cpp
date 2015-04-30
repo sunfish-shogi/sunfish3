@@ -105,8 +105,8 @@ namespace sunfish {
 		// 探索設定
 		_searchConfigBase = _searcher.getConfig();
 		_searchConfigBase.maxDepth = _config.getInt(CONF_DEPTH);
-		_searchConfigBase.limitEnable = _config.getInt(CONF_LIMIT) != 0;
-		_searchConfigBase.limitSeconds = _config.getInt(CONF_LIMIT);
+		_searchConfigBase.limitSeconds = _config.getDouble(CONF_LIMIT);
+		_searchConfigBase.limitEnable = _searchConfigBase.limitSeconds != 0.0;
 		_searchConfigBase.workerSize = std::max(_config.getInt(CONF_WORKER), 1);
 		_searchConfigBase.treeSize = Searcher::standardTreeSize(_searchConfigBase.workerSize);
 		_searcher.setConfig(_searchConfigBase);
@@ -380,10 +380,13 @@ lab_end:
 			const auto& myTime = _gameSummary.black ? _blackTime : _whiteTime;
 
 			// 次の一手で利用可能な最大時間
-			int usableTime = myTime.usable();
+			double usableTime = myTime.usable();
+
+			// マージン
+			constexpr double marginTime = 0.5;
 
 			// 最大思考時間を確定
-			usableTime = std::min(usableTime - 1, std::max(usableTime / 5 + 1, myTime.getReadoff() * 2));
+			usableTime = std::min(usableTime - marginTime, std::max(usableTime / 5.0, myTime.getReadoff() * 3.0));
 			searchConfig.limitSeconds = std::min(searchConfig.limitSeconds, usableTime);
 		}
 	}

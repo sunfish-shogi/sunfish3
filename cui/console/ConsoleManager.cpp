@@ -57,7 +57,7 @@ namespace sunfish {
 		config.autoBlack = false;
 		config.autoWhite = true;
 		config.maxDepth = 15;
-		config.limitSeconds = 3;
+		config.limitSeconds = 3.0;
 		config.worker = 1;
 		config.inFileName = "";
 		config.outFileName = "console.csa";

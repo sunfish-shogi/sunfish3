@@ -2288,7 +2288,7 @@ search_end:
 			return false;
 		}
 
-		int limit = _config.limitEnable ? _config.limitSeconds : 0;
+		double limit = _config.limitEnable ? _config.limitSeconds : 0.0;
 		if (!_config.ponder && _timeManager.isEasy(limit, _timer.get())) {
 			return false;
 		}
