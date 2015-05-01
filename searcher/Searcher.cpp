@@ -1496,7 +1496,7 @@ namespace sunfish {
 					(hashMove == tree.getCapture1() ||
 					(hashMove == tree.getCapture2() && tree.getCapture1Value() < tree.getCapture2Value() + 180)))) {
 			auto newStat = NodeStat(stat).unsetNullMove().unsetMate().unsetHashCut();
-			Value sBeta = hashValue - 2 * depth / Depth1Ply;
+			Value sBeta = hashValue - 4 * depth / Depth1Ply;
 
 			tree.setExcluded(hashMove);
 			Value val = search(tree, black, depth / 2, sBeta-1, sBeta, newStat);
