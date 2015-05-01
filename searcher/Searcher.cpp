@@ -99,6 +99,7 @@ namespace sunfish {
 #endif
 #if ENABLE_MATE_HIST_EXPT
 		PruningCounter mate_hist;
+		PruningCounter mate_hist_n;
 #endif
 
 	}
@@ -313,6 +314,7 @@ namespace sunfish {
 #endif
 #if ENABLE_MATE_HIST_EXPT
 		expt::mate_hist.clear();
+		expt::mate_hist_n.clear();
 #endif
 
 		if (_isRunning.load()) {
@@ -379,24 +381,26 @@ namespace sunfish {
 	void Searcher::after() {
 
 #if ENABLE_MOVE_COUNT_EXPT
-		Loggers::message << "move count based pruning:";
+		Loggers::warning << "move count based pruning:";
 		expt::move_count_based_pruning.print();
 #endif
 #if ENABLE_FUT_EXPT
-		Loggers::message << "futility pruning:";
+		Loggers::warning << "futility pruning:";
 		expt::futility_pruning.print();
 #endif
 #if ENABLE_RAZOR_EXPT
-		Loggers::message << "razoring:";
+		Loggers::warning << "razoring:";
 		expt::razoring.print();
 #endif
 #if ENABLE_PROBCUT_EXPT
-		Loggers::message << "probcut:";
+		Loggers::warning << "probcut:";
 		expt::probcut.print();
 #endif
 #if ENABLE_MATE_HIST_EXPT
-		Loggers::message << "mate history:";
+		Loggers::warning << "mate history:";
 		expt::mate_hist.print();
+		Loggers::warning << "mate history (n):";
+		expt::mate_hist_n.print();
 #endif
 
 		if (!_isRunning.load()) {
@@ -1114,6 +1118,11 @@ namespace sunfish {
 				_mateTable.set(tree.getBoard().getHash(), mate);
 				updateMateHistory(tree, black, mate);
 #if ENABLE_MATE_HIST_EXPT
+				if (mate) {
+					expt::mate_hist_n.fail(0);
+				} else {
+					expt::mate_hist_n.succ(0);
+				}
 			} else {
 				if (ENABLE_MATE_3PLY ? Mate::mate3Ply(tree) : Mate::mate1Ply(tree.getBoard())) {
 					expt::mate_hist.fail(0);
@@ -1431,6 +1440,11 @@ namespace sunfish {
 					_mateTable.set(tree.getBoard().getHash(), mate);
 					updateMateHistory(tree, black, mate);
 #if ENABLE_MATE_HIST_EXPT
+					if (mate) {
+						expt::mate_hist_n.fail(0);
+					} else {
+						expt::mate_hist_n.succ(0);
+					}
 				} else {
 					if (ENABLE_MATE_3PLY ? Mate::mate3Ply(tree) : Mate::mate1Ply(tree.getBoard())) {
 						expt::mate_hist.fail(depth);
