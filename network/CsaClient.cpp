@@ -106,7 +106,7 @@ namespace sunfish {
 		_searchConfigBase = _searcher.getConfig();
 		_searchConfigBase.maxDepth = _config.getInt(CONF_DEPTH);
 		_searchConfigBase.limitSeconds = _config.getDouble(CONF_LIMIT);
-		_searchConfigBase.limitEnable = _searchConfigBase.limitSeconds != 0.0;
+		_searchConfigBase.enableLimit = _searchConfigBase.limitSeconds != 0.0;
 		_searchConfigBase.workerSize = std::max(_config.getInt(CONF_WORKER), 1);
 		_searchConfigBase.treeSize = Searcher::standardTreeSize(_searchConfigBase.workerSize);
 		_searcher.setConfig(_searchConfigBase);
@@ -356,7 +356,7 @@ lab_end:
 		// 相手番探索設定
 		auto searchConfig = _searchConfigBase;
 		searchConfig.maxDepth = 32;
-		searchConfig.limitEnable = false;
+		searchConfig.enableLimit = false;
 		searchConfig.ponder = true;
 		_searcher.setConfig(searchConfig);
 
@@ -376,7 +376,7 @@ lab_end:
 	 */
 	void CsaClient::buildSearchConfig(Searcher::Config& searchConfig) {
 		// 思考時間設定
-		if (searchConfig.limitEnable) {
+		if (searchConfig.enableLimit) {
 			const auto& myTime = _gameSummary.black ? _blackTime : _whiteTime;
 
 			// 次の一手で利用可能な最大時間
@@ -388,6 +388,11 @@ lab_end:
 			// 最大思考時間を確定
 			usableTime = std::min(usableTime - marginTime, std::max(usableTime / 5.0, myTime.getReadoff() * 3.0));
 			searchConfig.limitSeconds = std::min(searchConfig.limitSeconds, usableTime);
+
+			// 時間を使いきっている場合は最大まで使う
+			if (myTime.getRemain() == 0) {
+				searchConfig.enableTimeManagement = false;
+			}
 		}
 	}
 

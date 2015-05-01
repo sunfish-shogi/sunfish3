@@ -64,8 +64,9 @@ namespace sunfish {
 			int maxDepth;
 			int treeSize;
 			int workerSize;
-			bool limitEnable;
+			bool enableLimit;
 			double limitSeconds;
+			bool enableTimeManagement;
 			bool ponder;
 		};
 
@@ -129,8 +130,9 @@ namespace sunfish {
 			_config.maxDepth = DefaultMaxDepth;
 			_config.treeSize = 1;
 			_config.workerSize = 1;
-			_config.limitEnable = true;
+			_config.enableLimit = true;
 			_config.limitSeconds = 10.0;
+			_config.enableTimeManagement = true;
 			_config.ponder = false;
 		}
 

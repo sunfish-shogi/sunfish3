@@ -537,7 +537,7 @@ namespace sunfish {
 		if (_forceInterrupt.load()) {
 			return true;
 		}
-		if (_config.limitEnable && _timer.get() >= _config.limitSeconds) {
+		if (_config.enableLimit && _timer.get() >= _config.limitSeconds) {
 			return true;
 		}
 		return false;
@@ -2357,9 +2357,11 @@ search_end:
 			return false;
 		}
 
-		double limit = _config.limitEnable ? _config.limitSeconds : 0.0;
-		if (!_config.ponder && _timeManager.isEasy(limit, _timer.get())) {
-			return false;
+		if (!_config.ponder && _config.enableTimeManagement) {
+			double limit = _config.enableLimit ? _config.limitSeconds : 0.0;
+			if (_timeManager.isEasy(limit, _timer.get())) {
+				return false;
+			}
 		}
 
 		return true;
