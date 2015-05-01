@@ -6,7 +6,8 @@
 #ifndef __SUNFISH_SEARCHER__
 #define __SUNFISH_SEARCHER__
 
-#include "Mate.h"
+#include "mate/Mate.h"
+#include "mate/MateHistory.h"
 #include "SearchInfo.h"
 #include "eval/EvaluateTable.h"
 #include "see/SeeTable.h"
@@ -27,7 +28,6 @@ namespace sunfish {
 	class Gains {
 	private:
 
-		static CONSTEXPR int From = Position::N + Piece::KindNum;
 		Value _gains[Piece::Num][Position::N];
 
 	public:
@@ -96,7 +96,10 @@ namespace sunfish {
 		Gains _gains;
 
 		/** mate table */
-		MateTable _mt;
+		MateTable _mateTable;
+
+		/** mate history */
+		MateHistory _mateHistory;
 
 		/** record */
 		std::vector<Move> _record;
@@ -233,6 +236,10 @@ namespace sunfish {
 		 * store PV-nodes to TT
 		 */
 		void storePv(Tree& tree, const Pv& pv, int ply);
+
+		bool isNeedMateSearch(Tree& tree, bool black, int depth);
+
+		void updateMateHistory(Tree& tree, bool black, bool mate);
 
 		/**
 		 * quiesence search

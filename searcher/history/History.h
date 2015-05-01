@@ -22,7 +22,7 @@ namespace sunfish {
 		static CONSTEXPR int To = Board;
 		static CONSTEXPR int Size = From * To;
 
-		uint64_t (*hist);
+		uint64_t _hist[Size];
 
 		static int from(const Move& move) {
 			if (move.isHand()) {
@@ -46,26 +46,16 @@ namespace sunfish {
 		}
 
 	public:
-
 		static const uint32_t Scale = 0x2000;
 		static const uint64_t Max = 0x0008000000000000ull;
 
-		History() {
-			hist = new uint64_t[Size];
-			assert(hist != NULL);
-		}
-
-		~History() {
-			delete[] hist;
-		}
-
 		void init() {
-			memset((void*)hist, 0, sizeof(uint64_t) * From * To);
+			memset((void*)_hist, 0, sizeof(uint64_t) * From * To);
 		}
 
 		void reduce() {
 			for (int i = 0; i < Size; i++) {
-				hist[i] = (hist[i] >> 8) & ~0xff000000ull;
+				_hist[i] = (_hist[i] >> 8) & ~0xff000000ull;
 			}
 		}
 
@@ -73,16 +63,16 @@ namespace sunfish {
 			assert(appear >= 0);
 			assert(good >= 0);
 			assert(good <= appear);
-			uint64_t h = hist[key];
+			uint64_t h = _hist[key];
 			uint64_t d = ((uint64_t)appear << 32) + good;
 			if (h >= Max - d) {
 				h = (h >> 1) & ~0x80000000ull;
 			}
-			hist[key] = h + d;
+			_hist[key] = h + d;
 		}
 
 		uint64_t getData(int key) const {
-			return hist[key];
+			return _hist[key];
 		}
 
 		static uint32_t getRatio(uint64_t data) {

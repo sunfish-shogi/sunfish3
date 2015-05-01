@@ -22,6 +22,7 @@
 #define ENABLE_SHEK										1
 #define ENABLE_MATE_1PLY							1
 #define ENABLE_MATE_3PLY							1
+#define ENABLE_MATE_HISTORY						1
 #define ENABLE_STORE_PV								1
 #define ENABLE_SINGULAR_EXTENSION     1
 #define SHALLOW_SEE                   0 // should be 0
@@ -30,6 +31,7 @@
 #define ENABLE_FUT_EXPT								0
 #define ENABLE_RAZOR_EXPT							0
 #define ENABLE_PROBCUT_EXPT						0
+#define ENABLE_MATE_HIST_EXPT					0
 
 // debugging flags
 #define DEBUG_ROOT_MOVES							0
@@ -74,8 +76,8 @@ namespace sunfish {
 					uint64_t s = succ_[i];
 					uint64_t f = fail_[i];
 					if (s != 0 || f != 0) {
-						double r = (double)s / (s + f) * 100.0;
-						Loggers::message << "  " << i << ": " << s << "/" << (s+f) << " (" << r << "%)";
+						double r = (double)f / (s + f) * 100.0;
+						Loggers::warning << "  " << i << ": " << f << "/" << (s+f) << " (" << r << "%)";
 					}
 				}
 			}
@@ -94,6 +96,9 @@ namespace sunfish {
 #endif
 #if ENABLE_PROBCUT_EXPT
 		PruningCounter probcut;
+#endif
+#if ENABLE_MATE_HIST_EXPT
+		PruningCounter mate_hist;
 #endif
 
 	}
@@ -306,6 +311,9 @@ namespace sunfish {
 #if ENABLE_PROBCUT_EXPT
 		expt::probcut.clear();
 #endif
+#if ENABLE_MATE_HIST_EXPT
+		expt::mate_hist.clear();
+#endif
 
 		if (_isRunning.load()) {
 			Loggers::error << __FILE_LINE__ << ": Searcher is already running!!!";
@@ -353,6 +361,9 @@ namespace sunfish {
 		_history.init();
 #endif
 
+		// mate
+		_mateHistory.clear();
+
 		// gains
 		_gains.clear();
 
@@ -382,6 +393,10 @@ namespace sunfish {
 #if ENABLE_PROBCUT_EXPT
 		Loggers::message << "probcut:";
 		expt::probcut.print();
+#endif
+#if ENABLE_MATE_HIST_EXPT
+		Loggers::message << "mate history:";
+		expt::mate_hist.print();
 #endif
 
 		if (!_isRunning.load()) {
@@ -1006,6 +1021,42 @@ namespace sunfish {
 		_tt.entryPv(hash, depth, Move::serialize16(move));
 	}
 
+	bool Searcher::isNeedMateSearch(Tree& tree, bool black, int depth) {
+#if ENABLE_MATE_HISTORY
+		if (tree.getPly() <= 6 || depth >= 3 * Depth1Ply) {
+			return true;
+		}
+
+		const Board& board = tree.getBoard();
+		Position king = black ? board.getWKingPosition() : board.getBKingPosition();
+		Move move = tree.getPreFrontMove();
+
+		uint64_t data = _mateHistory.getData(king, move);
+		assert(data <= MateHistory::Max);
+		uint32_t mated = MateHistory::getMated(data);
+		uint32_t probed = MateHistory::getProbed(data);
+		assert(mated <= probed);
+
+		return (mated * 82) + 17 >= probed;
+#else
+		return true;
+#endif
+	}
+
+	void Searcher::updateMateHistory(Tree& tree, bool black, bool mate) {
+#if ENABLE_MATE_HISTORY
+		if (tree.getPly() <= 1) {
+			return;
+		}
+
+		const Board& board = tree.getBoard();
+		Position king = black ? board.getWKingPosition() : board.getBKingPosition();
+		Move move = tree.getPreFrontMove();
+
+		_mateHistory.update(king, move, mate);
+#endif
+	}
+
 	/**
 	 * quiesence search
 	 */
@@ -1050,17 +1101,26 @@ namespace sunfish {
 #if ENABLE_MATE_1PLY || ENABLE_MATE_3PLY
 		{
 			// search mate in 3 ply
-			bool mate;
+			bool mate = false;
 			worker.info.mateProbed++;
-			if (_mt.get(tree.getBoard().getHash(), mate)) {
+			if (_mateTable.get(tree.getBoard().getHash(), mate)) {
 				worker.info.mateHit++;
-			} else {
+			} else if (isNeedMateSearch(tree, black, 0)) {
 # if ENABLE_MATE_3PLY
 				mate = Mate::mate3Ply(tree);
 # else
 				mate = Mate::mate1Ply(tree.getBoard());
 # endif
-				_mt.set(tree.getBoard().getHash(), mate);
+				_mateTable.set(tree.getBoard().getHash(), mate);
+				updateMateHistory(tree, black, mate);
+#if ENABLE_MATE_HIST_EXPT
+			} else {
+				if (ENABLE_MATE_3PLY ? Mate::mate3Ply(tree) : Mate::mate1Ply(tree.getBoard())) {
+					expt::mate_hist.fail(0);
+				} else {
+					expt::mate_hist.succ(0);
+				}
+#endif
 			}
 			if (mate) {
 # if ENABLE_MATE_3PLY
@@ -1358,17 +1418,26 @@ namespace sunfish {
 #if ENABLE_MATE_1PLY || ENABLE_MATE_3PLY
 			if (stat.isMate()) {
 				// search mate in 3 ply
-				bool mate;
+				bool mate = false;
 				worker.info.mateProbed++;
-				if (_mt.get(tree.getBoard().getHash(), mate)) {
+				if (_mateTable.get(tree.getBoard().getHash(), mate)) {
 					worker.info.mateHit++;
-				} else {
+				} else if (isNeedMateSearch(tree, black, depth)) {
 # if ENABLE_MATE_3PLY
 					mate = Mate::mate3Ply(tree);
 # else
 					mate = Mate::mate1Ply(tree.getBoard());
 # endif
-					_mt.set(tree.getBoard().getHash(), mate);
+					_mateTable.set(tree.getBoard().getHash(), mate);
+					updateMateHistory(tree, black, mate);
+#if ENABLE_MATE_HIST_EXPT
+				} else {
+					if (ENABLE_MATE_3PLY ? Mate::mate3Ply(tree) : Mate::mate1Ply(tree.getBoard())) {
+						expt::mate_hist.fail(depth);
+					} else {
+						expt::mate_hist.succ(depth);
+					}
+#endif
 				}
 				if (mate) {
 # if ENABLE_MATE_3PLY

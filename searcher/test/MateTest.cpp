@@ -6,7 +6,7 @@
 #if !defined(NDEBUG)
 
 #include "test/Test.h"
-#include "../Mate.h"
+#include "../mate/Mate.h"
 #include "core/record/CsaReader.h"
 
 using namespace sunfish;

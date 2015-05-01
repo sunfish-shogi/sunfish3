@@ -6,8 +6,8 @@
 #ifndef __SUNFISH_MATE__
 #define __SUNFISH_MATE__
 
-#include "tree/Tree.h"
-#include "table/HashTable.h"
+#include "../tree/Tree.h"
+#include "../table/HashTable.h"
 #include "core/def.h"
 #include "core/board/Board.h"
 

@@ -162,6 +162,11 @@ namespace sunfish {
 			return _stack[_ply].move;
 		}
 
+		const Move& getPreFrontMove() const {
+			assert(_ply >= 2);
+			return _stack[_ply-1].move;
+		}
+
 		bool isRecapture(const Move& move) const {
 			assert(_ply >= 1);
 			assert(_stack[_ply].ite != _stack[_ply].moves.begin());
@@ -546,11 +551,6 @@ namespace sunfish {
 		std::string __debug__getPath() const;
 
 		bool __debug__matchPath(const char* path ) const;
-
-		const Move& __debug__getPreFrontMove() const {
-			assert(_ply >= 2);
-			return _stack[_ply-1].move;
-		}
 
 		void use(int wid) {
 			_tlp.used = true;
