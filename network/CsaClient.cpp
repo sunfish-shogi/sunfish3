@@ -383,7 +383,7 @@ lab_end:
 			double usableTime = myTime.usable();
 
 			// マージン
-			constexpr double marginTime = 0.5;
+			constexpr double marginTime = 1.0;
 
 			// 最大思考時間を確定
 			usableTime = std::min(usableTime - marginTime, std::max(usableTime / 5.0, myTime.getReadoff() * 3.0));
