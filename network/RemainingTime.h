@@ -9,63 +9,65 @@
 #include <sstream>
 
 namespace sunfish {
-	class RemainingTime {
-	private:
-		int _total;
-		int _remain;
-		int _readoff;
 
-	public:
-		RemainingTime() {
-		}
+class RemainingTime {
+private:
+  int _total;
+  int _remain;
+  int _readoff;
 
-		RemainingTime(int total, int readoff)
-				: _total(total), _readoff(readoff) {
-			reset();
-		}
+public:
+  RemainingTime() {
+  }
 
-		void init(int total, int readoff = 0) {
-			_total = total;
-			_readoff = readoff;
-			reset();
-		}
+  RemainingTime(int total, int readoff)
+      : _total(total), _readoff(readoff) {
+    reset();
+  }
 
-		void reset() {
-			_remain = _total;
-		}
+  void init(int total, int readoff = 0) {
+    _total = total;
+    _readoff = readoff;
+    reset();
+  }
 
-		int use(int sec) {
-			_remain = _remain > sec ? _remain - sec : 0;
-			return _remain;
-		}
+  void reset() {
+    _remain = _total;
+  }
 
-		int usable() const {
-			return _remain + _readoff;
-		}
+  int use(int sec) {
+    _remain = _remain > sec ? _remain - sec : 0;
+    return _remain;
+  }
 
-		int isLimited() const {
-			return _total != 0 || _readoff != 0;
-		}
+  int usable() const {
+    return _remain + _readoff;
+  }
 
-		int getTotal() const {
-			return _total;
-		}
+  int isLimited() const {
+    return _total != 0 || _readoff != 0;
+  }
 
-		int getRemain() const {
-			return _remain;
-		}
+  int getTotal() const {
+    return _total;
+  }
 
-		int getReadoff() const {
-			return _readoff;
-		}
+  int getRemain() const {
+    return _remain;
+  }
 
-		std::string toString() const {
-			std::ostringstream oss;
-			oss << _remain << '/' << _total << ' ' << _readoff;
-			return oss.str();
-		}
+  int getReadoff() const {
+    return _readoff;
+  }
 
-	};
-}
+  std::string toString() const {
+    std::ostringstream oss;
+    oss << _remain << '/' << _total << ' ' << _readoff;
+    return oss.str();
+  }
+
+};
+
+} // namespace sunfish
 
 #endif // __SUNFISH_REMAININGTIME__

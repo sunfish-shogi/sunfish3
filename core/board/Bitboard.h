@@ -35,7 +35,7 @@
  *  6 15 24 33 42 51 60 69 78 | 7
  *  7 16 25 34 43 52 61 70 79 | 8
  *  8 17 26 35 44 53 62 71 80 | 9
- *  low --------> <----- high 
+ *  low --------> <----- high
  */
 
 /*
@@ -48,7 +48,7 @@
  * 9 7:  6:  6 - 0x0000000000000040
  * 9 8:  7:  7 - 0x0000000000000080
  * 9 9:  8:  8 - 0x0000000000000100
- *        
+ *
  * 8 1:  9:  9 - 0x0000000000000200
  * 8 2: 10: 10 - 0x0000000000000400
  * 8 3: 11: 11 - 0x0000000000000800
@@ -58,7 +58,7 @@
  * 8 7: 15: 15 - 0x0000000000008000
  * 8 8: 16: 16 - 0x0000000000010000
  * 8 9: 17: 17 - 0x0000000000020000
- *        
+ *
  * 7 1: 18: 18 - 0x0000000000040000
  * 7 2: 19: 19 - 0x0000000000080000
  * 7 3: 20: 20 - 0x0000000000100000
@@ -68,7 +68,7 @@
  * 7 7: 24: 24 - 0x0000000001000000
  * 7 8: 25: 25 - 0x0000000002000000
  * 7 9: 26: 26 - 0x0000000004000000
- *        
+ *
  * 6 1: 27: 27 - 0x0000000008000000
  * 6 2: 28: 28 - 0x0000000010000000
  * 6 3: 29: 29 - 0x0000000020000000
@@ -78,7 +78,7 @@
  * 6 7: 33: 33 - 0x0000000200000000
  * 6 8: 34: 34 - 0x0000000400000000
  * 6 9: 35: 35 - 0x0000000800000000
- *        
+ *
  * 5 1: 36: 36 - 0x0000001000000000
  * 5 2: 37: 37 - 0x0000002000000000
  * 5 3: 38: 38 - 0x0000004000000000
@@ -98,7 +98,7 @@
  * 4 7: 51:  6 - 0x0000000000000040
  * 4 8: 52:  7 - 0x0000000000000080
  * 4 9: 53:  8 - 0x0000000000000100
- *                      
+ *
  * 3 1: 54:  9 - 0x0000000000000200
  * 3 2: 55: 10 - 0x0000000000000400
  * 3 3: 56: 11 - 0x0000000000000800
@@ -108,7 +108,7 @@
  * 3 7: 60: 15 - 0x0000000000008000
  * 3 8: 61: 16 - 0x0000000000010000
  * 3 9: 62: 17 - 0x0000000000020000
- *                      
+ *
  * 2 1: 63: 18 - 0x0000000000040000
  * 2 2: 64: 19 - 0x0000000000080000
  * 2 3: 65: 20 - 0x0000000000100000
@@ -130,32 +130,32 @@
  * 1 9: 81: 35 - 0x0000000800000000
  */
 
-#define __LOW_RANGE__										0x00001fffffffffffLL
-#define __HIGH_RANGE__									0x0000000fffffffffLL
+#define __LOW_RANGE__  0x00001fffffffffffLL
+#define __HIGH_RANGE__ 0x0000000fffffffffLL
 
 namespace sunfish {
 
-	class Bitboard {
-	public:
-		static const int LowFiles = 5;
-		static const int HighFiles = 4;
-		static const int LowBits = 9 * LowFiles;
-		static const int HighBits = 9 * HighFiles;
+class Bitboard {
+public:
+  static const int LowFiles = 5;
+  static const int HighFiles = 4;
+  static const int LowBits = 9 * LowFiles;
+  static const int HighBits = 9 * HighFiles;
 
-	private:
-		static const int _bfirst[256];
-		static const int _blast[256];
-		static const Bitboard _file[9];
-		static const Bitboard _notFile[9];
+private:
+  static const int _bfirst[256];
+  static const int _blast[256];
+  static const Bitboard _file[9];
+  static const Bitboard _notFile[9];
 
-		// sse2
-		union {
-			uint32_t i32[4];
-			uint64_t i64[2];
+  // sse2
+  union {
+    uint32_t i32[4];
+    uint64_t i64[2];
 #if USE_SSE2
-			__m128i m;
+    __m128i m;
 #endif
-		} _bb;
+  } _bb;
 # define _low _bb.i64[0]
 # define _high _bb.i64[1]
 # define _low0 _bb.i32[0]
@@ -163,441 +163,441 @@ namespace sunfish {
 # define _high0 _bb.i32[2]
 # define _high1 _bb.i32[3]
 
-		explicit Bitboard(int pos) {
-			init(pos);
-		}
-		explicit Bitboard(const Position& pos) {
-			init(pos);
-		}
+  explicit Bitboard(int pos) {
+    init(pos);
+  }
+  explicit Bitboard(const Position& pos) {
+    init(pos);
+  }
 
-		Bitboard& init(int pos) {
-			if (pos < LowBits) {
-				_high = 0x00LL;
-				_low |= 0x01LL << (pos);
-			} else {
-				_high |= 0x01LL << (pos-LowBits);
-				_low = 0x00LL;
-			}
-			return *this;
-		}
-		Bitboard& init(const Position& pos) {
-			return init((int)pos);
-		}
+  Bitboard& init(int pos) {
+    if (pos < LowBits) {
+      _high = 0x00LL;
+      _low |= 0x01LL << (pos);
+    } else {
+      _high |= 0x01LL << (pos-LowBits);
+      _low = 0x00LL;
+    }
+    return *this;
+  }
+  Bitboard& init(const Position& pos) {
+    return init((int)pos);
+  }
 
-	public:
+public:
 
-		static const Bitboard Zero;
-		static const Bitboard BPawnMovable;
-		static const Bitboard& BLanceMovable;
-		static const Bitboard BKnightMovable;
-		static const Bitboard WPawnMovable;
-		static const Bitboard& WLanceMovable;
-		static const Bitboard WKnightMovable;
-		static const Bitboard BPromotable;
-		static const Bitboard WPromotable;
-		static const Bitboard BPromotable2;
-		static const Bitboard WPromotable2;
+  static const Bitboard Zero;
+  static const Bitboard BPawnMovable;
+  static const Bitboard& BLanceMovable;
+  static const Bitboard BKnightMovable;
+  static const Bitboard WPawnMovable;
+  static const Bitboard& WLanceMovable;
+  static const Bitboard WKnightMovable;
+  static const Bitboard BPromotable;
+  static const Bitboard WPromotable;
+  static const Bitboard BPromotable2;
+  static const Bitboard WPromotable2;
 
-		Bitboard() {
-		}
+  Bitboard() {
+  }
 #if USE_SSE2
-		explicit Bitboard(__m128i m) {
-			_bb.m = m;
-		}
+  explicit Bitboard(__m128i m) {
+    _bb.m = m;
+  }
 #endif
-		explicit Bitboard(uint64_t high, uint64_t low) {
-			_high = high;
-			_low = low;
-		}
+  explicit Bitboard(uint64_t high, uint64_t low) {
+    _high = high;
+    _low = low;
+  }
 
-		static const Bitboard& mask(int pos);
-		static const Bitboard& mask(const Position& pos) {
-			return mask((int)pos);
-		}
-		static const Bitboard& file(int file) {
-			return _file[file-1];
-		}
-		static const Bitboard& notFile(int file) {
-			return _notFile[file-1];
-		}
+  static const Bitboard& mask(int pos);
+  static const Bitboard& mask(const Position& pos) {
+    return mask((int)pos);
+  }
+  static const Bitboard& file(int file) {
+    return _file[file-1];
+  }
+  static const Bitboard& notFile(int file) {
+    return _notFile[file-1];
+  }
 
-		// initialization
+  // initialization
 #if USE_SSE2
-		void init() {
-			_bb.m = Zero._bb.m;
-		}
-		void init(const Bitboard& src) {
-			_bb.m = src._bb.m;
-		}
+  void init() {
+    _bb.m = Zero._bb.m;
+  }
+  void init(const Bitboard& src) {
+    _bb.m = src._bb.m;
+  }
 #else
-		void init() {
-			_high = 0x00LL;
-			_low = 0x00LL;
-		}
-		void init(const Bitboard& src) {
-			_high = src._high;
-			_low = src._low;
-		}
+  void init() {
+    _high = 0x00LL;
+    _low = 0x00LL;
+  }
+  void init(const Bitboard& src) {
+    _high = src._high;
+    _low = src._low;
+  }
 #endif
-		void init(uint64_t high, uint64_t low) {
-			_high = high;
-			_low = low;
-		}
+  void init(uint64_t high, uint64_t low) {
+    _high = high;
+    _low = low;
+  }
 
-		// shift operation
+  // shift operation
 #if USE_SSE2
-		void cheepLeftShift(int n) {
-			_bb.m = _mm_slli_epi64(_bb.m, n);
-		}
-		void cheepRightShift(int n) {
-			_bb.m = _mm_srli_epi64(_bb.m, n);
-		}
+  void cheepLeftShift(int n) {
+    _bb.m = _mm_slli_epi64(_bb.m, n);
+  }
+  void cheepRightShift(int n) {
+    _bb.m = _mm_srli_epi64(_bb.m, n);
+  }
 #else
-		void cheepLeftShift(int n) {
-			_high <<= n;
-			_low <<= n;
-		}
-		void cheepRightShift(int n) {
-			_high >>= n;
-			_low >>= n;
-		}
+  void cheepLeftShift(int n) {
+    _high <<= n;
+    _low <<= n;
+  }
+  void cheepRightShift(int n) {
+    _high >>= n;
+    _low >>= n;
+  }
 #endif
-		void leftShift(int n) {
-			if (n < LowBits) {
-				_high <<= n;
-				_high = (_high | (_low >> (LowBits - n))) & __HIGH_RANGE__;
-				_low <<= n;
-				_low = _low & __LOW_RANGE__;
-			} else {
-				_high = (_low << (n - LowBits)) & __HIGH_RANGE__;
-				_low = 0x00LL;
-			}
-		}
-		void rightShift(int n) {
-			if (n < LowBits) {
-				_low >>= n;
-				_low = (_low | _high << (LowBits - n)) & __LOW_RANGE__;
-				_high >>= n;
-			} else {
-				_low = (_low | _high >> (n - LowBits)) & __LOW_RANGE__;
-				_high = 0x00;
-			}
-		}
+  void leftShift(int n) {
+    if (n < LowBits) {
+      _high <<= n;
+      _high = (_high | (_low >> (LowBits - n))) & __HIGH_RANGE__;
+      _low <<= n;
+      _low = _low & __LOW_RANGE__;
+    } else {
+      _high = (_low << (n - LowBits)) & __HIGH_RANGE__;
+      _low = 0x00LL;
+    }
+  }
+  void rightShift(int n) {
+    if (n < LowBits) {
+      _low >>= n;
+      _low = (_low | _high << (LowBits - n)) & __LOW_RANGE__;
+      _high >>= n;
+    } else {
+      _low = (_low | _high >> (n - LowBits)) & __LOW_RANGE__;
+      _high = 0x00;
+    }
+  }
 
-		// substitution operators
+  // substitution operators
 #if USE_SSE2
-		const Bitboard& operator=(const Bitboard& bb) {
-			_bb.m = bb._bb.m;
-			return *this;
-		}
-		const Bitboard& operator|=(const Bitboard& bb) {
-			_bb.m = _mm_or_si128(_bb.m, bb._bb.m);
-			return *this;
-		}
-		const Bitboard& operator&=(const Bitboard& bb) {
-			_bb.m = _mm_and_si128(_bb.m, bb._bb.m);
-			return *this;
-		}
-		const Bitboard& operator^=(const Bitboard& bb) {
-			_bb.m = _mm_xor_si128(_bb.m, bb._bb.m);
-			return *this;
-		}
+  const Bitboard& operator=(const Bitboard& bb) {
+    _bb.m = bb._bb.m;
+    return *this;
+  }
+  const Bitboard& operator|=(const Bitboard& bb) {
+    _bb.m = _mm_or_si128(_bb.m, bb._bb.m);
+    return *this;
+  }
+  const Bitboard& operator&=(const Bitboard& bb) {
+    _bb.m = _mm_and_si128(_bb.m, bb._bb.m);
+    return *this;
+  }
+  const Bitboard& operator^=(const Bitboard& bb) {
+    _bb.m = _mm_xor_si128(_bb.m, bb._bb.m);
+    return *this;
+  }
 #else
-		const Bitboard& operator=(const Bitboard& bb) {
-			_high = bb._high;
-			_low = bb._low;
-			return *this;
-		}
-		const Bitboard& operator|=(const Bitboard& bb) {
-			_high |= bb._high;
-			_low |= bb._low;
-			return *this;
-		}
-		const Bitboard& operator&=(const Bitboard& bb) {
-			_high &= bb._high;
-			_low &= bb._low;
-			return *this;
-		}
-		const Bitboard& operator^=(const Bitboard& bb) {
-			_high ^= bb._high;
-			_low ^= bb._low;
-			return *this;
-		}
+  const Bitboard& operator=(const Bitboard& bb) {
+    _high = bb._high;
+    _low = bb._low;
+    return *this;
+  }
+  const Bitboard& operator|=(const Bitboard& bb) {
+    _high |= bb._high;
+    _low |= bb._low;
+    return *this;
+  }
+  const Bitboard& operator&=(const Bitboard& bb) {
+    _high &= bb._high;
+    _low &= bb._low;
+    return *this;
+  }
+  const Bitboard& operator^=(const Bitboard& bb) {
+    _high ^= bb._high;
+    _low ^= bb._low;
+    return *this;
+  }
 #endif
-		const Bitboard& operator<<=(int n){
-			leftShift(n);
-			return *this;
-		}
-		const Bitboard& operator>>=(int n){
-			rightShift(n);
-			return *this;
-		}
+  const Bitboard& operator<<=(int n){
+    leftShift(n);
+    return *this;
+  }
+  const Bitboard& operator>>=(int n){
+    rightShift(n);
+    return *this;
+  }
 
-		// bit operators
+  // bit operators
 #if USE_SSE2
-		Bitboard operator|(const Bitboard& bb) const {
-			return Bitboard(_mm_or_si128(_bb.m, bb._bb.m));
-		}
-		Bitboard operator&(const Bitboard& bb) const {
-			return Bitboard(_mm_and_si128(_bb.m, bb._bb.m));
-		}
-		Bitboard operator^(const Bitboard& bb) const {
-			return Bitboard(_mm_xor_si128(_bb.m, bb._bb.m));
-		}
-		Bitboard operator~() const{
-			return Bitboard(_mm_andnot_si128(_bb.m, _mm_set_epi64((__m64)__HIGH_RANGE__, (__m64)__LOW_RANGE__)));
-		}
-		Bitboard andNot(const Bitboard& bb) const{
-			return Bitboard(_mm_andnot_si128(_bb.m, bb._bb.m));
-		}
+  Bitboard operator|(const Bitboard& bb) const {
+    return Bitboard(_mm_or_si128(_bb.m, bb._bb.m));
+  }
+  Bitboard operator&(const Bitboard& bb) const {
+    return Bitboard(_mm_and_si128(_bb.m, bb._bb.m));
+  }
+  Bitboard operator^(const Bitboard& bb) const {
+    return Bitboard(_mm_xor_si128(_bb.m, bb._bb.m));
+  }
+  Bitboard operator~() const{
+    return Bitboard(_mm_andnot_si128(_bb.m, _mm_set_epi64((__m64)__HIGH_RANGE__, (__m64)__LOW_RANGE__)));
+  }
+  Bitboard andNot(const Bitboard& bb) const{
+    return Bitboard(_mm_andnot_si128(_bb.m, bb._bb.m));
+  }
 #else
-		Bitboard operator|(const Bitboard& bb) const {
-			return Bitboard(_high | bb._high, _low | bb._low);
-		}
-		Bitboard operator&(const Bitboard& bb) const {
-			return Bitboard(_high & bb._high, _low & bb._low);
-		}
-		Bitboard operator^(const Bitboard& bb) const {
-			return Bitboard(_high ^ bb._high, _low ^ bb._low);
-		}
-		Bitboard operator~() const{
-			return Bitboard(_high ^ __HIGH_RANGE__, _low ^ __LOW_RANGE__);
-		}
-		Bitboard andNot(const Bitboard& bb) const{
-			return Bitboard((~_high) & bb._high, (~_low) & bb._low);
-		}
+  Bitboard operator|(const Bitboard& bb) const {
+    return Bitboard(_high | bb._high, _low | bb._low);
+  }
+  Bitboard operator&(const Bitboard& bb) const {
+    return Bitboard(_high & bb._high, _low & bb._low);
+  }
+  Bitboard operator^(const Bitboard& bb) const {
+    return Bitboard(_high ^ bb._high, _low ^ bb._low);
+  }
+  Bitboard operator~() const{
+    return Bitboard(_high ^ __HIGH_RANGE__, _low ^ __LOW_RANGE__);
+  }
+  Bitboard andNot(const Bitboard& bb) const{
+    return Bitboard((~_high) & bb._high, (~_low) & bb._low);
+  }
 #endif
-		Bitboard operator<<(int n) const {
-			return Bitboard(*this) <<= n;
-		}
-		Bitboard operator>>(int n) const {
-			return Bitboard(*this) >>= n;
-		}
+  Bitboard operator<<(int n) const {
+    return Bitboard(*this) <<= n;
+  }
+  Bitboard operator>>(int n) const {
+    return Bitboard(*this) >>= n;
+  }
 
-		// comparation operators
-		bool operator==(const Bitboard& bb) const {
-			return (_high == bb._high) && (_low == bb._low);
-		}
-		operator bool() const {
-			return (_high || _low);
-		}
+  // comparation operators
+  bool operator==(const Bitboard& bb) const {
+    return (_high == bb._high) && (_low == bb._low);
+  }
+  operator bool() const {
+    return (_high || _low);
+  }
 
-		Bitboard up(int distance = 1) const {
-			return *this >> distance;
-		}
-		Bitboard down(int distance = 1) const {
-			return *this << distance;
-		}
-		Bitboard left(int distance = 1) const {
-			return *this >> (distance * Position::RankN);
-		}
-		Bitboard right(int distance = 1) const {
-			return *this << (distance * Position::RankN);
-		}
+  Bitboard up(int distance = 1) const {
+    return *this >> distance;
+  }
+  Bitboard down(int distance = 1) const {
+    return *this << distance;
+  }
+  Bitboard left(int distance = 1) const {
+    return *this >> (distance * Position::RankN);
+  }
+  Bitboard right(int distance = 1) const {
+    return *this << (distance * Position::RankN);
+  }
 
-		Bitboard& set(int pos) {
-			*this |= mask(pos);
-			return *this;
-		}
-		Bitboard& set(const Position& pos) {
-			return set((int)pos);
-		}
-		Bitboard& unset(int pos) {
-			*this &= ~mask(pos);
-			return *this;
-		}
-		Bitboard& unset(const Position& pos) {
-			return unset((int)pos);
-		}
-		bool check(int pos) const {
-			return *this & mask(pos);
-		}
-		bool check(const Position& pos) const {
-			return check((int)pos);
-		}
-		uint64_t low() const {
-			return _low;
-		}
-		uint64_t high() const {
-			return _high;
-		}
+  Bitboard& set(int pos) {
+    *this |= mask(pos);
+    return *this;
+  }
+  Bitboard& set(const Position& pos) {
+    return set((int)pos);
+  }
+  Bitboard& unset(int pos) {
+    *this &= ~mask(pos);
+    return *this;
+  }
+  Bitboard& unset(const Position& pos) {
+    return unset((int)pos);
+  }
+  bool check(int pos) const {
+    return *this & mask(pos);
+  }
+  bool check(const Position& pos) const {
+    return check((int)pos);
+  }
+  uint64_t low() const {
+    return _low;
+  }
+  uint64_t high() const {
+    return _high;
+  }
 
-		uint32_t low0() const {
-			return _low0;
-		}
-		uint32_t low1() const {
-			return _low1;
-		}
-		uint32_t high0() const {
-			return _high0;
-		}
-		uint32_t high1() const {
-			return _high1;
-		}
+  uint32_t low0() const {
+    return _low0;
+  }
+  uint32_t low1() const {
+    return _low1;
+  }
+  uint32_t high0() const {
+    return _high0;
+  }
+  uint32_t high1() const {
+    return _high1;
+  }
 
-		static bool isLow(const Position& pos) {
-			return pos < (int)LowBits;
-		}
-		static bool isHigh(const Position& pos) {
-			return !isLow(pos);
-		}
+  static bool isLow(const Position& pos) {
+    return pos < (int)LowBits;
+  }
+  static bool isHigh(const Position& pos) {
+    return !isLow(pos);
+  }
 
-	private:
-		static int _count(uint64_t x) {
-			x = x - ((x >> 1) & 0x5555555555555555LL);
-			x = (x & 0x3333333333333333LL ) + ((x >> 2) & 0x3333333333333333LL);
-			x = (x + (x >> 4)) & 0x0F0F0F0F0F0F0F0FLL;
-			x = x + (x >> 8);
-			x = x + (x >> 16);
-			x = x + (x >> 32);
-			return (int)(x & 0x000000000000007FLL);
-		}
+private:
+  static int _count(uint64_t x) {
+    x = x - ((x >> 1) & 0x5555555555555555LL);
+    x = (x & 0x3333333333333333LL ) + ((x >> 2) & 0x3333333333333333LL);
+    x = (x + (x >> 4)) & 0x0F0F0F0F0F0F0F0FLL;
+    x = x + (x >> 8);
+    x = x + (x >> 16);
+    x = x + (x >> 32);
+    return (int)(x & 0x000000000000007FLL);
+  }
 
-		static int _getFirst(uint32_t bits) {
+  static int _getFirst(uint32_t bits) {
 #if defined(WIN32) && !defined(__MINGW32__)
-			int b;
-			return _BitScanForward((DWORD*)&b, bits) ? (b+1) : 0;
+    int b;
+    return _BitScanForward((DWORD*)&b, bits) ? (b+1) : 0;
 #elif defined(UNIX)
-			return bits == 0x00 ? 0 : __builtin_ffs(bits);
+    return bits == 0x00 ? 0 : __builtin_ffs(bits);
 #else
-			int b;
-			if (bits == 0x00) { return 0; }
-			if ((b = _bfirst[ bits     &0xff]) != 0) { return b; }
-			if ((b = _bfirst[(bits>> 8)&0xff]) != 0) { return b + 8; }
-			if ((b = _bfirst[(bits>>16)&0xff]) != 0) { return b + 16; }
-			return   _bfirst[(bits>>24)     ] + 24;
+    int b;
+    if (bits == 0x00) { return 0; }
+    if ((b = _bfirst[ bits     &0xff]) != 0) { return b; }
+    if ((b = _bfirst[(bits>> 8)&0xff]) != 0) { return b + 8; }
+    if ((b = _bfirst[(bits>>16)&0xff]) != 0) { return b + 16; }
+    return   _bfirst[(bits>>24)     ] + 24;
 #endif
-		}
-		static int _getLast(uint32_t bits){
+  }
+  static int _getLast(uint32_t bits){
 #if defined(WIN32) && !defined(__MINGW32__)
-			int b;
-			return _BitScanReverse((DWORD*)&b, bits) ? (32-b) : 0;
+    int b;
+    return _BitScanReverse((DWORD*)&b, bits) ? (32-b) : 0;
 #elif defined(UNIX)
-			return bits == 0x00 ? 0 : (32 - __builtin_clz(bits));
+    return bits == 0x00 ? 0 : (32 - __builtin_clz(bits));
 #else
-			int b;
-			if (bits == 0x00){ return 0; }
-			if ((b = _blast[(bits>>24)     ]) != 0){ return b + 24; }
-			if ((b = _blast[(bits>>16)&0xff]) != 0){ return b + 16; }
-			if ((b = _blast[(bits>> 8)&0xff]) != 0){ return b + 8; }
-			return   _blast[ bits     &0xff];
+    int b;
+    if (bits == 0x00){ return 0; }
+    if ((b = _blast[(bits>>24)     ]) != 0){ return b + 24; }
+    if ((b = _blast[(bits>>16)&0xff]) != 0){ return b + 16; }
+    if ((b = _blast[(bits>> 8)&0xff]) != 0){ return b + 8; }
+    return   _blast[ bits     &0xff];
 #endif
-		}
+  }
 
-	public:
+public:
 
-		int count() const {
-			return _count(_high) + _count(_low);
-		}
+  int count() const {
+    return _count(_high) + _count(_low);
+  }
 
-		int getFirst() const {
-			if (_low) {
-				int b = _getFirst((uint32_t)_low);
-				if (b) {
-					return b - 1;
-				} else {
-					return _getFirst(_low >> 32) + 32 - 1;
-				}
-			} else if (_high) {
-				int b = _getFirst((uint32_t)_high);
-				if (b) {
-					return b + (int)LowBits - 1;
-				} else {
-					return _getFirst(_high >> 32) + 32 + (int)LowBits - 1;
-				}
-			}
-			return Position::Invalid;
-		}
-		int getLast() const {
-			if (_high) {
-				int b = _getLast(_high >> 32);
-				if (b) {
-					return b + 32 + (int)LowBits - 1;
-				} else {
-					return _getLast((uint32_t)_high) + (int)LowBits - 1;
-				}
-			} else if(_low) {
-				int b = _getLast(_low >> 32);
-				if (b) {
-					return b + 32 - 1;
-				} else {
-					return _getLast((uint32_t)_low) - 1;
-				}
-			}
-			return Position::Invalid;
-		}
+  int getFirst() const {
+    if (_low) {
+      int b = _getFirst((uint32_t)_low);
+      if (b) {
+        return b - 1;
+      } else {
+        return _getFirst(_low >> 32) + 32 - 1;
+      }
+    } else if (_high) {
+      int b = _getFirst((uint32_t)_high);
+      if (b) {
+        return b + (int)LowBits - 1;
+      } else {
+        return _getFirst(_high >> 32) + 32 + (int)LowBits - 1;
+      }
+    }
+    return Position::Invalid;
+  }
+  int getLast() const {
+    if (_high) {
+      int b = _getLast(_high >> 32);
+      if (b) {
+        return b + 32 + (int)LowBits - 1;
+      } else {
+        return _getLast((uint32_t)_high) + (int)LowBits - 1;
+      }
+    } else if(_low) {
+      int b = _getLast(_low >> 32);
+      if (b) {
+        return b + 32 - 1;
+      } else {
+        return _getLast((uint32_t)_low) - 1;
+      }
+    }
+    return Position::Invalid;
+  }
 
-		int pickFirst() {
-			int b;
-			if (_low) {
-				b = _getFirst((uint32_t)_low);
-				if (!b) {
-					b = _getFirst((_low >> 32)) + 32;
-				}
-				b--;
-				_low &= ~(0x01LL << b);
-			} else if (_high) {
-				b = _getFirst((uint32_t)_high);
-				if (!b) {
-					b = _getFirst((_high >> 32)) + 32;
-				}
-				b--;
-				_high &= ~(0x01LL << b);
-				b += (int)LowBits;
-			} else {
-				b = Position::Invalid;
-			}
-			return b;
-		}
+  int pickFirst() {
+    int b;
+    if (_low) {
+      b = _getFirst((uint32_t)_low);
+      if (!b) {
+        b = _getFirst((_low >> 32)) + 32;
+      }
+      b--;
+      _low &= ~(0x01LL << b);
+    } else if (_high) {
+      b = _getFirst((uint32_t)_high);
+      if (!b) {
+        b = _getFirst((_high >> 32)) + 32;
+      }
+      b--;
+      _high &= ~(0x01LL << b);
+      b += (int)LowBits;
+    } else {
+      b = Position::Invalid;
+    }
+    return b;
+  }
 
-		int pickLow0First() {
-			int b = _getFirst(_low0) - 1;
-			_low0 &= ~(0x01 << b);
-			return b;
-		}
-		int pickLow1First() {
-			int b = _getFirst(_low1) - 1;
-			_low1 &= ~(0x01 << b);
-			return b + 32;
-		}
-		int pickHigh0First() {
-			int b = _getFirst(_high0) - 1;
-			_high0 &= ~(0x01 << b);
-			return b + (int)LowBits;
-		}
-		int pickHigh1First() {
-			int b = _getFirst(_high1) - 1;
-			_high1 &= ~(0x01 << b);
-			return b + (int)LowBits + 32;
-		}
+  int pickLow0First() {
+    int b = _getFirst(_low0) - 1;
+    _low0 &= ~(0x01 << b);
+    return b;
+  }
+  int pickLow1First() {
+    int b = _getFirst(_low1) - 1;
+    _low1 &= ~(0x01 << b);
+    return b + 32;
+  }
+  int pickHigh0First() {
+    int b = _getFirst(_high0) - 1;
+    _high0 &= ~(0x01 << b);
+    return b + (int)LowBits;
+  }
+  int pickHigh1First() {
+    int b = _getFirst(_high1) - 1;
+    _high1 &= ~(0x01 << b);
+    return b + (int)LowBits + 32;
+  }
 
-		std::string toString() const {
-			return StringUtil::stringify(_high) + StringUtil::stringify(_low);
-		}
-		std::string toString2D() const;
-	};
+  std::string toString() const {
+    return StringUtil::stringify(_high) + StringUtil::stringify(_low);
+  }
+  std::string toString2D() const;
+};
 
 #if USE_SSE2
 # undef _high
 # undef _low
 #endif
 
-}
+} // namespace sunfish
 
 // for-each
-#define BB_EACH(pos, bb)										\
+#define BB_EACH(pos, bb) \
 for (sunfish::Position pos = bb.pickFirst(); pos.isValid(); pos = bb.pickFirst())
 
 // for-each
-#define BB_EACH_OPE(pos, bb, ope)						\
+#define BB_EACH_OPE(pos, bb, ope) \
 do { \
-	BB_EACH_OPE_LOW0(pos, bb, ope); \
-	BB_EACH_OPE_LOW1(pos, bb, ope); \
-	BB_EACH_OPE_HIGH0(pos, bb, ope); \
-	BB_EACH_OPE_HIGH1(pos, bb, ope); \
+  BB_EACH_OPE_LOW0(pos, bb, ope); \
+  BB_EACH_OPE_LOW1(pos, bb, ope); \
+  BB_EACH_OPE_HIGH0(pos, bb, ope); \
+  BB_EACH_OPE_HIGH1(pos, bb, ope); \
 } while(false)
 
-#define BB_EACH_OPE_LOW0(pos, bb, ope)			\
+#define BB_EACH_OPE_LOW0(pos, bb, ope) \
 for (sunfish::Position pos; bb.low0(); ) { pos = bb.pickLow0First(); { ope } }
 
 #define BB_EACH_OPE_LOW1(pos, bb, ope) \

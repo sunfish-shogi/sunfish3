@@ -8,13 +8,13 @@
 
 namespace sunfish {
 
-	enum class ShekStat : int {
-		None,
-		Equal,
-		Superior,
-		Inferior
-	};
+enum class ShekStat : int {
+  None,
+  Equal,
+  Superior,
+  Inferior
+};
 
-}
+} // namespace sunfish
 
 #endif // __sunfish_ShekStat__

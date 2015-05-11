@@ -7,18 +7,20 @@
 #define __SUNFISH_MOVEGENERATOREXPR__
 
 #if !defined(NDEBUG)
+
 namespace sunfish {
 
-	class MoveGeneratorExpr {
-	private:
+class MoveGeneratorExpr {
+private:
 
-	public:
+public:
 
-		void testSpeed();
+  void testSpeed();
 
-	};
+};
 
-}
+} // namespace sunfish
+
 #endif // !defined(NDEBUG)
 
 #endif // __SUNFISH_MOVEGENERATOREXPR__

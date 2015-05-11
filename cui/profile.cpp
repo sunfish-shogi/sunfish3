@@ -11,22 +11,22 @@
 using namespace sunfish;
 
 int profile(const ConsoleManager::Config& config, bool full) {
-	Loggers::error.addStream(std::cerr, "\x1b[31m", "\x1b[39m");
-	Loggers::warning.addStream(std::cerr, "\x1b[33m", "\x1b[39m");
-	Loggers::message.addStream(std::cerr);
-	Loggers::send.addStream(std::cerr, true, true, "\x1b[34m", "\x1b[39m");
-	Loggers::receive.addStream(std::cerr, true, true, "\x1b[35m", "\x1b[39m");
+  Loggers::error.addStream(std::cerr, "\x1b[31m", "\x1b[39m");
+  Loggers::warning.addStream(std::cerr, "\x1b[33m", "\x1b[39m");
+  Loggers::message.addStream(std::cerr);
+  Loggers::send.addStream(std::cerr, true, true, "\x1b[34m", "\x1b[39m");
+  Loggers::receive.addStream(std::cerr, true, true, "\x1b[35m", "\x1b[39m");
 #ifndef NDEBUG
-	Loggers::debug.addStream(std::cerr, "\x1b[36m", "\x1b[39m");
-	Loggers::test.addStream(std::cerr, "\x1b[32m", "\x1b[39m");
-	Loggers::develop.addStream(std::cerr, "\x1b[37m", "\x1b[39m");
+  Loggers::debug.addStream(std::cerr, "\x1b[36m", "\x1b[39m");
+  Loggers::test.addStream(std::cerr, "\x1b[32m", "\x1b[39m");
+  Loggers::develop.addStream(std::cerr, "\x1b[37m", "\x1b[39m");
 #endif
 
-	Searcher searcher;
-	auto searcherConfig = ConsoleManager::buildSearcherConfig(searcher.getConfig(), config);
-	searcher.setConfig(searcherConfig);
+  Searcher searcher;
+  auto searcherConfig = ConsoleManager::buildSearcherConfig(searcher.getConfig(), config);
+  searcher.setConfig(searcherConfig);
 
-	const char* data[] = {
+  const char* data[] = {
 R"(
 P1-KY-KE * -KI *  *  *  *  * 
 P2 * -OU-GI-GI *  *  *  *  * 
@@ -111,27 +111,27 @@ P+00GI00KE00KE00FU00FU00FU00FU00FU
 P-00KI00GI00FU
 +
 )",
-	};
+  };
 
-	for (auto p : data) {
-		Loggers::message << p;
+  for (auto p : data) {
+    Loggers::message << p;
 
-		std::istringstream iss(p);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(p);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		Move move;
-		bool ok = searcher.idsearch(board, move);
-		if (ok) {
-			Loggers::message << move.toString();
-		}
+    Move move;
+    bool ok = searcher.idsearch(board, move);
+    if (ok) {
+      Loggers::message << move.toString();
+    }
 
-		Loggers::message << searcher.getInfoString();
+    Loggers::message << searcher.getInfoString();
 
-		if (!full) {
-			break;
-		}
-	}
+    if (!full) {
+      break;
+    }
+  }
 
-	return 0;
+  return 0;
 }

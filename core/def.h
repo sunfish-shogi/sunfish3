@@ -27,6 +27,6 @@
 # define CONSTEXPR constexpr
 #endif
 
-#define ARRAY_SIZE(arr)										((int)(sizeof(arr) / sizeof((arr)[0])))
+#define ARRAY_SIZE(arr) ((int)(sizeof(arr) / sizeof((arr)[0])))
 
 #endif // __SUNFISH_DEF__

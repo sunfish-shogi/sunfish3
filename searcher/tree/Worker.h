@@ -12,37 +12,37 @@
 
 namespace sunfish {
 
-	class Tree;
-	class Searcher;
+class Tree;
+class Searcher;
 
-	struct Worker {
+struct Worker {
 
-		std::thread thread;
-		Searcher* psearcher;
-		int workerId;
-		std::atomic<int> treeId;
-		std::atomic<bool> job;
-		std::atomic<bool> shutdown;
-		SearchInfoBase info;
+  std::thread thread;
+  Searcher* psearcher;
+  int workerId;
+  std::atomic<int> treeId;
+  std::atomic<bool> job;
+  std::atomic<bool> shutdown;
+  SearchInfoBase info;
 
-		void init(int id, Searcher* ps);
+  void init(int id, Searcher* ps);
 
-		void startOnNewThread();
+  void startOnNewThread();
 
-		void startOnCurrentThread(int tid);
+  void startOnCurrentThread(int tid);
 
-		void stop();
+  void stop();
 
-		void setJob(int tid);
+  void setJob(int tid);
 
-		void unsetJob();
+  void unsetJob();
 
-		void swapTree(int tid);
+  void swapTree(int tid);
 
-		void waitForJob(Tree* suspendedTree);
+  void waitForJob(Tree* suspendedTree);
 
-	};
+};
 
-}
+} // namespace sunfish
 
 #endif // __SUNFISH_WORKER__

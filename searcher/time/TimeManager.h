@@ -12,27 +12,27 @@
 
 namespace sunfish {
 
-	class TimeManager {
-	private:
+class TimeManager {
+private:
 
-		struct Data {
-			Move firstMove;
-			Value firstValue;
-		};
+  struct Data {
+    Move firstMove;
+    Value firstValue;
+  };
 
-		int _depth;
-		Data _stack[Tree::StackSize];
+  int _depth;
+  Data _stack[Tree::StackSize];
 
-	public:
+public:
 
-		void init();
-		void nextDepth();
-		void startDepth();
-		void addMove(Move move, Value value);
-		bool isEasy(double limit, double elapsed);
+  void init();
+  void nextDepth();
+  void startDepth();
+  void addMove(Move move, Value value);
+  bool isEasy(double limit, double elapsed);
 
-	};
+};
 
-}
+} // namespace sunfish
 
 #endif // __SUNFISH_TIMEMANAGER__

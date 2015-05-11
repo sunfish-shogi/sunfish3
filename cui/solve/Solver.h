@@ -14,76 +14,76 @@
 
 namespace sunfish {
 
-	class Solver {
-	public:
+class Solver {
+public:
 
-		enum class ErrorCode : unsigned {
-			FILE_READ_ERROR,
-			INVALID_RECORD_LENGTH,
-		};
+  enum class ErrorCode : unsigned {
+    FILE_READ_ERROR,
+    INVALID_RECORD_LENGTH,
+  };
 
-		struct Error {
-			std::string filename;
-			ErrorCode errorCode;
-		};
+  struct Error {
+    std::string filename;
+    ErrorCode errorCode;
+  };
 
-		struct Summary {
-			int correct;
-			int incorrect;
-			int total;
-			int ignore;
-			Summary() : correct(0), incorrect(0), total(0), ignore(0) {}
-		};
+  struct Summary {
+    int correct;
+    int incorrect;
+    int total;
+    int ignore;
+    Summary() : correct(0), incorrect(0), total(0), ignore(0) {}
+  };
 
-	private:
+private:
 
-		Searcher _searcher;
+  Searcher _searcher;
 
-		Record _record;
+  Record _record;
 
-		std::vector<std::string> _problems;
+  std::vector<std::string> _problems;
 
-		std::vector<Error> _errors;
+  std::vector<Error> _errors;
 
-		Summary _summary;
+  Summary _summary;
 
-		void solve(const std::string& problem);
+  void solve(const std::string& problem);
 
-		void solve(const Board& board, const Move& correct);
+  void solve(const Board& board, const Move& correct);
 
-	public:
+public:
 
-		void clear() {
-			_problems.clear();
-			_problems.shrink_to_fit();
-			_errors.clear();
-			_errors.shrink_to_fit();
-			_summary = Summary();
-		}
+  void clear() {
+    _problems.clear();
+    _problems.shrink_to_fit();
+    _errors.clear();
+    _errors.shrink_to_fit();
+    _summary = Summary();
+  }
 
-		void setProblems(const std::vector<std::string>& problems);
+  void setProblems(const std::vector<std::string>& problems);
 
-		void solve();
+  void solve();
 
-		bool hasError() const {
-			return !_errors.empty();
-		}
+  bool hasError() const {
+    return !_errors.empty();
+  }
 
-		const std::vector<Error>& getErrors() const {
-			return _errors;
-		}
+  const std::vector<Error>& getErrors() const {
+    return _errors;
+  }
 
-		const Summary& getSummary() const {
-			return _summary;
-		}
+  const Summary& getSummary() const {
+    return _summary;
+  }
 
-		void setConfig(const ConsoleManager::Config& config) {
-			auto searcherConfig = ConsoleManager::buildSearcherConfig(_searcher.getConfig(), config);
-			_searcher.setConfig(searcherConfig);
-		}
+  void setConfig(const ConsoleManager::Config& config) {
+    auto searcherConfig = ConsoleManager::buildSearcherConfig(_searcher.getConfig(), config);
+    _searcher.setConfig(searcherConfig);
+  }
 
-	};
+};
 
-}
+} // namespace sunfish
 
 #endif // __SUNFISH_SOLVER__

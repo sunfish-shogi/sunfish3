@@ -11,14 +11,14 @@
 using namespace sunfish;
 
 TEST(BoardTest, makemoveTest) {
-	{
-		// 合法手の場合
-		Board board;
-		board.init(Board::Handicap::Even);
+  {
+    // 合法手の場合
+    Board board;
+    board.init(Board::Handicap::Even);
 
-		board.makeMoveIrr(Move(Piece::Pawn, P77, P76, false)); // 76歩
+    board.makeMoveIrr(Move(Piece::Pawn, P77, P76, false)); // 76歩
 
-		const char* correct = "\
+    const char* correct = "\
 KyKeGiKiOuKiGiKeKy\n\
   Hi          Ka  \n\
 FuFuFuFuFuFuFuFuFu\n\
@@ -32,12 +32,12 @@ black: \n\
 white: \n\
 next: white\n\
 ";
-		ASSERT_EQ(correct, board.toString(false));
-	}
+    ASSERT_EQ(correct, board.toString(false));
+  }
 
-	{
-		// 王手放置の場合
-		std::string src = "\
+  {
+    // 王手放置の場合
+    std::string src = "\
 P1-KY-KE-GI-KI * -OU-GI-KE-KY\n\
 P2 * -HI *  *  *  * -KI *  * \n\
 P3-FU * -FU-FU-FU-FU * -FU-FU\n\
@@ -51,27 +51,27 @@ P+\n\
 P-00KA\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		// 68玉
-		Move move6968(Piece::King, P69, P68, false);
-		ASSERT_EQ(false, board.makeMove(move6968));
+    // 68玉
+    Move move6968(Piece::King, P69, P68, false);
+    ASSERT_EQ(false, board.makeMove(move6968));
 
-		// 59玉
-		Move move6959(Piece::King, P69, P59, false);
-		ASSERT_EQ(false, board.makeMove(move6959));
+    // 59玉
+    Move move6959(Piece::King, P69, P59, false);
+    ASSERT_EQ(false, board.makeMove(move6959));
 
-		// 58玉
-		Move move6958(Piece::King, P69, P58, false);
-		ASSERT_EQ(true, board.makeMove(move6958));
-		board.unmakeMove(move6958);
-	}
+    // 58玉
+    Move move6958(Piece::King, P69, P58, false);
+    ASSERT_EQ(true, board.makeMove(move6958));
+    board.unmakeMove(move6958);
+  }
 
-	{
-		// 香車によるPIN
-		std::string src = "\
+  {
+    // 香車によるPIN
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  * -KY *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -85,32 +85,32 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		// 56金
-		Move move6656(Piece::Gold, P66, P56, false);
-		ASSERT_EQ(false, board.makeMove(move6656));
+    // 56金
+    Move move6656(Piece::Gold, P66, P56, false);
+    ASSERT_EQ(false, board.makeMove(move6656));
 
-		// 75金
-		Move move6675(Piece::Gold, P66, P75, false);
-		ASSERT_EQ(false, board.makeMove(move6675));
+    // 75金
+    Move move6675(Piece::Gold, P66, P75, false);
+    ASSERT_EQ(false, board.makeMove(move6675));
 
-		// 67金
-		Move move6667(Piece::Gold, P66, P67, false);
-		ASSERT_EQ(true, board.makeMove(move6667));
-		board.unmakeMove(move6667);
+    // 67金
+    Move move6667(Piece::Gold, P66, P67, false);
+    ASSERT_EQ(true, board.makeMove(move6667));
+    board.unmakeMove(move6667);
 
-		// 65金
-		Move move6665(Piece::Gold, P66, P65, false);
-		ASSERT_EQ(true, board.makeMove(move6665));
-		board.unmakeMove(move6665);
-	}
+    // 65金
+    Move move6665(Piece::Gold, P66, P65, false);
+    ASSERT_EQ(true, board.makeMove(move6665));
+    board.unmakeMove(move6665);
+  }
 
-	{
-		// 角によるPIN
-		std::string src = "\
+  {
+    // 角によるPIN
+    std::string src = "\
 P1-KY-KE-GI-KI-OU * -GI-KE-KY\n\
 P2 * -HI *  *  *  * -KI *  * \n\
 P3-FU * -FU-FU * -FU * -FU-FU\n\
@@ -124,31 +124,31 @@ P+00FU\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		// 57銀
-		Move move6857(Piece::Silver, P68, P57, false);
-		ASSERT_EQ(false, board.makeMove(move6857));
+    // 57銀
+    Move move6857(Piece::Silver, P68, P57, false);
+    ASSERT_EQ(false, board.makeMove(move6857));
 
-		// 79銀
-		Move move6879(Piece::Silver, P68, P79, false);
-		ASSERT_EQ(false, board.makeMove(move6879));
+    // 79銀
+    Move move6879(Piece::Silver, P68, P79, false);
+    ASSERT_EQ(false, board.makeMove(move6879));
 
-		// 67銀
-		Move move6867(Piece::Silver, P68, P67, false);
-		ASSERT_EQ(false, board.makeMove(move6867));
+    // 67銀
+    Move move6867(Piece::Silver, P68, P67, false);
+    ASSERT_EQ(false, board.makeMove(move6867));
 
-		// 77銀
-		Move move6877(Piece::Silver, P68, P77, false);
-		ASSERT_EQ(true, board.makeMove(move6877));
-		board.unmakeMove(move6877);
-	}
+    // 77銀
+    Move move6877(Piece::Silver, P68, P77, false);
+    ASSERT_EQ(true, board.makeMove(move6877));
+    board.unmakeMove(move6877);
+  }
 
-	{
-		// 飛車によるPIN
-		std::string src = "\
+  {
+    // 飛車によるPIN
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  * -HI *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -162,55 +162,55 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		// 48馬
-		Move move6648(Piece::Horse, P66, P48, false);
-		ASSERT_EQ(false, board.makeMove(move6648));
+    // 48馬
+    Move move6648(Piece::Horse, P66, P48, false);
+    ASSERT_EQ(false, board.makeMove(move6648));
 
-		// 67馬
-		Move move6667(Piece::Horse, P66, P67, false);
-		ASSERT_EQ(true, board.makeMove(move6667));
-		board.unmakeMove(move6667);
+    // 67馬
+    Move move6667(Piece::Horse, P66, P67, false);
+    ASSERT_EQ(true, board.makeMove(move6667));
+    board.unmakeMove(move6667);
 
-		// 47金
-		Move move5847(Piece::Gold, P58, P47, false);
-		ASSERT_EQ(false, board.makeMove(move5847));
+    // 47金
+    Move move5847(Piece::Gold, P58, P47, false);
+    ASSERT_EQ(false, board.makeMove(move5847));
 
-		// 48金
-		Move move5848(Piece::Gold, P58, P48, false);
-		ASSERT_EQ(true, board.makeMove(move5848));
-		board.unmakeMove(move5848);
-	}
+    // 48金
+    Move move5848(Piece::Gold, P58, P48, false);
+    ASSERT_EQ(true, board.makeMove(move5848));
+    board.unmakeMove(move5848);
+  }
 }
 
 TEST(BoardTest, unmakemoveTest) {
-	Board board;
-	board.init(Board::Handicap::Even);
+  Board board;
+  board.init(Board::Handicap::Even);
 
-	Move moves[] = {
-		Move(Piece::Pawn, P77, P76, false),
-		Move(Piece::Pawn, P33, P34, false),
-		Move(Piece::Bishop, P88, P22, true),
-		Move(Piece::Silver, P31, P22, false),
-		Move(Piece::Bishop, P45),
-	};
+  Move moves[] = {
+    Move(Piece::Pawn, P77, P76, false),
+    Move(Piece::Pawn, P33, P34, false),
+    Move(Piece::Bishop, P88, P22, true),
+    Move(Piece::Silver, P31, P22, false),
+    Move(Piece::Bishop, P45),
+  };
 
-	// make move
+  // make move
 
-	// 76歩 34歩 22角成 同銀 45角
-	for (unsigned i = 0; i < sizeof(moves) / sizeof(moves[0]); i++) {
-		board.makeMove(moves[i]);
-	}
+  // 76歩 34歩 22角成 同銀 45角
+  for (unsigned i = 0; i < sizeof(moves) / sizeof(moves[0]); i++) {
+    board.makeMove(moves[i]);
+  }
 
-	// unmake move
+  // unmake move
 
-	{
-		// 45角
-		board.unmakeMove(moves[4]);
-		const char* correct = "\
+  {
+    // 45角
+    board.unmakeMove(moves[4]);
+    const char* correct = "\
 KyKeGiKiOuKi  KeKy\n\
   Hi          Gi  \n\
 FuFuFuFuFuFu  FuFu\n\
@@ -224,13 +224,13 @@ black: ka\n\
 white: ka\n\
 next: black\n\
 ";
-		ASSERT_EQ(correct, board.toString(false));
-	}
+    ASSERT_EQ(correct, board.toString(false));
+  }
 
-	{
-		// 22同銀
-		board.unmakeMove(moves[3]);
-		const char* correct = "\
+  {
+    // 22同銀
+    board.unmakeMove(moves[3]);
+    const char* correct = "\
 KyKeGiKiOuKiGiKeKy\n\
   Hi          um  \n\
 FuFuFuFuFuFu  FuFu\n\
@@ -244,13 +244,13 @@ black: ka\n\
 white: \n\
 next: white\n\
 ";
-		ASSERT_EQ(correct, board.toString(false));
-	}
+    ASSERT_EQ(correct, board.toString(false));
+  }
 
-	{
-		// 22角成
-		board.unmakeMove(moves[2]);
-		const char* correct = "\
+  {
+    // 22角成
+    board.unmakeMove(moves[2]);
+    const char* correct = "\
 KyKeGiKiOuKiGiKeKy\n\
   Hi          Ka  \n\
 FuFuFuFuFuFu  FuFu\n\
@@ -264,19 +264,19 @@ black: \n\
 white: \n\
 next: black\n\
 ";
-		ASSERT_EQ(correct, board.toString(false));
-	}
+    ASSERT_EQ(correct, board.toString(false));
+  }
 }
 
 TEST(BoardTest, promoteTest) {
-	Board board;
-	board.init(Board::Handicap::Even);
+  Board board;
+  board.init(Board::Handicap::Even);
 
-	board.makeMoveIrr(Move(Piece::Pawn, P77, P76, false)); // 76歩
-	board.makeMoveIrr(Move(Piece::Pawn, P33, P34, false)); // 34歩
-	board.makeMoveIrr(Move(Piece::Bishop, P88, P33, true)); // 33角成
+  board.makeMoveIrr(Move(Piece::Pawn, P77, P76, false)); // 76歩
+  board.makeMoveIrr(Move(Piece::Pawn, P33, P34, false)); // 34歩
+  board.makeMoveIrr(Move(Piece::Bishop, P88, P33, true)); // 33角成
 
-	const char* correct = "\
+  const char* correct = "\
 KyKeGiKiOuKiGiKeKy\n\
   Hi          Ka  \n\
 FuFuFuFuFuFuumFuFu\n\
@@ -290,18 +290,18 @@ black: \n\
 white: \n\
 next: white\n\
 ";
-	ASSERT_EQ(correct, board.toString(false));
+  ASSERT_EQ(correct, board.toString(false));
 }
 
 TEST(BoardTest, captureTest) {
-	Board board;
-	board.init(Board::Handicap::Even);
+  Board board;
+  board.init(Board::Handicap::Even);
 
-	board.makeMoveIrr(Move(Piece::Pawn, P77, P76, false)); // 76歩
-	board.makeMoveIrr(Move(Piece::Pawn, P33, P34, false)); // 34歩
-	board.makeMoveIrr(Move(Piece::Bishop, P88, P22, true)); // 22角成
+  board.makeMoveIrr(Move(Piece::Pawn, P77, P76, false)); // 76歩
+  board.makeMoveIrr(Move(Piece::Pawn, P33, P34, false)); // 34歩
+  board.makeMoveIrr(Move(Piece::Bishop, P88, P22, true)); // 22角成
 
-	const char* correct = "\
+  const char* correct = "\
 KyKeGiKiOuKiGiKeKy\n\
   Hi          um  \n\
 FuFuFuFuFuFu  FuFu\n\
@@ -315,20 +315,20 @@ black: ka\n\
 white: \n\
 next: white\n\
 ";
-	ASSERT_EQ(correct, board.toString(false));
+  ASSERT_EQ(correct, board.toString(false));
 }
 
 TEST(BoardTest, dropTest) {
-	Board board;
-	board.init(Board::Handicap::Even);
+  Board board;
+  board.init(Board::Handicap::Even);
 
-	board.makeMoveIrr(Move(Piece::Pawn, P77, P76, false)); // 76歩
-	board.makeMoveIrr(Move(Piece::Pawn, P33, P34, false)); // 34歩
-	board.makeMoveIrr(Move(Piece::Bishop, P88, P22, true)); // 22角成
-	board.makeMoveIrr(Move(Piece::Silver, P31, P22, false)); // 同銀
-	board.makeMoveIrr(Move(Piece::Bishop, P45)); // 45角
+  board.makeMoveIrr(Move(Piece::Pawn, P77, P76, false)); // 76歩
+  board.makeMoveIrr(Move(Piece::Pawn, P33, P34, false)); // 34歩
+  board.makeMoveIrr(Move(Piece::Bishop, P88, P22, true)); // 22角成
+  board.makeMoveIrr(Move(Piece::Silver, P31, P22, false)); // 同銀
+  board.makeMoveIrr(Move(Piece::Bishop, P45)); // 45角
 
-	const char* correct = "\
+  const char* correct = "\
 KyKeGiKiOuKi  KeKy\n\
   Hi          Gi  \n\
 FuFuFuFuFuFu  FuFu\n\
@@ -342,13 +342,13 @@ black: \n\
 white: ka\n\
 next: white\n\
 ";
-	ASSERT_EQ(correct, board.toString(false));
+  ASSERT_EQ(correct, board.toString(false));
 }
 
 TEST(BoardTest, isCheckingTest) {
-	{
-		// 王手がかかっていない場合
-		std::string src = "\
+  {
+    // 王手がかかっていない場合
+    std::string src = "\
 P1-KY-KE-GI-KI-OU * -GI-KE-KY\n\
 P2 * -HI *  *  *  * -KI-KA * \n\
 P3-FU * -FU-FU-FU-FU * -FU-FU\n\
@@ -362,15 +362,15 @@ P+\n\
 P-\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(false, board.isChecking());
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(false, board.isChecking());
+  }
 
-	{
-		// 王手がかかっていない場合
-		std::string src = "\
+  {
+    // 王手がかかっていない場合
+    std::string src = "\
 P1-KY-KE-GI-KI-OU * -GI-KE-KY\n\
 P2 * -HI *  *  *  * -KI-KA * \n\
 P3-FU * -FU-FU-FU-FU * -FU-FU\n\
@@ -384,15 +384,15 @@ P+\n\
 P-\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(false, board.isChecking());
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(false, board.isChecking());
+  }
 
-	{
-		// 王手がかかっている場合
-		std::string src = "\
+  {
+    // 王手がかかっている場合
+    std::string src = "\
 P1-KY-KE-GI-KI-OU * -GI-KE-KY\n\
 P2 * -HI *  *  *  * -KI *  * \n\
 P3-FU * -FU-FU-FU-FU * -FU-FU\n\
@@ -406,15 +406,15 @@ P+\n\
 P-00KA\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isChecking());
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isChecking());
+  }
 
-	{
-		// 飛車による王手
-		std::string src = "\
+  {
+    // 飛車による王手
+    std::string src = "\
 P1 *  *  * -HI *  *  *  *  * \n\
 P2 *  *  *  *  * -OU *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -428,15 +428,15 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isChecking());
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isChecking());
+  }
 
-	{
-		// 角による王手
-		std::string src = "\
+  {
+    // 角による王手
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 *  *  *  *  * -OU *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -450,15 +450,15 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isChecking());
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isChecking());
+  }
 
-	{
-		// 香車による王手
-		std::string src = "\
+  {
+    // 香車による王手
+    std::string src = "\
 P1 *  *  * -KY *  *  *  *  * \n\
 P2 *  *  *  *  * -OU *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -472,15 +472,15 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isChecking());
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isChecking());
+  }
 
-	{
-		// 跳び駒以外の王手
-		std::string src = "\
+  {
+    // 跳び駒以外の王手
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 *  *  *  *  * -OU *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -494,15 +494,15 @@ P+\n\
 P-\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isChecking());
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isChecking());
+  }
 
-	{
-		// と金の利き
-		std::string src = "\
+  {
+    // と金の利き
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -516,16 +516,16 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isChecking());
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isChecking());
+  }
 }
 
 TEST(BoardTest, isValidMoveTest) {
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -539,17 +539,17 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P76, false)));
-		ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P66, false)));
-		ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P68, false)));
-		ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P56, false)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P76, false)));
+    ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P66, false)));
+    ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P68, false)));
+    ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P56, false)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -563,17 +563,17 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P76, false)));
-		ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P66, false)));
-		ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P68, false)));
-		ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P56, false)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P76, false)));
+    ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P66, false)));
+    ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P68, false)));
+    ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P56, false)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -587,17 +587,17 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P66, false)));
-		ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P56, false)));
-		ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P78, false)));
-		ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P68, false)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P66, false)));
+    ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P56, false)));
+    ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P78, false)));
+    ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P68, false)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -611,19 +611,19 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P77, false)));
-		ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P56, false)));
-		ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P57, false)));
-		ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P58, false)));
-		ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P78, false)));
-		ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P66, false)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P77, false)));
+    ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P56, false)));
+    ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P57, false)));
+    ASSERT_EQ(false, board.isValidMove(Move(Piece::King, P67, P58, false)));
+    ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P78, false)));
+    ASSERT_EQ(true, board.isValidMove(Move(Piece::King, P67, P66, false)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * +KA *  *  *  * \n\
 P2 *  *  *  * -FU *  *  *  * \n\
 P3 *  *  * -OU *  *  *  *  * \n\
@@ -637,14 +637,14 @@ P+00FU\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(false, board.isValidMove(Move(Piece::Pawn, P64)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(false, board.isValidMove(Move(Piece::Pawn, P64)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * +KA *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  * -OU-FU *  *  *  * \n\
@@ -658,14 +658,14 @@ P+00FU\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isValidMove(Move(Piece::Pawn, P64)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isValidMove(Move(Piece::Pawn, P64)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -679,14 +679,14 @@ P+\n\
 P-00FU\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isValidMove(Move(Piece::Pawn, P78)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isValidMove(Move(Piece::Pawn, P78)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -700,16 +700,16 @@ P+\n\
 P-00FU\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isValidMove(Move(Piece::Pawn, P78)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isValidMove(Move(Piece::Pawn, P78)));
+  }
 }
 
 TEST(BoardTest, isValidMoveStrictTest) {
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  * +GI *  *  *  *  * \n\
@@ -723,17 +723,17 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Silver, P63, P54, false)));
-		ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Silver, P63, P54, true)));
-		ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Silver, P63, P64, true)));
-		ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Silver, P63, P61, true)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Silver, P63, P54, false)));
+    ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Silver, P63, P54, true)));
+    ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Silver, P63, P64, true)));
+    ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Silver, P63, P61, true)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  * -FU * +HI *  * \n\
@@ -747,18 +747,18 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Rook, P33, P53, true)));
-		ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Rook, P33, P63, true)));
-		ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Rook, P33, P36, true)));
-		ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Rook, P33, P37, true)));
-		ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Rook, P23, P13, true)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Rook, P33, P53, true)));
+    ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Rook, P33, P63, true)));
+    ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Rook, P33, P36, true)));
+    ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Rook, P33, P37, true)));
+    ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Rook, P23, P13, true)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  * -FU *  *  *  * \n\
@@ -772,16 +772,16 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Lance, P56, P53, true)));
-		ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Lance, P56, P54, false)));
-		ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Lance, P56, P54, true)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Lance, P56, P53, true)));
+    ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Lance, P56, P54, false)));
+    ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Lance, P56, P54, true)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 * -OU *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -795,14 +795,14 @@ P+\n\
 P-00FU\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Pawn, P18)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::Pawn, P18)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 * -OU *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -816,14 +816,14 @@ P+\n\
 P-00FU\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Pawn, P18)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::Pawn, P18)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -837,18 +837,18 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::King, P46, P35, false)));
-		ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::King, P46, P45, false)));
-		ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::King, P54, P65, false)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isValidMoveStrict(Move(Piece::King, P46, P35, false)));
+    ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::King, P46, P45, false)));
+    ASSERT_EQ(false, board.isValidMoveStrict(Move(Piece::King, P54, P65, false)));
+  }
 }
 
 TEST(BoardTest, isCheckTest) {
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 *  *  *  * -OU *  *  *  * \n\
 P3 *  *  * -FU *  *  *  *  * \n\
@@ -862,15 +862,15 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isCheck(Move(Piece::Pawn, P44, P43, true)));
-		ASSERT_EQ(false, board.isCheck(Move(Piece::Pawn, P44, P43, false)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isCheck(Move(Piece::Pawn, P44, P43, true)));
+    ASSERT_EQ(false, board.isCheck(Move(Piece::Pawn, P44, P43, false)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  * -KY *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -884,15 +884,15 @@ P+\n\
 P-\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isCheck(Move(Piece::Lance, P62, P67, false)));
-		ASSERT_EQ(false, board.isCheck(Move(Piece::Lance, P62, P67, true)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isCheck(Move(Piece::Lance, P62, P67, false)));
+    ASSERT_EQ(false, board.isCheck(Move(Piece::Lance, P62, P67, true)));
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  * -OU *  * \n\
@@ -906,13 +906,13 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		ASSERT_EQ(true, board.isCheck(Move(Piece::Silver, P55, P44, false)));
-		ASSERT_EQ(true, board.isCheck(Move(Piece::Silver, P55, P54, false)));
-		ASSERT_EQ(false, board.isCheck(Move(Piece::Silver, P55, P66, false)));
-	}
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    ASSERT_EQ(true, board.isCheck(Move(Piece::Silver, P55, P44, false)));
+    ASSERT_EQ(true, board.isCheck(Move(Piece::Silver, P55, P54, false)));
+    ASSERT_EQ(false, board.isCheck(Move(Piece::Silver, P55, P66, false)));
+  }
 }
 
 #endif // !defined(NDEBUG)

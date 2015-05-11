@@ -11,21 +11,21 @@
 
 namespace sunfish {
 
-	class RandomSearcher {
-	private:
+class RandomSearcher {
+private:
 
-		Random random;
+  Random random;
 
-	public:
+public:
 
-		/**
-		 * 指定した局面に対して探索を実行します。
-		 * @return {負けたいか中断された場合にfalseを返します。}
-		 */
-		bool search(const Board& board, Move& move);
+  /**
+   * 指定した局面に対して探索を実行します。
+   * @return {負けたいか中断された場合にfalseを返します。}
+   */
+  bool search(const Board& board, Move& move);
 
-	};
+};
 
-}
+} // namespace sunfish
 
 #endif //__SUNFISH_RANDOMSEARCHER__

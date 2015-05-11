@@ -11,49 +11,49 @@
 
 namespace sunfish {
 
-	class TT : public HashTable<TTEs> {
-	private:
+class TT : public HashTable<TTEs> {
+private:
 
-		uint32_t _age;
+  uint32_t _age;
 
-	public:
+public:
 
-		TT() : HashTable<TTEs>(TT_INDEX_WIDTH), _age(1) {}
-		TT(const TT&) = delete;
-		TT(TT&&) = delete;
+  TT() : HashTable<TTEs>(TT_INDEX_WIDTH), _age(1) {}
+  TT(const TT&) = delete;
+  TT(TT&&) = delete;
 
-		void evolve() {
-			_age = _age % (TTE::AgeMax-1) + 1;
-			assert(_age != TTE::InvalidAge);
-		}
+  void evolve() {
+    _age = _age % (TTE::AgeMax-1) + 1;
+    assert(_age != TTE::InvalidAge);
+  }
 
-		TTStatus entry(uint64_t hash,
-				Value alpha, Value beta, Value value,
-				int depth, int ply, uint16_t move,
-				const NodeStat& stat) {
-			TTE e;
-			TTEs& entities = getEntity(hash);
-			entities.get(hash, e);
-			if (e.update(hash, alpha, beta, value, depth, ply, move, _age, stat)) {
-				return entities.set(e);
-			}
-			return TTStatus::Reject;
-		}
+  TTStatus entry(uint64_t hash,
+      Value alpha, Value beta, Value value,
+      int depth, int ply, uint16_t move,
+      const NodeStat& stat) {
+    TTE e;
+    TTEs& entities = getEntity(hash);
+    entities.get(hash, e);
+    if (e.update(hash, alpha, beta, value, depth, ply, move, _age, stat)) {
+      return entities.set(e);
+    }
+    return TTStatus::Reject;
+  }
 
-		TTStatus entryPv(uint64_t hash, int depth, uint16_t move) {
-			TTE e;
-			TTEs& entities = getEntity(hash);
-			entities.get(hash, e);
-			e.updatePv(hash, depth, move, _age);
-			return entities.set(e);
-		}
+  TTStatus entryPv(uint64_t hash, int depth, uint16_t move) {
+    TTE e;
+    TTEs& entities = getEntity(hash);
+    entities.get(hash, e);
+    e.updatePv(hash, depth, move, _age);
+    return entities.set(e);
+  }
 
-		bool get(uint64_t hash, TTE& e) {
-			return getEntity(hash).get(hash, e) && e.checkHash(hash);
-		}
+  bool get(uint64_t hash, TTE& e) {
+    return getEntity(hash).get(hash, e) && e.checkHash(hash);
+  }
 
-	};
+};
 
-}
+} // namespace sunfish
 
 #endif // __SUNFISH_TT__

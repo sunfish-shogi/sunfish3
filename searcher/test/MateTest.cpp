@@ -13,9 +13,9 @@ using namespace sunfish;
 
 TEST(MateTest, testMate1Ply) {
 
-	{
-		// 頭金(詰)
-		std::string src = "\
+  {
+    // 頭金(詰)
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  * +FU *  *  *  * \n\
@@ -29,17 +29,17 @@ P+00KI\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		// 頭金(詰)
-		std::string src = "\
+  {
+    // 頭金(詰)
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -53,17 +53,17 @@ P+\n\
 P-00KI\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		// 頭銀(不詰)
-		std::string src = "\
+  {
+    // 頭銀(不詰)
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  * +FU *  *  *  * \n\
@@ -77,17 +77,17 @@ P+00GI\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 頭銀(不詰)
-		std::string src = "\
+  {
+    // 頭銀(不詰)
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -101,17 +101,17 @@ P+\n\
 P-00GI\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 詰
-		std::string src = "\
+  {
+    // 詰
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  * +FU * -FU *  *  * \n\
 P3 *  *  *  * +FU *  *  *  * \n\
@@ -125,17 +125,17 @@ P+00HI\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		// 不詰
-		std::string src = "\
+  {
+    // 不詰
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  * +FU *  *  *  *  * \n\
 P3 *  *  *  * +FU *  *  *  * \n\
@@ -149,17 +149,17 @@ P+00HI\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 詰
-		std::string src = "\
+  {
+    // 詰
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  * +HI+FU * -FU *  *  * \n\
 P3 *  *  *  * +FU *  *  *  * \n\
@@ -173,17 +173,17 @@ P+\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		// 詰
-		std::string src = "\
+  {
+    // 詰
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  * +RY+FU * -FU *  *  * \n\
 P3 *  *  *  * +FU *  *  *  * \n\
@@ -197,17 +197,17 @@ P+\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		// 不詰
-		std::string src = "\
+  {
+    // 不詰
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  * +TO+FU * -FU *  *  * \n\
 P3 *  *  *  * +FU *  *  *  * \n\
@@ -221,17 +221,17 @@ P+\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 詰
-		std::string src = "\
+  {
+    // 詰
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  * +NG * \n\
@@ -245,17 +245,17 @@ P+00FU\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		// 詰
-		std::string src = "\
+  {
+    // 詰
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -269,17 +269,17 @@ P+00FU\n\
 P-00FU\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		// 不詰
-		std::string src = "\
+  {
+    // 不詰
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  * +NG * \n\
@@ -293,17 +293,17 @@ P+00FU\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 不詰
-		std::string src = "\
+  {
+    // 不詰
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -317,17 +317,17 @@ P+00FU\n\
 P-00FU\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 不詰
-		std::string src = "\
+  {
+    // 不詰
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  * -HI * \n\
 P3 *  *  *  * +FU *  *  *  * \n\
@@ -341,17 +341,17 @@ P+00KI\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 不詰
-		std::string src = "\
+  {
+    // 不詰
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -365,17 +365,17 @@ P+00FU\n\
 P-00KI\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 不詰
-		std::string src = "\
+  {
+    // 不詰
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  * +TO *  *  *  * \n\
@@ -389,17 +389,17 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 不詰
-		std::string src = "\
+  {
+    // 不詰
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -413,17 +413,17 @@ P+\n\
 P-\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 詰
-		std::string src = "\
+  {
+    // 詰
+    std::string src = "\
 P1 *  *  * -FU-OU-FU *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  * +FU * +FU *  *  * \n\
@@ -437,17 +437,17 @@ P+00FU\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		// 不詰
-		std::string src = "\
+  {
+    // 不詰
+    std::string src = "\
 P1 *  *  * -FU-OU-FU *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  * +FU * +FU *  *  * \n\
@@ -461,17 +461,17 @@ P+00FU\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 詰
-		std::string src = "\
+  {
+    // 詰
+    std::string src = "\
 P1 *  *  * -FU-OU-FU *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  * +FU * +KI *  *  * \n\
@@ -485,17 +485,17 @@ P+00FU\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		// 詰
-		std::string src = "\
+  {
+    // 詰
+    std::string src = "\
 P1 *  *  * -FU-OU-FU *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  * +FU * +KI *  *  * \n\
@@ -509,17 +509,17 @@ P+00FU\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		// 不詰
-		std::string src = "\
+  {
+    // 不詰
+    std::string src = "\
 P1 *  *  * -FU-OU-FU *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  * +FU * +KI *  *  * \n\
@@ -533,17 +533,17 @@ P+00FU\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 不詰
-		std::string src = "\
+  {
+    // 不詰
+    std::string src = "\
 P1-KY * +KI * -OU *  * -KE * \n\
 P2 *  *  *  * -HI *  *  *  * \n\
 P3-FU * -KE+TO *  *  * -FU * \n\
@@ -557,17 +557,17 @@ P+00FU00FU00FU00GI\n\
 P-00FU00FU00KY00KI00KI00KA\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 不詰
-		std::string src = "\
+  {
+    // 不詰
+    std::string src = "\
 P1-KY * -KI *  * -OU-KA+HI-KY\n\
 P2 *  *  * -GI *  *  * -GI * \n\
 P3-FU *  * -FU * +KE-KE-FU-FU\n\
@@ -581,17 +581,17 @@ P+00KI00KI00FU00FU00FU00FU00FU00FU\n\
 P-00KE00FU00FU\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 不詰(53角 中合)
-		std::string src = "\
+  {
+    // 不詰(53角 中合)
+    std::string src = "\
 P1 *  *  * -FU-OU-FU *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  * +KI *  *  *  *  * \n\
@@ -605,17 +605,17 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 不詰(53歩 中合)
-		std::string src = "\
+  {
+    // 不詰(53歩 中合)
+    std::string src = "\
 P1 *  *  * -FU-OU-FU *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  * +KI *  *  *  *  * \n\
@@ -629,17 +629,17 @@ P+\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 不詰(53桂 移動合)
-		std::string src = "\
+  {
+    // 不詰(53桂 移動合)
+    std::string src = "\
 P1 *  *  * -FU-OU-KE *  *  * \n\
 P2 *  *  *  *  * -FU *  *  * \n\
 P3 *  *  * +KI *  *  *  *  * \n\
@@ -653,17 +653,17 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		// 突き歩詰
-		std::string src = "\
+  {
+    // 突き歩詰
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 *  *  *  *  *  *  *  * -KY\n\
 P3 *  *  *  *  *  *  *  * -OU\n\
@@ -677,17 +677,17 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		// 打ち歩詰(不詰)
-		std::string src = "\
+  {
+    // 打ち歩詰(不詰)
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 *  *  *  *  *  *  *  * -KY\n\
 P3 *  *  *  *  *  *  *  * -OU\n\
@@ -701,22 +701,22 @@ P+00FU\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		bool mate = Mate::mate1Ply(board);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate1Ply(board);
+    ASSERT_EQ(false, mate);
+  }
 
 }
 
 TEST(MateTest, testMate3Ply) {
-	Tree tree;
-	Evaluator eval(Evaluator::InitType::Zero);
+  Tree tree;
+  Evaluator eval(Evaluator::InitType::Zero);
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 *  *  *  * -OU *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -730,17 +730,17 @@ P+00KI00KI\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		tree.init(0, board, eval, std::vector<Move>());
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    tree.init(0, board, eval, std::vector<Move>());
 
-		bool mate = Mate::mate3Ply(tree);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate3Ply(tree);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 *  *  *  * -OU *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -754,17 +754,17 @@ P+00KI00GI\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		tree.init(0, board, eval, std::vector<Move>());
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    tree.init(0, board, eval, std::vector<Move>());
 
-		bool mate = Mate::mate3Ply(tree);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate3Ply(tree);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -778,17 +778,17 @@ P+\n\
 P-00KI00KI\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		tree.init(0, board, eval, std::vector<Move>());
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    tree.init(0, board, eval, std::vector<Move>());
 
-		bool mate = Mate::mate3Ply(tree);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate3Ply(tree);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  * -OU *  *  *  * \n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  *  *  * \n\
@@ -802,17 +802,17 @@ P+\n\
 P-00KI00GI\n\
 -\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		tree.init(0, board, eval, std::vector<Move>());
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    tree.init(0, board, eval, std::vector<Move>());
 
-		bool mate = Mate::mate3Ply(tree);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate3Ply(tree);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  *  *  *  * -GI+KA\n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  * -OU * \n\
@@ -826,17 +826,17 @@ P+\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		tree.init(0, board, eval, std::vector<Move>());
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    tree.init(0, board, eval, std::vector<Move>());
 
-		bool mate = Mate::mate3Ply(tree);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate3Ply(tree);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  *  *  *  * -GI+KA\n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  * -OU * \n\
@@ -850,17 +850,17 @@ P+00KI\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		tree.init(0, board, eval, std::vector<Move>());
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    tree.init(0, board, eval, std::vector<Move>());
 
-		bool mate = Mate::mate3Ply(tree);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate3Ply(tree);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  *  *  *  * -GI+KA\n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3 *  *  *  *  *  *  * -OU * \n\
@@ -874,17 +874,17 @@ P+00KI\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		tree.init(0, board, eval, std::vector<Move>());
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    tree.init(0, board, eval, std::vector<Move>());
 
-		bool mate = Mate::mate3Ply(tree);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate3Ply(tree);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  * -FU-OU * -KI *  * \n\
 P2 *  *  * -KY *  *  *  *  * \n\
 P3 *  *  * +KA * -FU *  *  * \n\
@@ -898,17 +898,17 @@ P+00HI\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		tree.init(0, board, eval, std::vector<Move>());
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    tree.init(0, board, eval, std::vector<Move>());
 
-		bool mate = Mate::mate3Ply(tree);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate3Ply(tree);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  * -FU-OU * -KI *  * \n\
 P2 *  *  * -KY *  *  *  *  * \n\
 P3 *  *  * +KA-FU-FU *  *  * \n\
@@ -922,17 +922,17 @@ P+00HI\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		tree.init(0, board, eval, std::vector<Move>());
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    tree.init(0, board, eval, std::vector<Move>());
 
-		bool mate = Mate::mate3Ply(tree);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate3Ply(tree);
+    ASSERT_EQ(false, mate);
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 *  *  *  *  *  *  * -KI * \n\
 P3 *  *  *  *  * +HI *  *  * \n\
@@ -946,17 +946,17 @@ P+00KY00KA\n\
 P-\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		tree.init(0, board, eval, std::vector<Move>());
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    tree.init(0, board, eval, std::vector<Move>());
 
-		bool mate = Mate::mate3Ply(tree);
-		ASSERT_EQ(true, mate);
-	}
+    bool mate = Mate::mate3Ply(tree);
+    ASSERT_EQ(true, mate);
+  }
 
-	{
-		std::string src = "\
+  {
+    std::string src = "\
 P1 *  *  *  *  *  *  *  *  * \n\
 P2 *  *  *  *  *  *  * -KI * \n\
 P3 *  *  *  *  * +HI *  *  * \n\
@@ -970,14 +970,14 @@ P+00KY00KA\n\
 P-00FU\n\
 +\n\
 ";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
-		tree.init(0, board, eval, std::vector<Move>());
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+    tree.init(0, board, eval, std::vector<Move>());
 
-		bool mate = Mate::mate3Ply(tree);
-		ASSERT_EQ(false, mate);
-	}
+    bool mate = Mate::mate3Ply(tree);
+    ASSERT_EQ(false, mate);
+  }
 
 }
 

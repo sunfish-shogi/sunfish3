@@ -7,18 +7,20 @@
 #define __SUNFISH_CODEGENERATOR__
 
 #if !defined(NDEBUG)
+
 namespace sunfish {
 
-	class CodeGenerator {
-	private:
+class CodeGenerator {
+private:
 
-	public:
+public:
 
-		void generateZobrist();
+  void generateZobrist();
 
-	};
+};
 
-}
+} // namespace sunfish
+
 #endif // !defined(NDEBUG)
 
 #endif // __SUNFISH_CODEGENERATOR__

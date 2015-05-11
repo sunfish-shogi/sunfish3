@@ -12,8 +12,8 @@
 using namespace sunfish;
 
 TEST(ShekTest, test) {
-	{
-		std::string src =
+  {
+    std::string src =
 "P1-KY-KE-GI-KI-OU * -GI-KE-KY\n"
 "P2 * -HI *  *  *  * -KI-KA * \n"
 "P3-FU * -FU-FU-FU-FU-FU-FU-FU\n"
@@ -26,59 +26,59 @@ TEST(ShekTest, test) {
 "P+00FU\n"
 "P-00FU\n"
 "+\n";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		ShekTable table;
+    ShekTable table;
 
-		Move moves[] = {
-			{ Piece::Pawn, P24 },
-			{ Piece::Pawn, P23, P24, false },
-			{ Piece::Rook, P28, P24, false },
-			{ Piece::Pawn, P23 },
-		};
+    Move moves[] = {
+      { Piece::Pawn, P24 },
+      { Piece::Pawn, P23, P24, false },
+      { Piece::Rook, P28, P24, false },
+      { Piece::Pawn, P23 },
+    };
 
-		for (auto& move : moves) {
-			table.set(board);
-			bool ok = board.makeMove(move);
-			ASSERT(ok);
-			ShekStat stat = table.check(board);
-			ASSERT_EQ((int)ShekStat::None, (int)stat);
-		}
+    for (auto& move : moves) {
+      table.set(board);
+      bool ok = board.makeMove(move);
+      ASSERT(ok);
+      ShekStat stat = table.check(board);
+      ASSERT_EQ((int)ShekStat::None, (int)stat);
+    }
 
-		table.set(board);
-		Move move = { Piece::Rook, P24, P28, false };
-		bool ok = board.makeMove(move);
-		ASSERT(ok);
-		ShekStat stat = table.check(board);
-		ASSERT_EQ((int)ShekStat::Superior, (int)stat);
+    table.set(board);
+    Move move = { Piece::Rook, P24, P28, false };
+    bool ok = board.makeMove(move);
+    ASSERT(ok);
+    ShekStat stat = table.check(board);
+    ASSERT_EQ((int)ShekStat::Superior, (int)stat);
 
-		Move moves2[] = {
-			{ Piece::Pawn, P86 },
-			{ Piece::Pawn, P87, P86, false },
-			{ Piece::Rook, P82, P86, false },
-			{ Piece::Pawn, P87 },
-		};
+    Move moves2[] = {
+      { Piece::Pawn, P86 },
+      { Piece::Pawn, P87, P86, false },
+      { Piece::Rook, P82, P86, false },
+      { Piece::Pawn, P87 },
+    };
 
-		for (auto& move : moves2) {
-			table.set(board);
-			bool ok = board.makeMove(move);
-			ASSERT(ok);
-			ShekStat stat = table.check(board);
-			ASSERT_EQ((int)ShekStat::None, (int)stat);
-		}
+    for (auto& move : moves2) {
+      table.set(board);
+      bool ok = board.makeMove(move);
+      ASSERT(ok);
+      ShekStat stat = table.check(board);
+      ASSERT_EQ((int)ShekStat::None, (int)stat);
+    }
 
-		table.set(board);
-		move = { Piece::Rook, P86, P82, false };
-		ok = board.makeMove(move);
-		ASSERT(ok);
-		stat = table.check(board);
-		ASSERT_EQ((int)ShekStat::Equal, (int)stat);
-	}
+    table.set(board);
+    move = { Piece::Rook, P86, P82, false };
+    ok = board.makeMove(move);
+    ASSERT(ok);
+    stat = table.check(board);
+    ASSERT_EQ((int)ShekStat::Equal, (int)stat);
+  }
 
-	{
-		std::string src =
+  {
+    std::string src =
 "P1-KY-KE-GI-KI-OU *  * -KE-KY\n"
 "P2 * -HI *  *  *  * -KI *  * \n"
 "P3-FU * -FU-FU-FU-FU-GI * -FU\n"
@@ -91,39 +91,39 @@ TEST(ShekTest, test) {
 "P+00FU\n"
 "P-00FU\n"
 "-\n";
-		std::istringstream iss(src);
-		Board board;
-		CsaReader::readBoard(iss, board);
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
 
-		Move moves[] = {
-			{ Piece::Pawn, P26, P27, true },
-			{ Piece::Rook, P28, P27, false },
-			{ Piece::Pawn, P26 },
-		};
+    Move moves[] = {
+      { Piece::Pawn, P26, P27, true },
+      { Piece::Rook, P28, P27, false },
+      { Piece::Pawn, P26 },
+    };
 
-		ShekTable table;
-		for (auto& move : moves) {
-			table.set(board);
-			bool ok = board.makeMove(move);
-			ASSERT(ok);
-			ShekStat stat = table.check(board);
-			ASSERT_EQ((int)ShekStat::None, (int)stat);
-		}
+    ShekTable table;
+    for (auto& move : moves) {
+      table.set(board);
+      bool ok = board.makeMove(move);
+      ASSERT(ok);
+      ShekStat stat = table.check(board);
+      ASSERT_EQ((int)ShekStat::None, (int)stat);
+    }
 
-		table.set(board);
-		Move move = { Piece::Rook, P27, P28, false };
-		bool ok = board.makeMove(move);
-		ASSERT(ok);
-		ShekStat stat = table.check(board);
-		ASSERT_EQ((int)ShekStat::Inferior, (int)stat);
+    table.set(board);
+    Move move = { Piece::Rook, P27, P28, false };
+    bool ok = board.makeMove(move);
+    ASSERT(ok);
+    ShekStat stat = table.check(board);
+    ASSERT_EQ((int)ShekStat::Inferior, (int)stat);
 
-		table.set(board);
-		move = { Piece::Pawn, P26, P27, true };
-		ok = board.makeMove(move);
-		ASSERT(ok);
-		stat = table.check(board);
-		ASSERT_EQ((int)ShekStat::Superior, (int)stat);
-	}
+    table.set(board);
+    move = { Piece::Pawn, P26, P27, true };
+    ok = board.makeMove(move);
+    ASSERT(ok);
+    stat = table.check(board);
+    ASSERT_EQ((int)ShekStat::Superior, (int)stat);
+  }
 }
 
 #endif // !defined(NDEBUG)

@@ -12,7 +12,7 @@
 using namespace sunfish;
 
 TEST(CsaReaderTest, test) {
-	std::string src = "\
+  std::string src = "\
 P1-KY-KE-GI-KI-OU *  * -KE-KY\n\
 P2 *  *  *  *  *  *  *  *  * \n\
 P3-FU * -FU-FU-FU-FU *  * -FU\n\
@@ -34,14 +34,14 @@ P-00FU00FU31GI32KI86HI34FU\n\
 -8979RY\n\
 +7879KI\n\
 -0077KA\n";
-	std::istringstream iss(src);
-	Record record;
+  std::istringstream iss(src);
+  Record record;
 
-	bool result = CsaReader::read(iss, record);
+  bool result = CsaReader::read(iss, record);
 
-	ASSERT_EQ(true, result);
+  ASSERT_EQ(true, result);
 
-	std::string correct = "\
+  std::string correct = "\
 KyKeGiKiOu    KeKy\n\
               ry  \n\
 Fu  FuFuFuFu    Fu\n\
@@ -55,11 +55,11 @@ black: fu2 gi ki hi\n\
 white: fu2 ke gi ka\n\
 next: black\n\
 ";
-	ASSERT_EQ(correct, record.getBoard().toString(false));
+  ASSERT_EQ(correct, record.getBoard().toString(false));
 }
 
 TEST(CsaReaderTest, testInfo) {
-	std::string src = "\
+  std::string src = "\
 N+Sunfish\n\
 N-Firefly\n\
 $EVENT:WCSC_TEST\n\
@@ -74,19 +74,19 @@ P7+FU+FU+FU+FU+FU+FU+FU+FU+FU\n\
 P8 * +KA *  *  *  *  * +HI * \n\
 P9+KY+KE+GI+KI+OU+KI+GI+KE+KY\n\
 +\n";
-	std::istringstream iss(src);
-	Record record;
-	RecordInfo info;
+  std::istringstream iss(src);
+  Record record;
+  RecordInfo info;
 
-	bool result = CsaReader::read(iss, record, &info);
+  bool result = CsaReader::read(iss, record, &info);
 
-	ASSERT_EQ(true, result);
-	ASSERT_EQ("Sunfish", info.blackName);
-	ASSERT_EQ("Firefly", info.whiteName);
-	ASSERT_EQ("WCSC_TEST", info.title);
-	ASSERT_EQ(1, info.timeLimitHour);
-	ASSERT_EQ(30, info.timeLimitMinutes);
-	ASSERT_EQ(60, info.timeLimitReadoff);
+  ASSERT_EQ(true, result);
+  ASSERT_EQ("Sunfish", info.blackName);
+  ASSERT_EQ("Firefly", info.whiteName);
+  ASSERT_EQ("WCSC_TEST", info.title);
+  ASSERT_EQ(1, info.timeLimitHour);
+  ASSERT_EQ(30, info.timeLimitMinutes);
+  ASSERT_EQ(60, info.timeLimitReadoff);
 }
 
 #endif // !defined(NDEBUG)
