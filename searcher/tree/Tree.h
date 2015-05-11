@@ -169,7 +169,6 @@ public:
 
   bool isRecapture(const Move& move) const {
     assert(_ply >= 1);
-    assert(_stack[_ply].ite != _stack[_ply].moves.begin());
     const auto& fmove = _stack[_ply].move;
     return !fmove.isEmpty() && fmove.to() == move.to() &&
       (fmove.isCapturing() || (fmove.promote() && fmove.piece() != Piece::Silver));
