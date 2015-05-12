@@ -15,9 +15,16 @@ network.html
 *.csv
 *.bin
 *.txt
+*.org
+*.tar.gz
+Kifu-for-JS
+
+# Xcode
 sunfish3.xcodeproj/xcuserdata
 sunfish3.xcodeproj/project.xcworkspace/xcuserdata
 sunfish3.xcodeproj/project.xcworkspace/xcshareddata
+
+# VC
 Release/
 Debug/
 *.obj
@@ -43,10 +50,11 @@ Debug/
 [Dd]ebug*/
 *.lib
 *.sbr
-Thumbs.db
 [Ll]ib/
 [Rr]elease*/
 [Tt]est[Rr]esults/
 _UpgradeReport_Files/
 _ReSharper.*/
-*.tar.gz
+
+# Mac
+Thumbs.db
