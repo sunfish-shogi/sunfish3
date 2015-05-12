@@ -1,0 +1,16 @@
+N+gps500
+N-Sunfish3_vps
+$EVENT:wdoor+floodgate-600-10+gps500+Sunfish3_vps+20150312030002
+P1-KY-KE-OU+GI *  *  * -KE-KY
+P2 *  *  * -GI+KI *  *  *  * 
+P3-FU *  * -FU *  *  *  * -FU
+P4 *  * -FU * -FU+KE-KI-FU * 
+P5 *  *  *  *  * +FU-FU *  * 
+P6 *  * +FU *  *  *  *  *  * 
+P7 * -RY+KE+FU+FU+GI *  * +FU
+P8-HI * +GI+OU+KI *  *  *  * 
+P9 * -KI * +KA *  *  *  * +KY
+P+00KA
+P-00KY00FU00FU00FU00FU00FU00FU
+-
+-8788RY
