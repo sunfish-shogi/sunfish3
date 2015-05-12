@@ -424,6 +424,7 @@ void Searcher::after() {
   _info.time = _timer.get();
   _info.nps = (_info.node + _info.qnode) / _info.time;
   _info.move = tree0.getPv().get(0).move;
+  _info.pv.copy(tree0.getPv());
   mergeInfo();
 
   _isRunning.store(false);
@@ -2383,6 +2384,10 @@ bool Searcher::searchAsp(int depth, Move& best, Value* pval /* = nullptr */) {
 }
 
 void Searcher::showPv(int depth, const Pv& pv, const Value& value) {
+  if (!_config.logging) {
+    return;
+  }
+
   mergeInfo();
 
   uint64_t node = _info.node + _info.qnode;
@@ -2401,6 +2406,10 @@ void Searcher::showPv(int depth, const Pv& pv, const Value& value) {
 }
 
 void Searcher::showEndOfIterate(int depth) {
+  if (!_config.logging) {
+    return;
+  }
+
   mergeInfo();
 
   uint64_t node = _info.node + _info.qnode;

@@ -68,6 +68,7 @@ public:
     double limitSeconds;
     bool enableTimeManagement;
     bool ponder;
+    bool logging;
   };
 
   static const int DefaultMaxDepth = 7;
@@ -134,6 +135,7 @@ private:
     _config.limitSeconds = 10.0;
     _config.enableTimeManagement = true;
     _config.ponder = false;
+    _config.logging = true;
   }
 
   /**

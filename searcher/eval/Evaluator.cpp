@@ -105,76 +105,12 @@ int posS2B[] = {
 
 namespace sunfish {
 
-Evaluator::Evaluator(InitType initType /*= InitType::File*/) : _t(nullptr) {
-  alloc();
-
-  switch (initType) {
-  case InitType::File:
-    initPositional();
-    if (!readFile()) {
-      if (convertFromFvBin()) {
-        writeFile();
-      }
-    }
-    break;
-
-  case InitType::Zero:
-    initPositional();
-    break;
-
-  case InitType::Random:
-    initPositionalRandom();
-    break;
-
-  default:
-    assert(false);
-    break;
-  }
-}
-
-Evaluator::~Evaluator() {
-  free();
-}
-
-void Evaluator::alloc() {
-  _t = new Table();
-  assert(_t != nullptr);
-}
-
-void Evaluator::free() {
-  if (_t != nullptr) {
-    delete _t;
-    _t = nullptr;
-  }
-}
-
-void Evaluator::initPositional() {
-  memset(_t->kpp, 0, sizeof(_t->kpp));
-  memset(_t->kkp, 0, sizeof(_t->kkp));
-}
-
-void Evaluator::initPositionalRandom() {
-  Random random;
-  for (int i = 0; i < KPP_ALL; i++) {
-    _t->kpp[0][i] = (int16_t)(random.getInt32() % 21) - 10;
-  }
-  for (int i = 0; i < KKP_ALL; i++) {
-    _t->kkp[0][0][i] = (int16_t)(random.getInt32() % 21) - 10;
-  }
-}
-
-/**
- * ファイルからパラメータを読み込みます。
- */
-bool Evaluator::readFile() {
-  return readFile(DEFAULT_FV_FILENAME);
-}
-
 /**
  * ファイルからパラメータを読み込みます。
  * @param filename
  */
-bool Evaluator::readFile(const char* filename) {
+template <class T>
+bool Feature<T>::readFile(const char* filename) {
   std::ifstream file(filename, std::ios::binary | std::ios::in);
 
   if (!file) {
@@ -192,16 +128,10 @@ bool Evaluator::readFile(const char* filename) {
 
 /**
  * ファイルにパラメータを書き出します。
- */
-bool Evaluator::writeFile() const {
-  return writeFile(DEFAULT_FV_FILENAME);
-}
-
-/**
- * ファイルにパラメータを書き出します。
  * @param filename
  */
-bool Evaluator::writeFile(const char* filename) const {
+template <class T>
+bool Feature<T>::writeFile(const char* filename) const {
   std::ofstream file(filename, std::ios::binary | std::ios::out);
 
   if (!file) {
@@ -214,6 +144,384 @@ bool Evaluator::writeFile(const char* filename) const {
   file.close();
 
   return true;
+}
+
+int posInv(int table[], int in) {
+  POSITION_EACH(pos) {
+    if (table[pos] == in) {
+      return pos;
+    }
+  }
+  return -1;
+}
+
+/**
+ * KPP のインデクスを Bonanza の並びに変換します。
+ */
+int convertKppIndex4FvBin(int index) {
+  struct BoardInfo {
+    int begin;
+    int end;
+    int offset;
+    int* table;
+  };
+
+  static const BoardInfo biList[] = {
+    { KPP_BBPAWN,   KPP_BWPAWN,   -9,  posIndexBPawn },
+    { KPP_BWPAWN,   KPP_BBLANCE,  0,   posIndexWPawn },
+    { KPP_BBLANCE,  KPP_BWLANCE,  -9,  posIndexBPawn },
+    { KPP_BWLANCE,  KPP_BBKNIGHT, 0,   posIndexWPawn },
+    { KPP_BBKNIGHT, KPP_BWKNIGHT, -18, posIndexBKnight },
+    { KPP_BWKNIGHT, KPP_BBSILVER, 0,   posIndexWKnight },
+    { KPP_BBSILVER, KPP_BWSILVER, 0,   nullptr },
+    { KPP_BWSILVER, KPP_BBGOLD,   0,   nullptr },
+    { KPP_BBGOLD,   KPP_BWGOLD,   0,   nullptr },
+    { KPP_BWGOLD,   KPP_BBBISHOP, 0,   nullptr },
+    { KPP_BBBISHOP, KPP_BWBISHOP, 0,   nullptr },
+    { KPP_BWBISHOP, KPP_BBHORSE,  0,   nullptr },
+    { KPP_BBHORSE,  KPP_BWHORSE,  0,   nullptr },
+    { KPP_BWHORSE,  KPP_BBROOK,   0,   nullptr },
+    { KPP_BBROOK,   KPP_BWROOK,   0,   nullptr },
+    { KPP_BWROOK,   KPP_BBDRAGON, 0,   nullptr },
+    { KPP_BBDRAGON, KPP_BWDRAGON, 0,   nullptr },
+    { KPP_BWDRAGON, KPP_MAX,      0,   nullptr },
+  };
+
+  if (index < KPP_BBPAWN) {
+    return index;
+  }
+
+  for (unsigned i = 0; i < sizeof(biList)/sizeof(biList[0]); i++) {
+    const auto& bi = biList[i];
+    if (bi.begin <= index && index < bi.end) {
+      int pos = index - bi.begin;
+      assert(pos >= 0);
+      assert(pos < 81);
+      if (bi.table != nullptr) {
+        pos = posInv(bi.table, pos);
+        assert(pos >= 0);
+        assert(pos < 81);
+      }
+      int result = bi.begin + posS2B[pos] + bi.offset;
+      assert(bi.begin <= result);
+      assert(result < bi.end);
+      return result;
+    }
+  }
+  assert(false);
+  return 0;
+}
+
+/**
+ * KKP のインデクスを Bonanza の並びに変換します。
+ */
+int convertKkpIndex4FvBin(int index) {
+  struct BoardInfo {
+    int begin;
+    int end;
+    int offset;
+    int* table;
+  };
+
+  static const BoardInfo biList[] = {
+    { KKP_BPAWN,   KKP_BLANCE,   -9,  posIndexBPawn },
+    { KKP_BLANCE,  KKP_BKNIGHT,  -9,  posIndexBPawn },
+    { KKP_BKNIGHT, KKP_BSILVER, -18, posIndexBKnight },
+    { KKP_BSILVER, KKP_BGOLD,     0,   nullptr },
+    { KKP_BGOLD,   KKP_BBISHOP,   0,   nullptr },
+    { KKP_BBISHOP, KKP_BHORSE,    0,   nullptr },
+    { KKP_BHORSE,  KKP_BROOK,     0,   nullptr },
+    { KKP_BROOK,   KKP_BDRAGON,   0,   nullptr },
+    { KKP_BDRAGON, KKP_MAX,       0,   nullptr },
+  };
+
+  if (index < KKP_BPAWN) {
+    return index;
+  }
+
+  for (unsigned i = 0; i < sizeof(biList)/sizeof(biList[0]); i++) {
+    const auto& bi = biList[i];
+    if (bi.begin <= index && index < bi.end) {
+      int pos = index - bi.begin;
+      assert(pos >= 0);
+      assert(pos < 81);
+      if (bi.table != nullptr) {
+        pos = posInv(bi.table, pos);
+      }
+      assert(pos >= 0);
+      assert(pos < 81);
+      int result = bi.begin + posS2B[pos] + bi.offset;
+      assert(bi.begin <= result);
+      assert(result < bi.end);
+      return result;
+    }
+  }
+  assert(false);
+  return 0;
+}
+
+/**
+ * 盤上の駒の種類から KKP のインデクスを取得します。
+ */
+int kkpBoardIndex(Piece piece, const Position& pos) {
+  switch (piece) {
+    case Piece::BPawn:      case Piece::WPawn:      return KKP_BPAWN + posIndexBPawn[pos];
+    case Piece::BLance:     case Piece::WLance:     return KKP_BLANCE + posIndexBPawn[pos];
+    case Piece::BKnight:    case Piece::WKnight:    return KKP_BKNIGHT + posIndexBKnight[pos];
+    case Piece::BSilver:    case Piece::WSilver:    return KKP_BSILVER + pos;
+    case Piece::BGold:      case Piece::WGold:      return KKP_BGOLD + pos;
+    case Piece::BBishop:    case Piece::WBishop:    return KKP_BBISHOP + pos;
+    case Piece::BRook:      case Piece::WRook:      return KKP_BROOK + pos;
+    case Piece::BTokin:     case Piece::WTokin:     return KKP_BGOLD + pos;
+    case Piece::BProLance:  case Piece::WProLance:  return KKP_BGOLD + pos;
+    case Piece::BProKnight: case Piece::WProKnight: return KKP_BGOLD + pos;
+    case Piece::BProSilver: case Piece::WProSilver: return KKP_BGOLD + pos;
+    case Piece::BHorse:     case Piece::WHorse:     return KKP_BHORSE + pos;
+    case Piece::BDragon:    case Piece::WDragon:    return KKP_BDRAGON + pos;
+  }
+
+  assert(false);
+  return 0;
+
+}
+
+/**
+ * 持ち駒の種類から KKP のインデクスを取得します。
+ */
+int kkpHandIndex(Piece piece) {
+  switch (piece) {
+    case Piece::BPawn:      case Piece::WPawn:      return KKP_HPAWN;
+    case Piece::BLance:     case Piece::WLance:     return KKP_HLANCE;
+    case Piece::BKnight:    case Piece::WKnight:    return KKP_HKNIGHT;
+    case Piece::BSilver:    case Piece::WSilver:    return KKP_HSILVER;
+    case Piece::BGold:      case Piece::WGold:      return KKP_HGOLD;
+    case Piece::BBishop:    case Piece::WBishop:    return KKP_HBISHOP;
+    case Piece::BRook:      case Piece::WRook:      return KKP_HROOK;
+    case Piece::BTokin:     case Piece::WTokin:     return KKP_HPAWN;
+    case Piece::BProLance:  case Piece::WProLance:  return KKP_HLANCE;
+    case Piece::BProKnight: case Piece::WProKnight: return KKP_HKNIGHT;
+    case Piece::BProSilver: case Piece::WProSilver: return KKP_HSILVER;
+    case Piece::BHorse:     case Piece::WHorse:     return KKP_HBISHOP;
+    case Piece::BDragon:    case Piece::WDragon:    return KKP_HROOK;
+  }
+
+  assert(false);
+  return 0;
+
+}
+
+/**
+ * 盤上の先手の駒の種類から KPP のインデクスを取得します。
+ */
+template <bool blackPiece>
+int kppBoardIndex(Piece piece, const Position& pos) {
+  switch (piece) {
+    case Piece::BPawn:      case Piece::WPawn:      return (blackPiece ? KPP_BBPAWN   : KPP_BWPAWN) + (blackPiece ? posIndexBPawn[pos] : posIndexWPawn[pos]);
+    case Piece::BLance:     case Piece::WLance:     return (blackPiece ? KPP_BBLANCE  : KPP_BWLANCE) + (blackPiece ? posIndexBPawn[pos] : posIndexWPawn[pos]);
+    case Piece::BKnight:    case Piece::WKnight:    return (blackPiece ? KPP_BBKNIGHT : KPP_BWKNIGHT) + (blackPiece ? posIndexBKnight[pos] : posIndexWKnight[pos]);
+    case Piece::BSilver:    case Piece::WSilver:    return (blackPiece ? KPP_BBSILVER : KPP_BWSILVER) + pos;
+    case Piece::BGold:      case Piece::WGold:      return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
+    case Piece::BBishop:    case Piece::WBishop:    return (blackPiece ? KPP_BBBISHOP : KPP_BWBISHOP) + pos;
+    case Piece::BRook:      case Piece::WRook:      return (blackPiece ? KPP_BBROOK   : KPP_BWROOK) + pos;
+    case Piece::BTokin:     case Piece::WTokin:     return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
+    case Piece::BProLance:  case Piece::WProLance:  return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
+    case Piece::BProKnight: case Piece::WProKnight: return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
+    case Piece::BProSilver: case Piece::WProSilver: return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
+    case Piece::BHorse:     case Piece::WHorse:     return (blackPiece ? KPP_BBHORSE  : KPP_BWHORSE) + pos;
+    case Piece::BDragon:    case Piece::WDragon:    return (blackPiece ? KPP_BBDRAGON : KPP_BWDRAGON) + pos;
+  }
+
+  assert(false);
+  return 0;
+}
+
+/**
+ * 先手の持ち駒の種類から KPP のインデクスを取得します。
+ */
+template <bool blackPiece>
+int kppHandIndex(Piece piece) {
+  switch (piece) {
+    case Piece::BPawn:      case Piece::WPawn:      return blackPiece ? KPP_HBPAWN   : KPP_HWPAWN;
+    case Piece::BLance:     case Piece::WLance:     return blackPiece ? KPP_HBLANCE  : KPP_HWLANCE;
+    case Piece::BKnight:    case Piece::WKnight:    return blackPiece ? KPP_HBKNIGHT : KPP_HWKNIGHT;
+    case Piece::BSilver:    case Piece::WSilver:    return blackPiece ? KPP_HBSILVER : KPP_HWSILVER;
+    case Piece::BGold:      case Piece::WGold:      return blackPiece ? KPP_HBGOLD   : KPP_HWGOLD;
+    case Piece::BBishop:    case Piece::WBishop:    return blackPiece ? KPP_HBBISHOP : KPP_HWBISHOP;
+    case Piece::BRook:      case Piece::WRook:      return blackPiece ? KPP_HBROOK   : KPP_HWROOK;
+    case Piece::BTokin:     case Piece::WTokin:     return blackPiece ? KPP_HBPAWN   : KPP_HWPAWN;
+    case Piece::BProLance:  case Piece::WProLance:  return blackPiece ? KPP_HBLANCE  : KPP_HWLANCE;
+    case Piece::BProKnight: case Piece::WProKnight: return blackPiece ? KPP_HBKNIGHT : KPP_HWKNIGHT;
+    case Piece::BProSilver: case Piece::WProSilver: return blackPiece ? KPP_HBSILVER : KPP_HWSILVER;
+    case Piece::BHorse:     case Piece::WHorse:     return blackPiece ? KPP_HBBISHOP : KPP_HWBISHOP;
+    case Piece::BDragon:    case Piece::WDragon:    return blackPiece ? KPP_HBROOK   : KPP_HWROOK;
+  }
+
+  assert(false);
+  return 0;
+
+}
+
+template <class T>
+template <class U, bool update>
+U Feature<T>::extract(const Board& board, U delta) {
+  U positional = 0;
+  auto bking = board.getBKingPosition();
+  auto wking = board.getWKingPosition();
+  auto bkingR = bking.reverse();
+  auto wkingR = wking.reverse();
+
+  int num = 14;
+  int bList[52]; // 52 = 40(総駒数) - 2(玉) + 14(駒台)
+  int wList[52];
+  int nTemp;
+  int wTemp[34]; // 34 = 18(と金) + 16(成香, 成桂, 成銀, 金)
+
+#define ON_HAND(piece, pieceL, index) { \
+  int count = board.getBlackHand(Piece::piece); \
+  if (update) { \
+    _t->kkp[bking][wking][KKP_H ## pieceL+count] += ValueType(delta); \
+  } else { \
+    positional += _t->kkp[bking][wking][KKP_H ## pieceL+count]; \
+  } \
+  bList[index] = KPP_HB ## pieceL + count; \
+  wList[index+1] = KPP_HW ## pieceL + count; \
+  count = board.getWhiteHand(Piece::piece); \
+  if (update) { \
+    _t->kkp[wkingR][bkingR][KKP_H ## pieceL+count] -= ValueType(delta); \
+  } else { \
+    positional -= _t->kkp[wkingR][bkingR][KKP_H ## pieceL+count]; \
+  } \
+  bList[index+1] = KPP_HW ## pieceL + count; \
+  wList[index] = KPP_HB ## pieceL + count; \
+}
+
+  ON_HAND(Pawn, PAWN, 0);
+  ON_HAND(Lance, LANCE, 2);
+  ON_HAND(Knight, KNIGHT, 4);
+  ON_HAND(Silver, SILVER, 6);
+  ON_HAND(Gold, GOLD, 8);
+  ON_HAND(Bishop, BISHOP, 10);
+  ON_HAND(Rook, ROOK, 12);
+
+#undef ON_HAND
+
+#define ON_BOARD(blackBB, whiteBB, pieceL, POS_INDEX_B, POS_INDEX_W) { \
+  nTemp = 0; \
+  auto bb = (blackBB); \
+  BB_EACH_OPE(pos, bb, { \
+    if (update) { \
+      _t->kkp[bking][wking][KKP_B ## pieceL+POS_INDEX_B(pos)] += ValueType(delta); \
+    } else { \
+      positional += _t->kkp[bking][wking][KKP_B ## pieceL+POS_INDEX_B(pos)]; \
+    } \
+    bList[num++] = KPP_BB ## pieceL + POS_INDEX_B(pos); \
+    wTemp[nTemp++] = KPP_BW ## pieceL + POS_INDEX_W(pos.reverse()); \
+  }); \
+  bb = (whiteBB); \
+  BB_EACH_OPE(pos, bb, { \
+    if (update) { \
+      _t->kkp[wkingR][bkingR][KKP_B ## pieceL+POS_INDEX_B(pos.reverse())] -= ValueType(delta); \
+    } else { \
+      positional -= _t->kkp[wkingR][bkingR][KKP_B ## pieceL+POS_INDEX_B(pos.reverse())]; \
+    } \
+    bList[num++] = KPP_BW ## pieceL + POS_INDEX_W(pos); \
+    wTemp[nTemp++] = KPP_BB ## pieceL + POS_INDEX_B(pos.reverse()); \
+  }); \
+  for (int i = 0; i < nTemp; i++) { wList[num-i-1] = wTemp[i]; } \
+}
+
+  ON_BOARD(board.getBPawn(), board.getWPawn(), PAWN, POS_INDEX_BPAWN, POS_INDEX_WPAWN);
+  ON_BOARD(board.getBLance(),board.getWLance(), LANCE, POS_INDEX_BPAWN, POS_INDEX_WPAWN);
+  ON_BOARD(board.getBKnight(), board.getWKnight(), KNIGHT, POS_INDEX_BKNIGHT, POS_INDEX_WKNIGHT);
+  ON_BOARD(board.getBSilver(), board.getWSilver(), SILVER, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
+  ON_BOARD(board.getBGold() | board.getBTokin() | board.getBProLance() | board.getBProKnight() | board.getBProSilver(),
+           board.getWGold() | board.getWTokin() | board.getWProLance() | board.getWProKnight() | board.getWProSilver(), GOLD,
+           POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
+  ON_BOARD(board.getBBishop(), board.getWBishop(), BISHOP, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
+  ON_BOARD(board.getBHorse(), board.getWHorse(), HORSE, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
+  ON_BOARD(board.getBRook(), board.getWRook(), ROOK, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
+  ON_BOARD(board.getBDragon(), board.getWDragon(), DRAGON, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
+
+#undef ON_BOARD
+
+#if ENABLE_KPP
+  for (int i = 0; i < num; i++) {
+    int bx = bList[i];
+    int wx = wList[i];
+    for (int j = 0; j <= i; j++) {
+      int by = bList[j];
+      int wy = wList[j];
+      assert(by <= bx);
+      assert(wy <= wx);
+      if (update) {
+        _t->kpp[bking][kpp_index(bx, by)] += ValueType(delta);
+        _t->kpp[wkingR][kpp_index(wx, wy)] -= ValueType(delta);
+      } else {
+        positional += _t->kpp[bking][kpp_index(bx, by)];
+        positional -= _t->kpp[wkingR][kpp_index(wx, wy)];
+      }
+    }
+  }
+#endif // ENABLE_KPP
+
+  return positional;
+}
+
+template int32_t Feature<float>::extract<int32_t, false>(const Board& board, int32_t delta);
+template float Feature<float>::extract<float, true>(const Board& board, float delta);
+
+Evaluator::Evaluator(InitType initType /*= InitType::File*/) {
+  switch (initType) {
+  case InitType::File:
+    init();
+    if (!readFile()) {
+      if (convertFromFvBin()) {
+        writeFile();
+      }
+    }
+    break;
+
+  case InitType::Zero:
+    init();
+    break;
+
+  case InitType::Random:
+    initRandom();
+    break;
+
+  default:
+    assert(false);
+    break;
+  }
+}
+
+void Evaluator::init() {
+  memset(_t->kpp, 0, sizeof(_t->kpp));
+  memset(_t->kkp, 0, sizeof(_t->kkp));
+}
+
+void Evaluator::initRandom() {
+  Random random;
+  for (int i = 0; i < KPP_ALL; i++) {
+    _t->kpp[0][i] = (int16_t)(random.getInt32() % 21) - 10;
+  }
+  for (int i = 0; i < KKP_ALL; i++) {
+    _t->kkp[0][0][i] = (int16_t)(random.getInt32() % 21) - 10;
+  }
+}
+
+/**
+ * ファイルからパラメータを読み込みます。
+ */
+bool Evaluator::readFile() {
+  return Feature<int16_t>::readFile(DEFAULT_FV_FILENAME);
+}
+
+/**
+ * ファイルにパラメータを書き出します。
+ */
+bool Evaluator::writeFile() const {
+  return Feature<int16_t>::writeFile(DEFAULT_FV_FILENAME);
 }
 
 /**
@@ -311,120 +619,6 @@ void Evaluator::convertFromFvBin(Table* fvbin) {
 
 }
 
-int Evaluator::posInv(int table[], int in) {
-  POSITION_EACH(pos) {
-    if (table[pos] == in) {
-      return pos;
-    }
-  }
-  return -1;
-}
-
-/**
- * KPP のインデクスを Bonanza の並びに変換します。
- */
-int Evaluator::convertKppIndex4FvBin(int index) {
-  struct BoardInfo {
-    int begin;
-    int end;
-    int offset;
-    int* table;
-  };
-
-  static const BoardInfo biList[] = {
-    { KPP_BBPAWN,   KPP_BWPAWN,   -9,  posIndexBPawn },
-    { KPP_BWPAWN,   KPP_BBLANCE,  0,   posIndexWPawn },
-    { KPP_BBLANCE,  KPP_BWLANCE,  -9,  posIndexBPawn },
-    { KPP_BWLANCE,  KPP_BBKNIGHT, 0,   posIndexWPawn },
-    { KPP_BBKNIGHT, KPP_BWKNIGHT, -18, posIndexBKnight },
-    { KPP_BWKNIGHT, KPP_BBSILVER, 0,   posIndexWKnight },
-    { KPP_BBSILVER, KPP_BWSILVER, 0,   nullptr },
-    { KPP_BWSILVER, KPP_BBGOLD,   0,   nullptr },
-    { KPP_BBGOLD,   KPP_BWGOLD,   0,   nullptr },
-    { KPP_BWGOLD,   KPP_BBBISHOP, 0,   nullptr },
-    { KPP_BBBISHOP, KPP_BWBISHOP, 0,   nullptr },
-    { KPP_BWBISHOP, KPP_BBHORSE,  0,   nullptr },
-    { KPP_BBHORSE,  KPP_BWHORSE,  0,   nullptr },
-    { KPP_BWHORSE,  KPP_BBROOK,   0,   nullptr },
-    { KPP_BBROOK,   KPP_BWROOK,   0,   nullptr },
-    { KPP_BWROOK,   KPP_BBDRAGON, 0,   nullptr },
-    { KPP_BBDRAGON, KPP_BWDRAGON, 0,   nullptr },
-    { KPP_BWDRAGON, KPP_MAX,      0,   nullptr },
-  };
-
-  if (index < KPP_BBPAWN) {
-    return index;
-  }
-
-  for (unsigned i = 0; i < sizeof(biList)/sizeof(biList[0]); i++) {
-    const auto& bi = biList[i];
-    if (bi.begin <= index && index < bi.end) {
-      int pos = index - bi.begin;
-      assert(pos >= 0);
-      assert(pos < 81);
-      if (bi.table != nullptr) {
-        pos = posInv(bi.table, pos);
-        assert(pos >= 0);
-        assert(pos < 81);
-      }
-      int result = bi.begin + posS2B[pos] + bi.offset;
-      assert(bi.begin <= result);
-      assert(result < bi.end);
-      return result;
-    }
-  }
-  assert(false);
-  return 0;
-}
-
-/**
- * KKP のインデクスを Bonanza の並びに変換します。
- */
-int Evaluator::convertKkpIndex4FvBin(int index) {
-  struct BoardInfo {
-    int begin;
-    int end;
-    int offset;
-    int* table;
-  };
-
-  static const BoardInfo biList[] = {
-    { KKP_BPAWN,   KKP_BLANCE,   -9,  posIndexBPawn },
-    { KKP_BLANCE,  KKP_BKNIGHT,  -9,  posIndexBPawn },
-    { KKP_BKNIGHT, KKP_BSILVER, -18, posIndexBKnight },
-    { KKP_BSILVER, KKP_BGOLD,     0,   nullptr },
-    { KKP_BGOLD,   KKP_BBISHOP,   0,   nullptr },
-    { KKP_BBISHOP, KKP_BHORSE,    0,   nullptr },
-    { KKP_BHORSE,  KKP_BROOK,     0,   nullptr },
-    { KKP_BROOK,   KKP_BDRAGON,   0,   nullptr },
-    { KKP_BDRAGON, KKP_MAX,       0,   nullptr },
-  };
-
-  if (index < KKP_BPAWN) {
-    return index;
-  }
-
-  for (unsigned i = 0; i < sizeof(biList)/sizeof(biList[0]); i++) {
-    const auto& bi = biList[i];
-    if (bi.begin <= index && index < bi.end) {
-      int pos = index - bi.begin;
-      assert(pos >= 0);
-      assert(pos < 81);
-      if (bi.table != nullptr) {
-        pos = posInv(bi.table, pos);
-      }
-      assert(pos >= 0);
-      assert(pos < 81);
-      int result = bi.begin + posS2B[pos] + bi.offset;
-      assert(bi.begin <= result);
-      assert(result < bi.end);
-      return result;
-    }
-  }
-  assert(false);
-  return 0;
-}
-
 /**
  * 局面の駒割りを算出します。
  * @param board
@@ -484,84 +678,7 @@ Value Evaluator::_evaluateMaterial(const Board& board) const {
  * @param board
  */
 Value Evaluator::_evaluate(const Board& board) {
-  Value positional = Value::Zero;
-  auto bking = board.getBKingPosition();
-  auto wking = board.getWKingPosition();
-  auto bkingR = bking.reverse();
-  auto wkingR = wking.reverse();
-
-  int num = 14;
-  int bList[52]; // 52 = 40(総駒数) - 2(玉) + 14(駒台)
-  int wList[52];
-  int nTemp;
-  int wTemp[34]; // 34 = 18(と金) + 16(成香, 成桂, 成銀, 金)
-
-#define ON_HAND(piece, pieceL, index) { \
-  int count = board.getBlackHand(Piece::piece); \
-  positional += _t->kkp[bking][wking][KKP_H ## pieceL+count]; \
-  bList[index] = KPP_HB ## pieceL + count; \
-  wList[index+1] = KPP_HW ## pieceL + count; \
-  count = board.getWhiteHand(Piece::piece); \
-  positional -= _t->kkp[wkingR][bkingR][KKP_H ## pieceL+count]; \
-  bList[index+1] = KPP_HW ## pieceL + count; \
-  wList[index] = KPP_HB ## pieceL + count; \
-}
-
-  ON_HAND(Pawn, PAWN, 0);
-  ON_HAND(Lance, LANCE, 2);
-  ON_HAND(Knight, KNIGHT, 4);
-  ON_HAND(Silver, SILVER, 6);
-  ON_HAND(Gold, GOLD, 8);
-  ON_HAND(Bishop, BISHOP, 10);
-  ON_HAND(Rook, ROOK, 12);
-
-#undef ON_HAND
-
-#define ON_BOARD(blackBB, whiteBB, pieceL, POS_INDEX_B, POS_INDEX_W) { \
-  nTemp = 0; \
-  auto bb = (blackBB); \
-  BB_EACH_OPE(pos, bb, { \
-    positional += _t->kkp[bking][wking][KKP_B ## pieceL+POS_INDEX_B(pos)]; \
-    bList[num++] = KPP_BB ## pieceL + POS_INDEX_B(pos); \
-    wTemp[nTemp++] = KPP_BW ## pieceL + POS_INDEX_W(pos.reverse()); \
-  }); \
-  bb = (whiteBB); \
-  BB_EACH_OPE(pos, bb, { \
-    positional -= _t->kkp[wkingR][bkingR][KKP_B ## pieceL+POS_INDEX_B(pos.reverse())]; \
-    bList[num++] = KPP_BW ## pieceL + POS_INDEX_W(pos); \
-    wTemp[nTemp++] = KPP_BB ## pieceL + POS_INDEX_B(pos.reverse()); \
-  }); \
-  for (int i = 0; i < nTemp; i++) { wList[num-i-1] = wTemp[i]; } \
-}
-
-  ON_BOARD(board.getBPawn(), board.getWPawn(), PAWN, POS_INDEX_BPAWN, POS_INDEX_WPAWN);
-  ON_BOARD(board.getBLance(),board.getWLance(), LANCE, POS_INDEX_BPAWN, POS_INDEX_WPAWN);
-  ON_BOARD(board.getBKnight(), board.getWKnight(), KNIGHT, POS_INDEX_BKNIGHT, POS_INDEX_WKNIGHT);
-  ON_BOARD(board.getBSilver(), board.getWSilver(), SILVER, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-  ON_BOARD(board.getBGold() | board.getBTokin() | board.getBProLance() | board.getBProKnight() | board.getBProSilver(),
-           board.getWGold() | board.getWTokin() | board.getWProLance() | board.getWProKnight() | board.getWProSilver(), GOLD,
-           POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-  ON_BOARD(board.getBBishop(), board.getWBishop(), BISHOP, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-  ON_BOARD(board.getBHorse(), board.getWHorse(), HORSE, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-  ON_BOARD(board.getBRook(), board.getWRook(), ROOK, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-  ON_BOARD(board.getBDragon(), board.getWDragon(), DRAGON, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-
-#undef ON_BOARD
-
-#if ENABLE_KPP
-  for (int i = 0; i < num; i++) {
-    int bx = bList[i];
-    int wx = wList[i];
-    for (int j = 0; j <= i; j++) {
-      int by = bList[j];
-      int wy = wList[j];
-      assert(by <= bx);
-      assert(wy <= wx);
-      positional += _t->kpp[bking][kpp_index(bx, by)];
-      positional -= _t->kpp[wkingR][kpp_index(wx, wy)];
-    }
-  }
-#endif // ENABLE_KPP
+  Value positional = extract<int32_t, false>(board, 0);
 
 #if ENABLE_HASHTABLE
   _evaluateCache.set(board.getNoTurnHash(), positional);
@@ -1099,105 +1216,7 @@ template Value Evaluator::_estimate<true, false, false>(const Board& board, cons
 template Value Evaluator::_estimate<false, true, false>(const Board& board, const Move& move);
 template Value Evaluator::_estimate<false, false, false>(const Board& board, const Move& move);
 
-/**
- * 盤上の駒の種類から KKP のインデクスを取得します。
- */
-int Evaluator::kkpBoardIndex(Piece piece, const Position& pos) const {
-  switch (piece) {
-    case Piece::BPawn:      case Piece::WPawn:      return KKP_BPAWN + posIndexBPawn[pos];
-    case Piece::BLance:     case Piece::WLance:     return KKP_BLANCE + posIndexBPawn[pos];
-    case Piece::BKnight:    case Piece::WKnight:    return KKP_BKNIGHT + posIndexBKnight[pos];
-    case Piece::BSilver:    case Piece::WSilver:    return KKP_BSILVER + pos;
-    case Piece::BGold:      case Piece::WGold:      return KKP_BGOLD + pos;
-    case Piece::BBishop:    case Piece::WBishop:    return KKP_BBISHOP + pos;
-    case Piece::BRook:      case Piece::WRook:      return KKP_BROOK + pos;
-    case Piece::BTokin:     case Piece::WTokin:     return KKP_BGOLD + pos;
-    case Piece::BProLance:  case Piece::WProLance:  return KKP_BGOLD + pos;
-    case Piece::BProKnight: case Piece::WProKnight: return KKP_BGOLD + pos;
-    case Piece::BProSilver: case Piece::WProSilver: return KKP_BGOLD + pos;
-    case Piece::BHorse:     case Piece::WHorse:     return KKP_BHORSE + pos;
-    case Piece::BDragon:    case Piece::WDragon:    return KKP_BDRAGON + pos;
-  }
-
-  assert(false);
-  return 0;
-
-}
-
-/**
- * 持ち駒の種類から KKP のインデクスを取得します。
- */
-int Evaluator::kkpHandIndex(Piece piece) const {
-  switch (piece) {
-    case Piece::BPawn:      case Piece::WPawn:      return KKP_HPAWN;
-    case Piece::BLance:     case Piece::WLance:     return KKP_HLANCE;
-    case Piece::BKnight:    case Piece::WKnight:    return KKP_HKNIGHT;
-    case Piece::BSilver:    case Piece::WSilver:    return KKP_HSILVER;
-    case Piece::BGold:      case Piece::WGold:      return KKP_HGOLD;
-    case Piece::BBishop:    case Piece::WBishop:    return KKP_HBISHOP;
-    case Piece::BRook:      case Piece::WRook:      return KKP_HROOK;
-    case Piece::BTokin:     case Piece::WTokin:     return KKP_HPAWN;
-    case Piece::BProLance:  case Piece::WProLance:  return KKP_HLANCE;
-    case Piece::BProKnight: case Piece::WProKnight: return KKP_HKNIGHT;
-    case Piece::BProSilver: case Piece::WProSilver: return KKP_HSILVER;
-    case Piece::BHorse:     case Piece::WHorse:     return KKP_HBISHOP;
-    case Piece::BDragon:    case Piece::WDragon:    return KKP_HROOK;
-  }
-
-  assert(false);
-  return 0;
-
-}
-
-/**
- * 盤上の先手の駒の種類から KPP のインデクスを取得します。
- */
-template <bool blackPiece>
-int Evaluator::kppBoardIndex(Piece piece, const Position& pos) const {
-  switch (piece) {
-    case Piece::BPawn:      case Piece::WPawn:      return (blackPiece ? KPP_BBPAWN   : KPP_BWPAWN) + (blackPiece ? posIndexBPawn[pos] : posIndexWPawn[pos]);
-    case Piece::BLance:     case Piece::WLance:     return (blackPiece ? KPP_BBLANCE  : KPP_BWLANCE) + (blackPiece ? posIndexBPawn[pos] : posIndexWPawn[pos]);
-    case Piece::BKnight:    case Piece::WKnight:    return (blackPiece ? KPP_BBKNIGHT : KPP_BWKNIGHT) + (blackPiece ? posIndexBKnight[pos] : posIndexWKnight[pos]);
-    case Piece::BSilver:    case Piece::WSilver:    return (blackPiece ? KPP_BBSILVER : KPP_BWSILVER) + pos;
-    case Piece::BGold:      case Piece::WGold:      return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
-    case Piece::BBishop:    case Piece::WBishop:    return (blackPiece ? KPP_BBBISHOP : KPP_BWBISHOP) + pos;
-    case Piece::BRook:      case Piece::WRook:      return (blackPiece ? KPP_BBROOK   : KPP_BWROOK) + pos;
-    case Piece::BTokin:     case Piece::WTokin:     return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
-    case Piece::BProLance:  case Piece::WProLance:  return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
-    case Piece::BProKnight: case Piece::WProKnight: return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
-    case Piece::BProSilver: case Piece::WProSilver: return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
-    case Piece::BHorse:     case Piece::WHorse:     return (blackPiece ? KPP_BBHORSE  : KPP_BWHORSE) + pos;
-    case Piece::BDragon:    case Piece::WDragon:    return (blackPiece ? KPP_BBDRAGON : KPP_BWDRAGON) + pos;
-  }
-
-  assert(false);
-  return 0;
-}
-
-/**
- * 先手の持ち駒の種類から KPP のインデクスを取得します。
- */
-template <bool blackPiece>
-int Evaluator::kppHandIndex(Piece piece) const {
-  switch (piece) {
-    case Piece::BPawn:      case Piece::WPawn:      return blackPiece ? KPP_HBPAWN   : KPP_HWPAWN;
-    case Piece::BLance:     case Piece::WLance:     return blackPiece ? KPP_HBLANCE  : KPP_HWLANCE;
-    case Piece::BKnight:    case Piece::WKnight:    return blackPiece ? KPP_HBKNIGHT : KPP_HWKNIGHT;
-    case Piece::BSilver:    case Piece::WSilver:    return blackPiece ? KPP_HBSILVER : KPP_HWSILVER;
-    case Piece::BGold:      case Piece::WGold:      return blackPiece ? KPP_HBGOLD   : KPP_HWGOLD;
-    case Piece::BBishop:    case Piece::WBishop:    return blackPiece ? KPP_HBBISHOP : KPP_HWBISHOP;
-    case Piece::BRook:      case Piece::WRook:      return blackPiece ? KPP_HBROOK   : KPP_HWROOK;
-    case Piece::BTokin:     case Piece::WTokin:     return blackPiece ? KPP_HBPAWN   : KPP_HWPAWN;
-    case Piece::BProLance:  case Piece::WProLance:  return blackPiece ? KPP_HBLANCE  : KPP_HWLANCE;
-    case Piece::BProKnight: case Piece::WProKnight: return blackPiece ? KPP_HBKNIGHT : KPP_HWKNIGHT;
-    case Piece::BProSilver: case Piece::WProSilver: return blackPiece ? KPP_HBSILVER : KPP_HWSILVER;
-    case Piece::BHorse:     case Piece::WHorse:     return blackPiece ? KPP_HBBISHOP : KPP_HWBISHOP;
-    case Piece::BDragon:    case Piece::WDragon:    return blackPiece ? KPP_HBROOK   : KPP_HWROOK;
-  }
-
-  assert(false);
-  return 0;
-
-}
+template class Feature<int16_t>;
+template class Feature<float>;
 
 } // namespace sunfish

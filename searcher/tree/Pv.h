@@ -73,6 +73,10 @@ namespace sunfish {
       }
     }
 
+    PvMove& get(int depth) {
+      return _moves[depth];
+    }
+
     const PvMove& get(int depth) const {
       return _moves[depth];
     }

@@ -20,6 +20,9 @@ int generateBook(const std::string& directory);
 // network.cpp
 int network();
 
+// learn.cpp
+int learn();
+
 // solve.cpp
 int solve(const std::vector<std::string>& problems, const ConsoleManager::Config&);
 
@@ -54,6 +57,9 @@ int main(int argc, char** argv, char** /*envp*/) {
   po.addOption("worker", "r", "the number of worker threads", true);
   po.addOption("book", "generate book", true);
   po.addOption("network", "n", "network mode");
+#ifndef NLEARN
+  po.addOption("learn", "l", "learning");
+#endif // NLEARN
   po.addOption("problem", "p", "solve problems");
   po.addOption("profile", "solve problems");
   po.addOption("profile1", "solve one problem");
@@ -80,6 +86,11 @@ int main(int argc, char** argv, char** /*envp*/) {
   } else if (po.has("network")) {
     return network();
 
+#ifndef NLEARN
+  } else if (po.has("learn")) {
+    return learn();
+
+#endif // NLEARN
 #ifndef NDEBUG
   } else if (po.has("test")) {
     // unit test

@@ -1,4 +1,4 @@
-/* logger.h
+/* Logger.h
  * 
  * Kubo Ryosuke
  */

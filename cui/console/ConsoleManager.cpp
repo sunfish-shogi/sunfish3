@@ -241,7 +241,7 @@ bool ConsoleManager::search(bool withMakeMove) {
 
   } else {
 
-    std::cout << "no legal move.\n";
+    std::cout << "resign.\n";
     std::cout << std::endl;
 
     if (withMakeMove) {
