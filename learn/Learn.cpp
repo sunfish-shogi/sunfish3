@@ -105,6 +105,11 @@ bool Learn::adjust(Board board, Move move0) {
     const auto& pv = info.pv;
     val0 = -info.eval;
     pv0.copy(pv);
+
+    // 詰みは除外
+    if (val0 <= -Value::Mate || val0 >= Value::Mate) {
+      return true;
+    }
   }
 
   // その他の手
