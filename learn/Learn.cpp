@@ -180,6 +180,9 @@ bool Learn::adjust(Board board, Move move0) {
 
     _count++;
     _miniBatchCount = 0;
+
+    // TT を初期化
+    _searcher.clearTT();
   }
 
   return true;
