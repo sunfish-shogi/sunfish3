@@ -181,9 +181,6 @@ private:
 
   EvaluateTable<22> _estimateCache;
 
-  void init();
-  void initRandom();
-
   std::shared_ptr<Table> readFvBin();
 
   void convertFromFvBin(Table* fvbin);
@@ -215,6 +212,9 @@ private:
 public:
 
   Evaluator(InitType initType = InitType::File);
+
+  void init();
+  void initRandom();
 
   /**
    * ファイルからパラメータを読み込みます。

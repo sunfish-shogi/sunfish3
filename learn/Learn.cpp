@@ -47,7 +47,7 @@ namespace {
 
   inline float gradient(float x) {
     CONSTEXPR float a = 0.025f;
-    CONSTEXPR float b = 1.8f;
+    CONSTEXPR float b = 16.0f;
     float s = sigmoid(a * x);
     return (1.0f - s) * s * b;
   }
@@ -260,6 +260,8 @@ bool Learn::run() {
   fileList.enumerate(dir.c_str(), "csa");
 
   // 初期化
+  auto& eval = _searcher.getEvaluator();
+	eval.init();
   _count = 1;
   _miniBatchCount = 0;
   _g.init();
@@ -271,7 +273,6 @@ bool Learn::run() {
   }
 
   // 平均を取る
-  auto& eval = _searcher.getEvaluator();
   uint16_t max = 0;
   uint64_t magnitude = 0ull;
   for (int i = 0; i < KPP_ALL; i++) {
