@@ -37,6 +37,8 @@ private:
 
   uint32_t _miniBatchCount;
 
+  FV _g;
+
   FV _w;
 
   FV _u;

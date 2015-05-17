@@ -138,7 +138,7 @@ bool Learn::adjust(Board board, Move move0) {
     // 特徴抽出
     float g = gradient(val.int32() - val0.int32());
     g = g * (1.0f / MINI_BATCH_COUNT);
-    _w.extract<float, true>(leaf, g);
+    _g.extract<float, true>(leaf, g);
     gsum += g;
 
     nmove++;
@@ -152,7 +152,7 @@ bool Learn::adjust(Board board, Move move0) {
     Board leaf = getPvLeaf(board, move0, pv0);
 
     // 特徴抽出
-    _w.extract<float, true>(leaf, -gsum);
+    _g.extract<float, true>(leaf, -gsum);
   }
 
   if (++_miniBatchCount >= MINI_BATCH_COUNT) {
@@ -162,16 +162,20 @@ bool Learn::adjust(Board board, Move move0) {
     float max = 0.0f;
     float magnitude = 0.0f;
     for (int i = 0; i < KPP_ALL; i++) {
-      _w._t->kpp[0][i] += norm(_w._t->kpp[0][i]);
+      float g = _g._t->kpp[0][i] + norm(_w._t->kpp[0][i]);
+      _g._t->kpp[0][i] = 0.0f;
+      _w._t->kpp[0][i] += g;
+      _u._t->kpp[0][i] += g * _count;
       eval._t->kpp[0][i] = _w._t->kpp[0][i];
-      _u._t->kpp[0][i] += _w._t->kpp[0][i] * _count;
       max = std::max(max, std::abs(_w._t->kpp[0][i]));
       magnitude += std::abs(_w._t->kpp[0][i]);
     }
     for (int i = 0; i < KKP_ALL; i++) {
-      _w._t->kkp[0][0][i] += norm(_w._t->kkp[0][0][i]);
+      float g = _g._t->kkp[0][0][i] + norm(_w._t->kkp[0][0][i]);
+      _g._t->kkp[0][0][i] = 0.0f;
+      _w._t->kkp[0][0][i] += g;
+      _u._t->kkp[0][0][i] += g * _count;
       eval._t->kkp[0][0][i] = _w._t->kkp[0][0][i];
-      _u._t->kkp[0][0][i] += _w._t->kkp[0][0][i] * _count;
       max = std::max(max, std::abs(_w._t->kkp[0][0][i]));
       magnitude += std::abs(_w._t->kkp[0][0][i]);
     }
@@ -258,6 +262,7 @@ bool Learn::run() {
   // 初期化
   _count = 1;
   _miniBatchCount = 0;
+  _g.init();
   _w.init();
   _u.init();
 
