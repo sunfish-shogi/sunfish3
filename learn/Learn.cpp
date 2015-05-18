@@ -47,13 +47,13 @@ namespace {
 
   inline float gradient(float x) {
     CONSTEXPR float a = 0.025f;
-    CONSTEXPR float b = 16.0f;
+    CONSTEXPR float b = 4.0f;
     float s = sigmoid(a * x);
-    return (1.0f - s) * s * b;
+    return (1.0f * s - s * s) * b;
   }
 
   inline float norm(float x) {
-    CONSTEXPR float n = 0.01f;
+    CONSTEXPR float n = 0.02f;
     if (x > 0.0f) {
       return -n;
     } else if (x < 0.0f) {
@@ -137,7 +137,8 @@ bool Learn::adjust(Board board, Move move0) {
 
     // 特徴抽出
     float g = gradient(val.int32() - val0.int32());
-    g = g * (1.0f / MINI_BATCH_COUNT);
+    g = g * (32.0f / (NUMBER_OF_SIBLING_NODES * MINI_BATCH_COUNT));
+    g = g * ValuePair::PositionalScale;
     _g.extract<float, true>(leaf, g);
     gsum += g;
 
@@ -273,20 +274,24 @@ bool Learn::run() {
   }
 
   // 平均を取る
-  uint16_t max = 0;
+  uint16_t max = 0u;
   uint64_t magnitude = 0ull;
+  uint32_t nonZero = 0u;
   for (int i = 0; i < KPP_ALL; i++) {
     eval._t->kpp[0][i] = _w._t->kpp[0][i] - _u._t->kpp[0][i] / _count;
     max = std::max(max, (uint16_t)std::abs(eval._t->kpp[0][i]));
     magnitude += std::abs(eval._t->kpp[0][i]);
+    nonZero += eval._t->kpp[0][i] != 0 ? 1 : 0;
   }
   for (int i = 0; i < KKP_ALL; i++) {
     eval._t->kkp[0][0][i] = _w._t->kkp[0][0][i] - _u._t->kkp[0][0][i] / _count;
     max = std::max(max, (uint16_t)std::abs(eval._t->kkp[0][0][i]));
     magnitude += std::abs(eval._t->kkp[0][0][i]);
+    nonZero += eval._t->kkp[0][0][i] != 0 ? 1 : 0;
   }
 
   Loggers::message << "max=" << max << " magnitude=" << magnitude;
+  Loggers::message << "nonZero=" << nonZero << " zero=" << (KPP_ALL + KKP_ALL);
 
   // 重みベクトルを保存
   eval.writeFile();
