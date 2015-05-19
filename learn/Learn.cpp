@@ -82,6 +82,8 @@ bool Learn::adjust(Board board, Move move0) {
   Pv pv0;
   Move tmpMove;
 
+  bool black = board.isBlack();
+
   // 合法手生成
   Moves moves;
   MoveGenerator::generate(board, moves);
@@ -137,9 +139,10 @@ bool Learn::adjust(Board board, Move move0) {
 
     // 特徴抽出
     float g = gradient(val.int32() - val0.int32());
+    g = g * (black ? 1 : -1);
     g = g * (32.0f / (NUMBER_OF_SIBLING_NODES * MINI_BATCH_COUNT));
     g = g * ValuePair::PositionalScale;
-    _g.extract<float, true>(leaf, g);
+    _g.extract<float, true>(leaf, -g);
     gsum += g;
 
     nmove++;
@@ -153,7 +156,7 @@ bool Learn::adjust(Board board, Move move0) {
     Board leaf = getPvLeaf(board, move0, pv0);
 
     // 特徴抽出
-    _g.extract<float, true>(leaf, -gsum);
+    _g.extract<float, true>(leaf, gsum);
   }
 
   if (++_miniBatchCount >= MINI_BATCH_COUNT) {
