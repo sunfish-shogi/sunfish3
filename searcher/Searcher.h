@@ -303,6 +303,14 @@ public:
   Searcher();
 
   /**
+   * コンストラクタ
+   */
+  Searcher(Evaluator& eval);
+
+  Searcher(const Searcher&) = delete;
+  Searcher(Searcher&&) = delete;
+
+  /**
    * デストラクタ
    */
   ~Searcher();

@@ -20,7 +20,7 @@ void Worker::init(int id, Searcher* ps) {
 void Worker::startOnNewThread() {
   job.store(false);
   shutdown.store(false);
-  thread = std::thread(std::bind(std::mem_fun(&Worker::waitForJob), this, nullptr));
+  thread = std::thread(std::bind(std::mem_fn(&Worker::waitForJob), this, nullptr));
 }
 
 void Worker::startOnCurrentThread(int tid) {

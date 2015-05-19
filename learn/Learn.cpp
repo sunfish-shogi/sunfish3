@@ -9,7 +9,6 @@
 #include "core/move/MoveGenerator.h"
 #include "core/record/CsaReader.h"
 #include "core/util/FileList.h"
-#include "core/util/Timer.h"
 #include "core/def.h"
 #include "logger/Logger.h"
 #include <algorithm>
@@ -28,6 +27,18 @@
 namespace sunfish {
 
 namespace {
+
+  void applySearcherConfig(Searcher& searcher, int depth) {
+    auto searchConfig = searcher.getConfig();
+    searchConfig.maxDepth = depth;
+    searchConfig.workerSize = 1;
+    searchConfig.treeSize = 1;
+    searchConfig.enableLimit = false;
+    searchConfig.enableTimeManagement = false;
+    searchConfig.ponder = false;
+    searchConfig.logging = false;
+    searcher.setConfig(searchConfig);
+  }
 
   Board getPvLeaf(const Board& root, const Move& rmove, const Pv& pv) {
     Board board = root;
@@ -68,16 +79,17 @@ namespace {
 /**
  * コンストラクタ
  */
-Learn::Learn() : _rgen(static_cast<unsigned>(time(NULL))) {
+Learn::Learn() {
   _config.addDef(CONF_KIFU, "");
   _config.addDef(CONF_DEPTH, "3");
   _config.addDef(CONF_THREADS, "1");
 }
 
 /**
- * 特徴抽出を行いパラメータを更新します。
+ * 勾配を計算します.
+ *
  */
-bool Learn::adjust(Board board, Move move0) {
+void Learn::genGradient(int wn, Board board, Move move0) {
   Value val0;
   Pv pv0;
   Move tmpMove;
@@ -89,28 +101,28 @@ bool Learn::adjust(Board board, Move move0) {
   MoveGenerator::generate(board, moves);
 
   if (moves.size() < 2) {
-    return true;
+    return;
   }
 
   // シャッフル
-  std::shuffle(moves.begin(), moves.end(), _rgen);
+  std::shuffle(moves.begin(), moves.end(), _rgens[wn]);
 
   // 棋譜の手
   {
     // 探索
     board.makeMove(move0);
-    _searcher.idsearch(board, tmpMove);
+    _searchers[wn]->idsearch(board, tmpMove);
     board.unmakeMove(move0);
 
     // PV と評価値
-    const auto& info = _searcher.getInfo();
+    const auto& info = _searchers[wn]->getInfo();
     const auto& pv = info.pv;
     val0 = -info.eval;
     pv0.copy(pv);
 
     // 詰みは除外
     if (val0 <= -Value::Mate || val0 >= Value::Mate) {
-      return true;
+      return;
     }
   }
 
@@ -121,11 +133,11 @@ bool Learn::adjust(Board board, Move move0) {
     // 探索
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
-    _searcher.idsearch(board, tmpMove);
+    _searchers[wn]->idsearch(board, tmpMove);
     board.unmakeMove(move);
 
     // PV と評価値
-    const auto& info = _searcher.getInfo();
+    const auto& info = _searchers[wn]->getInfo();
     const auto& pv = info.pv;
     Value val = -info.eval;
 
@@ -142,7 +154,10 @@ bool Learn::adjust(Board board, Move move0) {
     g = g * (black ? 1 : -1);
     g = g * (4.0f / (NUMBER_OF_SIBLING_NODES * MINI_BATCH_COUNT));
     g = g * ValuePair::PositionalScale;
-    _g.extract<float, true>(leaf, -g);
+    {
+      std::lock_guard<std::mutex> lock(_mutex);
+      _g.extract<float, true>(leaf, -g);
+    }
     gsum += g;
 
     nmove++;
@@ -152,15 +167,63 @@ bool Learn::adjust(Board board, Move move0) {
   }
 
   {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     // leaf 局面
     Board leaf = getPvLeaf(board, move0, pv0);
 
     // 特徴抽出
     _g.extract<float, true>(leaf, gsum);
+
+    _activeCount--;
+  }
+}
+
+/**
+ * ジョブを拾います。
+ */
+void Learn::work(int wn) {
+  while (!_shutdown) {
+    std::this_thread::yield();
+
+    Job job;
+
+    // dequeue
+    {
+      std::lock_guard<std::mutex> lock(_mutex);
+      if (_jobQueue.empty()) {
+        continue;
+      }
+      job = _jobQueue.front();
+      _jobQueue.pop();
+      _activeCount++;
+    }
+
+    genGradient(wn, job.board, job.move);
+  }
+}
+
+/**
+ * パラメータを更新します。
+ */
+bool Learn::putJob(Board board, Move move0) {
+
+  {
+    std::lock_guard<std::mutex> lock(_mutex);
+    _jobQueue.push({ board, move0 });
   }
 
   if (++_miniBatchCount >= MINI_BATCH_COUNT) {
-    auto& eval = _searcher.getEvaluator();
+    // キューが空になるのを待つ
+    while (true) {
+      {
+        std::lock_guard<std::mutex> lock(_mutex);
+        if (_jobQueue.empty() && _activeCount == 0) {
+          break;
+        }
+      }
+      std::this_thread::yield();
+    }
 
     // 値更新
     float max = 0.0f;
@@ -170,7 +233,7 @@ bool Learn::adjust(Board board, Move move0) {
       _g._t->kpp[0][i] = 0.0f;
       _w._t->kpp[0][i] += g;
       _u._t->kpp[0][i] += g * _count;
-      eval._t->kpp[0][i] = _w._t->kpp[0][i];
+      _eval._t->kpp[0][i] = _w._t->kpp[0][i];
       max = std::max(max, std::abs(_w._t->kpp[0][i]));
       magnitude += std::abs(_w._t->kpp[0][i]);
     }
@@ -179,18 +242,24 @@ bool Learn::adjust(Board board, Move move0) {
       _g._t->kkp[0][0][i] = 0.0f;
       _w._t->kkp[0][0][i] += g;
       _u._t->kkp[0][0][i] += g * _count;
-      eval._t->kkp[0][0][i] = _w._t->kkp[0][0][i];
+      _eval._t->kkp[0][0][i] = _w._t->kkp[0][0][i];
       max = std::max(max, std::abs(_w._t->kkp[0][0][i]));
       magnitude += std::abs(_w._t->kkp[0][0][i]);
     }
 
     Loggers::message << "max=" << max << " magnitude=" << magnitude;
 
+    double elapsed = _timer.get();
+    Loggers::message << "elapsed: " << elapsed;
+
     _count++;
     _miniBatchCount = 0;
 
     // TT を初期化
-    _searcher.clearTT();
+    int nt = _config.getInt(CONF_THREADS);
+    for (int wn = 0; wn < nt; wn++) {
+      _searchers[wn]->clearTT();
+    }
   }
 
   return true;
@@ -219,7 +288,7 @@ bool Learn::readCsa(const char* path) {
       break;
     }
 
-    bool ok = adjust(record.getBoard(), move);
+    bool ok = putJob(record.getBoard(), move);
 
     if (!ok) {
       return false;
@@ -244,19 +313,7 @@ bool Learn::run() {
   }
   Loggers::message << _config.toString();
 
-  Timer timer;
-  timer.set();
-
-  // 探索設定
-  auto searchConfig = _searcher.getConfig();
-  searchConfig.maxDepth = _config.getInt(CONF_DEPTH);
-  searchConfig.workerSize = _config.getInt(CONF_THREADS);
-  searchConfig.treeSize = Searcher::standardTreeSize(searchConfig.workerSize);
-  searchConfig.enableLimit = false;
-  searchConfig.enableTimeManagement = false;
-  searchConfig.ponder = false;
-  searchConfig.logging = false;
-  _searcher.setConfig(searchConfig);
+  _timer.set();
 
   // csa ファイルを列挙
   FileList fileList;
@@ -264,43 +321,74 @@ bool Learn::run() {
   fileList.enumerate(dir.c_str(), "csa");
 
   // 初期化
-  auto& eval = _searcher.getEvaluator();
-	eval.init();
+	_eval.init();
   _count = 1;
   _miniBatchCount = 0;
   _g.init();
   _w.init();
   _u.init();
 
+  // スレッド数
+  int nt = _config.getInt(CONF_THREADS);
+
+  // Searcher生成
+  uint32_t seed = static_cast<uint32_t>(time(NULL));
+  _rgens.clear();
+  _searchers.clear();
+  for (int wn = 0; wn < nt; wn++) {
+    _rgens.emplace_back(seed);
+    seed = _rgens.back()();
+    _searchers.emplace_back(new Searcher(_eval));
+    applySearcherConfig(*_searchers.back().get(), _config.getInt(CONF_DEPTH));
+  }
+
+  // ワーカースレッド生成
+  _shutdown = false;
+  _threads.clear();
+  for (int wn = 0; wn < nt; wn++) {
+    _threads.emplace_back(std::bind(std::mem_fn(&Learn::work), this, wn));
+  }
+
+  _activeCount = 0;
+
+  // 学習処理の実行
   for (const auto& filename : fileList) {
     readCsa(filename.c_str());
   }
+
+  // ワーカースレッド停止
+  _shutdown = true;
+  for (int wn = 0; wn < nt; wn++) {
+    _threads[wn].join();
+  }
+
+  Loggers::message << "publishing..";
 
   // 平均を取る
   uint16_t max = 0u;
   uint64_t magnitude = 0ull;
   uint32_t nonZero = 0u;
   for (int i = 0; i < KPP_ALL; i++) {
-    eval._t->kpp[0][i] = _w._t->kpp[0][i] - _u._t->kpp[0][i] / _count;
-    max = std::max(max, (uint16_t)std::abs(eval._t->kpp[0][i]));
-    magnitude += std::abs(eval._t->kpp[0][i]);
-    nonZero += eval._t->kpp[0][i] != 0 ? 1 : 0;
+    _eval._t->kpp[0][i] = _w._t->kpp[0][i] - _u._t->kpp[0][i] / _count;
+    max = std::max(max, (uint16_t)std::abs(_eval._t->kpp[0][i]));
+    magnitude += std::abs(_eval._t->kpp[0][i]);
+    nonZero += _eval._t->kpp[0][i] != 0 ? 1 : 0;
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    eval._t->kkp[0][0][i] = _w._t->kkp[0][0][i] - _u._t->kkp[0][0][i] / _count;
-    max = std::max(max, (uint16_t)std::abs(eval._t->kkp[0][0][i]));
-    magnitude += std::abs(eval._t->kkp[0][0][i]);
-    nonZero += eval._t->kkp[0][0][i] != 0 ? 1 : 0;
+    _eval._t->kkp[0][0][i] = _w._t->kkp[0][0][i] - _u._t->kkp[0][0][i] / _count;
+    max = std::max(max, (uint16_t)std::abs(_eval._t->kkp[0][0][i]));
+    magnitude += std::abs(_eval._t->kkp[0][0][i]);
+    nonZero += _eval._t->kkp[0][0][i] != 0 ? 1 : 0;
   }
 
-  Loggers::message << "max=" << max << " magnitude=" << magnitude;
-  Loggers::message << "nonZero=" << nonZero << " zero=" << (KPP_ALL + KKP_ALL);
+  Loggers::message << "[final] max=" << max << " magnitude=" << magnitude;
+  Loggers::message << "[final] nonZero=" << nonZero << " zero=" << (KPP_ALL + KKP_ALL);
 
   // 重みベクトルを保存
-  eval.writeFile();
+  _eval.writeFile();
 
-  double elapsed = timer.get();
-  Loggers::message << "elapsed: " << elapsed;
+  double elapsed = _timer.get();
+  Loggers::message << "[final] elapsed: " << elapsed;
 
   return true;
 }

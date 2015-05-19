@@ -495,6 +495,9 @@ Evaluator::Evaluator(InitType initType /*= InitType::File*/) {
   }
 }
 
+Evaluator::Evaluator(Evaluator& ref) : Feature<int16_t>(ref) {
+}
+
 void Evaluator::init() {
   memset(_t->kpp, 0, sizeof(_t->kpp));
   memset(_t->kkp, 0, sizeof(_t->kkp));

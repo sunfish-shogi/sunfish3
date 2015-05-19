@@ -117,15 +117,27 @@ public:
 
   Table* _t;
 
+  bool allocated;
+
 protected:
 
   Feature() : _t(nullptr) {
     _t = new Table();
+    allocated = true;
     assert(_t != nullptr);
   }
 
+  Feature(Feature& ref) : _t(nullptr) {
+    _t = ref._t;
+    allocated = false;
+    assert(_t != nullptr);
+  }
+
+  Feature(const Feature&) = delete;
+  Feature(Feature&&) = delete;
+
   ~Feature() {
-    if (_t != nullptr) {
+    if (allocated && _t != nullptr) {
       delete _t;
       _t = nullptr;
     }
@@ -212,6 +224,8 @@ private:
 public:
 
   Evaluator(InitType initType = InitType::File);
+
+  Evaluator(Evaluator& ref);
 
   void init();
   void initRandom();

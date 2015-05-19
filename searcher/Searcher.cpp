@@ -175,6 +175,19 @@ Searcher::Searcher()
 }
 
 /**
+ * コンストラクタ
+ */
+Searcher::Searcher(Evaluator& eval)
+: _trees(nullptr)
+, _workers(nullptr)
+, _eval(eval)
+, _forceInterrupt(false)
+, _isRunning(false) {
+  initConfig();
+  _history.init();
+}
+
+/**
  * デストラクタ
  */
 Searcher::~Searcher() {
