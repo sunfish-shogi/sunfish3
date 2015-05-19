@@ -53,7 +53,7 @@ namespace {
   }
 
   inline float norm(float x) {
-    CONSTEXPR float n = 0.02f;
+    CONSTEXPR float n = 0.05f;
     if (x > 0.0f) {
       return -n;
     } else if (x < 0.0f) {
@@ -140,7 +140,7 @@ bool Learn::adjust(Board board, Move move0) {
     // 特徴抽出
     float g = gradient(val.int32() - val0.int32());
     g = g * (black ? 1 : -1);
-    g = g * (32.0f / (NUMBER_OF_SIBLING_NODES * MINI_BATCH_COUNT));
+    g = g * (4.0f / (NUMBER_OF_SIBLING_NODES * MINI_BATCH_COUNT));
     g = g * ValuePair::PositionalScale;
     _g.extract<float, true>(leaf, -g);
     gsum += g;
