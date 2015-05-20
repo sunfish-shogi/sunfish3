@@ -278,7 +278,7 @@ private:
    * aspiration search
    * @return {負けたか中断された場合にfalseを返します。}
    */
-  bool searchAsp(int depth, Move& best, Value* pval = nullptr);
+  bool searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta, Value* pval = nullptr);
 
   void showPv(int depth, const Pv& pv, const Value& value);
 
@@ -290,7 +290,7 @@ private:
    * iterative deepening search from root node
    * @return {負けたか深さ1で中断された場合にfalseを返します。}
    */
-  bool idsearch(Move& best);
+  bool idsearch(Move& best, Value alpha, Value beta);
 
 public:
 
@@ -371,13 +371,13 @@ public:
    * 指定した局面に対して探索を実行します。
    * @return {負けたいか中断された場合にfalseを返します。}
    */
-  bool search(const Board& initialBoard, Move& best);
+  bool search(const Board& initialBoard, Move& best, Value alpha = -Value::Mate, Value beta = Value::Mate);
 
   /**
    * 指定した局面に対して反復深化探索を実行します。
    * @return {負けたか深さ1で中断された場合にfalseを返します。}
    */
-  bool idsearch(const Board& initialBoard, Move& best);
+  bool idsearch(const Board& initialBoard, Move& best, Value alpha = -Value::Mate, Value beta = Value::Mate);
 
   /**
    * Evaluator を取得します。

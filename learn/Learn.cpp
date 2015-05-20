@@ -21,7 +21,8 @@
 
 #define CONFPATH                "learn.conf"
 
-#define NUMBER_OF_SIBLING_NODES 8
+#define SEARCH_WINDOW           256
+#define NUMBER_OF_SIBLING_NODES 16
 #define MINI_BATCH_COUNT        20
 
 namespace sunfish {
@@ -64,7 +65,7 @@ namespace {
   }
 
   inline float norm(float x) {
-    CONSTEXPR float n = 0.05f;
+    CONSTEXPR float n = 0.02f;
     if (x > 0.0f) {
       return -n;
     } else if (x < 0.0f) {
@@ -126,6 +127,10 @@ void Learn::genGradient(int wn, Board board, Move move0) {
     }
   }
 
+  // 棋譜の手の評価値から window を決定
+  Value alpha = -val0 - SEARCH_WINDOW;
+  Value beta = -val0 + SEARCH_WINDOW;
+
   // その他の手
   int nmove = 0;
   float gsum = 0;
@@ -133,7 +138,7 @@ void Learn::genGradient(int wn, Board board, Move move0) {
     // 探索
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
-    _searchers[wn]->idsearch(board, tmpMove);
+    _searchers[wn]->idsearch(board, tmpMove, alpha, beta);
     board.unmakeMove(move);
 
     // PV と評価値
@@ -141,8 +146,8 @@ void Learn::genGradient(int wn, Board board, Move move0) {
     const auto& pv = info.pv;
     Value val = -info.eval;
 
-    // 詰みは除外
-    if (val <= -Value::Mate || val >= Value::Mate) {
+    // window を外れた場合は除外
+    if (val <= alpha || val >= beta) {
       continue;
     }
 
@@ -268,8 +273,8 @@ bool Learn::putJob(Board board, Move move0) {
 /**
  * 棋譜ファイルを読み込んで学習します。
  */
-bool Learn::readCsa(const char* path) {
-  Loggers::message << "load: [" << path << "]";
+bool Learn::readCsa(size_t count, size_t total, const char* path) {
+  Loggers::message << "load(" << count << "/" << total << "): [" << path << "]";
 
   Record record;
   if (!CsaReader::read(path, record)) {
@@ -352,8 +357,9 @@ bool Learn::run() {
   _activeCount = 0;
 
   // 学習処理の実行
+  size_t count = 0;
   for (const auto& filename : fileList) {
-    readCsa(filename.c_str());
+    readCsa(++count, fileList.size(), filename.c_str());
   }
 
   // ワーカースレッド停止

@@ -2316,24 +2316,29 @@ Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move&
  * aspiration search
  * @return {負けたか中断された場合にfalseを返します。}
  */
-bool Searcher::searchAsp(int depth, Move& best, Value* pval /* = nullptr */) {
+bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta, Value* pval /* = nullptr */) {
   auto& tree0 = _trees[0];
 
   bool hasPrevVal = pval != nullptr && (*pval != -Value::Inf);
   Value baseVal = hasPrevVal ? *pval : 0;
+  baseVal = Value::max(baseVal, baseAlpha);
+  baseVal = Value::min(baseVal, baseBeta);
+
   CONSTEXPR int wmax = 3;
   const Value alphas[wmax] = { baseVal-198, baseVal-793, -Value::Mate };
   const Value betas[wmax] = { baseVal+198, baseVal+793, Value::Mate };
+
   int lower = hasPrevVal ? 0 : wmax - 1;
   int upper = hasPrevVal ? 0 : wmax - 1;
+
   Value value = alphas[lower];
 
   while (true) {
 
     _timeManager.startDepth();
 
-    const Value alpha = alphas[lower];
-    const Value beta = betas[upper];
+    const Value alpha = Value::max(alphas[lower], baseAlpha);
+    const Value beta = Value::min(betas[upper], baseBeta);
 
     value = searchRoot(tree0, depth, alpha, beta, best);
 
@@ -2349,8 +2354,12 @@ bool Searcher::searchAsp(int depth, Move& best, Value* pval /* = nullptr */) {
 
     bool retry = false;
 
+    if (value <= baseAlpha || value >= baseBeta) {
+      break;
+    }
+
     // alpha 値を広げる
-    while (value <= alphas[lower] && lower != wmax - 1) {
+    while (value <= alphas[lower] && alphas[lower] > baseAlpha && lower != wmax - 1) {
       lower++;
       assert(lower < wmax);
       retry = true;
@@ -2358,7 +2367,7 @@ bool Searcher::searchAsp(int depth, Move& best, Value* pval /* = nullptr */) {
     }
 
     // beta 値を広げる
-    while (value >= betas[upper] && upper != wmax - 1) {
+    while (value >= betas[upper] && betas[upper] < baseBeta && upper != wmax - 1) {
       upper++;
       assert(upper < wmax);
       retry = true;
@@ -2465,7 +2474,7 @@ void Searcher::generateMovesOnRoot() {
  * iterative deepening search from root node
  * @return {負けたか深さ1で中断された場合にfalseを返します。}
  */
-bool Searcher::idsearch(Move& best) {
+bool Searcher::idsearch(Move& best, Value alpha, Value beta) {
   auto& tree0 = _trees[0];
   bool result = false;
 
@@ -2476,7 +2485,7 @@ bool Searcher::idsearch(Move& best) {
   tree0.sortAll();
 
   for (int depth = 1; depth <= _config.maxDepth; depth++) {
-    bool cont = searchAsp(depth * Depth1Ply + Depth1Ply / 2, best, &value);
+    bool cont = searchAsp(depth * Depth1Ply + Depth1Ply / 2, best, alpha, beta, &value);
 
 #if DEBUG_ROOT_MOVES
     std::ostringstream oss;
@@ -2517,7 +2526,7 @@ bool Searcher::idsearch(Move& best) {
  * 指定した局面に対して探索を実行します。
  * @return {負けたか中断された場合にfalseを返します。}
  */
-bool Searcher::search(const Board& initialBoard, Move& best) {
+bool Searcher::search(const Board& initialBoard, Move& best, Value alpha, Value beta) {
 
   // 前処理
   before(initialBoard);
@@ -2527,7 +2536,7 @@ bool Searcher::search(const Board& initialBoard, Move& best) {
 
   generateMovesOnRoot();
 
-  bool result = searchAsp(depth, best);
+  bool result = searchAsp(depth, best, alpha, beta);
 
   // 後処理
   after();
@@ -2540,12 +2549,12 @@ bool Searcher::search(const Board& initialBoard, Move& best) {
  * 指定した局面に対して反復深化探索を実行します。
  * @return {負けたか深さ1で中断された場合にfalseを返します。}
  */
-bool Searcher::idsearch(const Board& initialBoard, Move& best) {
+bool Searcher::idsearch(const Board& initialBoard, Move& best, Value alpha, Value beta) {
 
   // 前処理
   before(initialBoard);
 
-  bool result = idsearch(best);
+  bool result = idsearch(best, alpha, beta);
 
   // 後処理
   after();

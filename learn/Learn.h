@@ -78,7 +78,7 @@ private:
   /**
    * 棋譜ファイルを読み込んで学習します。
    */
-  bool readCsa(const char* path);
+  bool readCsa(size_t count, size_t total, const char* path);
 
 public:
 
