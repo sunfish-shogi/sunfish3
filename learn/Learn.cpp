@@ -179,8 +179,6 @@ void Learn::genGradient(int wn, Board board, Move move0) {
 
     // 特徴抽出
     _g.extract<float, true>(leaf, gsum);
-
-    _activeCount--;
   }
 }
 
@@ -205,6 +203,8 @@ void Learn::work(int wn) {
     }
 
     genGradient(wn, job.board, job.move);
+
+    _activeCount--;
   }
 }
 

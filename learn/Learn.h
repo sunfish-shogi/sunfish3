@@ -65,7 +65,7 @@ private:
 
   std::atomic<bool> _shutdown;
 
-  int _activeCount;
+	std::atomic<int> _activeCount;
 
   std::mutex _mutex;
 
