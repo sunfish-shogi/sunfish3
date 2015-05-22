@@ -23,17 +23,17 @@
 
 #define SEARCH_WINDOW           256
 #define NUMBER_OF_SIBLING_NODES 16
-#define MINI_BATCH_COUNT        20
+#define MINI_BATCH_COUNT        32
 
 namespace sunfish {
 
 namespace {
 
-  void applySearcherConfig(Searcher& searcher, int depth) {
+  void applySearcherConfig(Searcher& searcher, int depth, int snt) {
     auto searchConfig = searcher.getConfig();
     searchConfig.maxDepth = depth;
-    searchConfig.workerSize = 1;
-    searchConfig.treeSize = 1;
+    searchConfig.workerSize = snt;
+    searchConfig.treeSize = Searcher::standardTreeSize(snt);
     searchConfig.enableLimit = false;
     searchConfig.enableTimeManagement = false;
     searchConfig.ponder = false;
@@ -65,7 +65,7 @@ namespace {
   }
 
   inline float norm(float x) {
-    CONSTEXPR float n = 0.02f;
+    CONSTEXPR float n = 0.01f;
     if (x > 0.0f) {
       return -n;
     } else if (x < 0.0f) {
@@ -333,8 +333,12 @@ bool Learn::run() {
   _w.init();
   _u.init();
 
-  // スレッド数
+  // 学習スレッド数
   int nt = _config.getInt(CONF_THREADS);
+
+  // 探索スレッド数
+  int snt = nt >= 4 ? 2 : 1;
+  nt = nt / snt;
 
   // Searcher生成
   uint32_t seed = static_cast<uint32_t>(time(NULL));
@@ -344,7 +348,7 @@ bool Learn::run() {
     _rgens.emplace_back(seed);
     seed = _rgens.back()();
     _searchers.emplace_back(new Searcher(_eval));
-    applySearcherConfig(*_searchers.back().get(), _config.getInt(CONF_DEPTH));
+    applySearcherConfig(*_searchers.back().get(), _config.getInt(CONF_DEPTH), snt);
   }
 
   // ワーカースレッド生成
