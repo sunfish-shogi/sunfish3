@@ -63,6 +63,8 @@ private:
 
   std::vector<std::thread> _threads;
 
+  uint32_t _nt;
+
   std::atomic<bool> _shutdown;
 
 	std::atomic<int> _activeCount;
