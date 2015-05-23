@@ -12,6 +12,7 @@
 #include "core/def.h"
 #include "logger/Logger.h"
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <ctime>
 
@@ -29,15 +30,20 @@ namespace sunfish {
 
 namespace {
 
-  void applySearcherConfig(Searcher& searcher, int depth, int snt) {
+  void initSearcherConfig(Searcher& searcher, int snt) {
     auto searchConfig = searcher.getConfig();
-    searchConfig.maxDepth = depth;
     searchConfig.workerSize = snt;
     searchConfig.treeSize = Searcher::standardTreeSize(snt);
     searchConfig.enableLimit = false;
     searchConfig.enableTimeManagement = false;
     searchConfig.ponder = false;
     searchConfig.logging = false;
+    searcher.setConfig(searchConfig);
+  }
+
+  void setSearcherDepth(Searcher& searcher, int depth) {
+    auto searchConfig = searcher.getConfig();
+    searchConfig.maxDepth = depth;
     searcher.setConfig(searchConfig);
   }
 
@@ -112,6 +118,7 @@ void Learn::genGradient(int wn, Board board, Move move0) {
   {
     // 探索
     board.makeMove(move0);
+    setSearcherDepth(*_searchers[wn], _config.getInt(CONF_DEPTH));
     _searchers[wn]->idsearch(board, tmpMove);
     board.unmakeMove(move0);
 
@@ -136,8 +143,10 @@ void Learn::genGradient(int wn, Board board, Move move0) {
   float gsum = 0;
   for (auto& move : moves) {
     // 探索
+		CONSTEXPR int reduction = 1;
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
+    setSearcherDepth(*_searchers[wn], _config.getInt(CONF_DEPTH) - reduction);
     _searchers[wn]->idsearch(board, tmpMove, alpha, beta);
     board.unmakeMove(move);
 
@@ -187,7 +196,7 @@ void Learn::genGradient(int wn, Board board, Move move0) {
  */
 void Learn::work(int wn) {
   while (!_shutdown) {
-    std::this_thread::yield();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     Job job;
 
@@ -227,7 +236,7 @@ bool Learn::putJob(Board board, Move move0) {
           break;
         }
       }
-      std::this_thread::yield();
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
     // 値更新
@@ -347,7 +356,7 @@ bool Learn::run() {
     _rgens.emplace_back(seed);
     seed = _rgens.back()();
     _searchers.emplace_back(new Searcher(_eval));
-    applySearcherConfig(*_searchers.back().get(), _config.getInt(CONF_DEPTH), snt);
+    initSearcherConfig(*_searchers.back().get(), snt);
   }
 
   // ワーカースレッド生成
