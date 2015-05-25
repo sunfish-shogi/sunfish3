@@ -24,7 +24,8 @@
 
 #define SEARCH_WINDOW           256
 #define NUMBER_OF_SIBLING_NODES 16
-#define MINI_BATCH_COUNT        32
+#define MINI_BATCH_COUNT        128
+#define MINI_BATCH_SCALE        ((1.0f * ValuePair::PositionalScale) / (NUMBER_OF_SIBLING_NODES * MINI_BATCH_COUNT))
 
 namespace sunfish {
 
@@ -65,13 +66,13 @@ namespace {
 
   inline float gradient(float x) {
     CONSTEXPR float a = 0.025f;
-    CONSTEXPR float b = 4.0f;
+    CONSTEXPR float b = 32.0f * MINI_BATCH_SCALE;
     float s = sigmoid(a * x);
     return (1.0f * s - s * s) * b;
   }
 
   inline float norm(float x) {
-    CONSTEXPR float n = 0.01f;
+    CONSTEXPR float n = 0.02f * MINI_BATCH_SCALE;
     if (x > 0.0f) {
       return -n;
     } else if (x < 0.0f) {
@@ -166,8 +167,6 @@ void Learn::genGradient(int wn, Board board, Move move0) {
     // 特徴抽出
     float g = gradient(val.int32() - val0.int32());
     g = g * (black ? 1 : -1);
-    g = g * (4.0f / (NUMBER_OF_SIBLING_NODES * MINI_BATCH_COUNT));
-    g = g * ValuePair::PositionalScale;
     {
       std::lock_guard<std::mutex> lock(_mutex);
       _g.extract<float, true>(leaf, -g);
