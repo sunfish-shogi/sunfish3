@@ -27,6 +27,8 @@
 #define MINI_BATCH_COUNT        128
 #define MINI_BATCH_SCALE        ((1.0f * ValuePair::PositionalScale) / (NUMBER_OF_SIBLING_NODES * MINI_BATCH_COUNT))
 
+#define ENABLE_THREAD_PAIRING   0
+
 namespace sunfish {
 
 namespace {
@@ -344,7 +346,11 @@ bool Learn::run() {
   _nt = _config.getInt(CONF_THREADS);
 
   // 探索スレッド数
+#if ENABLE_THREAD_PAIRING
   int snt = _nt >= 4 ? 2 : 1;
+#else
+  int snt = 1;
+#endif
   _nt = _nt / snt;
 
   // Searcher生成
