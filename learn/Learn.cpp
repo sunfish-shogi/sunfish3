@@ -271,7 +271,7 @@ bool Learn::putJob(Board board, Move move0) {
     _miniBatchCount = 0;
 
     // TT を初期化
-    for (int wn = 0; wn < _nt; wn++) {
+    for (uint32_t wn = 0; wn < _nt; wn++) {
       _searchers[wn]->clearTT();
     }
   }
@@ -357,7 +357,7 @@ bool Learn::run() {
   uint32_t seed = static_cast<uint32_t>(time(NULL));
   _rgens.clear();
   _searchers.clear();
-  for (int wn = 0; wn < _nt; wn++) {
+  for (uint32_t wn = 0; wn < _nt; wn++) {
     _rgens.emplace_back(seed);
     seed = _rgens.back()();
     _searchers.emplace_back(new Searcher(_eval));
@@ -367,7 +367,7 @@ bool Learn::run() {
   // ワーカースレッド生成
   _shutdown = false;
   _threads.clear();
-  for (int wn = 0; wn < _nt; wn++) {
+  for (uint32_t wn = 0; wn < _nt; wn++) {
     _threads.emplace_back(std::bind(std::mem_fn(&Learn::work), this, wn));
   }
 
@@ -381,7 +381,7 @@ bool Learn::run() {
 
   // ワーカースレッド停止
   _shutdown = true;
-  for (int wn = 0; wn < _nt; wn++) {
+  for (uint32_t wn = 0; wn < _nt; wn++) {
     _threads[wn].join();
   }
 
