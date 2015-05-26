@@ -48,16 +48,18 @@ private:
   Bitboard _bbWHorse;
   Bitboard _bbWDragon;
 
-  Piece _board[Position::N];
+  uint64_t _boardHash;
+  uint64_t _handHash;
+
   Position _posBKing;
   Position _posWKing;
 
   Hand _blackHand;
   Hand _whiteHand;
+
   bool _black;
 
-  uint64_t _boardHash;
-  uint64_t _handHash;
+  Piece _board[Position::N];
 
   Bitboard& getBB(const Piece& piece) {
     return *(const_cast<Bitboard*>(&_getBB(piece)));

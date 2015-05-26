@@ -7,6 +7,7 @@
 #define __SUNFISH_HAND__
 
 #include "../base/Piece.h"
+#include <cstdint>
 #include <cstring>
 #include <cassert>
 
@@ -15,7 +16,7 @@ namespace sunfish {
 class Hand {
 private:
 
-  int _counts[Piece::HandNum];
+  uint8_t _counts[Piece::HandNum];
 
 public:
 
@@ -56,7 +57,7 @@ public:
     return _counts[piece];
   }
   void set(const Piece& piece, int count) {
-    _counts[piece.kindOnly().unpromote()] = count;
+    _counts[piece.kindOnly().unpromote()] = (int8_t)count;
   }
 };
 

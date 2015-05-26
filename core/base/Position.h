@@ -24,7 +24,7 @@ enum {
   P11, P12, P13, P14, P15, P16, P17, P18, P19,
 };
 
-enum class Direction : int {
+enum class Direction : int32_t {
   None,
   Up, Down, Left, Right,
   LeftUp, LeftDown,
@@ -33,7 +33,7 @@ enum class Direction : int {
   RightUpKnight, RightDownKnight,
 };
 
-enum class DirectionEx : int {
+enum class DirectionEx : int32_t {
   None,
   Up, Down, Left, Right,
   LeftUp, LeftDown,
@@ -45,7 +45,7 @@ enum class DirectionEx : int {
   LongRightUp, LongRightDown,
 };
 
-enum class HSideType : int {
+enum class HSideType : int32_t {
   None,
   Top,
   Bottom,
@@ -53,7 +53,7 @@ enum class HSideType : int {
   Bottom2,
 };
 
-enum class VSideType : int {
+enum class VSideType : int32_t {
   None,
   Left,
   Right,
@@ -82,51 +82,51 @@ inline Direction getReversedDir(Direction dir) {
 class Position {
 private:
 
-  static const int DistanceTable[17][17];
+  static const int32_t DistanceTable[17][17];
   static const Direction DirectionTable[17][17];
   static const DirectionEx DirectionTableEx[17][17];
   static const HSideType HSideTypeTable[81];
   static const VSideType VSideTypeTable[81];
 
-  int _index;
+  int32_t _index;
 
 public:
 
-  static CONSTEXPR int Invalid = -1;
-  static CONSTEXPR int N = 81;
-  static CONSTEXPR int RankN = 9;
-  static CONSTEXPR int FileN = 9;
-  static CONSTEXPR int Begin = 0;
-  static CONSTEXPR int End = N + Begin;
+  static CONSTEXPR int32_t Invalid = -1;
+  static CONSTEXPR int32_t N = 81;
+  static CONSTEXPR int32_t RankN = 9;
+  static CONSTEXPR int32_t FileN = 9;
+  static CONSTEXPR int32_t Begin = 0;
+  static CONSTEXPR int32_t End = Begin + N;
 
   Position() : _index(Invalid) {
   }
-  Position(int index) : _index(index) {
+  Position(int32_t index) : _index(index) {
   }
-  explicit Position(int file, int rank) {
+  explicit Position(int32_t file, int32_t rank) {
     set(file, rank);
   }
 
-  operator int() const {
+  operator int32_t() const {
     return _index;
   }
-  int get() const {
+  int32_t get() const {
     return _index;
   }
 
-  Position& set(int index) {
+  Position& set(int32_t index) {
     _index = index;
     return *this;
   }
-  Position& set(int file, int rank) {
+  Position& set(int32_t file, int32_t rank) {
     _index = (9 - file) * RankN + rank - 1;
     return *this;
   }
 
-  int getFile() const {
+  int32_t getFile() const {
     return 9 - (_index / RankN);
   }
-  int getRank() const {
+  int32_t getRank() const {
     return _index % RankN + 1;
   }
 
@@ -139,10 +139,10 @@ public:
   bool isStrictValid() const {
     return _index >= 0 && _index < End;
   }
-  static bool isValidFile(int file) {
+  static bool isValidFile(int32_t file) {
     return file >= 1 && file <= 9;
   }
-  static bool isValidRank(int rank) {
+  static bool isValidRank(int32_t rank) {
     return rank >= 1 && rank <= 9;
   }
   template<bool black>
@@ -192,38 +192,38 @@ public:
   Position reverse() const {
     return N - 1 - _index;
   }
-  Position up(int distance = 1) const {
+  Position up(int32_t distance = 1) const {
     assert(getRank() != 1);
     return _index - distance;
   }
-  Position down(int distance = 1) const {
+  Position down(int32_t distance = 1) const {
     assert(getRank() != 9);
     return _index + distance;
   }
-  Position left(int distance = 1) const {
+  Position left(int32_t distance = 1) const {
     assert(getFile() != 9);
     return _index - distance * RankN;
   }
-  Position right(int distance = 1) const {
+  Position right(int32_t distance = 1) const {
     assert(getFile() != 1);
     return _index + distance * RankN;
   }
-  Position leftUp(int distance = 1) const {
+  Position leftUp(int32_t distance = 1) const {
     assert(getRank() != 1);
     assert(getFile() != 9);
     return (*this).left(distance).up(distance);
   }
-  Position leftDown(int distance = 1) const {
+  Position leftDown(int32_t distance = 1) const {
     assert(getRank() != 9);
     assert(getFile() != 9);
     return (*this).left(distance).down(distance);
   }
-  Position rightUp(int distance = 1) const {
+  Position rightUp(int32_t distance = 1) const {
     assert(getRank() != 1);
     assert(getFile() != 1);
     return (*this).right(distance).up(distance);
   }
-  Position rightDown(int distance = 1) const {
+  Position rightDown(int32_t distance = 1) const {
     assert(getRank() != 9);
     assert(getFile() != 1);
     return (*this).right(distance).down(distance);
@@ -248,40 +248,40 @@ public:
     assert(getFile() != 1);
     return (*this).right().down(2);
   }
-  Position safetyUp(int distance = 1) const {
+  Position safetyUp(int32_t distance = 1) const {
     if (isInvalid()) { return Position(Invalid); }
-    int file = getFile();
-    int rank = getRank() - distance;
+    int32_t file = getFile();
+    int32_t rank = getRank() - distance;
     return rank >= 1 ? Position(file, rank) : Position(Invalid);
   }
-  Position safetyDown(int distance = 1) const {
+  Position safetyDown(int32_t distance = 1) const {
     if (isInvalid()) { return Position(Invalid); }
-    int file = getFile();
-    int rank = getRank() + distance;
+    int32_t file = getFile();
+    int32_t rank = getRank() + distance;
     return rank <= 9 ? Position(file, rank) : Position(Invalid);
   }
-  Position safetyLeft(int distance = 1) const {
+  Position safetyLeft(int32_t distance = 1) const {
     if (isInvalid()) { return Position(Invalid); }
-    int file = getFile() + distance;
-    int rank = getRank();
+    int32_t file = getFile() + distance;
+    int32_t rank = getRank();
     return file <= 9 ? Position(file, rank) : Position(Invalid);
   }
-  Position safetyRight(int distance = 1) const {
+  Position safetyRight(int32_t distance = 1) const {
     if (isInvalid()) { return Position(Invalid); }
-    int file = getFile() - distance;
-    int rank = getRank();
+    int32_t file = getFile() - distance;
+    int32_t rank = getRank();
     return file >= 1 ? Position(file, rank) : Position(Invalid);
   }
-  Position safetyLeftUp(int distance = 1) const {
+  Position safetyLeftUp(int32_t distance = 1) const {
     return (*this).safetyLeft(distance).safetyUp(distance);
   }
-  Position safetyLeftDown(int distance = 1) const {
+  Position safetyLeftDown(int32_t distance = 1) const {
     return (*this).safetyLeft(distance).safetyDown(distance);
   }
-  Position safetyRightUp(int distance = 1) const {
+  Position safetyRightUp(int32_t distance = 1) const {
     return (*this).safetyRight(distance).safetyUp(distance);
   }
-  Position safetyRightDown(int distance = 1) const {
+  Position safetyRightDown(int32_t distance = 1) const {
     return (*this).safetyRight(distance).safetyDown(distance);
   }
   Position safetyLeftUpKnight() const {
@@ -300,9 +300,9 @@ public:
     return _index + 1;
   }
   Position nextRightDown() const {
-    int file = _index / RankN;
+    int32_t file = _index / RankN;
     if (file == 8) {
-      int rank = _index % RankN;
+      int32_t rank = _index % RankN;
       if (rank == RankN - 1) {
         return End;
       }
@@ -310,19 +310,19 @@ public:
     }
     return _index + RankN;
   }
-  int distance(const Position& to) const {
-    int rank = to._index % RankN - _index % RankN + 8;
-    int file = to._index / RankN - _index / RankN + 8;
+  int32_t distance(const Position& to) const {
+    int32_t rank = to._index % RankN - _index % RankN + 8;
+    int32_t file = to._index / RankN - _index / RankN + 8;
     return DistanceTable[rank][file];
   }
   Direction dir(const Position& to) const {
-    int rank = to._index % RankN - _index % RankN + 8;
-    int file = to._index / RankN - _index / RankN + 8;
+    int32_t rank = to._index % RankN - _index % RankN + 8;
+    int32_t file = to._index / RankN - _index / RankN + 8;
     return DirectionTable[rank][file];
   }
   DirectionEx dirEx(const Position& to) const {
-    int rank = to._index % RankN - _index % RankN + 8;
-    int file = to._index / RankN - _index / RankN + 8;
+    int32_t rank = to._index % RankN - _index % RankN + 8;
+    int32_t file = to._index / RankN - _index / RankN + 8;
     return DirectionTableEx[rank][file];
   }
   HSideType sideTypeH() const {

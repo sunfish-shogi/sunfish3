@@ -8,7 +8,7 @@
 
 namespace sunfish {
 
-const int Position::DistanceTable[17][17] = {
+const int32_t Position::DistanceTable[17][17] = {
   { 8, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 8, },
   { 0, 7, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 7, 0, },
   { 0, 0, 6, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 6, 0, 0, },

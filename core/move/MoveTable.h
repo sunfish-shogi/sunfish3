@@ -105,7 +105,6 @@ extern const DirectionMaskTable<false> dirMask7x7;
 class MagicNumberTable {
 private:
   Bitboard _rank[Position::N];
-  Bitboard _leftMagic[Position::N];
   Bitboard _leftUp[Position::N];
   Bitboard _rightUp[Position::N];
 

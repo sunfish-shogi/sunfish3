@@ -257,7 +257,6 @@ void See::generateAttackers(const Board& board, const Move& move) {
   dummyAttacker.value = Value::Inf;
 
   _bref[_bnum] = &dummyAttacker;
-  _bref[_bnum-1] = &_b[_bnum-1];
   for (int i = _bnum - 1; i >= 0; i--) {
     AttackerRef tmp = _bref[i] = &_b[i];
     Value value = tmp->value;
@@ -269,7 +268,6 @@ void See::generateAttackers(const Board& board, const Move& move) {
   }
 
   _wref[_wnum] = &dummyAttacker;
-  _wref[_wnum-1] = &_w[_wnum-1];
   for (int i = _wnum - 1; i >= 0; i--) {
     AttackerRef tmp = _wref[i] = &_w[i];
     Value value = tmp->value;
