@@ -10,6 +10,7 @@
 #include "core/move/MoveGenerator.h"
 #include "logger/Logger.h"
 #include <iomanip>
+#include <cmath>
 
 #define ENABLE_HIST_REUSE             1
 #define ENABLE_LMR                    1

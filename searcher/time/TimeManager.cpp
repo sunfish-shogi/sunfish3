@@ -6,6 +6,7 @@
 #include "TimeManager.h"
 #include "core/def.h"
 #include "logger/Logger.h"
+#include <cmath>
 #include <cassert>
 
 #define ENABLE_EASY_LOG 1
@@ -14,7 +15,7 @@ namespace {
 
 double sigmoid(double x) {
   constexpr double g = 4.0;
-  return 1.0 / (1.0 + exp((-g)*x));
+  return 1.0 / (1.0 + std::exp((-g)*x));
 }
 
 } // namespace
