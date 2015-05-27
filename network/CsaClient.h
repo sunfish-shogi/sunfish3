@@ -239,7 +239,7 @@ private:
   void writeResult();
 
   void printSearchInfo(Value value,
-      uint64_t nodes, int depth, double seconds) {
+      uint64_t nodes, int depth, float seconds) {
     std::cout << std::setw(2) << depth << std::setw(10) << nodes
         << ':' << value.int32() << " (" << seconds << "sec)\n";
   }

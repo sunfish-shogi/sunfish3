@@ -77,7 +77,7 @@ namespace expt {
         uint64_t s = succ_[i];
         uint64_t f = fail_[i];
         if (s != 0 || f != 0) {
-          double r = (double)f / (s + f) * 100.0;
+          float r = (float)f / (s + f) * 100.0;
           Loggers::warning << "  " << i << ": " << f << "/" << (s+f) << " (" << r << "%)";
         }
       }
@@ -455,7 +455,7 @@ std::string Searcher::getInfoString() const {
   auto format2 = [](int64_t value, int64_t total) {
     std::ostringstream oss;
     oss << std::setw(8) << (value) << '/' << std::setw(8) << (total)
-      << " (" << std::setw(5) << std::fixed << std::setprecision(1)<< ((double)(value) / ((total)!=0?(total):1) * 100.0) << "%)";
+      << " (" << std::setw(5) << std::fixed << std::setprecision(1)<< ((float)(value) / ((total)!=0?(total):1) * 100.0) << "%)";
     return oss.str();
   };
 
@@ -2396,7 +2396,7 @@ bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta,
   }
 
   if (!_config.ponder && _config.enableTimeManagement) {
-    double limit = _config.enableLimit ? _config.limitSeconds : 0.0;
+    float limit = _config.enableLimit ? _config.limitSeconds : 0.0;
     if (_timeManager.isEasy(limit, _timer.get())) {
       return false;
     }
@@ -2436,7 +2436,7 @@ void Searcher::showEndOfIterate(int depth) {
   mergeInfo();
 
   uint64_t node = _info.node + _info.qnode;
-  double seconds = _timer.get();
+  float seconds = _timer.get();
 
   std::ostringstream oss;
   if (_info.lastDepth == depth) {

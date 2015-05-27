@@ -97,6 +97,11 @@ int32_t Config::getInt(const std::string& name) const {
   return std::stoi(value);
 }
 
+float Config::getFloat(const std::string& name) const {
+  std::string value = getString(name);
+  return std::stof(value);
+}
+
 double Config::getDouble(const std::string& name) const {
   std::string value = getString(name);
   return std::stod(value);

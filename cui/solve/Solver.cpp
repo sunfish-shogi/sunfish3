@@ -20,9 +20,9 @@ void Solver::solve() {
     solve(problem);
   }
 
-  double correctRatio = (double)_summary.correct / _summary.total;
-  double incorrectRatio = (double)_summary.incorrect / _summary.total;
-  double ignoreRatio = (double)_summary.ignore / _summary.total;
+  float correctRatio = (float)_summary.correct / _summary.total;
+  float incorrectRatio = (float)_summary.incorrect / _summary.total;
+  float ignoreRatio = (float)_summary.ignore / _summary.total;
 
   Loggers::message << "Complete!!";
   Loggers::message << "";

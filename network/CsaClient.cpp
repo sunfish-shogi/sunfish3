@@ -380,13 +380,13 @@ void CsaClient::buildSearchConfig(Searcher::Config& searchConfig) {
     const auto& myTime = _gameSummary.black ? _blackTime : _whiteTime;
 
     // 次の一手で利用可能な最大時間
-    double usableTime = myTime.usable();
+    float usableTime = myTime.usable();
 
     // マージン
-    constexpr double marginTime = 1.0;
+    constexpr float marginTime = 1.0f;
 
     // 最大思考時間を確定
-    usableTime = std::min(usableTime - marginTime, std::max(usableTime / 5.0, myTime.getReadoff() * 3.0));
+    usableTime = std::min(usableTime - marginTime, std::max(usableTime / 5.0f, myTime.getReadoff() * 3.0f));
     searchConfig.limitSeconds = std::min(searchConfig.limitSeconds, usableTime);
 
     // 時間を使いきっている場合は最大まで使う

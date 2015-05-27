@@ -13,8 +13,8 @@
 
 namespace {
 
-double sigmoid(double x) {
-  constexpr double g = 4.0;
+float sigmoid(float x) {
+  constexpr float g = 4.0;
   return 1.0 / (1.0 + std::exp((-g)*x));
 }
 
@@ -43,7 +43,7 @@ void TimeManager::addMove(Move move, Value value) {
   }
 }
 
-bool TimeManager::isEasy(double limit, double elapsed) {
+bool TimeManager::isEasy(float limit, float elapsed) {
   CONSTEXPR int easyDepth = 5;
 
   if (_depth <= easyDepth) {
@@ -54,21 +54,21 @@ bool TimeManager::isEasy(double limit, double elapsed) {
   const auto& prev = _stack[_depth-1];
   const auto& curr = _stack[_depth];
 
-  limit = std::min(limit, 3600.0);
+  limit = std::min(limit, 3600.0f);
 
   if (elapsed < std::max(limit * 0.02, 3.0)) {
     return false;
   }
 
-  if (elapsed >= limit * 0.85) {
+  if (elapsed >= limit * 0.85f) {
 #if ENABLE_EASY_LOG
     Loggers::message << __FILE_LINE__;
 #endif
     return true;
   }
 
-  double baseTime = std::max(limit * 0.25, 3.0);
-  double r = 5.0 * sigmoid(0.7 * (elapsed - baseTime) / baseTime);
+  float baseTime = std::max(limit * 0.25f, 3.0f);
+  float r = 5.0f * sigmoid(0.7f * (elapsed - baseTime) / baseTime);
 
 #if ENABLE_EASY_LOG
   {

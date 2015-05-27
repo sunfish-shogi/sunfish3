@@ -61,11 +61,11 @@ public:
 
   /** 探索設定 */
   struct Config {
-    int maxDepth;
-    int treeSize;
-    int workerSize;
+    int32_t maxDepth;
+    int32_t treeSize;
+    int32_t workerSize;
+    float limitSeconds;
     bool enableLimit;
-    double limitSeconds;
     bool enableTimeManagement;
     bool ponder;
     bool logging;

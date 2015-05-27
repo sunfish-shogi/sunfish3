@@ -58,11 +58,11 @@ struct SearchInfoBase {
 };
 
 struct SearchInfo : public SearchInfoBase {
-  double time;
-  double nps;
+  float time;
+  float nps;
   Move move;
   Value eval;
-  int lastDepth;
+  int32_t lastDepth;
   Pv pv;
 };
 

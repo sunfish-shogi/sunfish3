@@ -264,7 +264,7 @@ bool Learn::putJob(Board board, Move move0) {
 
     Loggers::message << "max=" << max << " magnitude=" << magnitude;
 
-    double elapsed = _timer.get();
+    float elapsed = _timer.get();
     Loggers::message << "elapsed: " << elapsed;
 
     _count++;
@@ -410,7 +410,7 @@ bool Learn::run() {
   // 重みベクトルを保存
   _eval.writeFile();
 
-  double elapsed = _timer.get();
+  float elapsed = _timer.get();
   Loggers::message << "[final] elapsed: " << elapsed;
 
   return true;

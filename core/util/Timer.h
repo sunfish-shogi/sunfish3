@@ -63,7 +63,7 @@ public:
   /**
    * get current time(sec) from base
    */
-  double get() const {
+  float get() const {
 
 #ifdef WIN32
 
@@ -71,13 +71,18 @@ public:
     LARGE_INTEGER time_n, freq;
     QueryPerformanceCounter(&time_n);
     QueryPerformanceFrequency(&freq);
-    return (time_n.QuadPart - time_b.QuadPart + 1) / (double)freq.QuadPart;
+    double td = time_n.QuadPart - time_b.QuadPart + 1;
+    double qp = freq.QuadPart;
+    return static_cast<float>(td / qp);
 
 #elif __MACH__
 
     // mac os x
-    double time_n = mach_absolute_time();
-    return (time_n - time_b) * ((double)tb.numer / tb.denom) * 1.0e-9;
+    uint64_t time_n = mach_absolute_time();
+    double td = time_n - time_b;
+    double tbn = tb.numer;
+    double tbd = tb.denom;
+    return static_cast<float>(td * tbn / tbd * 1.0e-9f);
 
 #else
 
@@ -90,7 +95,9 @@ public:
 # else
     clock_gettime(CLOCK_REALTIME, &time_n);
 # endif
-    return (time_n.tv_sec - time_b.tv_sec) + (time_n.tv_nsec - time_b.tv_nsec) * 1.0e-9;
+    float sec = time_n.tv_sec - time_b.tv_sec;
+    float nsec = time_n.tv_nsec - time_b.tv_nsec;
+    return sec + nsec * 1.0e-9f;
 
 #endif
 

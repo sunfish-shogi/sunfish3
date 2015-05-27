@@ -58,8 +58,8 @@ P-00FU00FU00FU00FU00FU00KE00GI00KI\n\
     gen.generate(record.getBoard(), moves);
   }
 
-  double elapsed = timer.get();
-  double speed = (double)count / elapsed;
+  float elapsed = timer.get();
+  float speed = (float)count / elapsed;
   Loggers::develop << "elapsed: " << elapsed << "[sec]";
   Loggers::develop << "count  : " << count;
   Loggers::develop << "speed  : " << std::fixed << std::setprecision(2) << speed << "[1/sec]";

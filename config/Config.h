@@ -55,6 +55,7 @@ public:
 
   std::string getString(const char* name) const;
   int32_t getInt(const std::string& name) const;
+  float getFloat(const std::string& name) const;
   double getDouble(const std::string& name) const;
   bool getBool(const std::string& name) const;
 

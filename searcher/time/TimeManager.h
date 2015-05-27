@@ -29,7 +29,7 @@ public:
   void nextDepth();
   void startDepth();
   void addMove(Move move, Value value);
-  bool isEasy(double limit, double elapsed);
+  bool isEasy(float limit, float elapsed);
 
 };
 
