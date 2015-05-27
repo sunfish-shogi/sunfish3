@@ -189,9 +189,9 @@ public:
 
 private:
 
-  EvaluateTable<22> _evaluateCache;
+  EvaluateTable<18> _evaluateCache;
 
-  EvaluateTable<22> _estimateCache;
+  EvaluateTable<18> _estimateCache;
 
   std::shared_ptr<Table> readFvBin();
 

@@ -17,13 +17,13 @@ class Searcher;
 
 struct Worker {
 
+  SearchInfoBase info;
   std::thread thread;
   Searcher* psearcher;
   int workerId;
   std::atomic<int> treeId;
   std::atomic<bool> job;
   std::atomic<bool> shutdown;
-  SearchInfoBase info;
 
   void init(int id, Searcher* ps);
 

@@ -17,8 +17,10 @@
 #include "time/TimeManager.h"
 #include "core/record/Record.h"
 #include "core/util/Timer.h"
+#include <algorithm>
 #include <mutex>
 #include <atomic>
+#include <climits>
 
 namespace sunfish {
 
@@ -28,7 +30,7 @@ struct Worker;
 class Gains {
 private:
 
-  Value _gains[Piece::Num][Position::N];
+  uint16_t _gains[Piece::Num][Position::N];
 
 public:
 
@@ -40,8 +42,10 @@ public:
     assert(move.piece() < Piece::Num);
     assert(move.to() >= 0);
     assert(move.to() < Position::N);
-    Value& ref = _gains[move.piece()][move.to()];
-    ref = Value::max(ref - 1, gain);
+    assert(gain.int32() < (1<<16));
+    assert(gain.int32() > -(1<<16));
+    uint16_t& ref = _gains[move.piece()][move.to()];
+    ref = std::max(ref - 1, gain.int32());
   }
 
   Value get(const Move& move) {
@@ -98,7 +102,7 @@ private:
   Gains _gains;
 
   /** mate table */
-  MateTable _mateTable;
+  MateTable<18> _mateTable;
 
   /** mate history */
   MateHistory _mateHistory;
@@ -111,7 +115,7 @@ private:
 
   int _rootDepth;
 
-  SeeTable<22> _seeCache;
+  SeeTable<18> _seeCache;
 
   std::mutex _splitMutex;
 

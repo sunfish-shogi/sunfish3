@@ -57,10 +57,8 @@ private:
     Moves histMoves;
     GenPhase genPhase;
     ExpStat expStat;
-    bool isThroughPhase;
     Moves::iterator ite;
     int count;
-    bool checking;
     Pv pv;
     ValuePair valuePair;
     Move hash;
@@ -75,6 +73,8 @@ private:
     Move nocap1;
     Move nocap2;
     Move excluded;
+    bool isThroughPhase;
+    bool checking;
   };
 
   struct CheckHist {

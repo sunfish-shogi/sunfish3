@@ -19,6 +19,8 @@ private:
   static CONSTEXPR uint64_t ValueMask = (uint64_t)((1U << KeyLength) - 1U);
   static CONSTEXPR uint64_t HashMask = ~ValueMask;
 
+  static_assert(ValueInf >= Value::Inf, "error");
+
   uint64_t _data;
 
   static int32_t convertValue(int32_t value) {

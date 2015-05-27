@@ -30,7 +30,7 @@ private:
   static_assert((ValueTypeMask & HashMask) == 0, "invalid");
   static_assert((ValueMask & HashMask) == 0, "invalid");
   static_assert((ValueTypeMask | ValueMask | HashMask) == ~0ULL, "invalid");
-  static_assert(ValueInf > 100000, "invalid");
+  static_assert(ValueInf >= 30000, "invalid");
 
   uint64_t _data;
 

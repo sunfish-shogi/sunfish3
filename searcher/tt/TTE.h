@@ -12,7 +12,7 @@
 #include <cassert>
 #include <iostream>
 
-#define TT_INDEX_WIDTH 20
+#define TT_INDEX_WIDTH 19
 
 // 1st word
 #define TT_HASH_WIDTH  54

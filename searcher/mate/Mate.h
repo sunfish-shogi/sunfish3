@@ -15,42 +15,38 @@ namespace sunfish {
 
 class MateEntity {
 private:
-  static CONSTEXPR uint64_t KeyMask = 0x7fffffffffffffffllu;
+  static CONSTEXPR uint64_t KeyMask = 0xfffffffffffffffellu;
+  static CONSTEXPR uint64_t MateMask = 0x0000000000000001llu;
 
-  struct {
-    uint64_t key : 63;
-    bool mate : 1;
-  } _;
+  uint64_t _data;
 
 public:
 
   MateEntity() {
-    _.key = 0x00llu;
-    _.mate = false;
+    _data = 0x00ull;
   }
 
-  void init(unsigned) {
-    _.key = 0x00llu;
-    _.mate = false;
+  void init(unsigned index) {
+    _data = ~(uint64_t)index;
   }
 
   bool is(uint64_t key) const {
-    return _.key == (key & KeyMask);
+    return !((_data ^ key) & KeyMask);
   }
 
   bool isMate() const {
-    return _.mate;
+    return _data & MateMask;
   }
 
   void set(uint64_t key, bool mate) {
-    _.key = key & KeyMask;
-    _.mate = mate;
+    _data = (key & KeyMask) | (mate ? MateMask : 0x0ull);
   }
 };
 
+template <int KeyLength>
 class MateTable : public HashTable<MateEntity> {
 public:
-  MateTable() : HashTable<MateEntity>() {
+  MateTable() : HashTable<MateEntity>(KeyLength) {
   }
   MateTable(const MateTable&) = delete;
   MateTable(MateTable&&) = delete;

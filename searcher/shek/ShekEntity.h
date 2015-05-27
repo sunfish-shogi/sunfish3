@@ -27,9 +27,9 @@ private:
 
   HandSet _handSet;
   struct {
-    uint64_t hash : SHEK_HASH_WIDTH;
     uint32_t count : SHEK_COUNT_WIDTH;
     bool blackTurn : SHEK_TURN_WIDTH;
+    uint64_t hash : SHEK_HASH_WIDTH;
   } _;
 
   static_assert(sizeof(_) == 8, "invalid struct size");
