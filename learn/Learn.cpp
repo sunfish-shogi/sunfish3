@@ -74,7 +74,7 @@ namespace {
   }
 
   inline float norm(float x) {
-    CONSTEXPR float n = 0.02f * MINI_BATCH_SCALE;
+    CONSTEXPR float n = 0.005f * MINI_BATCH_SCALE;
     if (x > 0.0f) {
       return -n;
     } else if (x < 0.0f) {
