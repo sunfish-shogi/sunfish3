@@ -941,6 +941,8 @@ P-00KI00GI00KE00KE00FU00FU00FU\n\
 
     ASSERT_EQ(board.toStringCsa(), board2.toStringCsa());
     ASSERT_EQ(true, board2.validate());
+    ASSERT_EQ(P39, board2.getBKingPosition());
+    ASSERT_EQ(P22, board2.getWKingPosition());
   }
 }
 

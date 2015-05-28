@@ -191,6 +191,12 @@ void Board::init(const CheepBoard& cheepBoard) {
       Bitboard& occ = piece.isBlack() ? _bbBOccupy : _bbWOccupy;
       bb.set(pos);
       occ.set(pos);
+
+      if (piece == Piece::BKing) {
+        _posBKing = pos;
+      } else if (piece == Piece::WKing) {
+        _posWKing = pos;
+      }
     }
   }
 }
