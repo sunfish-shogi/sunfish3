@@ -99,7 +99,9 @@ Learn::Learn() {
  * 勾配を計算します.
  *
  */
-void Learn::genGradient(int wn, Board board, Move move0) {
+void Learn::genGradient(int wn, const Job& job) {
+  Board board(job.board);
+  Move move0 = job.move;
   Value val0;
   Pv pv0;
   Move tmpMove;
@@ -212,68 +214,75 @@ void Learn::work(int wn) {
       _activeCount++;
     }
 
-    genGradient(wn, job.board, job.move);
+    genGradient(wn, job);
 
     _activeCount--;
   }
 }
 
 /**
- * パラメータを更新します。
+ * ミニバッチを実行します。
  */
-bool Learn::putJob(Board board, Move move0) {
+bool Learn::miniBatch() {
+
+  if (_jobs.size() < MINI_BATCH_COUNT) {
+    return false;
+  }
+
+  Loggers::message << "mini-bach (" << _count << ")";
 
   {
     std::lock_guard<std::mutex> lock(_mutex);
-    _jobQueue.push({ board, move0 });
+
+    for (int i = 0; i < MINI_BATCH_COUNT; i++) {
+      _jobQueue.push(_jobs.back());
+      _jobs.pop_back();
+    }
   }
 
-  if (++_miniBatchCount >= MINI_BATCH_COUNT) {
-    // キューが空になるのを待つ
-    while (true) {
-      {
-        std::lock_guard<std::mutex> lock(_mutex);
-        if (_jobQueue.empty() && _activeCount == 0) {
-          break;
-        }
+  // キューが空になるのを待つ
+  while (true) {
+    {
+      std::lock_guard<std::mutex> lock(_mutex);
+      if (_jobQueue.empty() && _activeCount == 0) {
+        break;
       }
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
 
-    // 値更新
-    float max = 0.0f;
-    float magnitude = 0.0f;
-    for (int i = 0; i < KPP_ALL; i++) {
-      float g = _g._t->kpp[0][i] + norm(_w._t->kpp[0][i]);
-      _g._t->kpp[0][i] = 0.0f;
-      _w._t->kpp[0][i] += g;
-      _u._t->kpp[0][i] += g * _count;
-      _eval._t->kpp[0][i] = _w._t->kpp[0][i];
-      max = std::max(max, std::abs(_w._t->kpp[0][i]));
-      magnitude += std::abs(_w._t->kpp[0][i]);
-    }
-    for (int i = 0; i < KKP_ALL; i++) {
-      float g = _g._t->kkp[0][0][i] + norm(_w._t->kkp[0][0][i]);
-      _g._t->kkp[0][0][i] = 0.0f;
-      _w._t->kkp[0][0][i] += g;
-      _u._t->kkp[0][0][i] += g * _count;
-      _eval._t->kkp[0][0][i] = _w._t->kkp[0][0][i];
-      max = std::max(max, std::abs(_w._t->kkp[0][0][i]));
-      magnitude += std::abs(_w._t->kkp[0][0][i]);
-    }
+  // 値更新
+  float max = 0.0f;
+  float magnitude = 0.0f;
+  for (int i = 0; i < KPP_ALL; i++) {
+    float g = _g._t->kpp[0][i] + norm(_w._t->kpp[0][i]);
+    _g._t->kpp[0][i] = 0.0f;
+    _w._t->kpp[0][i] += g;
+    _u._t->kpp[0][i] += g * _count;
+    _eval._t->kpp[0][i] = _w._t->kpp[0][i];
+    max = std::max(max, std::abs(_w._t->kpp[0][i]));
+    magnitude += std::abs(_w._t->kpp[0][i]);
+  }
+  for (int i = 0; i < KKP_ALL; i++) {
+    float g = _g._t->kkp[0][0][i] + norm(_w._t->kkp[0][0][i]);
+    _g._t->kkp[0][0][i] = 0.0f;
+    _w._t->kkp[0][0][i] += g;
+    _u._t->kkp[0][0][i] += g * _count;
+    _eval._t->kkp[0][0][i] = _w._t->kkp[0][0][i];
+    max = std::max(max, std::abs(_w._t->kkp[0][0][i]));
+    magnitude += std::abs(_w._t->kkp[0][0][i]);
+  }
 
-    Loggers::message << "max=" << max << " magnitude=" << magnitude;
+  Loggers::message << "max=" << max << " magnitude=" << magnitude;
 
-    float elapsed = _timer.get();
-    Loggers::message << "elapsed: " << elapsed;
+  float elapsed = _timer.get();
+  Loggers::message << "elapsed: " << elapsed;
 
-    _count++;
-    _miniBatchCount = 0;
+  _count++;
 
-    // TT を初期化
-    for (uint32_t wn = 0; wn < _nt; wn++) {
-      _searchers[wn]->clearTT();
-    }
+  // TT を初期化
+  for (uint32_t wn = 0; wn < _nt; wn++) {
+    _searchers[wn]->clearTT();
   }
 
   return true;
@@ -283,7 +292,7 @@ bool Learn::putJob(Board board, Move move0) {
  * 棋譜ファイルを読み込んで学習します。
  */
 bool Learn::readCsa(size_t count, size_t total, const char* path) {
-  Loggers::message << "load(" << count << "/" << total << "): [" << path << "]";
+  Loggers::message << "loading (" << count << "/" << total << "): [" << path << "]";
 
   Record record;
   if (!CsaReader::read(path, record)) {
@@ -302,14 +311,20 @@ bool Learn::readCsa(size_t count, size_t total, const char* path) {
       break;
     }
 
-    bool ok = putJob(record.getBoard(), move);
-
-    if (!ok) {
-      return false;
-    }
+    _jobs.push_back({ record.getBoard().getCheepBoard(), move });
 
     // 1手進める
     if (!record.makeMove()) {
+      break;
+    }
+  }
+
+  // 訓練データのシャッフル
+  std::shuffle(_jobs.begin(), _jobs.end(), _rgens[0]);
+
+  while (true) {
+    bool ok = miniBatch();
+    if (!ok) {
       break;
     }
   }
@@ -337,7 +352,6 @@ bool Learn::run() {
   // 初期化
 	_eval.init();
   _count = 1;
-  _miniBatchCount = 0;
   _g.init();
   _w.init();
   _u.init();

@@ -35,7 +35,7 @@ class Learn {
 private:
 
   struct Job {
-    Board board;
+    CheepBoard board;
     Move move;
   };
 
@@ -51,13 +51,13 @@ private:
 
   uint32_t _count;
 
-  uint32_t _miniBatchCount;
-
   FV _g;
 
   FV _w;
 
   FV _u;
+
+  std::vector<Job> _jobs;
 
   std::queue<Job> _jobQueue;
 
@@ -71,11 +71,11 @@ private:
 
   std::mutex _mutex;
 
-  void genGradient(int wn, Board, Move);
+  void genGradient(int wn, const Job& job);
 
   void work(int wn);
 
-  bool putJob(Board, Move);
+  bool miniBatch();
 
   /**
    * 棋譜ファイルを読み込んで学習します。
