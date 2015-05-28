@@ -319,16 +319,6 @@ bool Learn::readCsa(size_t count, size_t total, const char* path) {
     }
   }
 
-  // 訓練データのシャッフル
-  std::shuffle(_jobs.begin(), _jobs.end(), _rgens[0]);
-
-  while (true) {
-    bool ok = miniBatch();
-    if (!ok) {
-      break;
-    }
-  }
-
   return true;
 }
 
@@ -378,6 +368,17 @@ bool Learn::run() {
     initSearcherConfig(*_searchers.back().get(), snt);
   }
 
+  // 棋譜の取り込み
+  size_t count = 0;
+  for (const auto& filename : fileList) {
+    readCsa(++count, fileList.size(), filename.c_str());
+  }
+
+  // 訓練データのシャッフル
+  std::shuffle(_jobs.begin(), _jobs.end(), _rgens[0]);
+
+  _activeCount = 0;
+
   // ワーカースレッド生成
   _shutdown = false;
   _threads.clear();
@@ -385,12 +386,12 @@ bool Learn::run() {
     _threads.emplace_back(std::bind(std::mem_fn(&Learn::work), this, wn));
   }
 
-  _activeCount = 0;
-
   // 学習処理の実行
-  size_t count = 0;
-  for (const auto& filename : fileList) {
-    readCsa(++count, fileList.size(), filename.c_str());
+  while (true) {
+    bool ok = miniBatch();
+    if (!ok) {
+      break;
+    }
   }
 
   // ワーカースレッド停止
