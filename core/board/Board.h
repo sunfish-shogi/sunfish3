@@ -13,6 +13,23 @@
 
 namespace sunfish {
 
+struct CheepBoard {
+  enum {
+    PositionMask = 0x007f,
+    PieceMask    = 0x0f80,
+
+    Black        = 0x4000,
+    End          = 0x8000,
+
+    PieceShift   = 7,
+
+    Hand         = 0x007f,
+  };
+
+  uint16_t buf[41];
+
+};
+
 class Board {
 private:
 
@@ -92,10 +109,18 @@ public:
   };
 
   Board();
+  explicit Board(Handicap handicap);
+  explicit Board(const CheepBoard& cheepBoard);
 
   void init();
   void init(Handicap handicap);
+  void init(const CheepBoard& cheepBoard);
   void refreshHash();
+
+  /**
+   * 冗長性の低いデータに変換します。
+   */
+  CheepBoard getCheepBoard() const;
 
   /** 局面のハッシュ値を返します。 */
   uint64_t getHash() const {

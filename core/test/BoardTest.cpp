@@ -915,4 +915,33 @@ P-\n\
   }
 }
 
+TEST(BoardTest, cheepBoardTest) {
+  {
+    std::string src = "\
+P1 *  * +TO *  *  *  *  * -KY\n\
+P2+UM *  *  *  *  * -KI-OU * \n\
+P3+TO *  *  *  * -GI-KE * -GI\n\
+P4-FU *  *  *  * -FU-HI * -FU\n\
+P5 *  *  *  *  *  * -FU+FU * \n\
+P6 *  * -FU-UM * +FU * +HI+FU\n\
+P7+FU *  *  *  *  * +FU * +KE\n\
+P8+KI *  * +FU-TO+GI+KI *  * \n\
+P9+KY *  *  *  *  * +OU * +KY\n\
+P+00KY00FU\n\
+P-00KI00GI00KE00KE00FU00FU00FU\n\
+-\n\
+";
+    std::istringstream iss(src);
+    Board board;
+    CsaReader::readBoard(iss, board);
+
+    CheepBoard cb = board.getCheepBoard();
+
+    Board board2(cb);
+
+    ASSERT_EQ(board.toStringCsa(), board2.toStringCsa());
+    ASSERT_EQ(true, board2.validate());
+  }
+}
+
 #endif // !defined(NDEBUG)

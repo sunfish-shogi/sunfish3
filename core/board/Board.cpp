@@ -30,6 +30,14 @@ Board::Board() {
   init();
 }
 
+Board::Board(Handicap handicap) {
+  init(handicap);
+}
+
+Board::Board(const CheepBoard& cheepBoard) {
+  init(cheepBoard);
+}
+
 const Bitboard& Board::_getBB(const Piece& piece) const {
   switch(piece) {
   case Piece::BPawn     : return _bbBPawn;
@@ -157,6 +165,36 @@ void Board::init(Handicap handicap) {
   refreshHash();
 }
 
+void Board::init(const CheepBoard& cheepBoard) {
+  init();
+
+  for (int index = 0; ; index++) {
+    if (cheepBoard.buf[index] & CheepBoard::End) {
+      _black = (cheepBoard.buf[index] & CheepBoard::Black) ? true : false;
+      break;
+    }
+
+    uint16_t d = cheepBoard.buf[index];
+    uint16_t c = (d & CheepBoard::PieceMask) >> CheepBoard::PieceShift;
+    uint16_t s = d & CheepBoard::PositionMask;
+
+    Piece piece = c;
+    if (s == CheepBoard::Hand) {
+      auto& hand = piece.isBlack() ? _blackHand : _whiteHand;
+      hand.inc(piece.kindOnly());
+
+    } else {
+      Position pos = s;
+
+      _board[pos] = piece;
+      Bitboard& bb = getBB(piece);
+      Bitboard& occ = piece.isBlack() ? _bbBOccupy : _bbWOccupy;
+      bb.set(pos);
+      occ.set(pos);
+    }
+  }
+}
+
 void Board::refreshHash() {
 
   _boardHash = 0ull;
@@ -188,6 +226,47 @@ for (int i = 0; i < num; i++) { \
   __HASH_HAND__(Bishop);
   __HASH_HAND__(Rook);
 
+}
+
+/**
+ * 冗長性の低いデータに変換します。
+ */
+CheepBoard Board::getCheepBoard() const {
+  CheepBoard cb;
+
+  int index = 0;
+
+  POSITION_EACH(pos) {
+    Piece piece = _board[pos];
+    if (!piece.isEmpty()) {
+      uint16_t c = static_cast<uint16_t>(piece.operator uint8_t()) << CheepBoard::PieceShift;
+      uint16_t s = static_cast<uint16_t>(pos.operator int32_t());
+      cb.buf[index++] = c | s;
+    }
+  }
+
+  HAND_EACH(piece) {
+    int num = _blackHand.get(piece);
+    uint16_t c = piece.black() << CheepBoard::PieceShift;
+    for (int n = 0; n < num; n++) {
+      cb.buf[index++] = c | CheepBoard::Hand;
+    }
+  }
+
+  HAND_EACH(piece) {
+    int num = _whiteHand.get(piece);
+    uint16_t c = piece.white() << CheepBoard::PieceShift;
+    for (int n = 0; n < num; n++) {
+      cb.buf[index++] = c | CheepBoard::Hand;
+    }
+  }
+
+  cb.buf[index] = CheepBoard::End;
+  if (_black) {
+    cb.buf[index] |= CheepBoard::Black;
+  }
+
+  return cb;
 }
 
 namespace _PinDir {
