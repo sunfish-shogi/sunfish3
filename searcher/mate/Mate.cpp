@@ -347,9 +347,9 @@ bool Mate::_mate1Ply(const Board& board) {
       Bitboard bb = black ? board.getBPawn() : board.getWPawn();
       bb &= black ? AttackableTables::bpawn(king) : AttackableTables::wpawn(king);
       if (black) {
-        bb.cheepRightShift(1);
+        bb.cheapRightShift(1);
       } else {
-        bb.cheepLeftShift(1);
+        bb.cheapLeftShift(1);
       }
       bb &= bbtGold | Bitboard::mask(to);
       bb &= movable;

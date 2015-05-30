@@ -915,7 +915,7 @@ P-\n\
   }
 }
 
-TEST(BoardTest, cheepBoardTest) {
+TEST(BoardTest, compactBoardTest) {
   {
     std::string src = "\
 P1 *  * +TO *  *  *  *  * -KY\n\

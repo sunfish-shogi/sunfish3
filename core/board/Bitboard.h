@@ -246,18 +246,18 @@ public:
 
   // shift operation
 #if USE_SSE2
-  void cheepLeftShift(int n) {
+  void cheapLeftShift(int n) {
     _bb.m = _mm_slli_epi64(_bb.m, n);
   }
-  void cheepRightShift(int n) {
+  void cheapRightShift(int n) {
     _bb.m = _mm_srli_epi64(_bb.m, n);
   }
 #else
-  void cheepLeftShift(int n) {
+  void cheapLeftShift(int n) {
     _high <<= n;
     _low <<= n;
   }
-  void cheepRightShift(int n) {
+  void cheapRightShift(int n) {
     _high >>= n;
     _low >>= n;
   }

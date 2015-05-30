@@ -110,11 +110,11 @@ public:
 
   Board();
   explicit Board(Handicap handicap);
-  explicit Board(const CompactBoard& cheepBoard);
+  explicit Board(const CompactBoard& compactBoard);
 
   void init();
   void init(Handicap handicap);
-  void init(const CompactBoard& cheepBoard);
+  void init(const CompactBoard& compactBoard);
   void refreshHash();
 
   /**

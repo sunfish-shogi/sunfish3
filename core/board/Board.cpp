@@ -34,8 +34,8 @@ Board::Board(Handicap handicap) {
   init(handicap);
 }
 
-Board::Board(const CompactBoard& cheepBoard) {
-  init(cheepBoard);
+Board::Board(const CompactBoard& cheapBoard) {
+  init(cheapBoard);
 }
 
 const Bitboard& Board::_getBB(const Piece& piece) const {
@@ -165,16 +165,16 @@ void Board::init(Handicap handicap) {
   refreshHash();
 }
 
-void Board::init(const CompactBoard& cheepBoard) {
+void Board::init(const CompactBoard& cheapBoard) {
   init();
 
   for (int index = 0; ; index++) {
-    if (cheepBoard.buf[index] & CompactBoard::End) {
-      _black = (cheepBoard.buf[index] & CompactBoard::Black) ? true : false;
+    if (cheapBoard.buf[index] & CompactBoard::End) {
+      _black = (cheapBoard.buf[index] & CompactBoard::Black) ? true : false;
       break;
     }
 
-    uint16_t d = cheepBoard.buf[index];
+    uint16_t d = cheapBoard.buf[index];
     uint16_t c = (d & CompactBoard::PieceMask) >> CompactBoard::PieceShift;
     uint16_t s = d & CompactBoard::PositionMask;
 
