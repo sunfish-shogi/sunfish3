@@ -935,7 +935,7 @@ P-00KI00GI00KE00KE00FU00FU00FU\n\
     Board board;
     CsaReader::readBoard(iss, board);
 
-    CheepBoard cb = board.getCheepBoard();
+    CompactBoard cb = board.getCompactBoard();
 
     Board board2(cb);
 

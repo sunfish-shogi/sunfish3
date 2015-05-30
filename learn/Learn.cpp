@@ -148,7 +148,7 @@ void Learn::genGradient(int wn, const Job& job) {
   float gsum = 0;
   for (auto& move : moves) {
     // 探索
-		CONSTEXPR int reduction = 1;
+    CONSTEXPR int reduction = 1;
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
     setSearcherDepth(*_searchers[wn], _config.getInt(CONF_DEPTH) - reduction);
@@ -311,7 +311,7 @@ bool Learn::readCsa(size_t count, size_t total, const char* path) {
       break;
     }
 
-    _jobs.push_back({ record.getBoard().getCheepBoard(), move });
+    _jobs.push_back({ record.getBoard().getCompactBoard(), move });
 
     // 1手進める
     if (!record.makeMove()) {
@@ -340,7 +340,7 @@ bool Learn::run() {
   fileList.enumerate(dir.c_str(), "csa");
 
   // 初期化
-	_eval.init();
+  _eval.init();
   _count = 1;
   _g.init();
   _w.init();

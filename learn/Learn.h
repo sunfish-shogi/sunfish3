@@ -35,7 +35,7 @@ class Learn {
 private:
 
   struct Job {
-    CheepBoard board;
+    CompactBoard board;
     Move move;
   };
 

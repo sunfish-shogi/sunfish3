@@ -13,7 +13,7 @@
 
 namespace sunfish {
 
-struct CheepBoard {
+struct CompactBoard {
   enum {
     PositionMask = 0x007f,
     PieceMask    = 0x0f80,
@@ -110,17 +110,17 @@ public:
 
   Board();
   explicit Board(Handicap handicap);
-  explicit Board(const CheepBoard& cheepBoard);
+  explicit Board(const CompactBoard& cheepBoard);
 
   void init();
   void init(Handicap handicap);
-  void init(const CheepBoard& cheepBoard);
+  void init(const CompactBoard& cheepBoard);
   void refreshHash();
 
   /**
    * 冗長性の低いデータに変換します。
    */
-  CheepBoard getCheepBoard() const;
+  CompactBoard getCompactBoard() const;
 
   /** 局面のハッシュ値を返します。 */
   uint64_t getHash() const {

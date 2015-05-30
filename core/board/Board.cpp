@@ -34,7 +34,7 @@ Board::Board(Handicap handicap) {
   init(handicap);
 }
 
-Board::Board(const CheepBoard& cheepBoard) {
+Board::Board(const CompactBoard& cheepBoard) {
   init(cheepBoard);
 }
 
@@ -165,21 +165,21 @@ void Board::init(Handicap handicap) {
   refreshHash();
 }
 
-void Board::init(const CheepBoard& cheepBoard) {
+void Board::init(const CompactBoard& cheepBoard) {
   init();
 
   for (int index = 0; ; index++) {
-    if (cheepBoard.buf[index] & CheepBoard::End) {
-      _black = (cheepBoard.buf[index] & CheepBoard::Black) ? true : false;
+    if (cheepBoard.buf[index] & CompactBoard::End) {
+      _black = (cheepBoard.buf[index] & CompactBoard::Black) ? true : false;
       break;
     }
 
     uint16_t d = cheepBoard.buf[index];
-    uint16_t c = (d & CheepBoard::PieceMask) >> CheepBoard::PieceShift;
-    uint16_t s = d & CheepBoard::PositionMask;
+    uint16_t c = (d & CompactBoard::PieceMask) >> CompactBoard::PieceShift;
+    uint16_t s = d & CompactBoard::PositionMask;
 
     Piece piece = c;
-    if (s == CheepBoard::Hand) {
+    if (s == CompactBoard::Hand) {
       auto& hand = piece.isBlack() ? _blackHand : _whiteHand;
       hand.inc(piece.kindOnly());
 
@@ -237,15 +237,15 @@ for (int i = 0; i < num; i++) { \
 /**
  * 冗長性の低いデータに変換します。
  */
-CheepBoard Board::getCheepBoard() const {
-  CheepBoard cb;
+CompactBoard Board::getCompactBoard() const {
+  CompactBoard cb;
 
   int index = 0;
 
   POSITION_EACH(pos) {
     Piece piece = _board[pos];
     if (!piece.isEmpty()) {
-      uint16_t c = static_cast<uint16_t>(piece.operator uint8_t()) << CheepBoard::PieceShift;
+      uint16_t c = static_cast<uint16_t>(piece.operator uint8_t()) << CompactBoard::PieceShift;
       uint16_t s = static_cast<uint16_t>(pos.operator int32_t());
       cb.buf[index++] = c | s;
     }
@@ -253,23 +253,23 @@ CheepBoard Board::getCheepBoard() const {
 
   HAND_EACH(piece) {
     int num = _blackHand.get(piece);
-    uint16_t c = piece.black() << CheepBoard::PieceShift;
+    uint16_t c = piece.black() << CompactBoard::PieceShift;
     for (int n = 0; n < num; n++) {
-      cb.buf[index++] = c | CheepBoard::Hand;
+      cb.buf[index++] = c | CompactBoard::Hand;
     }
   }
 
   HAND_EACH(piece) {
     int num = _whiteHand.get(piece);
-    uint16_t c = piece.white() << CheepBoard::PieceShift;
+    uint16_t c = piece.white() << CompactBoard::PieceShift;
     for (int n = 0; n < num; n++) {
-      cb.buf[index++] = c | CheepBoard::Hand;
+      cb.buf[index++] = c | CompactBoard::Hand;
     }
   }
 
-  cb.buf[index] = CheepBoard::End;
+  cb.buf[index] = CompactBoard::End;
   if (_black) {
-    cb.buf[index] |= CheepBoard::Black;
+    cb.buf[index] |= CompactBoard::Black;
   }
 
   return cb;
