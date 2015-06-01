@@ -40,11 +40,11 @@ public:
     return TTStatus::Reject;
   }
 
-  TTStatus entryPv(uint64_t hash, int depth, uint16_t move) {
+  TTStatus entryPV(uint64_t hash, int depth, uint16_t move) {
     TTE e;
     TTEs& entities = getEntity(hash);
     entities.get(hash, e);
-    e.updatePv(hash, depth, move, _age);
+    e.updatePV(hash, depth, move, _age);
     return entities.set(e);
   }
 

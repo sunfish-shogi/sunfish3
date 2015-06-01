@@ -8,7 +8,7 @@
 
 #include "eval/Value.h"
 #include "core/move/Move.h"
-#include "tree/Pv.h"
+#include "tree/PV.h"
 #include <cstdint>
 
 namespace sunfish {
@@ -63,7 +63,7 @@ struct SearchInfo : public SearchInfoBase {
   Move move;
   Value eval;
   int32_t lastDepth;
-  Pv pv;
+  PV pv;
 };
 
 } // namespace sunfish

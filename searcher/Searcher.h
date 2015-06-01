@@ -243,7 +243,7 @@ private:
   /**
    * store PV-nodes to TT
    */
-  void storePv(Tree& tree, const Pv& pv, int ply);
+  void storePV(Tree& tree, const PV& pv, int ply);
 
   bool isNeedMateSearch(Tree& tree, bool black, int depth);
 
@@ -284,7 +284,7 @@ private:
    */
   bool searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta, Value* pval = nullptr);
 
-  void showPv(int depth, const Pv& pv, const Value& value);
+  void showPV(int depth, const PV& pv, const Value& value);
 
   void showEndOfIterate(int depth);
 

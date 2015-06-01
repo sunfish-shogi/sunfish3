@@ -121,7 +121,7 @@ public:
 
   }
 
-  void updatePv(uint64_t newHash, int newDepth, uint16_t move, uint32_t newAge);
+  void updatePV(uint64_t newHash, int newDepth, uint16_t move, uint32_t newAge);
 
   bool checkHash(uint64_t hash) const {
     return _1.hash == TT_ENC_HASH(hash) && _2.checkSum == calcCheckSum();

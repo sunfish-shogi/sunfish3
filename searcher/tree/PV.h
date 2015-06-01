@@ -1,4 +1,4 @@
-/* Pv.h
+/* PV.h
  *
  * Kubo Ryosuke
  */
@@ -15,31 +15,31 @@
 
 namespace sunfish {
 
-  class Pv {
+  class PV {
   public:
     static CONSTEXPR int MaxDepth = 64;
 
-    struct PvMove {
+    struct PVMove {
       Move move;
       int depth;
     };
 
   private:
-    PvMove _moves[MaxDepth];
+    PVMove _moves[MaxDepth];
     int _num;
 
   public:
-    Pv() {
+    PV() {
       init();
     }
 
-    Pv(const Pv& pv) {
+    PV(const PV& pv) {
       copy(pv);
     }
 
-    void copy(const Pv& pv) {
+    void copy(const PV& pv) {
       _num = pv._num;
-      memcpy(_moves, pv._moves, sizeof(PvMove) * _num);
+      memcpy(_moves, pv._moves, sizeof(PVMove) * _num);
     }
 
     void init() {
@@ -50,11 +50,11 @@ namespace sunfish {
       return _num;
     }
 
-    int set(const Move& move, int depth, const Pv& pv) {
+    int set(const Move& move, int depth, const PV& pv) {
       _moves[0].move = move;
       _moves[0].depth = depth;
       _num = std::min(pv._num + 1, int(MaxDepth));
-      memcpy(&_moves[1], pv._moves, sizeof(PvMove) * (_num - 1));
+      memcpy(&_moves[1], pv._moves, sizeof(PVMove) * (_num - 1));
       return _num;
     }
 
@@ -65,7 +65,7 @@ namespace sunfish {
       return _num;
     }
 
-    const PvMove* getTop() const {
+    const PVMove* getTop() const {
       if (_num > 0) {
         return &_moves[0];
       } else {
@@ -73,11 +73,11 @@ namespace sunfish {
       }
     }
 
-    PvMove& get(int depth) {
+    PVMove& get(int depth) {
       return _moves[depth];
     }
 
-    const PvMove& get(int depth) const {
+    const PVMove& get(int depth) const {
       return _moves[depth];
     }
 

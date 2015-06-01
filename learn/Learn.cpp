@@ -50,7 +50,7 @@ namespace {
     searcher.setConfig(searchConfig);
   }
 
-  Board getPvLeaf(const Board& root, const Move& rmove, const Pv& pv) {
+  Board getPVLeaf(const Board& root, const Move& rmove, const PV& pv) {
     Board board = root;
     board.makeMoveIrr(rmove);
     for (int d = 0; d < pv.size(); d++) {
@@ -103,7 +103,7 @@ void Learn::genGradient(int wn, const Job& job) {
   Board board(job.board);
   Move move0 = job.move;
   Value val0;
-  Pv pv0;
+  PV pv0;
   Move tmpMove;
 
   bool black = board.isBlack();
@@ -166,7 +166,7 @@ void Learn::genGradient(int wn, const Job& job) {
     }
 
     // leaf 局面
-    Board leaf = getPvLeaf(board, move, pv);
+    Board leaf = getPVLeaf(board, move, pv);
 
     // 特徴抽出
     float g = gradient(val.int32() - val0.int32());
@@ -187,7 +187,7 @@ void Learn::genGradient(int wn, const Job& job) {
     std::lock_guard<std::mutex> lock(_mutex);
 
     // leaf 局面
-    Board leaf = getPvLeaf(board, move0, pv0);
+    Board leaf = getPVLeaf(board, move0, pv0);
 
     // 特徴抽出
     _g.extract<float, true>(leaf, gsum);

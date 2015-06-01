@@ -74,7 +74,7 @@ bool TTE::update(uint64_t newHash,
 
 }
 
-void TTE::updatePv(uint64_t newHash, int newDepth, uint16_t move, uint32_t newAge) {
+void TTE::updatePV(uint64_t newHash, int newDepth, uint16_t move, uint32_t newAge) {
   if (newDepth < 0) {
     newDepth = 0;
   }

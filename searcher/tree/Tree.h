@@ -6,7 +6,7 @@
 #ifndef __SUNFISH_TREE__
 #define __SUNFISH_TREE__
 
-#include "Pv.h"
+#include "PV.h"
 #include "NodeStat.h"
 #include "../eval/Evaluator.h"
 #include "../shek/ShekTable.h"
@@ -59,7 +59,7 @@ private:
     ExpStat expStat;
     Moves::iterator ite;
     int count;
-    Pv pv;
+    PV pv;
     ValuePair valuePair;
     Move hash;
     Move killer1;
@@ -433,27 +433,27 @@ public:
     _board.unmakeMove(curr.move);
   }
 
-  void updatePv(int depth) {
+  void updatePV(int depth) {
     auto& curr = _stack[_ply];
     auto& next = _stack[_ply+1];
     auto& move = *getCurrentMove();
     curr.pv.set(move, depth, next.pv);
   }
 
-  void updatePv(int depth, Tree& child) {
+  void updatePV(int depth, Tree& child) {
     auto& curr = _stack[_ply];
     auto& next = child._stack[_ply+1];
     auto& move = *child.getCurrentMove();
     curr.pv.set(move, depth, next.pv);
   }
 
-  void updatePvNull(int depth) {
+  void updatePVNull(int depth) {
     auto& curr = _stack[_ply];
     auto& next = _stack[_ply+1];
     curr.pv.set(Move::empty(), depth, next.pv);
   }
 
-  const Pv& getPv() const {
+  const PV& getPV() const {
     auto& node = _stack[_ply];
     return node.pv;
   }
@@ -540,7 +540,7 @@ public:
     curr.excluded = move;
   }
 
-  const Pv& __debug__getNextPv() const {
+  const PV& __debug__getNextPV() const {
     auto& next = _stack[_ply+1];
     return next.pv;
   }

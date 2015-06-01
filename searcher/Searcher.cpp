@@ -437,8 +437,8 @@ void Searcher::after() {
   auto& tree0 = _trees[0];
   _info.time = _timer.get();
   _info.nps = (_info.node + _info.qnode) / _info.time;
-  _info.move = tree0.getPv().get(0).move;
-  _info.pv.copy(tree0.getPv());
+  _info.move = tree0.getPV().get(0).move;
+  _info.pv.copy(tree0.getPV());
   mergeInfo();
 
   _isRunning.store(false);
@@ -1016,7 +1016,7 @@ bool Searcher::nextMoveQuies(Tree& tree, int qply, Value standPat, Value alpha) 
 /**
  * store PV-nodes to TT
  */
-void Searcher::storePv(Tree& tree, const Pv& pv, int ply) {
+void Searcher::storePV(Tree& tree, const PV& pv, int ply) {
   if (ply >= pv.size()) {
     return;
   }
@@ -1032,12 +1032,12 @@ void Searcher::storePv(Tree& tree, const Pv& pv, int ply) {
   }
 
   if (tree.makeMoveFast(move)) {
-    storePv(tree, pv, ply + 1);
+    storePV(tree, pv, ply + 1);
     tree.unmakeMoveFast();
   }
 
   auto hash = tree.getBoard().getHash();
-  _tt.entryPv(hash, depth, Move::serialize16(move));
+  _tt.entryPV(hash, depth, Move::serialize16(move));
 }
 
 bool Searcher::isNeedMateSearch(Tree& tree, bool black, int depth) {
@@ -1184,7 +1184,7 @@ Value Searcher::qsearch(Tree& tree, bool black, int qply, Value alpha, Value bet
     // 値更新
     if (currval > alpha) {
       alpha = currval;
-      tree.updatePv(0);
+      tree.updatePV(0);
 
       // beta-cut
       if (currval >= beta) {
@@ -1522,7 +1522,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
 
         // beta-cut
         if (currval >= beta) {
-          tree.updatePvNull(depth);
+          tree.updatePVNull(depth);
           worker.info.nullMovePruning++;
           alpha = beta;
           if (newDepth < Depth1Ply) {
@@ -1799,7 +1799,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
       alpha = currval;
       best = move;
       if (!isNullWindow) {
-        tree.updatePv(depth);
+        tree.updatePV(depth);
       }
 
       // beta-cut
@@ -2165,7 +2165,7 @@ void Searcher::searchTlp(Tree& tree) {
         parent.getTlp().alpha = currval;
         parent.getTlp().best = move;
         if (!isNullWindow) {
-          parent.updatePv(depth, tree);
+          parent.updatePV(depth, tree);
         }
 
         // beta-cut
@@ -2295,10 +2295,10 @@ Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move&
       // update alpha
       alpha = currval;
       best = move;
-      tree.updatePv(depth);
+      tree.updatePV(depth);
 
       if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD || currval >= Value::Mate) {
-        showPv(depth / Depth1Ply, tree.getPv(), black ? currval : -currval);
+        showPV(depth / Depth1Ply, tree.getPV(), black ? currval : -currval);
       }
 
       // beta-cut or update best move
@@ -2406,7 +2406,7 @@ bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta,
 
 }
 
-void Searcher::showPv(int depth, const Pv& pv, const Value& value) {
+void Searcher::showPV(int depth, const PV& pv, const Value& value) {
   if (!_config.logging) {
     return;
   }
@@ -2497,7 +2497,7 @@ bool Searcher::idsearch(Move& best, Value alpha, Value beta) {
 #endif
 
 #if ENABLE_STORE_PV
-    storePv(tree0, tree0.getPv(), 0);
+    storePV(tree0, tree0.getPV(), 0);
 #endif // ENABLE_STORE_PV
 
     if (value >= Value::Mate) {
