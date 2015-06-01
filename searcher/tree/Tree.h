@@ -75,6 +75,7 @@ private:
     Move excluded;
     bool isThroughPhase;
     bool checking;
+    bool isHistorical;
   };
 
   struct CheckHist {
@@ -371,6 +372,7 @@ public:
     child.nocap1 = Move::empty();
     child.nocap2 = Move::empty();
     child.excluded = Move::empty();
+    child.isHistorical = false;
     return true;
   }
 
@@ -407,6 +409,7 @@ public:
     child.nocap1 = Move::empty();
     child.nocap2 = Move::empty();
     child.excluded = Move::empty();
+    child.isHistorical = false;
   }
 
   void unmakeNullMove() {
@@ -472,6 +475,14 @@ public:
 
   const Node& getCurrentNode() const {
     return _stack[_ply];
+  }
+
+  Node& getChildNode() {
+    return _stack[_ply+1];
+  }
+
+  const Node& getChildNode() const {
+    return _stack[_ply+1];
   }
 
   bool isPriorMove(const Move& move) const {

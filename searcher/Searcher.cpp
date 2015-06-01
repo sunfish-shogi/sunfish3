@@ -1292,25 +1292,34 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
   worker.info.shekProbed++;
   switch (shekStat) {
     case ShekStat::Superior:
-      // 既出の局面に対して優位な局面
+      // 過去の局面に対して優位な局面
+      tree.getCurrentNode().isHistorical = true;
       worker.info.shekSuperior++;
       return Value::Inf - tree.getPly();
 
     case ShekStat::Inferior:
-      // 既出の局面に対して劣る局面
+      // 過去の局面に対して劣る局面
+      tree.getCurrentNode().isHistorical = true;
       worker.info.shekInferior++;
       return -Value::Inf + tree.getPly();
 
     case ShekStat::Equal:
+      //  過去の局面に等しい局面
       worker.info.shekEqual++;
       switch(tree.getCheckRepStatus()) {
       case RepStatus::Win:
+        tree.getCurrentNode().isHistorical = true;
         return Value::Inf - tree.getPly();
+
       case RepStatus::Lose:
+        tree.getCurrentNode().isHistorical = true;
         return -Value::Inf + tree.getPly();
+
       case RepStatus::None:
         assert(false);
+
       default:
+        tree.getCurrentNode().isHistorical = true;
         return Value::Zero;
       }
 
@@ -1321,6 +1330,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
 
   // スタックサイズの限界
   if (tree.isStackFull()) {
+    tree.getCurrentNode().isHistorical = true;
     return tree.getValue() * (black ? 1 : -1);
   }
 
@@ -1523,6 +1533,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
         // beta-cut
         if (currval >= beta) {
           tree.updatePVNull(depth);
+          tree.getCurrentNode().isHistorical = tree.getChildNode().isHistorical;
           worker.info.nullMovePruning++;
           alpha = beta;
           if (newDepth < Depth1Ply) {
@@ -1787,6 +1798,8 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
     // update gain
     _gains.update(move, newStandPat - standPat - tree.estimate(move, _eval));
 
+    tree.getCurrentNode().isHistorical |= tree.getChildNode().isHistorical;
+
     // 値更新
     if (currval > alpha) {
 #if ENABLE_MOVE_COUNT_EXPT
@@ -1804,6 +1817,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
 
       // beta-cut
       if (currval >= beta) {
+        tree.getCurrentNode().isHistorical = tree.getChildNode().isHistorical;
         worker.info.failHigh++;
         if (isFirst) {
           worker.info.failHighFirst++;
@@ -1858,8 +1872,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
   }
 
 hash_store:
-  // TODO: GHI対策
-  {
+  if (!tree.getCurrentNode().isHistorical) {
     TTStatus status = _tt.entry(hash, oldAlpha, beta, alpha, depth, tree.getPly(), Move::serialize16(best), stat);
     switch (status) {
       case TTStatus::New: worker.info.hashNew++; break;
