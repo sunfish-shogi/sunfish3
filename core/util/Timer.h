@@ -6,26 +6,14 @@
 #ifndef __SUNFISH_TIMER__
 #define __SUNFISH_TIMER__
 
-#ifdef WIN32
-# include <windows.h>
-#elif __MACH__
-# include <mach/mach_time.h>
-#endif
-#include <ctime>
+#include <chrono>
 
 namespace sunfish {
 
 class Timer {
 private:
 
-#ifdef WIN32
-  LARGE_INTEGER time_b;
-#elif __MACH__
-  mach_timebase_info_data_t tb;
-  uint64_t time_b;
-#else
-  struct timespec time_b;
-#endif
+  std::chrono::time_point<std::chrono::system_clock> base_;
 
 public:
 
@@ -33,74 +21,18 @@ public:
    * set current time to base
    */
   void set() {
-
-#ifdef WIN32
-
-    // windows
-    QueryPerformanceCounter(&time_b);
-
-#elif __MACH__
-
-    // mac os x
-    memset(&tb, 0, sizeof(tb));
-    mach_timebase_info(&tb);
-    time_b = mach_absolute_time();
-
-#else
-
-    // posix
-# if defined(CLOCK_MONOTONIC_RAW)
-    clock_gettime(CLOCK_MONOTONIC_RAW, &time_b);
-# elif defined(CLOCK_MONOTONIC)
-    clock_gettime(CLOCK_MONOTONIC, &time_b);
-# else
-    clock_gettime(CLOCK_REALTIME, &time_b);
-# endif
-
-#endif
+    base_ = std::chrono::system_clock::now();
   }
 
   /**
    * get current time(sec) from base
    */
   float get() const {
-
-#ifdef WIN32
-
-    // windows
-    LARGE_INTEGER time_n, freq;
-    QueryPerformanceCounter(&time_n);
-    QueryPerformanceFrequency(&freq);
-    double td = time_n.QuadPart - time_b.QuadPart + 1;
-    double qp = freq.QuadPart;
-    return static_cast<float>(td / qp);
-
-#elif __MACH__
-
-    // mac os x
-    uint64_t time_n = mach_absolute_time();
-    double td = time_n - time_b;
-    double tbn = tb.numer;
-    double tbd = tb.denom;
-    return static_cast<float>(td * tbn / tbd * 1.0e-9f);
-
-#else
-
-    // posix
-    struct timespec time_n;
-# if defined(CLOCK_MONOTONIC_RAW)
-    clock_gettime(CLOCK_MONOTONIC_RAW, &time_n);
-# elif defined(CLOCK_MONOTONIC)
-    clock_gettime(CLOCK_MONOTONIC, &time_n);
-# else
-    clock_gettime(CLOCK_REALTIME, &time_n);
-# endif
-    float sec = time_n.tv_sec - time_b.tv_sec;
-    float nsec = time_n.tv_nsec - time_b.tv_nsec;
-    return sec + nsec * 1.0e-9f;
-
-#endif
-
+    auto now = std::chrono::system_clock::now();
+    auto elapsed = now - base_;
+    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(elapsed);
+    auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed);
+    return seconds.count() + nanoseconds.count() * 1.0e-9f;
   }
 
 };
