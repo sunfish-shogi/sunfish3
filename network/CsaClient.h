@@ -77,6 +77,7 @@ private:
   struct MyMove {
     Move move;
     Value value;
+    PV pv;
   };
 
   struct ReceiveFlagSet {

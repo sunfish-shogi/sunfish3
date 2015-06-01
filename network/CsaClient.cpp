@@ -231,6 +231,7 @@ bool CsaClient::myTurn() {
     if (!bookResult.move.isEmpty() && board.isValidMove(bookResult.move)) {
       myMove.move = bookResult.move;
       myMove.value = Value::Zero;
+      myMove.pv.init();
       Loggers::message << "book hit: " << myMove.move.toString() << " (" << bookResult.count << "/" << bookResult.total << ")";
       ok = true;
     }
@@ -253,6 +254,7 @@ bool CsaClient::myTurn() {
 
     if (ok) {
       myMove.value = _searcher.getInfo().eval;
+      myMove.pv = _searcher.getInfo().pv;
     }
   }
 
@@ -428,8 +430,8 @@ bool CsaClient::sendMove(const MyMove& myMove, bool black, std::string* str) {
     // 評価値
     int sign = _gameSummary.black ? 1 : -1;
     oss << ",\'* " << (myMove.value * sign).int32();
-    // TODO: 読み筋
-    //oss << ' ' << myMove.pv;
+    // 読み筋
+    oss << ' ' << myMove.pv.toStringCsa(black);
   }
   if (!send(oss.str().c_str())) {
     return false;

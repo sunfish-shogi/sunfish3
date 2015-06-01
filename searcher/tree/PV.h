@@ -89,9 +89,9 @@ namespace sunfish {
       return oss.str();
     }
 
-    std::string toStringCsa(bool black, int beginIndex = 0) const {
+    std::string toStringCsa(bool black, int startIndex = 0) const {
       std::ostringstream oss;
-      for (int i = beginIndex; i < _num; i++) {
+      for (int i = startIndex; i < _num; i++) {
         oss << _moves[i].move.toStringCsa((i%2)^black) << ' ';
       }
       return oss.str();
