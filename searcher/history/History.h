@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_HISTORY__
-#define __SUNFISH_HISTORY__
+#ifndef SUNFISH_HISTORY__
+#define SUNFISH_HISTORY__
 
 #include "core/base/Piece.h"
 #include "core/base/Position.h"
@@ -22,7 +22,7 @@ private:
   static CONSTEXPR int To = Board;
   static CONSTEXPR int Size = From * To;
 
-  uint64_t _hist[Size];
+  uint64_t hist_[Size];
 
   static int from(const Move& move) {
     if (move.isHand()) {
@@ -50,12 +50,12 @@ public:
   static const uint64_t Max = 0x0008000000000000ull;
 
   void init() {
-    memset((void*)_hist, 0, sizeof(uint64_t) * From * To);
+    memset((void*)hist_, 0, sizeof(uint64_t) * From * To);
   }
 
   void reduce() {
     for (int i = 0; i < Size; i++) {
-      _hist[i] = (_hist[i] >> 8) & ~0xff000000ull;
+      hist_[i] = (hist_[i] >> 8) & ~0xff000000ull;
     }
   }
 
@@ -63,16 +63,16 @@ public:
     assert(appear >= 0);
     assert(good >= 0);
     assert(good <= appear);
-    uint64_t h = _hist[key];
+    uint64_t h = hist_[key];
     uint64_t d = ((uint64_t)appear << 32) + good;
     if (h >= Max - d) {
       h = (h >> 1) & ~0x80000000ull;
     }
-    _hist[key] = h + d;
+    hist_[key] = h + d;
   }
 
   uint64_t getData(int key) const {
-    return _hist[key];
+    return hist_[key];
   }
 
   static uint32_t getRatio(uint64_t data) {
@@ -102,4 +102,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_HISTORY__
+#endif // SUNFISH_HISTORY__

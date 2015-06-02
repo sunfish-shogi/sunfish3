@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_RANDOM__
-#define __SUNFISH_RANDOM__
+#ifndef SUNFISH_RANDOM__
+#define SUNFISH_RANDOM__
 
 #include "../def.h"
 #include <random>
@@ -73,4 +73,4 @@ public:
 
 } // namespace sunfish
 
-#endif //__SUNFISH_RANDOM__
+#endif //SUNFISH_RANDOM__

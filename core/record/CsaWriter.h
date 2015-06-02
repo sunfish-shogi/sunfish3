@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_CSAWRITER__
-#define __SUNFISH_CSAWRITER__
+#ifndef SUNFISH_CSAWRITER__
+#define SUNFISH_CSAWRITER__
 
 #include "Record.h"
 #include <iostream>
@@ -32,4 +32,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_CSAWRITER__
+#endif // SUNFISH_CSAWRITER__

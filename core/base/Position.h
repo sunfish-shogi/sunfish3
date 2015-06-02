@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_POSITION__
-#define __SUNFISH_POSITION__
+#ifndef SUNFISH_POSITION__
+#define SUNFISH_POSITION__
 
 #include "../def.h"
 #include <string>
@@ -88,7 +88,7 @@ private:
   static const HSideType HSideTypeTable[81];
   static const VSideType VSideTypeTable[81];
 
-  int32_t _index;
+  int32_t index_;
 
 public:
 
@@ -99,45 +99,45 @@ public:
   static CONSTEXPR int32_t Begin = 0;
   static CONSTEXPR int32_t End = Begin + N;
 
-  Position() : _index(Invalid) {
+  Position() : index_(Invalid) {
   }
-  Position(int32_t index) : _index(index) {
+  Position(int32_t index) : index_(index) {
   }
   explicit Position(int32_t file, int32_t rank) {
     set(file, rank);
   }
 
   operator int32_t() const {
-    return _index;
+    return index_;
   }
   int32_t get() const {
-    return _index;
+    return index_;
   }
 
   Position& set(int32_t index) {
-    _index = index;
+    index_ = index;
     return *this;
   }
   Position& set(int32_t file, int32_t rank) {
-    _index = (9 - file) * RankN + rank - 1;
+    index_ = (9 - file) * RankN + rank - 1;
     return *this;
   }
 
   int32_t getFile() const {
-    return 9 - (_index / RankN);
+    return 9 - (index_ / RankN);
   }
   int32_t getRank() const {
-    return _index % RankN + 1;
+    return index_ % RankN + 1;
   }
 
   bool isValid() const {
-    return _index != Invalid;
+    return index_ != Invalid;
   }
   bool isInvalid() const {
     return !isValid();
   }
   bool isStrictValid() const {
-    return _index >= 0 && _index < End;
+    return index_ >= 0 && index_ < End;
   }
   static bool isValidFile(int32_t file) {
     return file >= 1 && file <= 9;
@@ -190,23 +190,23 @@ public:
     }
   }
   Position reverse() const {
-    return N - 1 - _index;
+    return N - 1 - index_;
   }
   Position up(int32_t distance = 1) const {
     assert(getRank() != 1);
-    return _index - distance;
+    return index_ - distance;
   }
   Position down(int32_t distance = 1) const {
     assert(getRank() != 9);
-    return _index + distance;
+    return index_ + distance;
   }
   Position left(int32_t distance = 1) const {
     assert(getFile() != 9);
-    return _index - distance * RankN;
+    return index_ - distance * RankN;
   }
   Position right(int32_t distance = 1) const {
     assert(getFile() != 1);
-    return _index + distance * RankN;
+    return index_ + distance * RankN;
   }
   Position leftUp(int32_t distance = 1) const {
     assert(getRank() != 1);
@@ -297,41 +297,41 @@ public:
     return (*this).safetyRight().safetyDown(2);
   }
   Position next() const {
-    return _index + 1;
+    return index_ + 1;
   }
   Position nextRightDown() const {
-    int32_t file = _index / RankN;
+    int32_t file = index_ / RankN;
     if (file == 8) {
-      int32_t rank = _index % RankN;
+      int32_t rank = index_ % RankN;
       if (rank == RankN - 1) {
         return End;
       }
-      return _index - (FileN - 1) * RankN + 1;
+      return index_ - (FileN - 1) * RankN + 1;
     }
-    return _index + RankN;
+    return index_ + RankN;
   }
   int32_t distance(const Position& to) const {
-    int32_t rank = to._index % RankN - _index % RankN + 8;
-    int32_t file = to._index / RankN - _index / RankN + 8;
+    int32_t rank = to.index_ % RankN - index_ % RankN + 8;
+    int32_t file = to.index_ / RankN - index_ / RankN + 8;
     return DistanceTable[rank][file];
   }
   Direction dir(const Position& to) const {
-    int32_t rank = to._index % RankN - _index % RankN + 8;
-    int32_t file = to._index / RankN - _index / RankN + 8;
+    int32_t rank = to.index_ % RankN - index_ % RankN + 8;
+    int32_t file = to.index_ / RankN - index_ / RankN + 8;
     return DirectionTable[rank][file];
   }
   DirectionEx dirEx(const Position& to) const {
-    int32_t rank = to._index % RankN - _index % RankN + 8;
-    int32_t file = to._index / RankN - _index / RankN + 8;
+    int32_t rank = to.index_ % RankN - index_ % RankN + 8;
+    int32_t file = to.index_ / RankN - index_ / RankN + 8;
     return DirectionTableEx[rank][file];
   }
   HSideType sideTypeH() const {
-    assert(_index != Invalid);
-    return HSideTypeTable[_index];
+    assert(index_ != Invalid);
+    return HSideTypeTable[index_];
   }
   VSideType sideTypeV() const {
-    assert(_index != Invalid);
-    return VSideTypeTable[_index];
+    assert(index_ != Invalid);
+    return VSideTypeTable[index_];
   }
 
   std::string toString() const;
@@ -346,4 +346,4 @@ public:
 // scanning right-down
 #define POSITION_EACH_RD(pos) for (sunfish::Position (pos) = P91; (pos) != sunfish::Position::End; (pos) = (pos).nextRightDown())
 
-#endif //__SUNFISH_POSITION__
+#endif //SUNFISH_POSITION__

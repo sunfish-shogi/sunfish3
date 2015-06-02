@@ -102,12 +102,12 @@ void TTE::updatePV(uint64_t newHash, int newDepth, uint16_t move, uint32_t newAg
 
 TTStatus TTEs::set(const TTE& entity) {
   // ハッシュ値が一致するスロットを探す
-  uint32_t l = _lastAccess % Size;
+  uint32_t l = lastAccess_ % Size;
   for (uint32_t i = 0; i < Size; i++) {
     const uint32_t index = (l + i) % Size;
-    if (_slots[index].getHash() == entity.getHash()) {
-      _slots[index] = entity;
-      _lastAccess = index;
+    if (slots_[index].getHash() == entity.getHash()) {
+      slots_[index] = entity;
+      lastAccess_ = index;
       return TTStatus::Update;
     }
   }
@@ -116,29 +116,29 @@ TTStatus TTEs::set(const TTE& entity) {
   l++;
   for (uint32_t i = 0; i < Size; i++) {
     const uint32_t index = (l + i) % Size;
-    if (_slots[index].getAge() != entity.getAge()) {
-      _slots[index] = entity;
-      _lastAccess = index;
+    if (slots_[index].getAge() != entity.getAge()) {
+      slots_[index] = entity;
+      lastAccess_ = index;
       return TTStatus::New;
     }
   }
 
   // 上書きする
   const uint32_t index = l % Size;
-  _slots[index] = entity;
-  _lastAccess = index;
+  slots_[index] = entity;
+  lastAccess_ = index;
   return TTStatus::Collide;
 
 }
 
 bool TTEs::get(uint64_t hash, TTE& entity) {
 
-  uint32_t l = _lastAccess % Size;
+  uint32_t l = lastAccess_ % Size;
   for (uint32_t i = 0; i < Size; i++) {
     const uint32_t index = (l + i) % Size;
-    if (_slots[index].checkHash(hash)) {
-      entity = _slots[index];
-      _lastAccess = index;
+    if (slots_[index].checkHash(hash)) {
+      entity = slots_[index];
+      lastAccess_ = index;
       return true;
     }
   }

@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_MATE__
-#define __SUNFISH_MATE__
+#ifndef SUNFISH_MATE__
+#define SUNFISH_MATE__
 
 #include "../tree/Tree.h"
 #include "../table/HashTable.h"
@@ -18,28 +18,28 @@ private:
   static CONSTEXPR uint64_t KeyMask = 0xfffffffffffffffellu;
   static CONSTEXPR uint64_t MateMask = 0x0000000000000001llu;
 
-  uint64_t _data;
+  uint64_t data_;
 
 public:
 
   MateEntity() {
-    _data = 0x00ull;
+    data_ = 0x00ull;
   }
 
   void init(unsigned index) {
-    _data = ~(uint64_t)index;
+    data_ = ~(uint64_t)index;
   }
 
   bool is(uint64_t key) const {
-    return !((_data ^ key) & KeyMask);
+    return !((data_ ^ key) & KeyMask);
   }
 
   bool isMate() const {
-    return _data & MateMask;
+    return data_ & MateMask;
   }
 
   void set(uint64_t key, bool mate) {
-    _data = (key & KeyMask) | (mate ? MateMask : 0x0ull);
+    data_ = (key & KeyMask) | (mate ? MateMask : 0x0ull);
   }
 };
 
@@ -71,16 +71,16 @@ private:
   Mate();
 
   template<bool black, bool recursive = true>
-  static bool _isProtected(const Board& board, const Position& to, const Bitboard& occ, const Bitboard& occNoAttacker, const Position& king);
+  static bool isProtected_(const Board& board, const Position& to, const Bitboard& occ, const Bitboard& occNoAttacker, const Position& king);
 
   template<bool black>
-  static bool _isProtected(const Board& board, Bitboard& bb, const Bitboard& occ, const Bitboard& occNoAttacker);
+  static bool isProtected_(const Board& board, Bitboard& bb, const Bitboard& occ, const Bitboard& occNoAttacker);
 
   template<bool black>
-  static bool _isMate(const Board& board, const Move& move);
+  static bool isMate_(const Board& board, const Move& move);
 
   template<bool black>
-  static bool _mate1Ply(const Board& board);
+  static bool mate1Ply_(const Board& board);
 
   static bool isIneffectiveEvasion(const Board& board, const Move& move, const Move& check, const Bitboard& occ);
 
@@ -95,9 +95,9 @@ public:
    */
   static bool mate1Ply(const Board& board) {
     if (board.isBlack()) {
-      return _mate1Ply<true>(board);
+      return mate1Ply_<true>(board);
     } else {
-      return _mate1Ply<false>(board);
+      return mate1Ply_<false>(board);
     }
   }
 
@@ -112,4 +112,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_MATE__
+#endif // SUNFISH_MATE__

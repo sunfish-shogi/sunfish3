@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_WORKER__
-#define __SUNFISH_WORKER__
+#ifndef SUNFISH_WORKER__
+#define SUNFISH_WORKER__
 
 #include "../SearchInfo.h"
 #include <atomic>
@@ -45,4 +45,4 @@ struct Worker {
 
 } // namespace sunfish
 
-#endif // __SUNFISH_WORKER__
+#endif // SUNFISH_WORKER__

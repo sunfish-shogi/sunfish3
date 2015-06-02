@@ -90,9 +90,9 @@ namespace {
  * コンストラクタ
  */
 Learn::Learn() {
-  _config.addDef(CONF_KIFU, "");
-  _config.addDef(CONF_DEPTH, "3");
-  _config.addDef(CONF_THREADS, "1");
+  config_.addDef(CONF_KIFU, "");
+  config_.addDef(CONF_DEPTH, "3");
+  config_.addDef(CONF_THREADS, "1");
 }
 
 /**
@@ -117,18 +117,18 @@ void Learn::genGradient(int wn, const Job& job) {
   }
 
   // シャッフル
-  std::shuffle(moves.begin(), moves.end(), _rgens[wn]);
+  std::shuffle(moves.begin(), moves.end(), rgens_[wn]);
 
   // 棋譜の手
   {
     // 探索
     board.makeMove(move0);
-    setSearcherDepth(*_searchers[wn], _config.getInt(CONF_DEPTH));
-    _searchers[wn]->idsearch(board, tmpMove);
+    setSearcherDepth(*searchers_[wn], config_.getInt(CONF_DEPTH));
+    searchers_[wn]->idsearch(board, tmpMove);
     board.unmakeMove(move0);
 
     // PV と評価値
-    const auto& info = _searchers[wn]->getInfo();
+    const auto& info = searchers_[wn]->getInfo();
     const auto& pv = info.pv;
     val0 = -info.eval;
     pv0.copy(pv);
@@ -151,12 +151,12 @@ void Learn::genGradient(int wn, const Job& job) {
     CONSTEXPR int reduction = 1;
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
-    setSearcherDepth(*_searchers[wn], _config.getInt(CONF_DEPTH) - reduction);
-    _searchers[wn]->idsearch(board, tmpMove, alpha, beta);
+    setSearcherDepth(*searchers_[wn], config_.getInt(CONF_DEPTH) - reduction);
+    searchers_[wn]->idsearch(board, tmpMove, alpha, beta);
     board.unmakeMove(move);
 
     // PV と評価値
-    const auto& info = _searchers[wn]->getInfo();
+    const auto& info = searchers_[wn]->getInfo();
     const auto& pv = info.pv;
     Value val = -info.eval;
 
@@ -172,8 +172,8 @@ void Learn::genGradient(int wn, const Job& job) {
     float g = gradient(val.int32() - val0.int32());
     g = g * (black ? 1 : -1);
     {
-      std::lock_guard<std::mutex> lock(_mutex);
-      _g.extract<float, true>(leaf, -g);
+      std::lock_guard<std::mutex> lock(mutex_);
+      g_.extract<float, true>(leaf, -g);
     }
     gsum += g;
 
@@ -184,13 +184,13 @@ void Learn::genGradient(int wn, const Job& job) {
   }
 
   {
-    std::lock_guard<std::mutex> lock(_mutex);
+    std::lock_guard<std::mutex> lock(mutex_);
 
     // leaf 局面
     Board leaf = getPVLeaf(board, move0, pv0);
 
     // 特徴抽出
-    _g.extract<float, true>(leaf, gsum);
+    g_.extract<float, true>(leaf, gsum);
   }
 }
 
@@ -198,25 +198,25 @@ void Learn::genGradient(int wn, const Job& job) {
  * ジョブを拾います。
  */
 void Learn::work(int wn) {
-  while (!_shutdown) {
+  while (!shutdown_) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     Job job;
 
     // dequeue
     {
-      std::lock_guard<std::mutex> lock(_mutex);
-      if (_jobQueue.empty()) {
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (jobQueue_.empty()) {
         continue;
       }
-      job = _jobQueue.front();
-      _jobQueue.pop();
-      _activeCount++;
+      job = jobQueue_.front();
+      jobQueue_.pop();
+      activeCount_++;
     }
 
     genGradient(wn, job);
 
-    _activeCount--;
+    activeCount_--;
   }
 }
 
@@ -225,26 +225,26 @@ void Learn::work(int wn) {
  */
 bool Learn::miniBatch() {
 
-  if (_jobs.size() < MINI_BATCH_COUNT) {
+  if (jobs_.size() < MINI_BATCH_COUNT) {
     return false;
   }
 
-  Loggers::message << "mini-bach (" << _count << ")";
+  Loggers::message << "mini-bach (" << count_ << ")";
 
   {
-    std::lock_guard<std::mutex> lock(_mutex);
+    std::lock_guard<std::mutex> lock(mutex_);
 
     for (int i = 0; i < MINI_BATCH_COUNT; i++) {
-      _jobQueue.push(_jobs.back());
-      _jobs.pop_back();
+      jobQueue_.push(jobs_.back());
+      jobs_.pop_back();
     }
   }
 
   // キューが空になるのを待つ
   while (true) {
     {
-      std::lock_guard<std::mutex> lock(_mutex);
-      if (_jobQueue.empty() && _activeCount == 0) {
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (jobQueue_.empty() && activeCount_ == 0) {
         break;
       }
     }
@@ -255,34 +255,34 @@ bool Learn::miniBatch() {
   float max = 0.0f;
   float magnitude = 0.0f;
   for (int i = 0; i < KPP_ALL; i++) {
-    float g = _g._t->kpp[0][i] + norm(_w._t->kpp[0][i]);
-    _g._t->kpp[0][i] = 0.0f;
-    _w._t->kpp[0][i] += g;
-    _u._t->kpp[0][i] += g * _count;
-    _eval._t->kpp[0][i] = _w._t->kpp[0][i];
-    max = std::max(max, std::abs(_w._t->kpp[0][i]));
-    magnitude += std::abs(_w._t->kpp[0][i]);
+    float g = g_.t_->kpp[0][i] + norm(w_.t_->kpp[0][i]);
+    g_.t_->kpp[0][i] = 0.0f;
+    w_.t_->kpp[0][i] += g;
+    u_.t_->kpp[0][i] += g * count_;
+    eval_.t_->kpp[0][i] = w_.t_->kpp[0][i];
+    max = std::max(max, std::abs(w_.t_->kpp[0][i]));
+    magnitude += std::abs(w_.t_->kpp[0][i]);
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    float g = _g._t->kkp[0][0][i] + norm(_w._t->kkp[0][0][i]);
-    _g._t->kkp[0][0][i] = 0.0f;
-    _w._t->kkp[0][0][i] += g;
-    _u._t->kkp[0][0][i] += g * _count;
-    _eval._t->kkp[0][0][i] = _w._t->kkp[0][0][i];
-    max = std::max(max, std::abs(_w._t->kkp[0][0][i]));
-    magnitude += std::abs(_w._t->kkp[0][0][i]);
+    float g = g_.t_->kkp[0][0][i] + norm(w_.t_->kkp[0][0][i]);
+    g_.t_->kkp[0][0][i] = 0.0f;
+    w_.t_->kkp[0][0][i] += g;
+    u_.t_->kkp[0][0][i] += g * count_;
+    eval_.t_->kkp[0][0][i] = w_.t_->kkp[0][0][i];
+    max = std::max(max, std::abs(w_.t_->kkp[0][0][i]));
+    magnitude += std::abs(w_.t_->kkp[0][0][i]);
   }
 
   Loggers::message << "max=" << max << " magnitude=" << magnitude;
 
-  float elapsed = _timer.get();
+  float elapsed = timer_.get();
   Loggers::message << "elapsed: " << elapsed;
 
-  _count++;
+  count_++;
 
   // TT を初期化
-  for (uint32_t wn = 0; wn < _nt; wn++) {
-    _searchers[wn]->clearTT();
+  for (uint32_t wn = 0; wn < nt_; wn++) {
+    searchers_[wn]->clearTT();
   }
 
   return true;
@@ -311,7 +311,7 @@ bool Learn::readCsa(size_t count, size_t total, const char* path) {
       break;
     }
 
-    _jobs.push_back({ record.getBoard().getCompactBoard(), move });
+    jobs_.push_back({ record.getBoard().getCompactBoard(), move });
 
     // 1手進める
     if (!record.makeMove()) {
@@ -327,45 +327,45 @@ bool Learn::readCsa(size_t count, size_t total, const char* path) {
  */
 bool Learn::run() {
   // 設定読み込み
-  if (!_config.read(CONFPATH)) {
+  if (!config_.read(CONFPATH)) {
     return false;
   }
-  Loggers::message << _config.toString();
+  Loggers::message << config_.toString();
 
-  _timer.set();
+  timer_.set();
 
   // csa ファイルを列挙
   FileList fileList;
-  std::string dir = _config.getString(CONF_KIFU);
+  std::string dir = config_.getString(CONF_KIFU);
   fileList.enumerate(dir.c_str(), "csa");
 
   // 初期化
-  _eval.init();
-  _count = 1;
-  _g.init();
-  _w.init();
-  _u.init();
+  eval_.init();
+  count_ = 1;
+  g_.init();
+  w_.init();
+  u_.init();
 
   // 学習スレッド数
-  _nt = _config.getInt(CONF_THREADS);
+  nt_ = config_.getInt(CONF_THREADS);
 
   // 探索スレッド数
 #if ENABLE_THREAD_PAIRING
-  int snt = _nt >= 4 ? 2 : 1;
+  int snt = nt_ >= 4 ? 2 : 1;
 #else
   int snt = 1;
 #endif
-  _nt = _nt / snt;
+  nt_ = nt_ / snt;
 
   // Searcher生成
   uint32_t seed = static_cast<uint32_t>(time(NULL));
-  _rgens.clear();
-  _searchers.clear();
-  for (uint32_t wn = 0; wn < _nt; wn++) {
-    _rgens.emplace_back(seed);
-    seed = _rgens.back()();
-    _searchers.emplace_back(new Searcher(_eval));
-    initSearcherConfig(*_searchers.back().get(), snt);
+  rgens_.clear();
+  searchers_.clear();
+  for (uint32_t wn = 0; wn < nt_; wn++) {
+    rgens_.emplace_back(seed);
+    seed = rgens_.back()();
+    searchers_.emplace_back(new Searcher(eval_));
+    initSearcherConfig(*searchers_.back().get(), snt);
   }
 
   // 棋譜の取り込み
@@ -375,15 +375,15 @@ bool Learn::run() {
   }
 
   // 訓練データのシャッフル
-  std::shuffle(_jobs.begin(), _jobs.end(), _rgens[0]);
+  std::shuffle(jobs_.begin(), jobs_.end(), rgens_[0]);
 
-  _activeCount = 0;
+  activeCount_ = 0;
 
   // ワーカースレッド生成
-  _shutdown = false;
-  _threads.clear();
-  for (uint32_t wn = 0; wn < _nt; wn++) {
-    _threads.emplace_back(std::bind(std::mem_fn(&Learn::work), this, wn));
+  shutdown_ = false;
+  threads_.clear();
+  for (uint32_t wn = 0; wn < nt_; wn++) {
+    threads_.emplace_back(std::bind(std::mem_fn(&Learn::work), this, wn));
   }
 
   // 学習処理の実行
@@ -395,9 +395,9 @@ bool Learn::run() {
   }
 
   // ワーカースレッド停止
-  _shutdown = true;
-  for (uint32_t wn = 0; wn < _nt; wn++) {
-    _threads[wn].join();
+  shutdown_ = true;
+  for (uint32_t wn = 0; wn < nt_; wn++) {
+    threads_[wn].join();
   }
 
   Loggers::message << "publishing..";
@@ -407,25 +407,25 @@ bool Learn::run() {
   uint64_t magnitude = 0ull;
   uint32_t nonZero = 0u;
   for (int i = 0; i < KPP_ALL; i++) {
-    _eval._t->kpp[0][i] = _w._t->kpp[0][i] - _u._t->kpp[0][i] / _count;
-    max = std::max(max, (uint16_t)std::abs(_eval._t->kpp[0][i]));
-    magnitude += std::abs(_eval._t->kpp[0][i]);
-    nonZero += _eval._t->kpp[0][i] != 0 ? 1 : 0;
+    eval_.t_->kpp[0][i] = w_.t_->kpp[0][i] - u_.t_->kpp[0][i] / count_;
+    max = std::max(max, (uint16_t)std::abs(eval_.t_->kpp[0][i]));
+    magnitude += std::abs(eval_.t_->kpp[0][i]);
+    nonZero += eval_.t_->kpp[0][i] != 0 ? 1 : 0;
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    _eval._t->kkp[0][0][i] = _w._t->kkp[0][0][i] - _u._t->kkp[0][0][i] / _count;
-    max = std::max(max, (uint16_t)std::abs(_eval._t->kkp[0][0][i]));
-    magnitude += std::abs(_eval._t->kkp[0][0][i]);
-    nonZero += _eval._t->kkp[0][0][i] != 0 ? 1 : 0;
+    eval_.t_->kkp[0][0][i] = w_.t_->kkp[0][0][i] - u_.t_->kkp[0][0][i] / count_;
+    max = std::max(max, (uint16_t)std::abs(eval_.t_->kkp[0][0][i]));
+    magnitude += std::abs(eval_.t_->kkp[0][0][i]);
+    nonZero += eval_.t_->kkp[0][0][i] != 0 ? 1 : 0;
   }
 
   Loggers::message << "[final] max=" << max << " magnitude=" << magnitude;
   Loggers::message << "[final] nonZero=" << nonZero << " zero=" << (KPP_ALL + KKP_ALL);
 
   // 重みベクトルを保存
-  _eval.writeFile();
+  eval_.writeFile();
 
-  float elapsed = _timer.get();
+  float elapsed = timer_.get();
   Loggers::message << "[final] elapsed: " << elapsed;
 
   return true;

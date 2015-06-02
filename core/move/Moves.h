@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_MOVES__
-#define __SUNFISH_MOVES__
+#ifndef SUNFISH_MOVES__
+#define SUNFISH_MOVES__
 
 #include "../board/Board.h"
 #include "Moves.h"
@@ -16,29 +16,29 @@ template <int maxSize>
 class TempMoves {
 private:
 
-  Move _moves[maxSize];
-  int _size;
+  Move moves_[maxSize];
+  int size_;
 
 public:
 
   typedef Move* iterator;
   typedef const Move* const_iterator;
 
-  TempMoves() : _size(0) {
+  TempMoves() : size_(0) {
   }
 
-  void clear() { _size = 0; }
-  int size() const { return _size; }
+  void clear() { size_ = 0; }
+  int size() const { return size_; }
 
   void add(const Move& move) {
-    _moves[_size++] = move;
+    moves_[size_++] = move;
   }
 
   void remove(int index) {
-    _moves[index] = _moves[--_size];
+    moves_[index] = moves_[--size_];
   }
   iterator remove(iterator ite) {
-    (*ite) = _moves[--_size];
+    (*ite) = moves_[--size_];
     return ite;
   }
   void removeStable(int index) {
@@ -48,27 +48,27 @@ public:
     for (auto itmp = ite+1; itmp != end(); itmp++) {
       *(itmp-1) = *(itmp);
     }
-    _size--;
+    size_--;
     return ite;
   }
   void removeAfter(int index) {
-    _size = index;
+    size_ = index;
   }
   void removeAfter(iterator ite) {
-    _size = (int)(ite - _moves);
+    size_ = (int)(ite - moves_);
   }
 
   // random accessor
-  Move& get(int index) { return _moves[index]; }
-  const Move& get(int index) const { return _moves[index]; }
-  Move& operator[](int index) { return _moves[index]; }
-  const Move& operator[](int index) const { return _moves[index]; }
+  Move& get(int index) { return moves_[index]; }
+  const Move& get(int index) const { return moves_[index]; }
+  Move& operator[](int index) { return moves_[index]; }
+  const Move& operator[](int index) const { return moves_[index]; }
 
   // iterator
-  iterator begin() { return _moves; }
-  const_iterator begin() const { return _moves; }
-  iterator end() { return _moves + _size; }
-  const_iterator end() const { return _moves + _size; }
+  iterator begin() { return moves_; }
+  const_iterator begin() const { return moves_; }
+  iterator end() { return moves_ + size_; }
+  const_iterator end() const { return moves_ + size_; }
 
   iterator find(const Move& move) {
     for (auto ite = begin(); ite != end(); ite++) {
@@ -85,4 +85,4 @@ typedef TempMoves<1024> Moves;
 
 } // namespace sunfish
 
-#endif //__SUNFISH_MOVES__
+#endif //SUNFISH_MOVES__

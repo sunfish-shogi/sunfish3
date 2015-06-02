@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_EVALUATEENTITY__
-#define __SUNFISH_EVALUATEENTITY__
+#ifndef SUNFISH_EVALUATEENTITY__
+#define SUNFISH_EVALUATEENTITY__
 
 #include "Value.h"
 #include "core/def.h"
@@ -21,7 +21,7 @@ private:
 
   static_assert(ValueInf >= Value::Inf, "error");
 
-  uint64_t _data;
+  uint64_t data_;
 
   static int32_t convertValue(int32_t value) {
     return ValueInf - value;
@@ -34,7 +34,7 @@ public:
   }
 
   void init() {
-    _data = 0ull;
+    data_ = 0ull;
   }
 
   void init(unsigned) {
@@ -42,7 +42,7 @@ public:
   }
 
   bool get(uint64_t hash, Value& value) const {
-    uint64_t temp = _data;
+    uint64_t temp = data_;
     if ((temp & HashMask) == (hash & HashMask)) {
       value = convertValue((int32_t)(temp & ValueMask));
       assert(value > -ValueInf);
@@ -58,10 +58,10 @@ public:
     uint32_t v = (uint32_t)convertValue(value.int32());
     assert((v & ~ValueMask) == 0U);
     uint64_t temp = (hash & HashMask) | v;
-    _data = temp;
+    data_ = temp;
   }
 };
 
 } // namespace sunfish
 
-#endif // __SUNFISH_EVALUATEENTITY__
+#endif // SUNFISH_EVALUATEENTITY__

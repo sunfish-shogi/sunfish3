@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_MOVETABLE__
-#define __SUNFISH_MOVETABLE__
+#ifndef SUNFISH_MOVETABLE__
+#define SUNFISH_MOVETABLE__
 
 #include "../base/Piece.h"
 #include "../board/Bitboard.h"
@@ -17,19 +17,19 @@ namespace sunfish {
 template <bool full>
 class DirectionMaskTable {
 private:
-  Bitboard _file[Position::N];
-  Bitboard _rank[Position::N];
-  Bitboard _leftUpX[Position::N];
-  Bitboard _rightUpX[Position::N];
+  Bitboard file_[Position::N];
+  Bitboard rank_[Position::N];
+  Bitboard leftUpX_[Position::N];
+  Bitboard rightUpX_[Position::N];
 
-  Bitboard _right[Position::N];
-  Bitboard _left[Position::N];
-  Bitboard _up[Position::N];
-  Bitboard _down[Position::N];
-  Bitboard _leftUp[Position::N];
-  Bitboard _rightDown[Position::N];
-  Bitboard _rightUp[Position::N];
-  Bitboard _leftDown[Position::N];
+  Bitboard right_[Position::N];
+  Bitboard left_[Position::N];
+  Bitboard up_[Position::N];
+  Bitboard down_[Position::N];
+  Bitboard leftUp_[Position::N];
+  Bitboard rightDown_[Position::N];
+  Bitboard rightUp_[Position::N];
+  Bitboard leftDown_[Position::N];
 
 public:
   DirectionMaskTable();
@@ -38,62 +38,62 @@ public:
   const Bitboard& file(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _file[pos];
+    return file_[pos];
   }
   const Bitboard& rank(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _rank[pos];
+    return rank_[pos];
   }
   const Bitboard& leftUpX(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _leftUpX[pos];
+    return leftUpX_[pos];
   }
   const Bitboard& rightUpX(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _rightUpX[pos];
+    return rightUpX_[pos];
   }
   const Bitboard& left(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _left[pos];
+    return left_[pos];
   }
   const Bitboard& right(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _right[pos];
+    return right_[pos];
   }
   const Bitboard& up(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _up[pos];
+    return up_[pos];
   }
   const Bitboard& down(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _down[pos];
+    return down_[pos];
   }
   const Bitboard& leftUp(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _leftUp[pos];
+    return leftUp_[pos];
   }
   const Bitboard& rightDown(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _rightDown[pos];
+    return rightDown_[pos];
   }
   const Bitboard& rightUp(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _rightUp[pos];
+    return rightUp_[pos];
   }
   const Bitboard& leftDown(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _leftDown[pos];
+    return leftDown_[pos];
   }
 };
 extern const DirectionMaskTable<true> dirMask;
@@ -104,9 +104,9 @@ extern const DirectionMaskTable<false> dirMask7x7;
  */
 class MagicNumberTable {
 private:
-  Bitboard _rank[Position::N];
-  Bitboard _leftUp[Position::N];
-  Bitboard _rightUp[Position::N];
+  Bitboard rank_[Position::N];
+  Bitboard leftUp_[Position::N];
+  Bitboard rightUp_[Position::N];
 
 public:
   MagicNumberTable();
@@ -115,17 +115,17 @@ public:
   const Bitboard& rank(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _rank[pos];
+    return rank_[pos];
   }
   const Bitboard& leftUp(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _leftUp[pos];
+    return leftUp_[pos];
   }
   const Bitboard& rightUp(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _rightUp[pos];
+    return rightUp_[pos];
   }
 };
 extern const sunfish::MagicNumberTable magic;
@@ -135,18 +135,18 @@ extern const sunfish::MagicNumberTable magic;
  */
 class MovePatternTable {
 private:
-  Bitboard _up[Position::N][0x80];
-  Bitboard _down[Position::N][0x80];
-  Bitboard _file[Position::N][0x80];
-  Bitboard _rank[Position::N][0x80];
-  Bitboard _leftUpX[Position::N][0x80];
-  Bitboard _rightUpX[Position::N][0x80];
-  Bitboard _leftUp[Position::N][0x80];
-  Bitboard _leftDown[Position::N][0x80];
-  Bitboard _rightUp[Position::N][0x80];
-  Bitboard _rightDown[Position::N][0x80];
-  Bitboard _left[Position::N][0x80];
-  Bitboard _right[Position::N][0x80];
+  Bitboard up_[Position::N][0x80];
+  Bitboard down_[Position::N][0x80];
+  Bitboard file_[Position::N][0x80];
+  Bitboard rank_[Position::N][0x80];
+  Bitboard leftUpX_[Position::N][0x80];
+  Bitboard rightUpX_[Position::N][0x80];
+  Bitboard leftUp_[Position::N][0x80];
+  Bitboard leftDown_[Position::N][0x80];
+  Bitboard rightUp_[Position::N][0x80];
+  Bitboard rightDown_[Position::N][0x80];
+  Bitboard left_[Position::N][0x80];
+  Bitboard right_[Position::N][0x80];
 
 public:
   MovePatternTable();
@@ -156,88 +156,85 @@ public:
     assert(pos >= 0);
     assert(pos < Position::N);
     assert(pattern < 0x80);
-    return _up[pos][pattern];
+    return up_[pos][pattern];
   }
   const Bitboard& down(const Position& pos, unsigned pattern) const {
     assert(pos >= 0);
     assert(pos < Position::N);
     assert(pattern < 0x80);
-    return _down[pos][pattern];
+    return down_[pos][pattern];
   }
   const Bitboard& file(const Position& pos, unsigned pattern) const {
     assert(pos >= 0);
     assert(pos < Position::N);
     assert(pattern < 0x80);
-    return _file[pos][pattern];
+    return file_[pos][pattern];
   }
   const Bitboard& rank(const Position& pos, unsigned pattern) const {
     assert(pos >= 0);
     assert(pos < Position::N);
     assert(pattern < 0x80);
-    return _rank[pos][pattern];
+    return rank_[pos][pattern];
   }
   const Bitboard& leftUpX(const Position& pos, unsigned pattern) const {
     assert(pos >= 0);
     assert(pos < Position::N);
     assert(pattern < 0x80);
-    return _leftUpX[pos][pattern];
+    return leftUpX_[pos][pattern];
   }
   const Bitboard& rightUpX(const Position& pos, unsigned pattern) const {
     assert(pos >= 0);
     assert(pos < Position::N);
     assert(pattern < 0x80);
-    return _rightUpX[pos][pattern];
+    return rightUpX_[pos][pattern];
   }
   const Bitboard& leftUp(const Position& pos, unsigned pattern) const {
     assert(pos >= 0);
     assert(pos < Position::N);
     assert(pattern < 0x80);
-    return _leftUp[pos][pattern];
+    return leftUp_[pos][pattern];
   }
   const Bitboard& leftDown(const Position& pos, unsigned pattern) const {
     assert(pos >= 0);
     assert(pos < Position::N);
     assert(pattern < 0x80);
-    return _leftDown[pos][pattern];
+    return leftDown_[pos][pattern];
   }
   const Bitboard& rightUp(const Position& pos, unsigned pattern) const {
     assert(pos >= 0);
     assert(pos < Position::N);
     assert(pattern < 0x80);
-    return _rightUp[pos][pattern];
+    return rightUp_[pos][pattern];
   }
   const Bitboard& rightDown(const Position& pos, unsigned pattern) const {
     assert(pos >= 0);
     assert(pos < Position::N);
     assert(pattern < 0x80);
-    return _rightDown[pos][pattern];
+    return rightDown_[pos][pattern];
   }
   const Bitboard& left(const Position& pos, unsigned pattern) const {
     assert(pos >= 0);
     assert(pos < Position::N);
     assert(pattern < 0x80);
-    return _left[pos][pattern];
+    return left_[pos][pattern];
   }
   const Bitboard& right(const Position& pos, unsigned pattern) const {
     assert(pos >= 0);
     assert(pos < Position::N);
     assert(pattern < 0x80);
-    return _right[pos][pattern];
+    return right_[pos][pattern];
   }
 };
 extern const sunfish::MovePatternTable movePattern;
 
-namespace _MoveTableType {
-  enum Type {
-    BPawn, BLance, BKnight, BSilver, BGold,
-    WPawn, WLance, WKnight, WSilver, WGold,
-    Bishop, Rook, Bishop2, Rook2, King, Horse, Dragon,
-    Vertical, Horizontal, RightUpX, RightDownX,
-    RightUp, RightDown, LeftUp, LeftDown,
-    Left, Right
-  };
-}
-typedef _MoveTableType::Type MoveTableType;
+enum MoveTableType : int {
+  BPawn, BLance, BKnight, BSilver, BGold,
+  WPawn, WLance, WKnight, WSilver, WGold,
+  Bishop, Rook, Bishop2, Rook2, King, Horse, Dragon,
+  Vertical, Horizontal, RightUpX, RightDownX,
+  RightUp, RightDown, LeftUp, LeftDown,
+  Left, Right
+};
 
 /**
  * OneStepMoveTable
@@ -246,7 +243,7 @@ typedef _MoveTableType::Type MoveTableType;
 template <MoveTableType type>
 class OneStepMoveTable {
 private:
-  Bitboard _table[Position::N];
+  Bitboard table_[Position::N];
 
 public:
   OneStepMoveTable();
@@ -256,7 +253,7 @@ public:
   const Bitboard& get(const Position& pos) const {
     assert(pos >= 0);
     assert(pos < Position::N);
-    return _table[pos];
+    return table_[pos];
   }
 };
 extern const OneStepMoveTable<MoveTableType::Horse> horseOneStepMove;
@@ -515,4 +512,4 @@ public:
 
 } // namespace sunfish
 
-#endif //__SUNFISH_MOVETABLE__
+#endif //SUNFISH_MOVETABLE__

@@ -167,25 +167,25 @@ namespace search_func {
  * コンストラクタ
  */
 Searcher::Searcher()
-: _trees(nullptr)
-, _workers(nullptr)
-, _forceInterrupt(false)
-, _isRunning(false) {
+: trees_(nullptr)
+, workers_(nullptr)
+, forceInterrupt_(false)
+, isRunning_(false) {
   initConfig();
-  _history.init();
+  history_.init();
 }
 
 /**
  * コンストラクタ
  */
 Searcher::Searcher(Evaluator& eval)
-: _trees(nullptr)
-, _workers(nullptr)
-, _eval(eval)
-, _forceInterrupt(false)
-, _isRunning(false) {
+: trees_(nullptr)
+, workers_(nullptr)
+, eval_(eval)
+, forceInterrupt_(false)
+, isRunning_(false) {
   initConfig();
-  _history.init();
+  history_.init();
 }
 
 /**
@@ -200,8 +200,8 @@ Searcher::~Searcher() {
  * tree の確保
  */
 void Searcher::allocateTrees() {
-  if (_trees == nullptr) {
-    _trees = new Tree[_config.treeSize];
+  if (trees_ == nullptr) {
+    trees_ = new Tree[config_.treeSize];
   }
 }
 
@@ -209,8 +209,8 @@ void Searcher::allocateTrees() {
  * worker の確保
  */
 void Searcher::allocateWorkers() {
-  if (_workers == nullptr) {
-    _workers = new Worker[_config.workerSize];
+  if (workers_ == nullptr) {
+    workers_ = new Worker[config_.workerSize];
   }
 }
 
@@ -218,29 +218,29 @@ void Searcher::allocateWorkers() {
  * tree の再確保
  */
 void Searcher::reallocateTrees() {
-  if (_trees != nullptr) {
-    delete[] _trees;
+  if (trees_ != nullptr) {
+    delete[] trees_;
   }
-  _trees = new Tree[_config.treeSize];
+  trees_ = new Tree[config_.treeSize];
 }
 
 /**
  * worker の再確保
  */
 void Searcher::reallocateWorkers() {
-  if (_workers != nullptr) {
-    delete[] _workers;
+  if (workers_ != nullptr) {
+    delete[] workers_;
   }
-  _workers = new Worker[_config.workerSize];
+  workers_ = new Worker[config_.workerSize];
 }
 
 /**
  * tree の解放
  */
 void Searcher::releaseTrees() {
-  if (_trees != nullptr) {
-    delete[] _trees;
-    _trees = nullptr;
+  if (trees_ != nullptr) {
+    delete[] trees_;
+    trees_ = nullptr;
   }
 }
 
@@ -248,9 +248,9 @@ void Searcher::releaseTrees() {
  * worker の解放
  */
 void Searcher::releaseWorkers() {
-  if (_workers != nullptr) {
-    delete[] _workers;
-    _workers = nullptr;
+  if (workers_ != nullptr) {
+    delete[] workers_;
+    workers_ = nullptr;
   }
 }
 
@@ -258,54 +258,54 @@ void Searcher::releaseWorkers() {
  * worker の取得
  */
 Worker& Searcher::getWorker(Tree& tree) {
-  return _workers[tree.getTlp().workerId];
+  return workers_[tree.getTlp().workerId];
 }
 
 void Searcher::mergeInfo() {
-  memset(&_info, 0, sizeof(SearchInfoBase));
-  for (int id = 0; id < _config.workerSize; id++) {
-    auto& worker = _workers[id];
-    _info.failHigh                   += worker.info.failHigh;
-    _info.failHighFirst              += worker.info.failHighFirst;
-    _info.failHighIsHash             += worker.info.failHighIsHash;
-    _info.failHighIsKiller1          += worker.info.failHighIsKiller1;
-    _info.failHighIsKiller2          += worker.info.failHighIsKiller2;
-    _info.hashProbed                 += worker.info.hashProbed;
-    _info.hashHit                    += worker.info.hashHit;
-    _info.hashExact                  += worker.info.hashExact;
-    _info.hashLower                  += worker.info.hashLower;
-    _info.hashUpper                  += worker.info.hashUpper;
-    _info.hashStore                  += worker.info.hashStore;
-    _info.hashNew                    += worker.info.hashNew;
-    _info.hashUpdate                 += worker.info.hashUpdate;
-    _info.hashCollision              += worker.info.hashCollision;
-    _info.hashReject                 += worker.info.hashReject;
-    _info.mateProbed                 += worker.info.mateProbed;
-    _info.mateHit                    += worker.info.mateHit;
-    _info.expand                     += worker.info.expand;
-    _info.expandHashMove             += worker.info.expandHashMove;
-    _info.shekProbed                 += worker.info.shekProbed;
-    _info.shekSuperior               += worker.info.shekSuperior;
-    _info.shekInferior               += worker.info.shekInferior;
-    _info.shekEqual                  += worker.info.shekEqual;
-    _info.nullMovePruning            += worker.info.nullMovePruning;
-    _info.nullMovePruningTried       += worker.info.nullMovePruningTried;
-    _info.futilityPruning            += worker.info.futilityPruning;
-    _info.extendedFutilityPruning    += worker.info.extendedFutilityPruning;
-    _info.moveCountPruning           += worker.info.moveCountPruning;
-    _info.razoring                   += worker.info.razoring;
-    _info.razoringTried              += worker.info.razoringTried;
-    _info.probcut                    += worker.info.probcut;
-    _info.probcutTried               += worker.info.probcutTried;
-    _info.singular                   += worker.info.singular;
-    _info.singularChecked            += worker.info.singularChecked;
-    _info.expanded                   += worker.info.expanded;
-    _info.checkExtension             += worker.info.checkExtension;
-    _info.onerepExtension            += worker.info.onerepExtension;
-    _info.recapExtension             += worker.info.recapExtension;
-    _info.split                      += worker.info.split;
-    _info.node                       += worker.info.node;
-    _info.qnode                      += worker.info.qnode;
+  memset(&info_, 0, sizeof(SearchInfoBase));
+  for (int id = 0; id < config_.workerSize; id++) {
+    auto& worker = workers_[id];
+    info_.failHigh                   += worker.info.failHigh;
+    info_.failHighFirst              += worker.info.failHighFirst;
+    info_.failHighIsHash             += worker.info.failHighIsHash;
+    info_.failHighIsKiller1          += worker.info.failHighIsKiller1;
+    info_.failHighIsKiller2          += worker.info.failHighIsKiller2;
+    info_.hashProbed                 += worker.info.hashProbed;
+    info_.hashHit                    += worker.info.hashHit;
+    info_.hashExact                  += worker.info.hashExact;
+    info_.hashLower                  += worker.info.hashLower;
+    info_.hashUpper                  += worker.info.hashUpper;
+    info_.hashStore                  += worker.info.hashStore;
+    info_.hashNew                    += worker.info.hashNew;
+    info_.hashUpdate                 += worker.info.hashUpdate;
+    info_.hashCollision              += worker.info.hashCollision;
+    info_.hashReject                 += worker.info.hashReject;
+    info_.mateProbed                 += worker.info.mateProbed;
+    info_.mateHit                    += worker.info.mateHit;
+    info_.expand                     += worker.info.expand;
+    info_.expandHashMove             += worker.info.expandHashMove;
+    info_.shekProbed                 += worker.info.shekProbed;
+    info_.shekSuperior               += worker.info.shekSuperior;
+    info_.shekInferior               += worker.info.shekInferior;
+    info_.shekEqual                  += worker.info.shekEqual;
+    info_.nullMovePruning            += worker.info.nullMovePruning;
+    info_.nullMovePruningTried       += worker.info.nullMovePruningTried;
+    info_.futilityPruning            += worker.info.futilityPruning;
+    info_.extendedFutilityPruning    += worker.info.extendedFutilityPruning;
+    info_.moveCountPruning           += worker.info.moveCountPruning;
+    info_.razoring                   += worker.info.razoring;
+    info_.razoringTried              += worker.info.razoringTried;
+    info_.probcut                    += worker.info.probcut;
+    info_.probcutTried               += worker.info.probcutTried;
+    info_.singular                   += worker.info.singular;
+    info_.singularChecked            += worker.info.singularChecked;
+    info_.expanded                   += worker.info.expanded;
+    info_.checkExtension             += worker.info.checkExtension;
+    info_.onerepExtension            += worker.info.onerepExtension;
+    info_.recapExtension             += worker.info.recapExtension;
+    info_.split                      += worker.info.split;
+    info_.node                       += worker.info.node;
+    info_.qnode                      += worker.info.qnode;
   }
 }
 
@@ -331,7 +331,7 @@ void Searcher::before(const Board& initialBoard) {
   expt::mate_hist_n.clear();
 #endif
 
-  if (_isRunning.load()) {
+  if (isRunning_.load()) {
     Loggers::error << __FILE_LINE__ << ": Searcher is already running!!!";
   }
 
@@ -342,51 +342,51 @@ void Searcher::before(const Board& initialBoard) {
   allocateWorkers();
 
   // tree の初期化
-  for (int id = 0; id < _config.treeSize; id++) {
-    auto& tree = _trees[id];
-    tree.init(id, initialBoard, _eval, _record);
+  for (int id = 0; id < config_.treeSize; id++) {
+    auto& tree = trees_[id];
+    tree.init(id, initialBoard, eval_, record_);
   }
-  _idleTreeCount.store(_config.treeSize - 1);
+  idleTreeCount_.store(config_.treeSize - 1);
 
   // worker の初期化
-  for (int id = 0; id < _config.workerSize; id++) {
-    auto& worker = _workers[id];
+  for (int id = 0; id < config_.workerSize; id++) {
+    auto& worker = workers_[id];
     worker.init(id, this);
     if (id != mainWorkerId) {
       worker.startOnNewThread();
     }
   }
-  _idleWorkerCount.store(_config.workerSize - 1);
+  idleWorkerCount_.store(config_.workerSize - 1);
 
   // 最初の tree を確保
-  auto& tree0 = _trees[mainTreeId];
-  auto& worker0 = _workers[mainWorkerId];
+  auto& tree0 = trees_[mainTreeId];
+  auto& worker0 = workers_[mainWorkerId];
   tree0.use(mainWorkerId);
   worker0.startOnCurrentThread(mainTreeId);
 
   // timer 初期化
-  _timer.set();
+  timer_.set();
 
   // transposition table
-  _tt.evolve(); // 世代更新
+  tt_.evolve(); // 世代更新
 
   // hisotory heuristic
 #if ENABLE_HIST_REUSE
-  _history.reduce();
+  history_.reduce();
 #else
-  _history.init();
+  history_.init();
 #endif
 
   // mate
-  _mateHistory.clear();
+  mateHistory_.clear();
 
   // gains
-  _gains.clear();
+  gains_.clear();
 
-  _forceInterrupt.store(false);
-  _isRunning.store(true);
+  forceInterrupt_.store(false);
+  isRunning_.store(true);
 
-  _timeManager.init();
+  timeManager_.init();
 }
 
 /**
@@ -417,32 +417,32 @@ void Searcher::after() {
   expt::mate_hist_n.print();
 #endif
 
-  if (!_isRunning.load()) {
+  if (!isRunning_.load()) {
     Loggers::error << __FILE_LINE__ << ": Searcher is not running???";
   }
 
   // worker の停止
-  for (int id = 1; id < _config.workerSize; id++) {
-    auto& worker = _workers[id];
+  for (int id = 1; id < config_.workerSize; id++) {
+    auto& worker = workers_[id];
     worker.stop();
   }
 
   // tree の解放
-  for (int id = 0; id < _config.treeSize; id++) {
-    auto& tree = _trees[id];
-    tree.release(_record);
+  for (int id = 0; id < config_.treeSize; id++) {
+    auto& tree = trees_[id];
+    tree.release(record_);
   }
 
   // 探索情報収集
-  auto& tree0 = _trees[0];
-  _info.time = _timer.get();
-  _info.nps = (_info.node + _info.qnode) / _info.time;
-  _info.move = tree0.getPV().get(0).move;
-  _info.pv.copy(tree0.getPV());
+  auto& tree0 = trees_[0];
+  info_.time = timer_.get();
+  info_.nps = (info_.node + info_.qnode) / info_.time;
+  info_.move = tree0.getPV().get(0).move;
+  info_.pv.copy(tree0.getPV());
   mergeInfo();
 
-  _isRunning.store(false);
-  _forceInterrupt.store(false);
+  isRunning_.store(false);
+  forceInterrupt_.store(false);
 
 }
 
@@ -460,40 +460,40 @@ std::string Searcher::getInfoString() const {
   };
 
   std::vector<std::pair<std::string, std::string>> lines;
-  lines.emplace_back("nodes          ", format (_info.node));
-  lines.emplace_back("quies-nodes    ", format (_info.qnode));
-  lines.emplace_back("all-nodes      ", format ((_info.node + _info.qnode)));
-  lines.emplace_back("time           ", format (_info.time));
-  lines.emplace_back("nps            ", format (std::ceil(_info.nps)));
-  lines.emplace_back("eval           ", format (_info.eval.int32()));
-  lines.emplace_back("split          ", format (_info.split));
-  lines.emplace_back("fail high first", format2(_info.failHighFirst, _info.failHigh));
-  lines.emplace_back("fail high hash ", format2(_info.failHighIsHash, _info.failHigh));
-  lines.emplace_back("fail high kill1", format2(_info.failHighIsKiller1, _info.failHigh));
-  lines.emplace_back("fail high kill2", format2(_info.failHighIsKiller2, _info.failHigh));
-  lines.emplace_back("expand hash    ", format2(_info.expandHashMove, _info.expand));
-  lines.emplace_back("hash hit       ", format2(_info.hashHit, _info.hashProbed));
-  lines.emplace_back("hash extract   ", format2(_info.hashExact, _info.hashProbed));
-  lines.emplace_back("hash lower     ", format2(_info.hashLower, _info.hashProbed));
-  lines.emplace_back("hash upper     ", format2(_info.hashUpper, _info.hashProbed));
-  lines.emplace_back("hash new       ", format2(_info.hashNew, _info.hashStore));
-  lines.emplace_back("hash update    ", format2(_info.hashUpdate, _info.hashStore));
-  lines.emplace_back("hash collide   ", format2(_info.hashCollision, _info.hashStore));
-  lines.emplace_back("hash reject    ", format2(_info.hashReject, _info.hashStore));
-  lines.emplace_back("mate hit       ", format2(_info.mateHit, _info.mateProbed));
-  lines.emplace_back("shek superior  ", format2(_info.shekSuperior, _info.shekProbed));
-  lines.emplace_back("shek inferior  ", format2(_info.shekInferior, _info.shekProbed));
-  lines.emplace_back("shek equal     ", format2(_info.shekEqual, _info.shekProbed));
-  lines.emplace_back("null mv pruning", format2(_info.nullMovePruning, _info.nullMovePruningTried));
-  lines.emplace_back("fut pruning    ", format (_info.futilityPruning));
-  lines.emplace_back("ext fut pruning", format (_info.extendedFutilityPruning));
-  lines.emplace_back("mov cnt pruning", format (_info.moveCountPruning));
-  lines.emplace_back("razoring       ", format2(_info.razoring, _info.razoringTried));
-  lines.emplace_back("probcut        ", format2(_info.probcut, _info.probcutTried));
-  lines.emplace_back("singular       ", format2(_info.singular, _info.singularChecked));
-  lines.emplace_back("check extension", format2(_info.checkExtension, _info.expanded));
-  lines.emplace_back("1rep extension ", format2(_info.onerepExtension, _info.expanded));
-  lines.emplace_back("recap extension", format2(_info.recapExtension, _info.expanded));
+  lines.emplace_back("nodes          ", format (info_.node));
+  lines.emplace_back("quies-nodes    ", format (info_.qnode));
+  lines.emplace_back("all-nodes      ", format ((info_.node + info_.qnode)));
+  lines.emplace_back("time           ", format (info_.time));
+  lines.emplace_back("nps            ", format (std::ceil(info_.nps)));
+  lines.emplace_back("eval           ", format (info_.eval.int32()));
+  lines.emplace_back("split          ", format (info_.split));
+  lines.emplace_back("fail high first", format2(info_.failHighFirst, info_.failHigh));
+  lines.emplace_back("fail high hash ", format2(info_.failHighIsHash, info_.failHigh));
+  lines.emplace_back("fail high kill1", format2(info_.failHighIsKiller1, info_.failHigh));
+  lines.emplace_back("fail high kill2", format2(info_.failHighIsKiller2, info_.failHigh));
+  lines.emplace_back("expand hash    ", format2(info_.expandHashMove, info_.expand));
+  lines.emplace_back("hash hit       ", format2(info_.hashHit, info_.hashProbed));
+  lines.emplace_back("hash extract   ", format2(info_.hashExact, info_.hashProbed));
+  lines.emplace_back("hash lower     ", format2(info_.hashLower, info_.hashProbed));
+  lines.emplace_back("hash upper     ", format2(info_.hashUpper, info_.hashProbed));
+  lines.emplace_back("hash new       ", format2(info_.hashNew, info_.hashStore));
+  lines.emplace_back("hash update    ", format2(info_.hashUpdate, info_.hashStore));
+  lines.emplace_back("hash collide   ", format2(info_.hashCollision, info_.hashStore));
+  lines.emplace_back("hash reject    ", format2(info_.hashReject, info_.hashStore));
+  lines.emplace_back("mate hit       ", format2(info_.mateHit, info_.mateProbed));
+  lines.emplace_back("shek superior  ", format2(info_.shekSuperior, info_.shekProbed));
+  lines.emplace_back("shek inferior  ", format2(info_.shekInferior, info_.shekProbed));
+  lines.emplace_back("shek equal     ", format2(info_.shekEqual, info_.shekProbed));
+  lines.emplace_back("null mv pruning", format2(info_.nullMovePruning, info_.nullMovePruningTried));
+  lines.emplace_back("fut pruning    ", format (info_.futilityPruning));
+  lines.emplace_back("ext fut pruning", format (info_.extendedFutilityPruning));
+  lines.emplace_back("mov cnt pruning", format (info_.moveCountPruning));
+  lines.emplace_back("razoring       ", format2(info_.razoring, info_.razoringTried));
+  lines.emplace_back("probcut        ", format2(info_.probcut, info_.probcutTried));
+  lines.emplace_back("singular       ", format2(info_.singular, info_.singularChecked));
+  lines.emplace_back("check extension", format2(info_.checkExtension, info_.expanded));
+  lines.emplace_back("1rep extension ", format2(info_.onerepExtension, info_.expanded));
+  lines.emplace_back("recap extension", format2(info_.recapExtension, info_.expanded));
 
   int columns = 2;
   int rows = (lines.size() + columns - 1) / columns;
@@ -535,7 +535,7 @@ std::string Searcher::getInfoString() const {
  * SHEK と千日手検出のための過去の棋譜をクリアします。
  */
 void Searcher::clearRecord() {
-  _record.clear();
+  record_.clear();
 }
 
 /**
@@ -543,7 +543,7 @@ void Searcher::clearRecord() {
  */
 void Searcher::setRecord(const Record& record) {
   for (unsigned i = 0; i < record.getCount(); i++) {
-    _record.push_back(record.getMoveAt(i));
+    record_.push_back(record.getMoveAt(i));
   }
 }
 
@@ -553,10 +553,10 @@ void Searcher::setRecord(const Record& record) {
 inline bool Searcher::isInterrupted(Tree& tree) {
   if (tree.getTlp().shutdown.load()) {
   }
-  if (_forceInterrupt.load()) {
+  if (forceInterrupt_.load()) {
     return true;
   }
-  if (_config.enableLimit && _timer.get() >= _config.limitSeconds) {
+  if (config_.enableLimit && timer_.get() >= config_.limitSeconds) {
     return true;
   }
   return false;
@@ -566,7 +566,7 @@ inline bool Searcher::isInterrupted(Tree& tree) {
  * 探索を強制的に打ち切ります。
  */
 void Searcher::forceInterrupt() {
-  _forceInterrupt.store(true);
+  forceInterrupt_.store(true);
 }
 
 /**
@@ -579,7 +579,7 @@ Value Searcher::searchSee(const Board& board, const Move& move, Value alpha, Val
 
   if (!shallow) {
     hash = board.getHash() ^ (uint64_t)Move::serialize(move);
-    if (_seeCache.get(hash, value, alpha, beta)) {
+    if (seeCache_.get(hash, value, alpha, beta)) {
       return value;
     }
   }
@@ -588,7 +588,7 @@ Value Searcher::searchSee(const Board& board, const Move& move, Value alpha, Val
   value = see.search<shallow>(board, move, alpha, beta);
 
   if (!shallow) {
-    _seeCache.set(hash, value, alpha, beta);
+    seeCache_.set(hash, value, alpha, beta);
   }
 
   return value;
@@ -629,7 +629,7 @@ void Searcher::sortSee(Tree& tree, int offset, Value standPat, Value alpha, bool
 
     if (isQuies) {
       // futility pruning
-      if (standPat + tree.estimate(move, _eval) + _gains.get(move) <= alpha) {
+      if (standPat + tree.estimate(move, eval_) + gains_.get(move) <= alpha) {
         worker.info.futilityPruning++;
         ite = tree.getMoves().remove(ite);
         continue;
@@ -642,7 +642,7 @@ void Searcher::sortSee(Tree& tree, int offset, Value standPat, Value alpha, bool
     value = searchSee<false>(board, move, -1, Value::PieceInf);
 #endif
     if (estimate) {
-      value += tree.estimate<true>(move, _eval);
+      value += tree.estimate<true>(move, eval_);
     }
 
     if (enableKiller) {
@@ -753,7 +753,7 @@ bool Searcher::pickOneHistory(Tree& tree) {
     const Move& move = *ite;
 
     auto key = History::getKey(move);
-    auto data = _history.getData(key);
+    auto data = history_.getData(key);
     auto value = History::getRatio(data);
     if (value > bestValue) {
       best = ite;
@@ -781,7 +781,7 @@ void Searcher::sortHistory(Tree& tree) {
     const Move& move = *ite;
 
     auto key = History::getKey(move);
-    auto data = _history.getData(key);
+    auto data = history_.getData(key);
     auto ratio = History::getRatio(data);
     tree.setSortValue(ite, (int32_t)ratio);
 
@@ -804,9 +804,9 @@ void Searcher::updateHistory(Tree& tree, int depth, const Move& move) {
     assert(ite != tree.getEnd());
     auto key = History::getKey(*ite);
     if (ite->equals(move)) {
-      _history.add(key, value, value);
+      history_.add(key, value, value);
     } else {
-      _history.add(key, value, 0);
+      history_.add(key, value, 0);
     }
 
   }
@@ -818,7 +818,7 @@ void Searcher::updateHistory(Tree& tree, int depth, const Move& move) {
  */
 int Searcher::getReductionDepth(bool improving, int depth, int count, const Move& move, bool isNullWindow) {
   auto key = History::getKey(move);
-  auto data = _history.getData(key);
+  auto data = history_.getData(key);
   auto good = History::getGoodCount(data) + 1;
   auto appear = History::getAppearCount(data) + 2;
 
@@ -1037,7 +1037,7 @@ void Searcher::storePV(Tree& tree, const PV& pv, int ply) {
   }
 
   auto hash = tree.getBoard().getHash();
-  _tt.entryPV(hash, depth, Move::serialize16(move));
+  tt_.entryPV(hash, depth, Move::serialize16(move));
 }
 
 bool Searcher::isNeedMateSearch(Tree& tree, bool black, int depth) {
@@ -1050,7 +1050,7 @@ bool Searcher::isNeedMateSearch(Tree& tree, bool black, int depth) {
   Position king = black ? board.getWKingPosition() : board.getBKingPosition();
   Move move = tree.getPreFrontMove();
 
-  uint64_t data = _mateHistory.getData(king, move);
+  uint64_t data = mateHistory_.getData(king, move);
   assert(data <= MateHistory::Max);
   uint32_t mated = MateHistory::getMated(data);
   uint32_t probed = MateHistory::getProbed(data);
@@ -1072,7 +1072,7 @@ void Searcher::updateMateHistory(Tree& tree, bool black, bool mate) {
   Position king = black ? board.getWKingPosition() : board.getBKingPosition();
   Move move = tree.getPreFrontMove();
 
-  _mateHistory.update(king, move, mate);
+  mateHistory_.update(king, move, mate);
 #endif
 }
 
@@ -1084,9 +1084,9 @@ Value Searcher::qsearch(Tree& tree, bool black, int qply, Value alpha, Value bet
 #if DEBUG_NODE
   bool debug = false;
 #if 0
-  if (tree.__debug__matchPath("-4233GI +5968OU -8586FU")) {
+  if (tree.debug__matchPath("-4233GI +5968OU -8586FU")) {
     std::cout << "#-- debug quies node begin --#" << std::endl;
-    std::cout << tree.__debug__getPath() << std::endl;
+    std::cout << tree.debug__getPath() << std::endl;
     debug = true;
   }
 #endif
@@ -1097,7 +1097,7 @@ Value Searcher::qsearch(Tree& tree, bool black, int qply, Value alpha, Value bet
     for (int i = 0; i < tree.getPly(); i++) {
       std::cout << ' ';
     }
-    std::cout << tree.__debug__getFrontMove().toString() << std::endl;
+    std::cout << tree.debug__getFrontMove().toString() << std::endl;
   }
 #endif
 
@@ -1122,7 +1122,7 @@ Value Searcher::qsearch(Tree& tree, bool black, int qply, Value alpha, Value bet
     // search mate in 3 ply
     bool mate = false;
     worker.info.mateProbed++;
-    if (_mateTable.get(tree.getBoard().getHash(), mate)) {
+    if (mateTable_.get(tree.getBoard().getHash(), mate)) {
       worker.info.mateHit++;
     } else if (isNeedMateSearch(tree, black, 0)) {
 # if ENABLE_MATE_3PLY
@@ -1130,7 +1130,7 @@ Value Searcher::qsearch(Tree& tree, bool black, int qply, Value alpha, Value bet
 # else
       mate = Mate::mate1Ply(tree.getBoard());
 # endif
-      _mateTable.set(tree.getBoard().getHash(), mate);
+      mateTable_.set(tree.getBoard().getHash(), mate);
       updateMateHistory(tree, black, mate);
 #if ENABLE_MATE_HIST_EXPT
       if (mate) {
@@ -1165,7 +1165,7 @@ Value Searcher::qsearch(Tree& tree, bool black, int qply, Value alpha, Value bet
 
   while (nextMoveQuies(tree, qply, standPat, alpha)) {
     // make move
-    if (!tree.makeMove(_eval)) {
+    if (!tree.makeMove(eval_)) {
       continue;
     }
 
@@ -1267,16 +1267,16 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
     for (int i = 0; i < tree.getPly(); i++) {
       std::cout << ' ';
     }
-    std::cout << tree.__debug__getFrontMove().toString() << std::endl;
+    std::cout << tree.debug__getFrontMove().toString() << std::endl;
   }
 #endif
 
 #if DEBUG_NODE
   bool debug = false;
 #if 0
-  if (tree.__debug__matchPath("-0095KA")) {
+  if (tree.debug__matchPath("-0095KA")) {
     std::cout << "#-- debug node begin --#" << std::endl;
-    std::cout << tree.__debug__getPath() << std::endl;
+    std::cout << tree.debug__getPath() << std::endl;
     std::cout << "alpha=" << alpha.int32() << " beta=" << beta.int32() << " depth=" << depth << std::endl;
     debug = true;
   }
@@ -1374,7 +1374,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
   {
     TTE tte;
     worker.info.hashProbed++;
-    if (_tt.get(hash, tte)) {
+    if (tt_.get(hash, tte)) {
       hashDepth = tte.getDepth();
       if (depth < search_param::REC_THRESHOLD ||
           hashDepth >= search_func::recDepth(depth)) {
@@ -1454,7 +1454,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
       // search mate in 3 ply
       bool mate = false;
       worker.info.mateProbed++;
-      if (_mateTable.get(tree.getBoard().getHash(), mate)) {
+      if (mateTable_.get(tree.getBoard().getHash(), mate)) {
         worker.info.mateHit++;
       } else if (isNeedMateSearch(tree, black, depth)) {
 # if ENABLE_MATE_3PLY
@@ -1462,7 +1462,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
 # else
         mate = Mate::mate1Ply(tree.getBoard());
 # endif
-        _mateTable.set(tree.getBoard().getHash(), mate);
+        mateTable_.set(tree.getBoard().getHash(), mate);
         updateMateHistory(tree, black, mate);
 #if ENABLE_MATE_HIST_EXPT
         if (mate) {
@@ -1581,7 +1581,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
 
     // ハッシュ表から前回の最善手を取得
     TTE tte;
-    if (_tt.get(hash, tte)) {
+    if (tt_.get(hash, tte)) {
       hashMove = Move::deserialize16(tte.getMove(), tree.getBoard());
       hashValue = tte.getValue(tree.getPly());
       hashValueType = tte.getValueType();
@@ -1724,7 +1724,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
     if (!isCheck && newDepth < search_param::FUT_DEPTH && alpha > -Value::Mate) {
       Value futAlpha = alpha;
       if (newDepth >= Depth1Ply) { futAlpha -= search_func::futilityMargin(newDepth, count); }
-      if (standPat + tree.estimate(move, _eval) + _gains.get(move) <= futAlpha) {
+      if (standPat + tree.estimate(move, eval_) + gains_.get(move) <= futAlpha) {
 #if ENABLE_FUT_EXPT
         isFutPrun = true;
 #else
@@ -1746,7 +1746,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
     }
 
     // make move
-    if (!tree.makeMove(_eval)) {
+    if (!tree.makeMove(eval_)) {
       continue;
     }
 
@@ -1796,7 +1796,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
     }
 
     // update gain
-    _gains.update(move, newStandPat - standPat - tree.estimate(move, _eval));
+    gains_.update(move, newStandPat - standPat - tree.estimate(move, eval_));
 
     tree.getCurrentNode().isHistorical |= tree.getChildNode().isHistorical;
 
@@ -1841,9 +1841,9 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
     }
 
     // split
-    if ((depth >= Depth1Ply * 4 || (depth >= Depth1Ply * 3 && _rootDepth < Depth1Ply * 12)) &&
+    if ((depth >= Depth1Ply * 4 || (depth >= Depth1Ply * 3 && rootDepth_ < Depth1Ply * 12)) &&
         (!isCheckPrev || tree.getEnd() - tree.getCurrentMove() >= 4) &&
-        _idleWorkerCount.load() >= 1 && _idleTreeCount.load() >= 2) {
+        idleWorkerCount_.load() >= 1 && idleTreeCount_.load() >= 2) {
       if (split(tree, black, depth, alpha, beta, best, standPat, stat, improving)) {
         worker.info.split++;
         if (isInterrupted(tree)) {
@@ -1873,7 +1873,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
 
 hash_store:
   if (!tree.getCurrentNode().isHistorical) {
-    TTStatus status = _tt.entry(hash, oldAlpha, beta, alpha, depth, tree.getPly(), Move::serialize16(best), stat);
+    TTStatus status = tt_.entry(hash, oldAlpha, beta, alpha, depth, tree.getPly(), Move::serialize16(best), stat);
     switch (status) {
       case TTStatus::New: worker.info.hashNew++; break;
       case TTStatus::Update: worker.info.hashUpdate++; break;
@@ -1905,10 +1905,10 @@ search_end:
 }
 
 void Searcher::releaseTree(int tid) {
-  auto& tree = _trees[tid];
-  auto& parent = _trees[tree.getTlp().parentTreeId];
+  auto& tree = trees_[tid];
+  auto& parent = trees_[tree.getTlp().parentTreeId];
   tree.unuse();
-  _idleTreeCount.fetch_add(1);
+  idleTreeCount_.fetch_add(1);
   parent.getTlp().childCount.fetch_sub(1);
 }
 
@@ -1919,40 +1919,40 @@ bool Searcher::split(Tree& parent, bool black, int depth, Value alpha, Value bet
   int currTreeId = Tree::InvalidId;
 
   {
-    std::lock_guard<std::mutex> lock(_splitMutex);
+    std::lock_guard<std::mutex> lock(splitMutex_);
 
-    if (_idleTreeCount.load() <= 1 || _idleWorkerCount.load() == 0) {
+    if (idleTreeCount_.load() <= 1 || idleWorkerCount_.load() == 0) {
       return false;
     }
 
     // カレントスレッドに割り当てる tree を決定
-    for (int tid = 1; tid < _config.treeSize; tid++) {
-      auto& tree = _trees[tid];
+    for (int tid = 1; tid < config_.treeSize; tid++) {
+      auto& tree = trees_[tid];
       if (!tree.getTlp().used) {
         currTreeId = tid;
         tree.use(parent, parent.getTlp().workerId);
-        _idleTreeCount.fetch_sub(1);
+        idleTreeCount_.fetch_sub(1);
         break;
       }
     }
 
     // 他の worker と tree を確保
     int childCount = 1;
-    for (int wid = 0; wid < _config.workerSize; wid++) {
-      auto& worker = _workers[wid];
+    for (int wid = 0; wid < config_.workerSize; wid++) {
+      auto& worker = workers_[wid];
       if (!worker.job.load()) {
-        for (int tid = 1; tid < _config.treeSize; tid++) {
-          auto& tree = _trees[tid];
+        for (int tid = 1; tid < config_.treeSize; tid++) {
+          auto& tree = trees_[tid];
           if (!tree.getTlp().used) {
             tree.use(parent, wid);
-            _idleTreeCount.fetch_sub(1);
+            idleTreeCount_.fetch_sub(1);
 
             worker.setJob(tid);
-            _idleWorkerCount.fetch_sub(1);
+            idleWorkerCount_.fetch_sub(1);
 
             childCount++;
 
-            if (_idleTreeCount.load() == 0 || _idleWorkerCount.load() == 0) {
+            if (idleTreeCount_.load() == 0 || idleWorkerCount_.load() == 0) {
               goto lab_assign_end;
             }
 
@@ -1975,16 +1975,16 @@ bool Searcher::split(Tree& parent, bool black, int depth, Value alpha, Value bet
     parent.getTlp().improving = improving;
   }
 
-  auto& tree = _trees[currTreeId];
-  auto& worker = _workers[parent.getTlp().workerId];
+  auto& tree = trees_[currTreeId];
+  auto& worker = workers_[parent.getTlp().workerId];
   worker.swapTree(currTreeId);
   searchTlp(tree);
   worker.swapTree(parent.getTlp().treeId);
 
   {
-    std::lock_guard<std::mutex> lock(_splitMutex);
+    std::lock_guard<std::mutex> lock(splitMutex_);
     tree.unuse();
-    _idleTreeCount.fetch_add(1);
+    idleTreeCount_.fetch_add(1);
     parent.getTlp().childCount.fetch_sub(1);
   }
 
@@ -2006,10 +2006,10 @@ bool Searcher::split(Tree& parent, bool black, int depth, Value alpha, Value bet
 
 void Searcher::searchTlp(Tree& tree) {
   {
-    std::lock_guard<std::mutex> lock(_splitMutex);
+    std::lock_guard<std::mutex> lock(splitMutex_);
   }
 
-  auto& parent = _trees[tree.getTlp().parentTreeId];
+  auto& parent = trees_[tree.getTlp().parentTreeId];
   auto& worker = getWorker(tree);
 
   bool black = parent.getTlp().black;
@@ -2113,7 +2113,7 @@ void Searcher::searchTlp(Tree& tree) {
     if (!isCheck && newDepth < search_param::FUT_DEPTH && alpha > -Value::Mate) {
       Value futAlpha = alpha;
       if (newDepth >= Depth1Ply) { futAlpha -= search_func::futilityMargin(newDepth, count); }
-      if (standPat + tree.estimate(move, _eval) + _gains.get(move) <= futAlpha) {
+      if (standPat + tree.estimate(move, eval_) + gains_.get(move) <= futAlpha) {
         worker.info.futilityPruning++;
         continue;
       }
@@ -2127,7 +2127,7 @@ void Searcher::searchTlp(Tree& tree) {
       }
     }
 
-    if (!tree.makeMove(_eval)) {
+    if (!tree.makeMove(eval_)) {
       continue;
     }
 
@@ -2164,7 +2164,7 @@ void Searcher::searchTlp(Tree& tree) {
     }
 
     // update gain
-    _gains.update(move, newStandPat - standPat - tree.estimate(move, _eval));
+    gains_.update(move, newStandPat - standPat - tree.estimate(move, eval_));
 
     {
       std::lock_guard<std::mutex> lock(parent.getMutex());
@@ -2199,16 +2199,16 @@ void Searcher::searchTlp(Tree& tree) {
 }
 
 void Searcher::shutdownSiblings(Tree& parent) {
-  std::lock_guard<std::mutex> lock(_splitMutex);
+  std::lock_guard<std::mutex> lock(splitMutex_);
 
-  for (int id = 0; id < _config.treeSize; id++) {
-    int parentId = _trees[id].getTlp().parentTreeId;
+  for (int id = 0; id < config_.treeSize; id++) {
+    int parentId = trees_[id].getTlp().parentTreeId;
     while (parentId != Tree::InvalidId) {
       if (parentId == parent.getTlp().treeId) {
-        _trees[id].getTlp().shutdown.store(true);
+        trees_[id].getTlp().shutdown.store(true);
         break;
       }
-      parentId = _trees[parentId].getTlp().parentTreeId;
+      parentId = trees_[parentId].getTlp().parentTreeId;
     }
   }
 }
@@ -2223,7 +2223,7 @@ Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move&
   bool isFirst = true;
   Value oldAlpha = alpha;
 
-  _rootDepth = depth;
+  rootDepth_ = depth;
 
   while (nextMove(tree)) {
     Move move = *tree.getCurrentMove();
@@ -2239,7 +2239,7 @@ Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move&
     if (isCheckCurr) {
       // check
       newDepth += search_param::EXT_CHECK;
-      _info.checkExtension++;
+      info_.checkExtension++;
     }
 
     // late move reduction
@@ -2253,7 +2253,7 @@ Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move&
 #endif // ENABLE_LMR
 
     // make move
-    bool ok = tree.makeMove(_eval);
+    bool ok = tree.makeMove(eval_);
     assert(ok);
 
     Value currval;
@@ -2296,12 +2296,12 @@ Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move&
     // ソート用に値をセット
     auto index = tree.getIndexByMove(move);
     if (forceFullWindow || currval > alpha) {
-      _rootValues[index] = currval.int32();
+      rootValues_[index] = currval.int32();
     } else {
-      _rootValues[index] = -Value::Inf;
+      rootValues_[index] = -Value::Inf;
     }
 
-    _timeManager.addMove(move, currval);
+    timeManager_.addMove(move, currval);
 
     // 値更新
     if (currval > alpha) {
@@ -2331,7 +2331,7 @@ Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move&
  * @return {負けたか中断された場合にfalseを返します。}
  */
 bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta, Value* pval /* = nullptr */) {
-  auto& tree0 = _trees[0];
+  auto& tree0 = trees_[0];
 
   bool hasPrevVal = pval != nullptr && (*pval != -Value::Inf);
   Value baseVal = hasPrevVal ? *pval : 0;
@@ -2349,7 +2349,7 @@ bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta,
 
   while (true) {
 
-    _timeManager.startDepth();
+    timeManager_.startDepth();
 
     const Value alpha = Value::max(alphas[lower], baseAlpha);
     const Value beta = Value::min(betas[upper], baseBeta);
@@ -2396,10 +2396,10 @@ bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta,
     showEndOfIterate(depth / Depth1Ply);
   }
 
-  tree0.setSortValues(_rootValues);
+  tree0.setSortValues(rootValues_);
   tree0.sortAll();
 
-  _info.eval = value;
+  info_.eval = value;
   if (pval != nullptr) {
     *pval = value;
   }
@@ -2408,9 +2408,9 @@ bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta,
     return false;
   }
 
-  if (!_config.ponder && _config.enableTimeManagement) {
-    float limit = _config.enableLimit ? _config.limitSeconds : 0.0;
-    if (_timeManager.isEasy(limit, _timer.get())) {
+  if (!config_.ponder && config_.enableTimeManagement) {
+    float limit = config_.enableLimit ? config_.limitSeconds : 0.0;
+    if (timeManager_.isEasy(limit, timer_.get())) {
       return false;
     }
   }
@@ -2420,20 +2420,20 @@ bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta,
 }
 
 void Searcher::showPV(int depth, const PV& pv, const Value& value) {
-  if (!_config.logging) {
+  if (!config_.logging) {
     return;
   }
 
   mergeInfo();
 
-  uint64_t node = _info.node + _info.qnode;
+  uint64_t node = info_.node + info_.qnode;
 
   std::ostringstream oss;
-  if (_info.lastDepth == depth) {
+  if (info_.lastDepth == depth) {
     oss << "    ";
   } else {
     oss << std::setw(2) << depth << ": ";
-    _info.lastDepth = depth;
+    info_.lastDepth = depth;
   }
   oss << std::setw(10) << node << ": ";
   oss << pv.toString() << ": ";
@@ -2442,21 +2442,21 @@ void Searcher::showPV(int depth, const PV& pv, const Value& value) {
 }
 
 void Searcher::showEndOfIterate(int depth) {
-  if (!_config.logging) {
+  if (!config_.logging) {
     return;
   }
 
   mergeInfo();
 
-  uint64_t node = _info.node + _info.qnode;
-  float seconds = _timer.get();
+  uint64_t node = info_.node + info_.qnode;
+  float seconds = timer_.get();
 
   std::ostringstream oss;
-  if (_info.lastDepth == depth) {
+  if (info_.lastDepth == depth) {
     oss << "    ";
   } else {
     oss << std::setw(2) << depth << ": ";
-    _info.lastDepth = depth;
+    info_.lastDepth = depth;
   }
   oss << std::setw(10) << node;
   oss << ": " << seconds << "sec";
@@ -2464,7 +2464,7 @@ void Searcher::showEndOfIterate(int depth) {
 }
 
 void Searcher::generateMovesOnRoot() {
-  auto& tree0 = _trees[0];
+  auto& tree0 = trees_[0];
 
   auto& moves = tree0.getMoves();
   const auto& board = tree0.getBoard();
@@ -2489,16 +2489,16 @@ void Searcher::generateMovesOnRoot() {
  * @return {負けたか深さ1で中断された場合にfalseを返します。}
  */
 bool Searcher::idsearch(Move& best, Value alpha, Value beta) {
-  auto& tree0 = _trees[0];
+  auto& tree0 = trees_[0];
   bool result = false;
 
   generateMovesOnRoot();
 
   Value value = searchRoot(tree0, Depth1Ply, -Value::Inf, Value::Inf, best, true);
-  tree0.setSortValues(_rootValues);
+  tree0.setSortValues(rootValues_);
   tree0.sortAll();
 
-  for (int depth = 1; depth <= _config.maxDepth; depth++) {
+  for (int depth = 1; depth <= config_.maxDepth; depth++) {
     bool cont = searchAsp(depth * Depth1Ply + Depth1Ply / 2, best, alpha, beta, &value);
 
 #if DEBUG_ROOT_MOVES
@@ -2529,7 +2529,7 @@ bool Searcher::idsearch(Move& best, Value alpha, Value beta) {
 
     result = true;
 
-    _timeManager.nextDepth();
+    timeManager_.nextDepth();
   }
 
   return result;
@@ -2546,7 +2546,7 @@ bool Searcher::search(const Board& initialBoard, Move& best, Value alpha, Value 
   before(initialBoard);
 
   // 最大深さ
-  int depth = _config.maxDepth * Depth1Ply;
+  int depth = config_.maxDepth * Depth1Ply;
 
   generateMovesOnRoot();
 

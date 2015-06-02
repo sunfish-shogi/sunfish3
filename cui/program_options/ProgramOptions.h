@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_PROGRAMOPTIONS__
-#define __SUNFISH_PROGRAMOPTIONS__
+#ifndef SUNFISH_PROGRAMOPTIONS__
+#define SUNFISH_PROGRAMOPTIONS__
 
 #include <vector>
 #include <string>
@@ -29,12 +29,12 @@ private:
     std::string reason;
   };
 
-  std::vector<Option> _options;
-  std::vector<std::string> _stdArgs;
-  std::vector<InvalidArg> _invalidArgs;
+  std::vector<Option> options_;
+  std::vector<std::string> stdArgs_;
+  std::vector<InvalidArg> invalidArgs_;
 
   void setValue(const char* key, const char* value) {
-    for (auto& option : _options) {
+    for (auto& option : options_) {
       if (option.key == key || option.shortKey == key) {
         option.exists = true;
         option.value = value;
@@ -44,7 +44,7 @@ private:
   }
 
   const Option* getOption(const char* key) const {
-    for (auto& option : _options) {
+    for (auto& option : options_) {
       if (option.key == key || option.shortKey == key) {
         return &option;
       }
@@ -59,11 +59,11 @@ public:
   ProgramOptions(ProgramOptions&&) = delete;
 
   void addOption(const char* key, const char* description, bool arg = false) {
-    _options.push_back(std::move(Option{ key, "", description, arg, false, "" }));
+    options_.push_back(std::move(Option{ key, "", description, arg, false, "" }));
   }
 
   void addOption(const char* key, const char* shortKey, const char* description, bool arg = false) {
-    _options.push_back(std::move(Option{ key, shortKey, description, arg, false, "" }));
+    options_.push_back(std::move(Option{ key, shortKey, description, arg, false, "" }));
   }
 
   void parse(int argc, char** argv) {
@@ -78,14 +78,14 @@ public:
         // option key
         bool isFullSpell = (arg[1] == '-');
         if (lastKey != nullptr) {
-          _invalidArgs.push_back({ lastKeyFull, "value is required" });
+          invalidArgs_.push_back({ lastKeyFull, "value is required" });
           lastKey = nullptr;
         }
         lastKey = &arg[isFullSpell?2:1];
         lastKeyFull = arg;
         auto opt = getOption(lastKey);
         if (opt == nullptr) {
-          _invalidArgs.push_back({ lastKeyFull, "unknown key name" });
+          invalidArgs_.push_back({ lastKeyFull, "unknown key name" });
           lastKey = nullptr;
         } else if (!opt->arg) {
           setValue(lastKey, "");
@@ -98,20 +98,20 @@ public:
           setValue(lastKey, arg);
           lastKey = nullptr;
         } else {
-          _invalidArgs.push_back({ lastKeyFull, "value is required" });
+          invalidArgs_.push_back({ lastKeyFull, "value is required" });
           lastKey = nullptr;
         }
 
       } else if (!isLast) {
         // normal argument
-        _stdArgs.push_back(arg);
+        stdArgs_.push_back(arg);
 
       }
     }
   }
 
   bool has(const char* key) const {
-    for (const auto& option : _options) {
+    for (const auto& option : options_) {
       if (option.key == key || option.shortKey == key) {
         if (option.exists) {
         return true;
@@ -122,7 +122,7 @@ public:
   }
 
   const char* getValue(const char* key) const {
-    for (const auto& option : _options) {
+    for (const auto& option : options_) {
       if (option.key == key || option.shortKey == key) {
         if (option.exists) {
         return option.value.c_str();
@@ -133,17 +133,17 @@ public:
   }
 
   const std::vector<std::string>& getStdArgs() const {
-    return _stdArgs;
+    return stdArgs_;
   }
 
   const std::vector<InvalidArg>& getInvalidArgs() const {
-    return _invalidArgs;
+    return invalidArgs_;
   }
 
   std::string help() const {
     std::ostringstream oss;
     oss << "Option:\n";
-    for (const auto& option : _options) {
+    for (const auto& option : options_) {
       int length = 0;
       oss << "  ";
       if (!option.shortKey.empty()) {
@@ -169,4 +169,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_PROGRAMOPTIONS__
+#endif // SUNFISH_PROGRAMOPTIONS__

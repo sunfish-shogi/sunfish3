@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_PV__
-#define __SUNFISH_PV__
+#ifndef SUNFISH_PV__
+#define SUNFISH_PV__
 
 #include "core/def.h"
 #include "core/move/Move.h"
@@ -25,8 +25,8 @@ namespace sunfish {
     };
 
   private:
-    PVMove _moves[MaxDepth];
-    int _num;
+    PVMove moves_[MaxDepth];
+    int num_;
 
   public:
     PV() {
@@ -38,61 +38,61 @@ namespace sunfish {
     }
 
     void copy(const PV& pv) {
-      _num = pv._num;
-      memcpy(_moves, pv._moves, sizeof(PVMove) * _num);
+      num_ = pv.num_;
+      memcpy(moves_, pv.moves_, sizeof(PVMove) * num_);
     }
 
     void init() {
-      _num = 0;
+      num_ = 0;
     }
 
     int size() const {
-      return _num;
+      return num_;
     }
 
     int set(const Move& move, int depth, const PV& pv) {
-      _moves[0].move = move;
-      _moves[0].depth = depth;
-      _num = std::min(pv._num + 1, int(MaxDepth));
-      memcpy(&_moves[1], pv._moves, sizeof(PVMove) * (_num - 1));
-      return _num;
+      moves_[0].move = move;
+      moves_[0].depth = depth;
+      num_ = std::min(pv.num_ + 1, int(MaxDepth));
+      memcpy(&moves_[1], pv.moves_, sizeof(PVMove) * (num_ - 1));
+      return num_;
     }
 
     int set(const Move& move, int depth) {
-      _moves[0].move = move;
-      _moves[0].depth = depth;
-      _num = 1;
-      return _num;
+      moves_[0].move = move;
+      moves_[0].depth = depth;
+      num_ = 1;
+      return num_;
     }
 
     const PVMove* getTop() const {
-      if (_num > 0) {
-        return &_moves[0];
+      if (num_ > 0) {
+        return &moves_[0];
       } else {
         return nullptr;
       }
     }
 
     PVMove& get(int depth) {
-      return _moves[depth];
+      return moves_[depth];
     }
 
     const PVMove& get(int depth) const {
-      return _moves[depth];
+      return moves_[depth];
     }
 
     std::string toString(int beginIndex = 0) const {
       std::ostringstream oss;
-      for (int i = beginIndex; i < _num; i++) {
-        oss << _moves[i].move.toString() << ' ';
+      for (int i = beginIndex; i < num_; i++) {
+        oss << moves_[i].move.toString() << ' ';
       }
       return oss.str();
     }
 
     std::string toStringCsa(bool black, int startIndex = 0) const {
       std::ostringstream oss;
-      for (int i = startIndex; i < _num; i++) {
-        oss << _moves[i].move.toStringCsa((i%2)^black) << ' ';
+      for (int i = startIndex; i < num_; i++) {
+        oss << moves_[i].move.toStringCsa((i%2)^black) << ' ';
       }
       return oss.str();
     }
@@ -101,4 +101,4 @@ namespace sunfish {
 
 }
 
-#endif // __SUNFISH_PV__
+#endif // SUNFISH_PV__

@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_WILDCARD__
-#define __SUNFISH_WILDCARD__
+#ifndef SUNFISH_WILDCARD__
+#define SUNFISH_WILDCARD__
 
 #include <string>
 
@@ -12,7 +12,7 @@ namespace sunfish {
 
 class Wildcard {
 private:
-  std::string _pattern;
+  std::string pattern_;
 
   static std::string normalize(const char* pattern);
   static std::string normalize(const std::string& pattern) {
@@ -22,9 +22,9 @@ private:
   static bool match(const char* pp, const char* pt);
 
 public:
-  Wildcard(const char* pattern) : _pattern(normalize(pattern)) {
+  Wildcard(const char* pattern) : pattern_(normalize(pattern)) {
   }
-  Wildcard(const std::string& pattern) : _pattern(normalize(pattern)) {
+  Wildcard(const std::string& pattern) : pattern_(normalize(pattern)) {
   }
 
   bool match(const char* str) const;
@@ -36,4 +36,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_WILDCARD__
+#endif // SUNFISH_WILDCARD__

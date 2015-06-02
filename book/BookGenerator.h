@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH3__BOOKGENERATOR__
-#define __SUNFISH3__BOOKGENERATOR__
+#ifndef SUNFISH3__BOOKGENERATOR__
+#define SUNFISH3__BOOKGENERATOR__
 
 #include "Book.h"
 #include <cstdint>
@@ -32,4 +32,4 @@ public:
 
 } // namespace sunfish
 
-#endif /* defined(__SUNFISH3__BOOKGENERATOR__) */
+#endif /* defined(SUNFISH3__BOOKGENERATOR__) */

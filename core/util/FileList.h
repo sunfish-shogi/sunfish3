@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_FILELIST__
-#define __SUNFISH_FILELIST__
+#ifndef SUNFISH_FILELIST__
+#define SUNFISH_FILELIST__
 
 #include <list>
 #include <string>
@@ -16,7 +16,7 @@ public:
   using iterator = std::list<std::string>::iterator;
 
 private:
-  std::list<std::string> _flist;
+  std::list<std::string> flist_;
 
 public:
   FileList() = default;
@@ -26,14 +26,14 @@ public:
 
   size_t enumerate(const char* directory, const char* extension);
 
-  void clear(){ _flist.clear(); }
-  size_t size() { return _flist.size(); }
+  void clear(){ flist_.clear(); }
+  size_t size() { return flist_.size(); }
 
-  iterator begin() { return _flist.begin(); }
-  iterator end() { return _flist.end(); }
+  iterator begin() { return flist_.begin(); }
+  iterator end() { return flist_.end(); }
 
 };
 
 } // namespace sunfish
 
-#endif // __SUNFISH_FILELIST__
+#endif // SUNFISH_FILELIST__

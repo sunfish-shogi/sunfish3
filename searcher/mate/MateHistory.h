@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_MATE_HISTORY__
-#define __SUNFISH_MATE_HISTORY__
+#ifndef SUNFISH_MATE_HISTORY__
+#define SUNFISH_MATE_HISTORY__
 
 #include "core/def.h"
 #include "core/move/Move.h"
@@ -15,7 +15,7 @@ namespace sunfish {
 class MateHistory {
 private:
 
-  uint64_t _hist[Position::N][Piece::Num][Position::N];
+  uint64_t hist_[Position::N][Piece::Num][Position::N];
 
 public:
   static const uint32_t Scale = 0x2000;
@@ -23,25 +23,25 @@ public:
   static const uint64_t Max = 0x0008000000000000ull;
 
   void clear() {
-    memset(_hist, 0, sizeof(_hist));
+    memset(hist_, 0, sizeof(hist_));
   }
 
   void update(const Position& king, const Move& move, bool mate) {
     uint64_t v = mate ? 0x100000001llu : 0x100000000llu;
     Piece piece = move.piece();
     Position to = move.to();
-    uint64_t h = _hist[king][piece][to];
+    uint64_t h = hist_[king][piece][to];
     h += v;
     if (h >= Max) {
       h = (h >> 1) & ~0x80000000ull;
     }
-    _hist[king][piece][to] = h;
+    hist_[king][piece][to] = h;
   }
 
   uint64_t getData(const Position& king, const Move& move) const {
     Piece piece = move.piece();
     Position to = move.to();
-    uint64_t data = _hist[king][piece][to];
+    uint64_t data = hist_[king][piece][to];
     return data;
   }
 
@@ -59,4 +59,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_MATE_HISTORY__
+#endif // SUNFISH_MATE_HISTORY__

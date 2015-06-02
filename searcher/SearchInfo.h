@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_SEARCHINFO__
-#define __SUNFISH_SEARCHINFO__
+#ifndef SUNFISH_SEARCHINFO__
+#define SUNFISH_SEARCHINFO__
 
 #include "eval/Value.h"
 #include "core/move/Move.h"
@@ -68,4 +68,4 @@ struct SearchInfo : public SearchInfoBase {
 
 } // namespace sunfish
 
-#endif // __SUNFISH_SEARCHINFO__
+#endif // SUNFISH_SEARCHINFO__

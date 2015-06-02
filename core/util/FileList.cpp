@@ -96,7 +96,7 @@ size_t FileList::enumerate(const char* directory, const char* extension) {
 #endif
 
     // リストに追加
-    _flist.push_back(dir + fname);
+    flist_.push_back(dir + fname);
     num++;
 
 #ifdef WIN32

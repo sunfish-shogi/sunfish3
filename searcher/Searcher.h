@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_SEARCHER__
-#define __SUNFISH_SEARCHER__
+#ifndef SUNFISH_SEARCHER__
+#define SUNFISH_SEARCHER__
 
 #include "mate/Mate.h"
 #include "mate/MateHistory.h"
@@ -30,12 +30,12 @@ struct Worker;
 class Gains {
 private:
 
-  uint16_t _gains[Piece::Num][Position::N];
+  uint16_t gains_[Piece::Num][Position::N];
 
 public:
 
   void clear() {
-    memset(&_gains[0][0], 0, sizeof(_gains));
+    memset(&gains_[0][0], 0, sizeof(gains_));
   }
 
   void update(const Move& move, Value gain) {
@@ -44,7 +44,7 @@ public:
     assert(move.to() < Position::N);
     assert(gain.int32() < (1<<16));
     assert(gain.int32() > -(1<<16));
-    uint16_t& ref = _gains[move.piece()][move.to()];
+    uint16_t& ref = gains_[move.piece()][move.to()];
     ref = std::max(ref - 1, gain.int32());
   }
 
@@ -52,7 +52,7 @@ public:
     assert(move.piece() < Piece::Num);
     assert(move.to() >= 0);
     assert(move.to() < Position::N);
-    Value g = _gains[move.piece()][move.to()];
+    Value g = gains_[move.piece()][move.to()];
     return g;
   }
 
@@ -79,67 +79,67 @@ public:
 
 private:
 
-  Config _config;
-  SearchInfo _info;
-  Timer _timer;
+  Config config_;
+  SearchInfo info_;
+  Timer timer_;
 
   /** tree */
-  Tree* _trees;
+  Tree* trees_;
 
   /** worker */
-  Worker* _workers;
+  Worker* workers_;
 
   /** 評価関数 */
-  Evaluator _eval;
+  Evaluator eval_;
 
   /** history heuristic */
-  History _history;
+  History history_;
 
   /** transposition table */
-  TT _tt;
+  TT tt_;
 
   /** gains */
-  Gains _gains;
+  Gains gains_;
 
   /** mate table */
-  MateTable<18> _mateTable;
+  MateTable<18> mateTable_;
 
   /** mate history */
-  MateHistory _mateHistory;
+  MateHistory mateHistory_;
 
   /** record */
-  std::vector<Move> _record;
+  std::vector<Move> record_;
 
   /** values of child node of root node */
-  int _rootValues[1024];
+  int rootValues_[1024];
 
-  int _rootDepth;
+  int rootDepth_;
 
-  SeeTable<18> _seeCache;
+  SeeTable<18> seeCache_;
 
-  std::mutex _splitMutex;
+  std::mutex splitMutex_;
 
   /** 中断フラグ */
-  std::atomic<bool> _forceInterrupt;
+  std::atomic<bool> forceInterrupt_;
 
   /** 実行中フラグ */
-  std::atomic<bool> _isRunning;
+  std::atomic<bool> isRunning_;
 
   /** 思考時間制御 */
-  TimeManager _timeManager;
+  TimeManager timeManager_;
 
   /**
    * 設定の初期化
    */
   void initConfig() {
-    _config.maxDepth = DefaultMaxDepth;
-    _config.treeSize = 1;
-    _config.workerSize = 1;
-    _config.enableLimit = true;
-    _config.limitSeconds = 10.0;
-    _config.enableTimeManagement = true;
-    _config.ponder = false;
-    _config.logging = true;
+    config_.maxDepth = DefaultMaxDepth;
+    config_.treeSize = 1;
+    config_.workerSize = 1;
+    config_.enableLimit = true;
+    config_.limitSeconds = 10.0;
+    config_.enableTimeManagement = true;
+    config_.ponder = false;
+    config_.logging = true;
   }
 
   /**
@@ -298,8 +298,8 @@ private:
 
 public:
 
-  std::atomic<int> _idleTreeCount;
-  std::atomic<int> _idleWorkerCount;
+  std::atomic<int> idleTreeCount_;
+  std::atomic<int> idleWorkerCount_;
 
   /**
    * コンストラクタ
@@ -323,12 +323,12 @@ public:
    * 設定を反映します。
    */
   void setConfig(const Config& config) {
-    auto org = _config;
-    _config = config;
-    if (_config.treeSize != org.treeSize) {
+    auto org = config_;
+    config_ = config;
+    if (config_.treeSize != org.treeSize) {
       reallocateTrees();
     }
-    if (_config.workerSize != org.workerSize) {
+    if (config_.workerSize != org.workerSize) {
       reallocateWorkers();
     }
   }
@@ -337,14 +337,14 @@ public:
    * 設定を取得します。
    */
   const Config& getConfig() const {
-    return _config;
+    return config_;
   }
 
   /**
    * 探索情報を取得します。
    */
   const SearchInfo& getInfo() const {
-    return _info;
+    return info_;
   }
 
   std::string getInfoString() const;
@@ -368,7 +368,7 @@ public:
    * 探索中かチェックします。
    */
   bool isRunning() const {
-    return _isRunning.load();
+    return isRunning_.load();
   }
 
   /**
@@ -387,39 +387,39 @@ public:
    * Evaluator を取得します。
    */
   Evaluator& getEvaluator() {
-    return _eval;
+    return eval_;
   }
 
   /**
    * TT をクリアします。
    */
   void clearTT() {
-    _tt.init();
+    tt_.init();
   }
 
   /**
    * historyをクリアします。
    */
   void clearHistory() {
-    _history.init();
+    history_.init();
   }
 
   std::mutex& getSplitMutex() {
-    return _splitMutex;
+    return splitMutex_;
   }
 
   void addIdleWorker() {
-    _idleWorkerCount.fetch_add(1);
+    idleWorkerCount_.fetch_add(1);
   }
 
   void reduceIdleWorker() {
-    _idleWorkerCount.fetch_sub(1);
+    idleWorkerCount_.fetch_sub(1);
   }
 
   void releaseTree(int tid);
 
   void searchTlp(int tid) {
-    auto& tree = _trees[tid];
+    auto& tree = trees_[tid];
     searchTlp(tree);
   }
 
@@ -431,4 +431,4 @@ public:
 
 } // namespace sunfish
 
-#endif //__SUNFISH_SEARCHER__
+#endif //SUNFISH_SEARCHER__

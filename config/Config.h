@@ -2,8 +2,8 @@
  * Config.h
  */
 
-#ifndef __SUNFISH_CONFIGURE__
-#define __SUNFISH_CONFIGURE__
+#ifndef SUNFISH_CONFIGURE__
+#define SUNFISH_CONFIGURE__
 
 #include <string>
 #include <unordered_map>
@@ -19,8 +19,8 @@ private:
 
   static const int LINE_BUFFER_SIZE = 1024;
 
-  std::unordered_map<std::string, Def> _defs;
-  std::unordered_map<std::string, std::string> _data;
+  std::unordered_map<std::string, Def> defs_;
+  std::unordered_map<std::string, std::string> data_;
 
   bool readLine(const std::string& line);
 
@@ -65,4 +65,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_CONFIGURE__
+#endif // SUNFISH_CONFIGURE__

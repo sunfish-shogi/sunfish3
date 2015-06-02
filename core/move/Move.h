@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_MOVE__
-#define __SUNFISH_MOVE__
+#ifndef SUNFISH_MOVE__
+#define SUNFISH_MOVE__
 
 #include "../def.h"
 #include "../base/Piece.h"
@@ -38,7 +38,7 @@ public:
 
 private:
 
-  uint32_t _move;
+  uint32_t move_;
 
 public:
 
@@ -67,11 +67,11 @@ public:
 
   // serialization
   static uint32_t serialize(const Move& obj) {
-    return obj._move & (FROM | TO | PROMOTE | PIECE);
+    return obj.move_ & (FROM | TO | PROMOTE | PIECE);
   }
   static Move deserialize(uint32_t value) {
     Move move;
-    move._move = value;
+    move.move_ = value;
     return move;
   }
   static uint16_t serialize16(const Move& obj);
@@ -85,107 +85,107 @@ public:
 
 private:
   template<bool safe>
-  void _set(const Piece& piece, const Position& from, const Position& to, bool promote) {
+  void set_(const Piece& piece, const Position& from, const Position& to, bool promote) {
     assert(!piece.isEmpty());
     assert(piece.isUnpromoted() || !promote);
-    _move = ((uint32_t)from + 1)
+    move_ = ((uint32_t)from + 1)
           | ((uint32_t)to << TO_SHIFT)
           | ((uint32_t)(safe ? piece.kindOnly() : piece) << PIECE_SHIFT);
     if (promote) {
-      _move |= PROMOTE;
+      move_ |= PROMOTE;
     }
   }
 public:
   void set(const Piece& piece, const Position& from, const Position& to, bool promote) {
-    _set<true>(piece, from, to, promote);
+    set_<true>(piece, from, to, promote);
   }
   void setUnsafe(const Piece& piece, const Position& from, const Position& to, bool promote) {
-    _set<false>(piece, from, to, promote);
+    set_<false>(piece, from, to, promote);
   }
 
   // move from hand
 private:
   template<bool safe>
-  void _set(const Piece& piece, const Position& to) {
+  void set_(const Piece& piece, const Position& to) {
     assert(!piece.isEmpty());
     assert(!piece.isWhite());
     assert(piece.isUnpromoted());
     const Piece& hand = (safe ? piece.hand() : piece);
-    _move = ((uint32_t)to << TO_SHIFT)
+    move_ = ((uint32_t)to << TO_SHIFT)
           | ((uint32_t)hand << PIECE_SHIFT);
   }
 public:
   void set(const Piece& piece, const Position& to) {
-    _set<true>(piece, to);
+    set_<true>(piece, to);
   }
   void setUnsafe(const Piece& piece, const Position& to) {
-    _set<false>(piece, to);
+    set_<false>(piece, to);
   }
 
   void setEmpty() {
-    _move = EMPTY;
+    move_ = EMPTY;
   }
   bool isEmpty() const {
-    return _move == EMPTY;
+    return move_ == EMPTY;
   }
 
   // setters
   void setFrom(const Position& from) {
-    _move = (_move & ~FROM) | (from + 1);
+    move_ = (move_ & ~FROM) | (from + 1);
   }
   void setTo(const Position& to) {
-    _move = (_move & ~TO) | (to << TO_SHIFT);
+    move_ = (move_ & ~TO) | (to << TO_SHIFT);
   }
   void setPromote(bool enable = true) {
     if (enable) {
-      _move |= PROMOTE;
+      move_ |= PROMOTE;
     } else {
-      _move &= ~PROMOTE;
+      move_ &= ~PROMOTE;
     }
   }
   void setPiece(const Piece& piece) {
-    _move = (_move & (~PIECE)) | ((uint32_t)piece.kindOnly() << PIECE_SHIFT);
+    move_ = (move_ & (~PIECE)) | ((uint32_t)piece.kindOnly() << PIECE_SHIFT);
   }
   void setPieceUnsafe(const Piece& piece) {
-    _move = (_move & (~PIECE)) | ((uint32_t)piece << PIECE_SHIFT);
+    move_ = (move_ & (~PIECE)) | ((uint32_t)piece << PIECE_SHIFT);
   }
   void setCaptured(const Piece& captured) {
-    _move = (_move & (~CAP)) | ((uint32_t)(captured.kindOnly() + 1U) << CAP_SHIFT);
+    move_ = (move_ & (~CAP)) | ((uint32_t)(captured.kindOnly() + 1U) << CAP_SHIFT);
   }
   void setCapturedUnsafe(const Piece& captured) {
-    _move = (_move & (~CAP)) | ((uint32_t)(captured + 1U) << CAP_SHIFT);
+    move_ = (move_ & (~CAP)) | ((uint32_t)(captured + 1U) << CAP_SHIFT);
   }
   void unsetCaptured() {
-    _move = _move & (~CAP);
+    move_ = move_ & (~CAP);
   }
 
   // getters
   Position from() const {
-    return (_move & FROM) - 1;
+    return (move_ & FROM) - 1;
   }
   Position to() const {
-    return (_move & TO) >> TO_SHIFT;
+    return (move_ & TO) >> TO_SHIFT;
   }
   bool promote() const {
-    return _move & PROMOTE;
+    return move_ & PROMOTE;
   }
   Piece piece() const {
-    return (_move & PIECE) >> PIECE_SHIFT;
+    return (move_ & PIECE) >> PIECE_SHIFT;
   }
   Piece captured() const {
-    uint32_t cap = _move & CAP;
+    uint32_t cap = move_ & CAP;
     return cap ? ((cap >> CAP_SHIFT) - 1L) : Piece::Empty;
   }
   bool isCapturing() const {
-    return _move & CAP;
+    return move_ & CAP;
   }
   bool isHand() const {
-    return !(_move & FROM);
+    return !(move_ & FROM);
   }
 
   // comparator
   bool equals(const Move& obj) const {
-    return (_move & ~(UNUSED | CAP)) == (obj._move & ~(UNUSED | CAP));
+    return (move_ & ~(UNUSED | CAP)) == (obj.move_ & ~(UNUSED | CAP));
   }
   bool operator==(const Move& obj) const {
     return equals(obj);
@@ -196,7 +196,7 @@ public:
 
   // cast operator
   operator uint32_t() const {
-    return _move;
+    return move_;
   }
 
   std::string toString() const;
@@ -207,4 +207,4 @@ public:
 
 } // namespace sunfish
 
-#endif //__SUNFISH_MOVE__
+#endif //SUNFISH_MOVE__

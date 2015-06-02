@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_DEF__
-#define __SUNFISH_DEF__
+#ifndef SUNFISH_DEF__
+#define SUNFISH_DEF__
 
 // windows
 #ifdef _MSC_VER
@@ -29,4 +29,4 @@
 
 #define ARRAY_SIZE(arr) ((int)(sizeof(arr) / sizeof((arr)[0])))
 
-#endif // __SUNFISH_DEF__
+#endif // SUNFISH_DEF__

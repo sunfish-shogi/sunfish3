@@ -10,64 +10,64 @@
 
 namespace sunfish {
 
-Tree::Tree() : _ply(0), _checkHistCount(0) {
-  _shekTable.init();
+Tree::Tree() : ply_(0), checkHistCount_(0) {
+  shekTable_.init();
 }
 
 void Tree::init(int id, const Board& board, Evaluator& eval, const std::vector<Move>& record) {
-  _ply = 0;
-  _board = board;
+  ply_ = 0;
+  board_ = board;
 #ifndef NDEBUG
-  _board.validate();
+  board_.validate();
 #endif
-  _stack[0].valuePair = eval.evaluate(board);
-  _stack[0].checking = _board.isChecking();
-  _stack[0].pv.init();
-  _stack[0].killer1 = Move::empty();
-  _stack[0].killer2 = Move::empty();
-  _stack[1].killer1 = Move::empty();
-  _stack[1].killer2 = Move::empty();
+  stack_[0].valuePair = eval.evaluate(board);
+  stack_[0].checking = board_.isChecking();
+  stack_[0].pv.init();
+  stack_[0].killer1 = Move::empty();
+  stack_[0].killer2 = Move::empty();
+  stack_[1].killer1 = Move::empty();
+  stack_[1].killer2 = Move::empty();
 
   Board tmpBoard = board;
   for (int i = (int)record.size()-1; i >= 0; i--) {
 #if ENABLE_SHEK_PRESET
     bool ok = tmpBoard.unmakeMove(record[i]);
     assert(ok);
-    _shekTable.set(tmpBoard);
+    shekTable_.set(tmpBoard);
 #endif
-    _checkHist[i].check = tmpBoard.isChecking();
-    _checkHist[i].hash = tmpBoard.getHash();
+    checkHist_[i].check = tmpBoard.isChecking();
+    checkHist_[i].hash = tmpBoard.getHash();
   }
-  _checkHistCount = record.size();
+  checkHistCount_ = record.size();
 
-  _tlp.treeId = id;
-  _tlp.used = false;
+  tlp_.treeId = id;
+  tlp_.used = false;
 }
 
 void Tree::release(const std::vector<Move>& record) {
   clearStack();
 
   // SHEK
-  Board board = _board;
+  Board board = board_;
   for (int i = (int)record.size()-1; i >= 0; i--) {
 #if ENABLE_SHEK_PRESET
     bool ok = board.unmakeMove(record[i]);
     assert(ok);
-    _shekTable.unset(board);
+    shekTable_.unset(board);
 #endif
   }
 
 #ifndef NDEBUG
   // SHEK のテーブルが元に戻っているかチェックする。
-  if (!_shekTable.isAllCleared()) {
+  if (!shekTable_.isAllCleared()) {
     Loggers::warning << "SHEK table has some pending record.";
   }
 #endif
 }
 
 void Tree::sort(const Moves::iterator begin) {
-  auto& moves = _stack[_ply].moves;
-  auto& values = _sortValues;
+  auto& moves = stack_[ply_].moves;
+  auto& values = sortValues_;
   auto beginIndex = begin - moves.begin();
   auto endIndex = moves.size();
 
@@ -77,9 +77,9 @@ void Tree::sort(const Moves::iterator begin) {
   values[endIndex] = INT_MIN;
   for (int i = (int)endIndex - 2; i >= beginIndex; i--) {
     auto tmove = moves[i];
-    auto tvalue = _sortValues[i];
+    auto tvalue = sortValues_[i];
     int j = i + 1;
-    for (; _sortValues[j] > tvalue; j++) {
+    for (; sortValues_[j] > tvalue; j++) {
       moves[j-1] = moves[j];
       values[j-1] = values[j];
     }
@@ -89,12 +89,12 @@ void Tree::sort(const Moves::iterator begin) {
 }
 
 RepStatus Tree::getCheckRepStatus() const {
-  uint64_t hash = _board.getHash();
+  uint64_t hash = board_.getHash();
   bool checkSelf = true;
-  bool checkEnemy = _stack[_ply].checking;
+  bool checkEnemy = stack_[ply_].checking;
   bool isSelf = true;
-  for (int i = _checkHistCount-1; i >= 0; i--) {
-    if (hash == _checkHist[i].hash) {
+  for (int i = checkHistCount_-1; i >= 0; i--) {
+    if (hash == checkHist_[i].hash) {
       if (checkEnemy) {
         return RepStatus::Win;
       } else if (checkSelf) {
@@ -104,9 +104,9 @@ RepStatus Tree::getCheckRepStatus() const {
       }
     } else {
       if (isSelf) {
-        checkSelf = checkSelf & _checkHist[i].check;
+        checkSelf = checkSelf & checkHist_[i].check;
       } else {
-        checkEnemy = checkEnemy & _checkHist[i].check;
+        checkEnemy = checkEnemy & checkHist_[i].check;
       }
     }
     isSelf = !isSelf;
@@ -114,12 +114,12 @@ RepStatus Tree::getCheckRepStatus() const {
   return RepStatus::None;
 }
 
-std::string Tree::__debug__getPath() const {
+std::string Tree::debug__getPath() const {
   std::ostringstream oss;
   bool isFirst = true;
-  for (int ply = 0; ply < _ply; ply++) {
-    const auto& move = *(_stack[ply].ite - 1);
-    bool black = (_ply - ply) % 2 == 0 ? _board.isBlack() : !_board.isBlack();
+  for (int ply = 0; ply < ply_; ply++) {
+    const auto& move = *(stack_[ply].ite - 1);
+    bool black = (ply_ - ply) % 2 == 0 ? board_.isBlack() : !board_.isBlack();
     if (isFirst) {
       isFirst = false;
     } else {
@@ -130,19 +130,19 @@ std::string Tree::__debug__getPath() const {
   return oss.str();
 }
 
-bool Tree::__debug__matchPath(const char* path) const {
-  return __debug__getPath() == path;
+bool Tree::debug__matchPath(const char* path) const {
+  return debug__getPath() == path;
 }
 
 void Tree::clearStack() {
-  while (_ply >= 1) {
-    auto& curr = _stack[_ply];
-    _ply--;
+  while (ply_ >= 1) {
+    auto& curr = stack_[ply_];
+    ply_--;
     if (!curr.move.isEmpty()) {
-      _board.unmakeMove(curr.move);
-      _shekTable.unset(_board);
+      board_.unmakeMove(curr.move);
+      shekTable_.unset(board_);
     } else {
-      _board.unmakeNullMove();
+      board_.unmakeNullMove();
     }
   }
 }
@@ -150,38 +150,38 @@ void Tree::clearStack() {
 void Tree::fastCopy(Tree& parent) {
   clearStack();
 
-  for (int ply = 1; ply <= parent._ply; ply++) {
-    Move move = parent._stack[ply].move;
+  for (int ply = 1; ply <= parent.ply_; ply++) {
+    Move move = parent.stack_[ply].move;
     if (!move.isEmpty()) {
-      _shekTable.set(_board);
-      _board.makeMove(move);
+      shekTable_.set(board_);
+      board_.makeMove(move);
     } else {
-      _board.makeNullMove();
+      board_.makeNullMove();
     }
-    _ply++;
+    ply_++;
 
-    auto& curr = _stack[_ply];
-    auto& parentCurr = parent._stack[_ply];
+    auto& curr = stack_[ply_];
+    auto& parentCurr = parent.stack_[ply_];
     curr.move = move;
     curr.checking = parentCurr.checking;
     curr.valuePair = parentCurr.valuePair;
 
-    auto& child = _stack[_ply+1];
-    auto& parentChild = parent._stack[_ply+1];
+    auto& child = stack_[ply_+1];
+    auto& parentChild = parent.stack_[ply_+1];
     child.killer1 = parentChild.killer1;
     child.killer2 = parentChild.killer2;
     child.nocap1 = parentChild.nocap1;
     child.nocap2 = parentChild.nocap2;
   }
 
-  _checkHistCount = parent._checkHistCount;
-  for (int i = 0; i < _checkHistCount; i++) {
-    _checkHist[i].check = parent._checkHist[i].check;
-    _checkHist[i].hash =  parent._checkHist[i].hash;
+  checkHistCount_ = parent.checkHistCount_;
+  for (int i = 0; i < checkHistCount_; i++) {
+    checkHist_[i].check = parent.checkHist_[i].check;
+    checkHist_[i].hash =  parent.checkHist_[i].hash;
   }
 
-  assert(parent._ply == _ply);
-  assert(parent._board.getHash() == _board.getHash());
+  assert(parent.ply_ == ply_);
+  assert(parent.board_.getHash() == board_.getHash());
 }
 
 } // namespace sunfish

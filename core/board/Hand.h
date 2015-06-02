@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_HAND__
-#define __SUNFISH_HAND__
+#ifndef SUNFISH_HAND__
+#define SUNFISH_HAND__
 
 #include "../base/Piece.h"
 #include <cstdint>
@@ -16,7 +16,7 @@ namespace sunfish {
 class Hand {
 private:
 
-  uint8_t _counts[Piece::HandNum];
+  uint8_t counts_[Piece::HandNum];
 
 public:
 
@@ -25,7 +25,7 @@ public:
   }
 
   void init() {
-    memset(_counts, 0, sizeof(_counts));
+    memset(counts_, 0, sizeof(counts_));
   }
 
   int inc(const Piece& piece) {
@@ -34,10 +34,10 @@ public:
   int incUnsafe(const Piece& piece) {
     assert(!piece.isPromoted());
     assert(!piece.isWhite());
-    assert(_counts[piece] < 18);
-    assert(piece == Piece::Pawn || _counts[piece.unpromote()] < 4);
-    assert(piece <= Piece::Gold || _counts[piece.unpromote()] < 2);
-    return ++_counts[piece];
+    assert(counts_[piece] < 18);
+    assert(piece == Piece::Pawn || counts_[piece.unpromote()] < 4);
+    assert(piece <= Piece::Gold || counts_[piece.unpromote()] < 2);
+    return ++counts_[piece];
   }
 
   int dec(const Piece& piece) {
@@ -46,21 +46,21 @@ public:
   int decUnsafe(const Piece& piece) {
     assert(!piece.isPromoted());
     assert(!piece.isWhite());
-    assert(_counts[piece] > 0);
-    return --_counts[piece];
+    assert(counts_[piece] > 0);
+    return --counts_[piece];
   }
 
   int get(const Piece& piece) const {
-    return _counts[piece.kindOnly().unpromote()];
+    return counts_[piece.kindOnly().unpromote()];
   }
   int getUnsafe(const Piece& piece) const {
-    return _counts[piece];
+    return counts_[piece];
   }
   void set(const Piece& piece, int count) {
-    _counts[piece.kindOnly().unpromote()] = (int8_t)count;
+    counts_[piece.kindOnly().unpromote()] = (int8_t)count;
   }
 };
 
 } // namespace sunfish
 
-#endif //__SUNFISH_HAND__
+#endif //SUNFISH_HAND__

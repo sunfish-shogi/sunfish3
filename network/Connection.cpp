@@ -22,38 +22,38 @@ bool Connection::connect() {
   WSAStartup( wVersionRequested, &WSAData );
 #endif
 
-  if (NULL == (he = gethostbyname(_host.c_str()))) {
+  if (NULL == (he = gethostbyname(host_.c_str()))) {
     return false;
   }
-  if (-1 == (_sock = socket(AF_INET, SOCK_STREAM, 0))) {
+  if (-1 == (sock_ = socket(AF_INET, SOCK_STREAM, 0))) {
     return false;
   }
 #ifdef UNIX
   // keep-alive
-  if (0 != setsockopt(_sock, SOL_SOCKET, SO_KEEPALIVE,
-      (void*)&_keepalive, sizeof(_keepalive))) {
+  if (0 != setsockopt(sock_, SOL_SOCKET, SO_KEEPALIVE,
+      (void*)&keepalive_, sizeof(keepalive_))) {
   }
 # ifdef BSD
-  int keepon = _keepidle != 0 ? 1 : 0;
-  if (0 != setsockopt(_sock, SOL_SOCKET,  SO_KEEPALIVE,
+  int keepon = keepidle_ != 0 ? 1 : 0;
+  if (0 != setsockopt(sock_, SOL_SOCKET,  SO_KEEPALIVE,
       (void*)&keepon, sizeof(keepon))) {
   }
 # else
-  if (0 != setsockopt(_sock, IPPROTO_TCP, TCP_KEEPIDLE,
-      (void*)&_keepidle, sizeof(_keepidle))) {
+  if (0 != setsockopt(sock_, IPPROTO_TCP, TCP_KEEPIDLE,
+      (void*)&keepidle_, sizeof(keepidle_))) {
   }
 # endif
-  if (0 != setsockopt(_sock, IPPROTO_TCP, TCP_KEEPINTVL,
-      (void*)&_keepintvl, sizeof(_keepintvl))) {
+  if (0 != setsockopt(sock_, IPPROTO_TCP, TCP_KEEPINTVL,
+      (void*)&keepintvl_, sizeof(keepintvl_))) {
   }
-  if (0 != setsockopt(_sock, IPPROTO_TCP, TCP_KEEPCNT,
-      (void*)&_keepcnt, sizeof(_keepcnt))) {
+  if (0 != setsockopt(sock_, IPPROTO_TCP, TCP_KEEPCNT,
+      (void*)&keepcnt_, sizeof(keepcnt_))) {
   }
 #endif
   memcpy(&sin.sin_addr, he->h_addr, sizeof(struct in_addr));
   sin.sin_family = AF_INET;
-  sin.sin_port = htons(_port);
-  if (-1 == ::connect(_sock, (struct sockaddr*)(&sin), sizeof(sin))) {
+  sin.sin_port = htons(port_);
+  if (-1 == ::connect(sock_, (struct sockaddr*)(&sin), sizeof(sin))) {
     disconnect();
     return false;
   }
@@ -63,22 +63,22 @@ bool Connection::connect() {
 
 void Connection::disconnect() {
 #ifdef WIN32
-  closesocket(_sock);
+  closesocket(sock_);
   WSACleanup();
 #else
-  close(_sock);
+  close(sock_);
 #endif
 }
 
 bool Connection::receive() {
   char buf[1024];
 
-  if (!_received.empty()) {
+  if (!received_.empty()) {
     return true;
   }
 
   memset( buf, 0, sizeof(buf) );
-  if (recv(_sock, buf, sizeof(buf) - 1, 0) > 0) {
+  if (recv(sock_, buf, sizeof(buf) - 1, 0) > 0) {
     char* p = buf;
     while (p != NULL && p[0] != '\0') {
       char* p2 = strchr(p, '\n');
@@ -86,7 +86,7 @@ bool Connection::receive() {
         p2[0] = '\0';
         p2++;
       }
-      _received.push(std::string(p));
+      received_.push(std::string(p));
       p = p2;
     }
     return true;
@@ -95,7 +95,7 @@ bool Connection::receive() {
 }
 
 bool Connection::send(const std::string& str) {
-  if (-1 != ::send(_sock, str.c_str(), str.length(), 0)) {
+  if (-1 != ::send(sock_, str.c_str(), str.length(), 0)) {
     return true;
   }
   return false;
@@ -103,7 +103,7 @@ bool Connection::send(const std::string& str) {
 
 bool Connection::sendln(const std::string& str) {
   std::string strln = str + '\n';
-  if (-1 != ::send(_sock, strln.c_str(), strln.length(), 0)) {
+  if (-1 != ::send(sock_, strln.c_str(), strln.length(), 0)) {
     return true;
   }
   return false;

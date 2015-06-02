@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_SEEENTITY__
-#define __SUNFISH_SEEENTITY__
+#ifndef SUNFISH_SEEENTITY__
+#define SUNFISH_SEEENTITY__
 
 #include "../eval/Value.h"
 #include "core/def.h"
@@ -32,7 +32,7 @@ private:
   static_assert((ValueTypeMask | ValueMask | HashMask) == ~0ULL, "invalid");
   static_assert(ValueInf >= 30000, "invalid");
 
-  uint64_t _data;
+  uint64_t data_;
 
   static int32_t convertValue(int32_t value) {
     return ValueInf - value;
@@ -41,12 +41,12 @@ private:
 public:
 
   SeeEntity() {
-    static_assert(sizeof(_data) == sizeof(uint64_t), "invalid data size");
+    static_assert(sizeof(data_) == sizeof(uint64_t), "invalid data size");
     init();
   }
 
   void init() {
-    _data = 0ull;
+    data_ = 0ull;
   }
 
   void init(unsigned) {
@@ -54,7 +54,7 @@ public:
   }
 
   bool get(uint64_t hash, Value& value, const Value& alpha, const Value& beta) const {
-    uint64_t temp = _data;
+    uint64_t temp = data_;
     if ((temp & HashMask) == (hash & HashMask)) {
       uint64_t valueType = temp & ValueTypeMask;
       value = convertValue((int32_t)(temp & ValueMask));
@@ -86,10 +86,10 @@ public:
     uint32_t v = (uint32_t)convertValue(value.int32());
     assert((v & ~ValueMask) == 0U);
     uint64_t temp = (hash & HashMask) | valueType | v;
-    _data = temp;
+    data_ = temp;
   }
 };
 
 } // namespace sunfish
 
-#endif // __SUNFISH_SEEENTITY__
+#endif // SUNFISH_SEEENTITY__

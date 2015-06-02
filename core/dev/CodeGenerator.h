@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_CODEGENERATOR__
-#define __SUNFISH_CODEGENERATOR__
+#ifndef SUNFISH_CODEGENERATOR__
+#define SUNFISH_CODEGENERATOR__
 
 #if !defined(NDEBUG)
 
@@ -23,4 +23,4 @@ public:
 
 #endif // !defined(NDEBUG)
 
-#endif // __SUNFISH_CODEGENERATOR__
+#endif // SUNFISH_CODEGENERATOR__

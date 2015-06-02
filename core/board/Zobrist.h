@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_ZOBRIST__
-#define __SUNFISH_ZOBRIST__
+#ifndef SUNFISH_ZOBRIST__
+#define SUNFISH_ZOBRIST__
 
 #include "../base/Position.h"
 #include "../base/Piece.h"
@@ -41,7 +41,7 @@ public:
     return Board[pos][piece];
   }
 
-#define __FUNC_HAND__(piece) \
+#define FUNC_HAND__(piece) \
   static uint64_t handB ## piece(int num) { \
     return HandB ## piece[num]; \
   } \
@@ -49,15 +49,15 @@ public:
     return HandW ## piece[num]; \
   }
 
-  __FUNC_HAND__(Pawn)
-  __FUNC_HAND__(Lance)
-  __FUNC_HAND__(Knight)
-  __FUNC_HAND__(Silver)
-  __FUNC_HAND__(Gold)
-  __FUNC_HAND__(Bishop)
-  __FUNC_HAND__(Rook)
+  FUNC_HAND__(Pawn)
+  FUNC_HAND__(Lance)
+  FUNC_HAND__(Knight)
+  FUNC_HAND__(Silver)
+  FUNC_HAND__(Gold)
+  FUNC_HAND__(Bishop)
+  FUNC_HAND__(Rook)
 
-#undef __FUNC_HAND__
+#undef FUNC_HAND__
 
   static uint64_t handBlack(const Piece piece, int num) {
     switch (piece) {
@@ -95,4 +95,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_ZOBRIST__
+#endif // SUNFISH_ZOBRIST__

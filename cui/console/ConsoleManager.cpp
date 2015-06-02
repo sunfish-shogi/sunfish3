@@ -15,7 +15,7 @@
 #include <cmath>
 #include <cstring>
 
-#define COMMAND_NUM ((int)Command::__num__)
+#define COMMAND_NUM ((int)Command::num__)
 
 namespace {
 
@@ -88,7 +88,7 @@ Command ConsoleManager::parseCommand(const char* str) {
 bool ConsoleManager::inputMove(const char* str, const Board& board, Move& move) const {
 
   // CSA形式で読み込んでみる
-  if (CsaReader::readMove(str, _record.getBoard(), move)) {
+  if (CsaReader::readMove(str, record_.getBoard(), move)) {
     return true;
   }
 
@@ -184,7 +184,7 @@ void ConsoleManager::printBoard(const Board& board) {
   std::cout << std::endl;
 
 #if 1
-  auto& evaluator = _searcher.getEvaluator();
+  auto& evaluator = searcher_.getEvaluator();
   auto valuePair = evaluator.evaluate(board);
   std::cout << "Evaluator Info\n";
   std::cout << "  eval: " << valuePair.value().int32() <<
@@ -204,9 +204,9 @@ bool ConsoleManager::search(bool withMakeMove) {
 
   // 定跡検索
   if (!ok) {
-    const auto& board = _record.getBoard();
+    const auto& board = record_.getBoard();
     uint64_t hash = board.getHash();
-    BookResult bookResult = _book.selectRandom(hash);
+    BookResult bookResult = book_.selectRandom(hash);
     if (!bookResult.move.isEmpty() && board.isValidMove(bookResult.move)) {
       move = bookResult.move;
       std::cout << "book hit: " << move.toString() << " (" << bookResult.count << "/" << bookResult.total << ")\n";
@@ -218,13 +218,13 @@ bool ConsoleManager::search(bool withMakeMove) {
   // 探索
   if (move.isEmpty()) {
     std::cout << "searching..\n";
-    _searcher.setRecord(_record);
-    ok = _searcher.idsearch(_record.getBoard(), move);
-    _searcher.clearRecord();
+    searcher_.setRecord(record_);
+    ok = searcher_.idsearch(record_.getBoard(), move);
+    searcher_.clearRecord();
     std::cout << "done.\n";
     std::cout << std::endl;
 
-    std::cout << _searcher.getInfoString();
+    std::cout << searcher_.getInfoString();
     std::cout << std::endl;
   }
 
@@ -236,7 +236,7 @@ bool ConsoleManager::search(bool withMakeMove) {
 
     if (withMakeMove) {
       // 着手
-      _record.makeMove(move);
+      record_.makeMove(move);
     }
 
   } else {
@@ -246,17 +246,17 @@ bool ConsoleManager::search(bool withMakeMove) {
 
     if (withMakeMove) {
       // 着手をマニュアルモードに切り替え
-      if (_config.autoBlack) {
+      if (config_.autoBlack) {
         std::cout << "Change mode:\n";
         std::cout << "  black: auto => manual\n";
         std::cout << std::endl;
-        _config.autoBlack = false;
+        config_.autoBlack = false;
       }
-      if (_config.autoWhite) {
+      if (config_.autoWhite) {
         std::cout << "Change mode:\n";
         std::cout << "  white: auto => manual\n";
         std::cout << std::endl;
-        _config.autoWhite = false;
+        config_.autoWhite = false;
       }
     }
 
@@ -268,9 +268,9 @@ bool ConsoleManager::search(bool withMakeMove) {
 
 void ConsoleManager::showMoves() const {
   Moves moves;
-  MoveGenerator::generate(_record.getBoard(), moves);
+  MoveGenerator::generate(record_.getBoard(), moves);
   for (auto ite = moves.begin(); ite != moves.end(); ite++) {
-    if (_record.getBoard().isValidMoveStrict(*ite)) {
+    if (record_.getBoard().isValidMoveStrict(*ite)) {
       std::cout << ite->toString() << ' ';
     }
   }
@@ -278,8 +278,8 @@ void ConsoleManager::showMoves() const {
 }
 
 void ConsoleManager::probeBook() const {
-  uint64_t hash = _record.getBoard().getHash();
-  auto p = _book.find(hash);
+  uint64_t hash = record_.getBoard().getHash();
+  auto p = book_.find(hash);
   if (p == nullptr) {
     std::cout << "(empty)" << std::endl;
     return;
@@ -331,10 +331,10 @@ ConsoleManager::CommandResult ConsoleManager::inputCommand() {
 
   // 入力がないときは直前のコマンドを繰り返す。
   if (command == Command::Empty) {
-    command = _prevCommand;
+    command = prevCommand_;
   }
 
-  _prevCommand = Command::Empty;
+  prevCommand_ = Command::Empty;
 
   switch (command) {
     case Command::Empty:
@@ -348,51 +348,51 @@ ConsoleManager::CommandResult ConsoleManager::inputCommand() {
 
     case Command::Prev:
       // 1手戻る。
-      if (!_record.unmakeMove()) {
+      if (!record_.unmakeMove()) {
         std::cout << "There is no previous move.\n";
         return CommandResult::None;
       }
 
-      if (_config.autoBlack || _config.autoWhite) {
+      if (config_.autoBlack || config_.autoWhite) {
         // コンピュータの手番はスキップ
-        _record.unmakeMove();
+        record_.unmakeMove();
       }
-      _prevCommand = Command::Prev;
+      prevCommand_ = Command::Prev;
       return CommandResult::Changed;
 
     case Command::Next:
       // 1手進む。
-      if (!_record.makeMove()) {
+      if (!record_.makeMove()) {
         std::cout << "There is no next move.\n";
         return CommandResult::None;
       }
 
-      if (_config.autoBlack || _config.autoWhite) {
+      if (config_.autoBlack || config_.autoWhite) {
         // コンピュータの手番はスキップ
-        _record.makeMove();
+        record_.makeMove();
       }
-      _prevCommand = Command::Next;
+      prevCommand_ = Command::Next;
       return CommandResult::Changed;
 
     case Command::Top:
       // 開始局面に戻る。
-      if (!_record.unmakeMove()) {
+      if (!record_.unmakeMove()) {
         std::cout << "There is no previous move.\n";
         return CommandResult::None;
       }
 
-      while (_record.unmakeMove())
+      while (record_.unmakeMove())
         ;
       return CommandResult::Changed;
 
     case Command::End:
       // 最終局面まで進む。
-      if (!_record.makeMove()) {
+      if (!record_.makeMove()) {
         std::cout << "There is no next move.\n";
         return CommandResult::None;
       }
 
-      while (_record.makeMove())
+      while (record_.makeMove())
         ;
       return CommandResult::Changed;
 
@@ -413,23 +413,23 @@ ConsoleManager::CommandResult ConsoleManager::inputCommand() {
 
     case Command::ClearTT:
       // TTクリア
-      _searcher.clearTT();
+      searcher_.clearTT();
       return CommandResult::None;
 
     case Command::ClearHistory:
       // Historyクリア
-      _searcher.clearHistory();
+      searcher_.clearHistory();
       return CommandResult::None;
 
     default: {
       // 指し手入力
       Move move;
-      if (!inputMove(line, _record.getBoard(), move)) {
+      if (!inputMove(line, record_.getBoard(), move)) {
       std::cout << "unknown command!!\n";
       return CommandResult::None;
       }
 
-      if (!_record.makeMove(move)) {
+      if (!record_.makeMove(move)) {
         std::cout << "illegal move!!\n";
         return CommandResult::None;
       }
@@ -449,26 +449,26 @@ ConsoleManager::CommandResult ConsoleManager::inputCommand() {
 bool ConsoleManager::play() {
 
   // 定跡の読み込み
-  if (!_book.readFile()) {
+  if (!book_.readFile()) {
     Loggers::warning << "Could not read book.";
   }
 
-  _record.init(Board::Handicap::Even);
+  record_.init(Board::Handicap::Even);
 
   // 棋譜の読み込み
-  if (!_config.inFileName.empty()) {
-    CsaReader::read(_config.inFileName, _record);
+  if (!config_.inFileName.empty()) {
+    CsaReader::read(config_.inFileName, record_);
   }
 
-  auto searcherConfig = buildSearcherConfig(_searcher.getConfig(), _config);
-  _searcher.setConfig(searcherConfig);
+  auto searcherConfig = buildSearcherConfig(searcher_.getConfig(), config_);
+  searcher_.setConfig(searcherConfig);
 
-  printBoard(_record.getBoard());
+  printBoard(record_.getBoard());
 
   while (true) {
 
-    if (!_config.outFileName.empty()) {
-      CsaWriter::write(_config.outFileName, _record);
+    if (!config_.outFileName.empty()) {
+      CsaWriter::write(config_.outFileName, record_);
     }
 
     if (isAuto()) {
@@ -477,7 +477,7 @@ bool ConsoleManager::play() {
       search(true);
 
       // 盤面表示
-      printBoard(_record.getBoard());
+      printBoard(record_.getBoard());
 
     } else {
 
@@ -486,7 +486,7 @@ bool ConsoleManager::play() {
 
       if (result == CommandResult::Changed) {
         // 盤面表示
-        printBoard(_record.getBoard());
+        printBoard(record_.getBoard());
 
       } else if (result == CommandResult::Quit) {
         // quit

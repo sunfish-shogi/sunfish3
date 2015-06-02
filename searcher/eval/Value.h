@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_VALUE__
-#define __SUNFISH_VALUE__
+#ifndef SUNFISH_VALUE__
+#define SUNFISH_VALUE__
 
 #include "core/def.h"
 #include <cstdint>
@@ -21,7 +21,7 @@ namespace sunfish {
 class Value {
 private:
 
-  int32_t _value;
+  int32_t value_;
 
 public:
 
@@ -34,101 +34,101 @@ public:
   Value() {
   }
 
-  Value(int32_t value) : _value(value) {
+  Value(int32_t value) : value_(value) {
   }
 
   Value& operator+=(const Value& val) {
-    _value += val._value;
+    value_ += val.value_;
     return *this;
   }
 
   Value& operator-=(const Value& val) {
-    _value -= val._value;
+    value_ -= val.value_;
     return *this;
   }
 
   Value& operator*=(const Value& val) {
-    _value *= val._value;
+    value_ *= val.value_;
     return *this;
   }
 
   Value& operator/=(const Value& val) {
-    _value /= val._value;
+    value_ /= val.value_;
     return *this;
   }
 
   Value operator+() const {
-    return Value(_value);
+    return Value(value_);
   }
 
   Value operator-() const {
-    return Value(-_value);
+    return Value(-value_);
   }
 
   Value operator+(const Value& val) const {
-    return Value(_value + val._value);
+    return Value(value_ + val.value_);
   }
 
   Value operator-(const Value& val) const {
-    return Value(_value - val._value);
+    return Value(value_ - val.value_);
   }
 
   Value operator*(const Value& val) const {
-    return Value(_value * val._value);
+    return Value(value_ * val.value_);
   }
 
   Value operator/(const Value& val) const {
-    return Value(_value / val._value);
+    return Value(value_ / val.value_);
   }
 
   bool operator==(const Value& val) const {
-    return _value == val._value;
+    return value_ == val.value_;
   }
 
   bool operator!=(const Value& val) const {
-    return _value != val._value;
+    return value_ != val.value_;
   }
 
   bool operator>(const Value& val) const {
-    return _value > val._value;
+    return value_ > val.value_;
   }
 
   bool operator<(const Value& val) const {
-    return _value < val._value;
+    return value_ < val.value_;
   }
 
   bool operator>=(const Value& val) const {
-    return _value >= val._value;
+    return value_ >= val.value_;
   }
 
   bool operator<=(const Value& val) const {
-    return _value <= val._value;
+    return value_ <= val.value_;
   }
 
   explicit operator int32_t() const {
-    return _value;
+    return value_;
   }
 
   int32_t int32() const {
-    return _value;
+    return value_;
   }
 
   static Value add(const Value& a, const Value& b) {
-    if (b._value > 0 && a._value >= Inf - b._value) {
+    if (b.value_ > 0 && a.value_ >= Inf - b.value_) {
       return Value(Inf);
-    } else if (b._value < 0 && a._value <= -Inf + (-b._value)) {
+    } else if (b.value_ < 0 && a.value_ <= -Inf + (-b.value_)) {
       return Value(-Inf);
     }
-    return Value(a._value + b._value);
+    return Value(a.value_ + b.value_);
   }
 
   static Value sub(const Value& a, const Value& b) {
-    if (b._value > 0 && a._value <= -Inf + b._value) {
+    if (b.value_ > 0 && a.value_ <= -Inf + b.value_) {
       return Value(-Inf);
-    } else if (b._value < 0 && a._value >= Inf + b._value) {
+    } else if (b.value_ < 0 && a.value_ >= Inf + b.value_) {
       return Value(Inf);
     }
-    return Value(a._value - b._value);
+    return Value(a.value_ - b.value_);
   }
 
   static Value (max)(const Value& a, const Value& b) {
@@ -153,4 +153,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_VALUE__
+#endif // SUNFISH_VALUE__

@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_LEARN__
-#define __SUNFISH_LEARN__
+#ifndef SUNFISH_LEARN__
+#define SUNFISH_LEARN__
 
 #ifndef NLEARN
 
@@ -27,7 +27,7 @@ namespace sunfish {
 class FV : public Feature<float> {
 public:
   void init() {
-    memset(_t, 0, sizeof(*_t));
+    memset(t_, 0, sizeof(*t_));
   }
 };
 
@@ -39,37 +39,37 @@ private:
     Move move;
   };
 
-  Timer _timer;
+  Timer timer_;
 
-  Config _config;
+  Config config_;
 
-  Evaluator _eval;
+  Evaluator eval_;
 
-  std::vector<std::mt19937> _rgens;
+  std::vector<std::mt19937> rgens_;
 
-  std::vector<std::unique_ptr<Searcher>> _searchers;
+  std::vector<std::unique_ptr<Searcher>> searchers_;
 
-  uint32_t _count;
+  uint32_t count_;
 
-  FV _g;
+  FV g_;
 
-  FV _w;
+  FV w_;
 
-  FV _u;
+  FV u_;
 
-  std::vector<Job> _jobs;
+  std::vector<Job> jobs_;
 
-  std::queue<Job> _jobQueue;
+  std::queue<Job> jobQueue_;
 
-  std::vector<std::thread> _threads;
+  std::vector<std::thread> threads_;
 
-  uint32_t _nt;
+  uint32_t nt_;
 
-  std::atomic<bool> _shutdown;
+  std::atomic<bool> shutdown_;
 
-	std::atomic<int> _activeCount;
+	std::atomic<int> activeCount_;
 
-  std::mutex _mutex;
+  std::mutex mutex_;
 
   void genGradient(int wn, const Job& job);
 
@@ -100,4 +100,4 @@ public:
 
 #endif // NLEARN
 
-#endif // __SUNFISH_LEARN__
+#endif // SUNFISH_LEARN__

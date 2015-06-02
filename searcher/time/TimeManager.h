@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_TIMEMANAGER__
-#define __SUNFISH_TIMEMANAGER__
+#ifndef SUNFISH_TIMEMANAGER__
+#define SUNFISH_TIMEMANAGER__
 
 #include "../eval/Value.h"
 #include "../tree/Tree.h"
@@ -20,8 +20,8 @@ private:
     Value firstValue;
   };
 
-  int _depth;
-  Data _stack[Tree::StackSize];
+  int depth_;
+  Data stack_[Tree::StackSize];
 
 public:
 
@@ -35,4 +35,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_TIMEMANAGER__
+#endif // SUNFISH_TIMEMANAGER__

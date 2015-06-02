@@ -16,7 +16,7 @@ namespace sunfish {
  * @param genType
  */
 template <bool black, MoveGenerator::GenType genType>
-void MoveGenerator::_generateOnBoard(const Board& board, Moves& moves, const Bitboard* costumToMask) {
+void MoveGenerator::generateOnBoard_(const Board& board, Moves& moves, const Bitboard* costumToMask) {
   const bool exceptNonEffectiveNonProm = true;
   const bool exceptProm = (genType == GenType::NoCapture);
   const bool tactical = (genType == GenType::Capture);
@@ -281,18 +281,18 @@ void MoveGenerator::_generateOnBoard(const Board& board, Moves& moves, const Bit
     });
   });
 }
-template void MoveGenerator::_generateOnBoard<true, MoveGenerator::GenType::Capture>(const Board&, Moves&, const Bitboard*);
-template void MoveGenerator::_generateOnBoard<true, MoveGenerator::GenType::NoCapture>(const Board&, Moves&, const Bitboard*);
-template void MoveGenerator::_generateOnBoard<true, MoveGenerator::GenType::Evasion>(const Board&, Moves&, const Bitboard*);
-template void MoveGenerator::_generateOnBoard<false, MoveGenerator::GenType::Capture>(const Board&, Moves&, const Bitboard*);
-template void MoveGenerator::_generateOnBoard<false, MoveGenerator::GenType::NoCapture>(const Board&, Moves&, const Bitboard*);
-template void MoveGenerator::_generateOnBoard<false, MoveGenerator::GenType::Evasion>(const Board&, Moves&, const Bitboard*);
+template void MoveGenerator::generateOnBoard_<true, MoveGenerator::GenType::Capture>(const Board&, Moves&, const Bitboard*);
+template void MoveGenerator::generateOnBoard_<true, MoveGenerator::GenType::NoCapture>(const Board&, Moves&, const Bitboard*);
+template void MoveGenerator::generateOnBoard_<true, MoveGenerator::GenType::Evasion>(const Board&, Moves&, const Bitboard*);
+template void MoveGenerator::generateOnBoard_<false, MoveGenerator::GenType::Capture>(const Board&, Moves&, const Bitboard*);
+template void MoveGenerator::generateOnBoard_<false, MoveGenerator::GenType::NoCapture>(const Board&, Moves&, const Bitboard*);
+template void MoveGenerator::generateOnBoard_<false, MoveGenerator::GenType::Evasion>(const Board&, Moves&, const Bitboard*);
 
 /**
  * 持ち駒を打つ手を生成
  */
 template <bool black>
-void MoveGenerator::_generateDrop(const Board& board, Moves& moves, const Bitboard& toMask) {
+void MoveGenerator::generateDrop_(const Board& board, Moves& moves, const Bitboard& toMask) {
   // pawn
   int pawnCount = black ? board.getBlackHand(Piece::Pawn) : board.getWhiteHand(Piece::Pawn);
   if (pawnCount) {
@@ -368,8 +368,8 @@ BB_EACH_OPE(to, bb, \
   }
 #undef GEN_DROP
 }
-template void MoveGenerator::_generateDrop<true>(const Board&, Moves&, const Bitboard&);
-template void MoveGenerator::_generateDrop<false>(const Board&, Moves&, const Bitboard&);
+template void MoveGenerator::generateDrop_<true>(const Board&, Moves&, const Bitboard&);
+template void MoveGenerator::generateDrop_<false>(const Board&, Moves&, const Bitboard&);
 
 /**
  * 王手を防ぐ手を生成します。
@@ -377,7 +377,7 @@ template void MoveGenerator::_generateDrop<false>(const Board&, Moves&, const Bi
  * 打ち歩詰めの手を含む可能性があります。
  */
 template <bool black>
-void MoveGenerator::_generateEvasion(const Board& board, Moves& moves) {
+void MoveGenerator::generateEvasion_(const Board& board, Moves& moves) {
   const auto& king = black ? board.getBKingPosition() : board.getWKingPosition();
 
   bool shortAttack = false;
@@ -501,29 +501,29 @@ void MoveGenerator::_generateEvasion(const Board& board, Moves& moves) {
 
   if ((longAttack == 2 || (shortAttack && longAttack))) {
     // 両王手
-    _generateKing<black>(board, moves);
+    generateKing_<black>(board, moves);
   } else if (shortAttack) {
     // 近接王手
-    _generateEvasionShort<black>(board, moves, shortAttacker);
+    generateEvasionShort_<black>(board, moves, shortAttacker);
   } else {
     // 跳び駒の利き
 
     // 1. 移動合と玉の移動
-    _generateOnBoard<black, GenType::Evasion>(board, moves, &longMask);
+    generateOnBoard_<black, GenType::Evasion>(board, moves, &longMask);
 
     // 2. 持ち駒
     Bitboard dropMask = longMask & ~longAttacker;
     if (dropMask) {
-      _generateDrop<black>(board, moves, dropMask);
+      generateDrop_<black>(board, moves, dropMask);
     }
   }
 
 }
-template void MoveGenerator::_generateEvasion<true>(const Board& board, Moves& moves);
-template void MoveGenerator::_generateEvasion<false>(const Board& board, Moves& moves);
+template void MoveGenerator::generateEvasion_<true>(const Board& board, Moves& moves);
+template void MoveGenerator::generateEvasion_<false>(const Board& board, Moves& moves);
 
 template <bool black>
-void MoveGenerator::_generateEvasionShort(const Board& board, Moves& moves, const Bitboard& attacker) {
+void MoveGenerator::generateEvasionShort_(const Board& board, Moves& moves, const Bitboard& attacker) {
   Bitboard occ = board.getBOccupy() | board.getWOccupy();
   Position to = attacker.getFirst();
 
@@ -660,7 +660,7 @@ void MoveGenerator::_generateEvasionShort(const Board& board, Moves& moves, cons
  * 玉の移動する手を生成
  */
 template <bool black>
-void MoveGenerator::_generateKing(const Board& board, Moves& moves) {
+void MoveGenerator::generateKing_(const Board& board, Moves& moves) {
   const auto& from = black ? board.getBKingPosition() : board.getWKingPosition();
   Bitboard toMask = black ? ~board.getBOccupy() : ~board.getWOccupy();
 
@@ -669,14 +669,14 @@ void MoveGenerator::_generateKing(const Board& board, Moves& moves) {
     moves.add(Move(Piece::King, from, to, false, false));
   );
 }
-template void MoveGenerator::_generateKing<true>(const Board& board, Moves& moves);
-template void MoveGenerator::_generateKing<false>(const Board& board, Moves& moves);
+template void MoveGenerator::generateKing_<true>(const Board& board, Moves& moves);
+template void MoveGenerator::generateKing_<false>(const Board& board, Moves& moves);
 
 /**
  * 王手を生成
  */
 template <bool black, bool light>
-void MoveGenerator::_generateCheck(const Board& board, Moves& moves) {
+void MoveGenerator::generateCheck_(const Board& board, Moves& moves) {
   // TODO: 開き王手の生成
   const auto& occ = board.getBOccupy() | board.getWOccupy();
   Bitboard movable = ~(black ? board.getBOccupy() : board.getWOccupy());
@@ -997,9 +997,9 @@ gencheck_rook_drop_end ## dir: ; \
   }
 
 }
-template void MoveGenerator::_generateCheck<true, true>(const Board& board, Moves& moves);
-template void MoveGenerator::_generateCheck<false, true>(const Board& board, Moves& moves);
-template void MoveGenerator::_generateCheck<true, false>(const Board& board, Moves& moves);
-template void MoveGenerator::_generateCheck<false, false>(const Board& board, Moves& moves);
+template void MoveGenerator::generateCheck_<true, true>(const Board& board, Moves& moves);
+template void MoveGenerator::generateCheck_<false, true>(const Board& board, Moves& moves);
+template void MoveGenerator::generateCheck_<true, false>(const Board& board, Moves& moves);
+template void MoveGenerator::generateCheck_<false, false>(const Board& board, Moves& moves);
 
 } // namespace sunfish

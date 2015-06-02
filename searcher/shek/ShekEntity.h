@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_SHEKENTITY__
-#define __SUNFISH_SHEKENTITY__
+#ifndef SUNFISH_SHEKENTITY__
+#define SUNFISH_SHEKENTITY__
 
 #include "core/def.h"
 #include "HandSet.h"
@@ -25,7 +25,7 @@ namespace sunfish {
 class ShekEntity {
 private:
 
-  HandSet _handSet;
+  HandSet handSet_;
   struct {
     uint32_t count : SHEK_COUNT_WIDTH;
     bool blackTurn : SHEK_TURN_WIDTH;
@@ -42,7 +42,7 @@ public:
 
   ShekStat check(const HandSet& handSet, bool blackTurn) const {
     // 持ち駒をチェックする
-    ShekStat stat = handSet.compareTo(_handSet, blackTurn);
+    ShekStat stat = handSet.compareTo(handSet_, blackTurn);
 
     if (_.blackTurn != blackTurn) {
       if (stat == ShekStat::Equal) {
@@ -59,7 +59,7 @@ public:
 
   void set(uint64_t hash, const HandSet& handSet, bool blackTurn) {
     _.hash = SHEK_ENC_HASH(hash);
-    _handSet = handSet;
+    handSet_ = handSet;
     _.blackTurn = blackTurn;
     _.count = 0;
   }
@@ -88,22 +88,22 @@ private:
 
   static CONSTEXPR uint32_t Size = 4;
 
-  uint32_t _invalidKey;
-  ShekEntity _entities[Size];
+  uint32_t invalidKey_;
+  ShekEntity entities_[Size];
 
 public:
 
   void init(uint32_t key) {
-    _invalidKey = ~key;
+    invalidKey_ = ~key;
     for (uint32_t i = 0; i < Size; i++) {
-      _entities[i].init(_invalidKey);
+      entities_[i].init(invalidKey_);
     }
   }
 
   ShekStat check(uint64_t hash, const HandSet& handSet, bool blackTurn) const {
     for (uint32_t i = 0; i < Size; i++) {
-      if (_entities[i].checkHash(hash)) {
-        return _entities[i].check(handSet, blackTurn);
+      if (entities_[i].checkHash(hash)) {
+        return entities_[i].check(handSet, blackTurn);
       }
     }
     return ShekStat::None;
@@ -111,15 +111,15 @@ public:
 
   void set(uint64_t hash, const HandSet& handSet, bool blackTurn) {
     for (uint32_t i = 0; i < Size; i++) {
-      if (_entities[i].checkHash(hash)) {
-        _entities[i].retain();
+      if (entities_[i].checkHash(hash)) {
+        entities_[i].retain();
         return;
       }
     }
     for (uint32_t i = 0; i < Size; i++) {
-      if (_entities[i].checkHash(_invalidKey)) {
-        _entities[i].set(hash, handSet, blackTurn);
-        _entities[i].retain();
+      if (entities_[i].checkHash(invalidKey_)) {
+        entities_[i].set(hash, handSet, blackTurn);
+        entities_[i].retain();
         return;
       }
     }
@@ -127,8 +127,8 @@ public:
 
   void unset(uint64_t hash) {
     for (uint32_t i = 0; i < Size; i++) {
-      if (_entities[i].checkHash(hash)) {
-        _entities[i].release(_invalidKey);
+      if (entities_[i].checkHash(hash)) {
+        entities_[i].release(invalidKey_);
         return;
       }
     }
@@ -137,7 +137,7 @@ public:
 
   bool isCleared() const {
     for (uint32_t i = 0; i < Size; i++) {
-      if (!_entities[i].checkHash(_invalidKey)) {
+      if (!entities_[i].checkHash(invalidKey_)) {
         return false;
       }
     }
@@ -148,4 +148,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_SHEKENTITY__
+#endif // SUNFISH_SHEKENTITY__

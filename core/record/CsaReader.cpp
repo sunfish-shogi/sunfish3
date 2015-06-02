@@ -49,7 +49,7 @@ bool CsaReader::read(std::istream& is, Record& record, RecordInfo* info/* = null
  * 局面の読み込み
  */
 bool CsaReader::readBoard(std::istream& is, Board& board, RecordInfo* info/* = nullptr*/) {
-  bool ok = _readBoard(is, board, info);
+  bool ok = readBoard_(is, board, info);
   board.refreshHash();
   return ok;
 }
@@ -58,7 +58,7 @@ bool CsaReader::readBoard(std::istream& is, Board& board, RecordInfo* info/* = n
  * 局面の読み込み
  */
 bool CsaReader::readBoard(const char* line, Board& board, RecordInfo* info/* = nullptr*/) {
-  bool ok = _readBoard(line, board, info);
+  bool ok = readBoard_(line, board, info);
   board.refreshHash();
   return ok;
 }
@@ -66,7 +66,7 @@ bool CsaReader::readBoard(const char* line, Board& board, RecordInfo* info/* = n
 /**
  * 局面の読み込み
  */
-bool CsaReader::_readBoard(std::istream& is, Board& board, RecordInfo* info/* = nullptr*/) {
+bool CsaReader::readBoard_(std::istream& is, Board& board, RecordInfo* info/* = nullptr*/) {
   char line[LINE_BUFFER_SIZE];
 
   board.init();
@@ -80,7 +80,7 @@ bool CsaReader::_readBoard(std::istream& is, Board& board, RecordInfo* info/* = 
       Loggers::warning << "file io error. " << __FILE__ << "(" << __LINE__ << ")";
       return false;
     }
-    if (!_readBoard(line, board, info)) {
+    if (!readBoard_(line, board, info)) {
       Loggers::warning << "invalid board format. " << __FILE__ << "(" << __LINE__ << ")";
       return false;
     }
@@ -98,15 +98,15 @@ bool CsaReader::_readBoard(std::istream& is, Board& board, RecordInfo* info/* = 
 /**
  * 局面の読み込み
  */
-bool CsaReader::_readBoard(const char* line, Board& board, RecordInfo* info/* = nullptr*/) {
+bool CsaReader::readBoard_(const char* line, Board& board, RecordInfo* info/* = nullptr*/) {
   switch (line[0]) {
   case 'P':
     if (line[1] >= '1' && line[1] <= '9') {
-      return _readBoardPieces(line, board);
+      return readBoardPieces_(line, board);
     } else if (line[1] == '+') {
-      return _readHand(line, board, true);
+      return readHand_(line, board, true);
     } else if (line[1] == '-') {
-      return _readHand(line, board, false);
+      return readHand_(line, board, false);
     }
     Loggers::warning << __FILE_LINE__ << ": unknown command";
     Loggers::warning << line;
@@ -118,7 +118,7 @@ bool CsaReader::_readBoard(const char* line, Board& board, RecordInfo* info/* = 
     board.setWhite();
     return true;
   case '$': case 'N':
-    return info != nullptr ? _readInfo(line, *info) : true;
+    return info != nullptr ? readInfo_(line, *info) : true;
   case 'V': case '\'': case '\0':
     return true;
   default:
@@ -131,7 +131,7 @@ bool CsaReader::_readBoard(const char* line, Board& board, RecordInfo* info/* = 
 /**
  * 盤面の読み込み
  */
-bool CsaReader::_readBoardPieces(const char* line, Board& board) {
+bool CsaReader::readBoardPieces_(const char* line, Board& board) {
   if (strlen(line) < 2 + 3 * Position::FileN) {
     Loggers::warning << "invalid format. " << __FILE__ << "(" << __LINE__ << ")";
     return false;
@@ -144,7 +144,7 @@ bool CsaReader::_readBoardPieces(const char* line, Board& board) {
   return true;
 }
 
-bool CsaReader::_readInfo(const char* line, RecordInfo& info) {
+bool CsaReader::readInfo_(const char* line, RecordInfo& info) {
   if (strncmp(line, "$EVENT:", 7) == 0) {
     info.title = &line[7];
 
@@ -170,7 +170,7 @@ bool CsaReader::_readInfo(const char* line, RecordInfo& info) {
 /**
  * 持ち駒の読み込み
  */
-bool CsaReader::_readHand(const char* line, Board& board, bool black) {
+bool CsaReader::readHand_(const char* line, Board& board, bool black) {
   unsigned length = (unsigned)strlen(line);
   for (unsigned i = 2; i + 4 <= length; i += 4) {
     unsigned file = line[i+0] - '0';
@@ -213,7 +213,7 @@ bool CsaReader::readMoves(std::istream& is, Record& record) {
       Loggers::warning << "file io error. " << __FILE__ << "(" << __LINE__ << ")";
       return false;
     }
-    if (_readComment(line) || _readCommand(line) || _readTime(line)) {
+    if (readComment_(line) || readCommand_(line) || readTime_(line)) {
       continue;
     }
     if (!readMove(line, record.getBoard(), move)) {
@@ -225,21 +225,21 @@ bool CsaReader::readMoves(std::istream& is, Record& record) {
   }
 }
 
-bool CsaReader::_readComment(const char* line) {
+bool CsaReader::readComment_(const char* line) {
   if (line[0] == '\0' || line[0] == '\'') {
     return true;
   }
   return false;
 }
 
-bool CsaReader::_readTime(const char* line) {
+bool CsaReader::readTime_(const char* line) {
   if (line[0] == 'T') {
     return true;
   }
   return false;
 }
 
-bool CsaReader::_readCommand(const char* line) {
+bool CsaReader::readCommand_(const char* line) {
   if (line[0] == '%') {
     return true;
   }

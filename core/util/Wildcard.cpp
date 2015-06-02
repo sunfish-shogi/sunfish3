@@ -72,7 +72,7 @@ bool Wildcard::match(const char* pp, const char* pt) {
 }
 
 bool Wildcard::match(const char* str) const {
-  return match(_pattern.c_str(), str);
+  return match(pattern_.c_str(), str);
 }
 
 } // namespace sunfish

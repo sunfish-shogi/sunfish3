@@ -30,7 +30,7 @@ enum class Command : int {
   ClearTT,
   ClearHistory,
 
-  __num__,
+  num__,
 
   Unknown,
 };
@@ -57,11 +57,11 @@ private:
     Quit, Changed, None
   };
 
-  Searcher _searcher;
-  Book _book;
-  Record _record;
-  Command _prevCommand;
-  Config _config;
+  Searcher searcher_;
+  Book book_;
+  Record record_;
+  Command prevCommand_;
+  Config config_;
 
   void showHelp();
 
@@ -72,8 +72,8 @@ private:
   void printBoard(const Board& board);
 
   bool isAuto() const {
-    return (_record.getBoard().isBlack() && _config.autoBlack)
-        || (_record.getBoard().isWhite() && _config.autoWhite);
+    return (record_.getBoard().isBlack() && config_.autoBlack)
+        || (record_.getBoard().isWhite() && config_.autoWhite);
   }
 
   bool search(bool withMakeMove);
@@ -87,66 +87,66 @@ private:
 public:
 
   ConsoleManager() {
-    _config = getDefaultConfig();
-    _prevCommand = Command::Empty;
+    config_ = getDefaultConfig();
+    prevCommand_ = Command::Empty;
   }
   ConsoleManager(const ConsoleManager&) = delete;
   ConsoleManager(ConsoleManager&&) = delete;
 
   void setAutoBlack(bool enable) {
-    _config.autoBlack = enable;
+    config_.autoBlack = enable;
   }
   bool getAutoBlack() const {
-    return _config.autoBlack;
+    return config_.autoBlack;
   }
 
   void setAutoWhite(bool enable) {
-    _config.autoWhite = enable;
+    config_.autoWhite = enable;
   }
   bool getAutoWhite() const {
-    return _config.autoWhite;
+    return config_.autoWhite;
   }
 
   void setMaxDepth(int depth) {
-    _config.maxDepth = depth;
+    config_.maxDepth = depth;
   }
   int getMaxDepth() const  {
-    return _config.maxDepth;
+    return config_.maxDepth;
   }
 
   void setLimitSeconds(int limitSeconds) {
-    _config.limitSeconds = limitSeconds;
+    config_.limitSeconds = limitSeconds;
   }
   int getLimitSeconds() const {
-    return _config.limitSeconds;
+    return config_.limitSeconds;
   }
 
   void setWorker(int worker) {
-    _config.worker = worker;
+    config_.worker = worker;
   }
   int getWorker() const {
-    return _config.worker;
+    return config_.worker;
   }
 
   void setInFileName(const std::string& inFileName) {
-    _config.inFileName = inFileName;
+    config_.inFileName = inFileName;
   }
   const std::string& getInFileName() const {
-    return _config.inFileName;
+    return config_.inFileName;
   }
 
   void setOutFileName(const std::string& outFileName) {
-    _config.outFileName = outFileName;
+    config_.outFileName = outFileName;
   }
   const std::string& getOutFileName() const {
-    return _config.outFileName;
+    return config_.outFileName;
   }
 
   void setConfig(Config config) {
-    _config = std::move(config);
+    config_ = std::move(config);
   }
   const Config& getConfig() const {
-    return _config;
+    return config_;
   }
   static Config getDefaultConfig();
   static Searcher::Config buildSearcherConfig(Searcher::Config searcherConfigOrg, const Config& config) {

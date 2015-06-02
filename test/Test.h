@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_TEST__
-#define __SUNFISH_TEST__
+#ifndef SUNFISH_TEST__
+#define SUNFISH_TEST__
 
 #if !defined(NDEBUG)
 
@@ -15,25 +15,25 @@
 #include "logger/Logger.h"
 
 #define TEST(group, name) \
-void __test_method_ ## group ## name();\
-sunfish::__test_adder__ __test_adder_ ## group ## name (#group, #name, __test_method_ ## group ## name); \
-void __test_method_ ## group ## name()
+void test_method_ ## group ## name();\
+sunfish::test_adder__ __test_adder_ ## group ## name (#group, #name, test_method_ ## group ## name); \
+void test_method_ ## group ## name()
 
-#define __TEST_RESULT__(reason) throw sunfish::TestError{(reason), __FILE__, __LINE__}
+#define TEST_RESULT__(reason) throw sunfish::TestError{(reason), __FILE__, __LINE__}
 
 #define ASSERT_EQ(correct, exact) do { \
-  const auto _correct = (correct); \
-  const auto _exact = (exact); \
-  if (!((_exact) == (_correct))) {\
+  const auto correct_ = (correct); \
+  const auto exact_ = (exact); \
+  if (!((exact_) == (correct_))) {\
     std::ostringstream oss;\
-    oss << "\"" << (_exact) << "\" is not equal to \"" << (_correct) << "\".";\
-    __TEST_RESULT__(oss.str());\
+    oss << "\"" << (exact_) << "\" is not equal to \"" << (correct_) << "\".";\
+    TEST_RESULT__(oss.str());\
   } \
 } while (false)
 
 #define ASSERT(b) do { \
-  const auto _b = (b);\
-  if (!_b) { __TEST_RESULT__(std::string(#b) + " is not true."); } \
+  const auto b_ = (b);\
+  if (!b_) { TEST_RESULT__(std::string(#b) + " is not true."); } \
 } while (false)
 
 namespace sunfish {
@@ -52,7 +52,7 @@ struct TestError {
 class TestSuite {
 private:
 
-  std::map<std::string, std::map<std::string, TEST_METHOD>> _tests;
+  std::map<std::string, std::map<std::string, TEST_METHOD>> tests_;
 
   static TestSuite* getInstance() {
     static TestSuite instance;
@@ -63,12 +63,12 @@ public:
 
   static void addTest(const char* groupName, const char* methodName, TEST_METHOD method) {
     auto ins = getInstance();
-    ins->_tests[groupName][methodName] = method;
+    ins->tests_[groupName][methodName] = method;
   }
 
   static bool test() {
     auto ins = getInstance();
-    const auto& tests = ins->_tests;
+    const auto& tests = ins->tests_;
     int totalSuccess = 0;
     int totalFail = 0;
 
@@ -132,9 +132,9 @@ public:
 
 };
 
-class __test_adder__ {
+class test_adder__ {
 public:
-  __test_adder__(const char* groupName, const char* methodName, TEST_METHOD method) {
+  test_adder__(const char* groupName, const char* methodName, TEST_METHOD method) {
     TestSuite::addTest(groupName, methodName, method);
   }
 };
@@ -143,4 +143,4 @@ public:
 
 #endif // !defined(NDEBUG)
 
-#endif // __SUNFISH_TEST__
+#endif // SUNFISH_TEST__

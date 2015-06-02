@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_BOARD__
-#define __SUNFISH_BOARD__
+#ifndef SUNFISH_BOARD__
+#define SUNFISH_BOARD__
 
 #include "Bitboard.h"
 #include "Hand.h"
@@ -33,73 +33,73 @@ struct CompactBoard {
 class Board {
 private:
 
-  Bitboard _bbBOccupy;
-  Bitboard _bbBPawn;
-  Bitboard _bbBLance;
-  Bitboard _bbBKnight;
-  Bitboard _bbBSilver;
-  Bitboard _bbBGold;
-  Bitboard _bbBBishop;
-  Bitboard _bbBRook;
-  Bitboard _bbBKing;
-  Bitboard _bbBTokin;
-  Bitboard _bbBProLance;
-  Bitboard _bbBProKnight;
-  Bitboard _bbBProSilver;
-  Bitboard _bbBHorse;
-  Bitboard _bbBDragon;
+  Bitboard bbBOccupy_;
+  Bitboard bbBPawn_;
+  Bitboard bbBLance_;
+  Bitboard bbBKnight_;
+  Bitboard bbBSilver_;
+  Bitboard bbBGold_;
+  Bitboard bbBBishop_;
+  Bitboard bbBRook_;
+  Bitboard bbBKing_;
+  Bitboard bbBTokin_;
+  Bitboard bbBProLance_;
+  Bitboard bbBProKnight_;
+  Bitboard bbBProSilver_;
+  Bitboard bbBHorse_;
+  Bitboard bbBDragon_;
 
-  Bitboard _bbWOccupy;
-  Bitboard _bbWPawn;
-  Bitboard _bbWLance;
-  Bitboard _bbWKnight;
-  Bitboard _bbWSilver;
-  Bitboard _bbWGold;
-  Bitboard _bbWBishop;
-  Bitboard _bbWRook;
-  Bitboard _bbWKing;
-  Bitboard _bbWTokin;
-  Bitboard _bbWProLance;
-  Bitboard _bbWProKnight;
-  Bitboard _bbWProSilver;
-  Bitboard _bbWHorse;
-  Bitboard _bbWDragon;
+  Bitboard bbWOccupy_;
+  Bitboard bbWPawn_;
+  Bitboard bbWLance_;
+  Bitboard bbWKnight_;
+  Bitboard bbWSilver_;
+  Bitboard bbWGold_;
+  Bitboard bbWBishop_;
+  Bitboard bbWRook_;
+  Bitboard bbWKing_;
+  Bitboard bbWTokin_;
+  Bitboard bbWProLance_;
+  Bitboard bbWProKnight_;
+  Bitboard bbWProSilver_;
+  Bitboard bbWHorse_;
+  Bitboard bbWDragon_;
 
-  uint64_t _boardHash;
-  uint64_t _handHash;
+  uint64_t boardHash_;
+  uint64_t handHash_;
 
-  Position _posBKing;
-  Position _posWKing;
+  Position posBKing_;
+  Position posWKing_;
 
-  Hand _blackHand;
-  Hand _whiteHand;
+  Hand blackHand_;
+  Hand whiteHand_;
 
-  bool _black;
+  bool black_;
 
-  Piece _board[Position::N];
+  Piece board_[Position::N];
 
   Bitboard& getBB(const Piece& piece) {
-    return *(const_cast<Bitboard*>(&_getBB(piece)));
+    return *(const_cast<Bitboard*>(&getBB_(piece)));
   }
   const Bitboard& getBB(const Piece& piece) const {
-    return _getBB(piece);
+    return getBB_(piece);
   }
-  const Bitboard& _getBB(const Piece& piece) const;
-  template<bool black> bool _isPin(const Position& pos, const Bitboard& occ) const;
-  template<bool black> bool _isChecking(const Position& king, const Bitboard& occ) const;
-  template<bool black> bool _isChecking() const {
-    Bitboard occ = _bbBOccupy | _bbWOccupy;
-    return _isChecking<black>(black ? _posBKing : _posWKing, occ);
+  const Bitboard& getBB_(const Piece& piece) const;
+  template<bool black> bool isPin_(const Position& pos, const Bitboard& occ) const;
+  template<bool black> bool isChecking_(const Position& king, const Bitboard& occ) const;
+  template<bool black> bool isChecking_() const {
+    Bitboard occ = bbBOccupy_ | bbWOccupy_;
+    return isChecking_<black>(black ? posBKing_ : posWKing_, occ);
   }
-  template<bool black, DirectionEx dir> bool _isDirectCheck(const Move& move) const;
-  template<bool black, Direction dir> bool _isDiscoveredCheck(const Position& king, const Position& from) const;
-  template<bool black> bool _isCheck(const Move& move) const;
-  template<bool black> bool _isPawnDropMate() const;
-  template<bool black> bool _isValidMove(const Piece& piece, const Position& to) const;
-  template<bool black> bool _isValidMove(const Piece& piece, const Position& from, const Position& to) const;
-  template<bool black> bool _isValidMoveStrict(const Move& move) const;
-  template<bool black> bool _makeMove(Move& move);
-  template<bool black> bool _unmakeMove(const Move& move);
+  template<bool black, DirectionEx dir> bool isDirectCheck_(const Move& move) const;
+  template<bool black, Direction dir> bool isDiscoveredCheck_(const Position& king, const Position& from) const;
+  template<bool black> bool isCheck_(const Move& move) const;
+  template<bool black> bool isPawnDropMate_() const;
+  template<bool black> bool isValidMove_(const Piece& piece, const Position& to) const;
+  template<bool black> bool isValidMove_(const Piece& piece, const Position& from, const Position& to) const;
+  template<bool black> bool isValidMoveStrict_(const Move& move) const;
+  template<bool black> bool makeMove_(Move& move);
+  template<bool black> bool unmakeMove_(const Move& move);
 
 public:
 
@@ -128,15 +128,15 @@ public:
   }
   /** 盤上のみのハッシュ値を返します。 */
   uint64_t getBoardHash() const {
-    return _boardHash;
+    return boardHash_;
   }
   /** 持ち駒のみのハッシュ値を返します。 */
   uint64_t getHandHash() const {
-    return _handHash;
+    return handHash_;
   }
   /** 手番のみのハッシュ値を返します。 */
   uint64_t getTurnHash() const {
-    return _black ? Zobrist::black() : 0ull;
+    return black_ ? Zobrist::black() : 0ull;
   }
   /** 手番を除く局面のハッシュ値を返します。 */
   uint64_t getNoTurnHash() const {
@@ -145,107 +145,107 @@ public:
 
   /** 盤面の駒を取得します。 */
   Piece getBoardPiece(const Position& pos) const {
-    return _board[pos];
+    return board_[pos];
   }
   /** 先手の持ち駒を取得します。 */
   const Hand& getBlackHand() const {
-    return _blackHand;
+    return blackHand_;
   }
   /** 先手の持ち駒を取得します。 */
   Hand& getBlackHand() {
-    return _blackHand;
+    return blackHand_;
   }
   /** 後手の持ち駒を取得します。 */
   const Hand& getWhiteHand() const {
-    return _blackHand;
+    return blackHand_;
   }
   /** 後手の持ち駒を取得します。 */
   Hand& getWhiteHand() {
-    return _blackHand;
+    return blackHand_;
   }
   /** 先手の持ち駒を取得します。 */
   int getBlackHand(const Piece& piece) const {
-    return _blackHand.get(piece);
+    return blackHand_.get(piece);
   }
   /** 先手の持ち駒を取得します。 */
   int getBlackHandUnsafe(const Piece& piece) const {
-    return _blackHand.getUnsafe(piece);
+    return blackHand_.getUnsafe(piece);
   }
   /** 後手の持ち駒を取得します。 */
   int getWhiteHand(const Piece& piece) const {
-    return _whiteHand.get(piece);
+    return whiteHand_.get(piece);
   }
   /** 後手の持ち駒を取得します。 */
   int getWhiteHandUnsafe(const Piece& piece) const {
-    return _whiteHand.getUnsafe(piece);
+    return whiteHand_.getUnsafe(piece);
   }
   /** 先手番の場合に true を返します。 */
   bool isBlack() const {
-    return _black;
+    return black_;
   }
   /** 後手番の場合に true を返します。 */
   bool isWhite() const {
-    return !_black;
+    return !black_;
   }
   /** 先手の玉の位置を取得します。 */
   const Position& getBKingPosition() const {
-    return _posBKing;
+    return posBKing_;
   }
   /** 後手の玉の位置を取得します。 */
   const Position& getWKingPosition() const {
-    return _posWKing;
+    return posWKing_;
   }
 
   /** 盤面の駒をセットします。 */
   void setBoardPiece(const Position& pos, const Piece& piece);
   /** 先手の持ち駒をセットします。 */
   void setBlackHand(const Piece& piece, int count) {
-    _blackHand.set(piece, count);
+    blackHand_.set(piece, count);
   }
   /** 後手の持ち駒をセットします。 */
   void setWhiteHand(const Piece& piece, int count) {
-    _whiteHand.set(piece, count);
+    whiteHand_.set(piece, count);
   }
   /** 先手の駒を増やします。 */
   void incBlackHand(const Piece& piece) {
-    _blackHand.inc(piece);
+    blackHand_.inc(piece);
   }
   /** 先手の駒を減らします。 */
   void decBlackHand(const Piece& piece) {
-    _blackHand.dec(piece);
+    blackHand_.dec(piece);
   }
   /** 後手の駒を増やします。 */
   void incWhiteHand(const Piece& piece) {
-    _whiteHand.inc(piece);
+    whiteHand_.inc(piece);
   }
   /** 後手の駒を減らします。 */
   void decWhiteHand(const Piece& piece) {
-    _whiteHand.dec(piece);
+    whiteHand_.dec(piece);
   }
   /** 先手番にします。 */
   void setBlack() {
-    _black = true;
+    black_ = true;
   }
   /** 後手番にします。 */
   void setWhite() {
-    _black = false;
+    black_ = false;
   }
 
   /** 王手がかかっているか判定します。 */
   bool isChecking() const {
-    if (_black) {
-      return _isChecking<true>();
+    if (black_) {
+      return isChecking_<true>();
     } else {
-      return _isChecking<false>();
+      return isChecking_<false>();
     }
   }
 
   /** 王手か判定します。 */
   bool isCheck(const Move& move) const {
-    if (_black) {
-      return _isCheck<true>(move);
+    if (black_) {
+      return isCheck_<true>(move);
     } else {
-      return _isCheck<false>(move);
+      return isCheck_<false>(move);
     }
   }
 
@@ -258,10 +258,10 @@ public:
     const Piece& piece = move.piece();
     const Position& to = move.to();
     if (move.isHand()) {
-      return _black ? _isValidMove<true>(piece, to) : _isValidMove<false>(piece, to);
+      return black_ ? isValidMove_<true>(piece, to) : isValidMove_<false>(piece, to);
     } else {
       const Position& from = move.from();
-      return _black ? _isValidMove<true>(piece, from, to) : _isValidMove<false>(piece, from, to);
+      return black_ ? isValidMove_<true>(piece, from, to) : isValidMove_<false>(piece, from, to);
     }
   }
 
@@ -271,10 +271,10 @@ public:
    * @param move
    */
   bool isValidMoveStrict(const Move& move) const {
-    if (_black) {
-      return _isValidMoveStrict<true>(move);
+    if (black_) {
+      return isValidMoveStrict_<true>(move);
     } else {
-      return _isValidMoveStrict<false>(move);
+      return isValidMoveStrict_<false>(move);
     }
   }
 
@@ -284,10 +284,10 @@ public:
    * @param move
    */
   bool makeMove(Move& move) {
-    if (_black) {
-      return _makeMove<true>(move);
+    if (black_) {
+      return makeMove_<true>(move);
     } else {
-      return _makeMove<false>(move);
+      return makeMove_<false>(move);
     }
   }
 
@@ -298,10 +298,10 @@ public:
    * @param move
    */
   bool makeMoveStrict(Move& move) {
-    if (_black) {
-      return _isValidMoveStrict<true>(move) && _makeMove<true>(move);
+    if (black_) {
+      return isValidMoveStrict_<true>(move) && makeMove_<true>(move);
     } else {
-      return _isValidMoveStrict<false>(move) && _makeMove<false>(move);
+      return isValidMoveStrict_<false>(move) && makeMove_<false>(move);
     }
   }
 
@@ -309,10 +309,10 @@ public:
    * 局面を1手戻します。
    */
   bool unmakeMove(const Move& move) {
-    if (_black) {
-      return _unmakeMove<false>(move);
+    if (black_) {
+      return unmakeMove_<false>(move);
     } else {
-      return _unmakeMove<true>(move);
+      return unmakeMove_<true>(move);
     }
   }
 
@@ -337,36 +337,36 @@ public:
    */
   void unmakeNullMove();
 
-  const Bitboard& getBOccupy() const { return _bbBOccupy; }
-  const Bitboard& getBPawn() const { return _bbBPawn; }
-  const Bitboard& getBLance() const { return _bbBLance; }
-  const Bitboard& getBKnight() const { return _bbBKnight; }
-  const Bitboard& getBSilver() const { return _bbBSilver; }
-  const Bitboard& getBGold() const { return _bbBGold; }
-  const Bitboard& getBBishop() const { return _bbBBishop; }
-  const Bitboard& getBRook() const { return _bbBRook; }
-  const Bitboard& getBKing() const { return _bbBKing; }
-  const Bitboard& getBTokin() const { return _bbBTokin; }
-  const Bitboard& getBProLance() const { return _bbBProLance; }
-  const Bitboard& getBProKnight() const { return _bbBProKnight; }
-  const Bitboard& getBProSilver() const { return _bbBProSilver; }
-  const Bitboard& getBHorse() const { return _bbBHorse; }
-  const Bitboard& getBDragon() const { return _bbBDragon; }
-  const Bitboard& getWOccupy() const { return _bbWOccupy; }
-  const Bitboard& getWPawn() const { return _bbWPawn; }
-  const Bitboard& getWLance() const { return _bbWLance; }
-  const Bitboard& getWKnight() const { return _bbWKnight; }
-  const Bitboard& getWSilver() const { return _bbWSilver; }
-  const Bitboard& getWGold() const { return _bbWGold; }
-  const Bitboard& getWBishop() const { return _bbWBishop; }
-  const Bitboard& getWRook() const { return _bbWRook; }
-  const Bitboard& getWKing() const { return _bbWKing; }
-  const Bitboard& getWTokin() const { return _bbWTokin; }
-  const Bitboard& getWProLance() const { return _bbWProLance; }
-  const Bitboard& getWProKnight() const { return _bbWProKnight; }
-  const Bitboard& getWProSilver() const { return _bbWProSilver; }
-  const Bitboard& getWHorse() const { return _bbWHorse; }
-  const Bitboard& getWDragon() const { return _bbWDragon; }
+  const Bitboard& getBOccupy() const { return bbBOccupy_; }
+  const Bitboard& getBPawn() const { return bbBPawn_; }
+  const Bitboard& getBLance() const { return bbBLance_; }
+  const Bitboard& getBKnight() const { return bbBKnight_; }
+  const Bitboard& getBSilver() const { return bbBSilver_; }
+  const Bitboard& getBGold() const { return bbBGold_; }
+  const Bitboard& getBBishop() const { return bbBBishop_; }
+  const Bitboard& getBRook() const { return bbBRook_; }
+  const Bitboard& getBKing() const { return bbBKing_; }
+  const Bitboard& getBTokin() const { return bbBTokin_; }
+  const Bitboard& getBProLance() const { return bbBProLance_; }
+  const Bitboard& getBProKnight() const { return bbBProKnight_; }
+  const Bitboard& getBProSilver() const { return bbBProSilver_; }
+  const Bitboard& getBHorse() const { return bbBHorse_; }
+  const Bitboard& getBDragon() const { return bbBDragon_; }
+  const Bitboard& getWOccupy() const { return bbWOccupy_; }
+  const Bitboard& getWPawn() const { return bbWPawn_; }
+  const Bitboard& getWLance() const { return bbWLance_; }
+  const Bitboard& getWKnight() const { return bbWKnight_; }
+  const Bitboard& getWSilver() const { return bbWSilver_; }
+  const Bitboard& getWGold() const { return bbWGold_; }
+  const Bitboard& getWBishop() const { return bbWBishop_; }
+  const Bitboard& getWRook() const { return bbWRook_; }
+  const Bitboard& getWKing() const { return bbWKing_; }
+  const Bitboard& getWTokin() const { return bbWTokin_; }
+  const Bitboard& getWProLance() const { return bbWProLance_; }
+  const Bitboard& getWProKnight() const { return bbWProKnight_; }
+  const Bitboard& getWProSilver() const { return bbWProSilver_; }
+  const Bitboard& getWHorse() const { return bbWHorse_; }
+  const Bitboard& getWDragon() const { return bbWDragon_; }
 
   /**
    * データが壊れていないか検査します。
@@ -392,4 +392,4 @@ public:
 
 } // namespace sunfish
 
-#endif //__SUNFISH_BOARD__
+#endif //SUNFISH_BOARD__

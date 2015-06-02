@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_MOVEGENERATOR__
-#define __SUNFISH_MOVEGENERATOR__
+#ifndef SUNFISH_MOVEGENERATOR__
+#define SUNFISH_MOVEGENERATOR__
 
 #include "../board/Board.h"
 #include "Moves.h"
@@ -28,17 +28,17 @@ public:
 private:
 
   template <bool black, GenType genType>
-  static void _generateOnBoard(const Board& board, Moves& moves, const Bitboard* costumToMask);
+  static void generateOnBoard_(const Board& board, Moves& moves, const Bitboard* costumToMask);
   template <bool black>
-  static void _generateDrop(const Board& board, Moves& moves, const Bitboard& toMask);
+  static void generateDrop_(const Board& board, Moves& moves, const Bitboard& toMask);
   template <bool black>
-  static void _generateEvasion(const Board& board, Moves& moves);
+  static void generateEvasion_(const Board& board, Moves& moves);
   template <bool black>
-  static void _generateEvasionShort(const Board& board, Moves& moves, const Bitboard& attacker);
+  static void generateEvasionShort_(const Board& board, Moves& moves, const Bitboard& attacker);
   template <bool black>
-  static void _generateKing(const Board& board, Moves& moves);
+  static void generateKing_(const Board& board, Moves& moves);
   template <bool black, bool light>
-  static void _generateCheck(const Board& board, Moves& moves);
+  static void generateCheck_(const Board& board, Moves& moves);
 
 public:
 
@@ -67,9 +67,9 @@ public:
    */
   static void generateCap(const Board& board, Moves& moves) {
     if (board.isBlack()) {
-      _generateOnBoard<true, GenType::Capture>(board, moves, nullptr);
+      generateOnBoard_<true, GenType::Capture>(board, moves, nullptr);
     } else {
-      _generateOnBoard<false, GenType::Capture>(board, moves, nullptr);
+      generateOnBoard_<false, GenType::Capture>(board, moves, nullptr);
     }
   }
 
@@ -80,9 +80,9 @@ public:
    */
   static void generateNoCap(const Board& board, Moves& moves) {
     if (board.isBlack()) {
-      _generateOnBoard<true, GenType::NoCapture>(board, moves, nullptr);
+      generateOnBoard_<true, GenType::NoCapture>(board, moves, nullptr);
     } else {
-      _generateOnBoard<false, GenType::NoCapture>(board, moves, nullptr);
+      generateOnBoard_<false, GenType::NoCapture>(board, moves, nullptr);
     }
   }
 
@@ -94,9 +94,9 @@ public:
   static void generateDrop(const Board& board, Moves& moves) {
     Bitboard nocc = ~(board.getBOccupy() | board.getWOccupy());
     if (board.isBlack()) {
-      _generateDrop<true>(board, moves, nocc);
+      generateDrop_<true>(board, moves, nocc);
     } else {
-      _generateDrop<false>(board, moves, nocc);
+      generateDrop_<false>(board, moves, nocc);
     }
   }
 
@@ -107,9 +107,9 @@ public:
    */
   static void generateEvasion(const Board& board, Moves& moves) {
     if (board.isBlack()) {
-      _generateEvasion<true>(board, moves);
+      generateEvasion_<true>(board, moves);
     } else {
-      _generateEvasion<false>(board, moves);
+      generateEvasion_<false>(board, moves);
     }
   }
 
@@ -121,9 +121,9 @@ public:
    */
   static void generateCheck(const Board& board, Moves& moves) {
     if (board.isBlack()) {
-      _generateCheck<true, false>(board, moves);
+      generateCheck_<true, false>(board, moves);
     } else {
-      _generateCheck<false, false>(board, moves);
+      generateCheck_<false, false>(board, moves);
     }
   }
 
@@ -136,9 +136,9 @@ public:
    */
   static void generateCheckLight(const Board& board, Moves& moves) {
     if (board.isBlack()) {
-      _generateCheck<true, true>(board, moves);
+      generateCheck_<true, true>(board, moves);
     } else {
-      _generateCheck<false, true>(board, moves);
+      generateCheck_<false, true>(board, moves);
     }
   }
 
@@ -146,4 +146,4 @@ public:
 
 } // namespace sunfish
 
-#endif //__SUNFISH_MOVEGENERATOR__
+#endif //SUNFISH_MOVEGENERATOR__

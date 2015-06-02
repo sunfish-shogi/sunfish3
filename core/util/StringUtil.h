@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_STRINGUTIL__
-#define __SUNFISH_STRINGUTIL__
+#ifndef SUNFISH_STRINGUTIL__
+#define SUNFISH_STRINGUTIL__
 
 #include <sstream>
 #include <iomanip>
@@ -42,4 +42,4 @@ public:
 
 } // namespace sunfish
 
-#endif //__SUNFISH_STRINGUTIL__
+#endif //SUNFISH_STRINGUTIL__

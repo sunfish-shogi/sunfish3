@@ -8,7 +8,7 @@
 namespace sunfish {
 
 #if defined(UNKNOWN_API) || defined(__MINGW32__)
-const int Bitboard::_bfirst[256] = {
+const int Bitboard::bfirst_[256] = {
    0, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1,
    3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 6, 1, 2, 1, 3, 1, 2, 1,
    4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1,
@@ -23,7 +23,7 @@ const int Bitboard::_bfirst[256] = {
    3, 1, 2, 1, 6, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1,
    5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1,
 };
-const int Bitboard::_bfirst[256] = {
+const int Bitboard::bfirst_[256] = {
    0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6,
    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
@@ -60,7 +60,7 @@ const Bitboard& Bitboard::mask(int pos) {
 
 const Bitboard Bitboard::Zero(0x00LL, 0x00LL);
 
-const Bitboard Bitboard::_file[9] = {
+const Bitboard Bitboard::file_[9] = {
   Bitboard(Zero).set(P11).set(P12).set(P13).set(P14).set(P15).set(P16).set(P17).set(P18).set(P19),
   Bitboard(Zero).set(P21).set(P22).set(P23).set(P24).set(P25).set(P26).set(P27).set(P28).set(P29),
   Bitboard(Zero).set(P31).set(P32).set(P33).set(P34).set(P35).set(P36).set(P37).set(P38).set(P39),
@@ -71,27 +71,27 @@ const Bitboard Bitboard::_file[9] = {
   Bitboard(Zero).set(P81).set(P82).set(P83).set(P84).set(P85).set(P86).set(P87).set(P88).set(P89),
   Bitboard(Zero).set(P91).set(P92).set(P93).set(P94).set(P95).set(P96).set(P97).set(P98).set(P99),
 };
-const Bitboard Bitboard::_notFile[9] = {
-  ~_file[0],
-  ~_file[1],
-  ~_file[2],
-  ~_file[3],
-  ~_file[4],
-  ~_file[5],
-  ~_file[6],
-  ~_file[7],
-  ~_file[8],
+const Bitboard Bitboard::notFile_[9] = {
+  ~file_[0],
+  ~file_[1],
+  ~file_[2],
+  ~file_[3],
+  ~file_[4],
+  ~file_[5],
+  ~file_[6],
+  ~file_[7],
+  ~file_[8],
 };
-const Bitboard Bitboard::BPawnMovable = Bitboard(__HIGH_RANGE__, __LOW_RANGE__)
+const Bitboard Bitboard::BPawnMovable = Bitboard(HIGH_RANGE__, LOW_RANGE__)
   .unset(P11).unset(P21).unset(P31).unset(P41).unset(P51).unset(P61).unset(P71).unset(P81).unset(P91);
 const Bitboard& Bitboard::BLanceMovable = BPawnMovable;
-const Bitboard Bitboard::BKnightMovable = Bitboard(__HIGH_RANGE__, __LOW_RANGE__)
+const Bitboard Bitboard::BKnightMovable = Bitboard(HIGH_RANGE__, LOW_RANGE__)
   .unset(P11).unset(P21).unset(P31).unset(P41).unset(P51).unset(P61).unset(P71).unset(P81).unset(P91)
   .unset(P12).unset(P22).unset(P32).unset(P42).unset(P52).unset(P62).unset(P72).unset(P82).unset(P92);
-const Bitboard Bitboard::WPawnMovable = Bitboard(__HIGH_RANGE__, __LOW_RANGE__)
+const Bitboard Bitboard::WPawnMovable = Bitboard(HIGH_RANGE__, LOW_RANGE__)
   .unset(P19).unset(P29).unset(P39).unset(P49).unset(P59).unset(P69).unset(P79).unset(P89).unset(P99);
 const Bitboard& Bitboard::WLanceMovable = WPawnMovable;
-const Bitboard Bitboard::WKnightMovable = Bitboard(__HIGH_RANGE__, __LOW_RANGE__)
+const Bitboard Bitboard::WKnightMovable = Bitboard(HIGH_RANGE__, LOW_RANGE__)
   .unset(P19).unset(P29).unset(P39).unset(P49).unset(P59).unset(P69).unset(P79).unset(P89).unset(P99)
   .unset(P18).unset(P28).unset(P38).unset(P48).unset(P58).unset(P68).unset(P78).unset(P88).unset(P98);
 const Bitboard Bitboard::BPromotable = Bitboard(0, 0)

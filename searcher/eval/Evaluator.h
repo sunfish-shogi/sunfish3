@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_EVALUATOR__
-#define __SUNFISH_EVALUATOR__
+#ifndef SUNFISH_EVALUATOR__
+#define SUNFISH_EVALUATOR__
 
 #include "EvaluateTable.h"
 #include "Value.h"
@@ -21,28 +21,28 @@ public:
 
 private:
 
-  Value _material;
-  Value _positional;
+  Value material_;
+  Value positional_;
 
 public:
 
-  ValuePair() : _material(0), _positional(0) {}
-  ValuePair(const Value& material, const Value& positional) : _material(material), _positional(positional) {}
+  ValuePair() : material_(0), positional_(0) {}
+  ValuePair(const Value& material, const Value& positional) : material_(material), positional_(positional) {}
 
   Value material() const {
-    return _material;
+    return material_;
   }
 
   Value positional() const {
-    return _positional;
+    return positional_;
   }
 
   Value value() const {
-    return _material + _positional / PositionalScale;
+    return material_ + positional_ / PositionalScale;
   }
 
   ValuePair operator+(const ValuePair& right) const {
-    return ValuePair(_material + right._material, _positional + right._positional);
+    return ValuePair(material_ + right.material_, positional_ + right.positional_);
   }
 
 };
@@ -115,31 +115,31 @@ public:
     ValueType kkp[81][81][KKP_MAX];
   };
 
-  Table* _t;
+  Table* t_;
 
   bool allocated;
 
 protected:
 
-  Feature() : _t(nullptr) {
-    _t = new Table();
+  Feature() : t_(nullptr) {
+    t_ = new Table();
     allocated = true;
-    assert(_t != nullptr);
+    assert(t_ != nullptr);
   }
 
-  Feature(Feature& ref) : _t(nullptr) {
-    _t = ref._t;
+  Feature(Feature& ref) : t_(nullptr) {
+    t_ = ref.t_;
     allocated = false;
-    assert(_t != nullptr);
+    assert(t_ != nullptr);
   }
 
   Feature(const Feature&) = delete;
   Feature(Feature&&) = delete;
 
   ~Feature() {
-    if (allocated && _t != nullptr) {
-      delete _t;
-      _t = nullptr;
+    if (allocated && t_ != nullptr) {
+      delete t_;
+      t_ = nullptr;
     }
   }
 
@@ -189,9 +189,9 @@ public:
 
 private:
 
-  EvaluateTable<18> _evaluateCache;
+  EvaluateTable<18> evaluateCache_;
 
-  EvaluateTable<18> _estimateCache;
+  EvaluateTable<18> estimateCache_;
 
   std::shared_ptr<Table> readFvBin();
 
@@ -201,13 +201,13 @@ private:
    * 局面の駒割りを算出します。
    * @param board
    */
-  Value _evaluateMaterial(const Board& board) const;
+  Value evaluateMaterial_(const Board& board) const;
 
   /**
    * 局面の駒割りを除いた評価値を算出します。
    * @param board
    */
-  Value _evaluate(const Board& board);
+  Value evaluate_(const Board& board);
 
   /**
    * 指定した指し手による評価値の変化値を算出します。
@@ -216,10 +216,10 @@ private:
    * @param move
    */
   template <bool black>
-  ValuePair _evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move);
+  ValuePair evaluateDiff_(const Board& board, const ValuePair& prevValuePair, const Move& move);
 
   template <bool black, bool isKing, bool positionalOnly>
-  Value _estimate(const Board& board, const Move& move);
+  Value estimate_(const Board& board, const Move& move);
 
 public:
 
@@ -250,7 +250,7 @@ public:
    * @param board
    */
   ValuePair evaluate(const Board& board) {
-    return ValuePair(_evaluateMaterial(board), _evaluate(board));
+    return ValuePair(evaluateMaterial_(board), evaluate_(board));
   }
 
   /**
@@ -261,9 +261,9 @@ public:
    */
   ValuePair evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move) {
     if (!board.isBlack()) {
-      return _evaluateDiff<true>(board, prevValuePair, move);
+      return evaluateDiff_<true>(board, prevValuePair, move);
     } else {
-      return _evaluateDiff<false>(board, prevValuePair, move);
+      return evaluateDiff_<false>(board, prevValuePair, move);
     }
   }
 
@@ -271,21 +271,21 @@ public:
   Value estimate(const Board& board, const Move& move) {
     if (board.isBlack()) {
       return (move.piece() == Piece::King ?
-              _estimate<true, true, positionalOnly>(board, move):
-              _estimate<true, false, positionalOnly>(board, move));
+              estimate_<true, true, positionalOnly>(board, move):
+              estimate_<true, false, positionalOnly>(board, move));
     } else {
       return (move.piece() == Piece::King ?
-              _estimate<false, true, positionalOnly>(board, move):
-              _estimate<false, false, positionalOnly>(board, move));
+              estimate_<false, true, positionalOnly>(board, move):
+              estimate_<false, false, positionalOnly>(board, move));
     }
   }
 
   const Table& table() const {
-    return *_t;
+    return *t_;
   }
 
 };
 
 } // namespace sunfish
 
-#endif // __SUNFISH_EVALUATOR__
+#endif // SUNFISH_EVALUATOR__

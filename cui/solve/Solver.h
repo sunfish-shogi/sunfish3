@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_SOLVER__
-#define __SUNFISH_SOLVER__
+#ifndef SUNFISH_SOLVER__
+#define SUNFISH_SOLVER__
 
 #include "../console/ConsoleManager.h"
 #include "searcher/Searcher.h"
@@ -37,15 +37,15 @@ public:
 
 private:
 
-  Searcher _searcher;
+  Searcher searcher_;
 
-  Record _record;
+  Record record_;
 
-  std::vector<std::string> _problems;
+  std::vector<std::string> problems_;
 
-  std::vector<Error> _errors;
+  std::vector<Error> errors_;
 
-  Summary _summary;
+  Summary summary_;
 
   void solve(const std::string& problem);
 
@@ -54,11 +54,11 @@ private:
 public:
 
   void clear() {
-    _problems.clear();
-    _problems.shrink_to_fit();
-    _errors.clear();
-    _errors.shrink_to_fit();
-    _summary = Summary();
+    problems_.clear();
+    problems_.shrink_to_fit();
+    errors_.clear();
+    errors_.shrink_to_fit();
+    summary_ = Summary();
   }
 
   void setProblems(const std::vector<std::string>& problems);
@@ -66,24 +66,24 @@ public:
   void solve();
 
   bool hasError() const {
-    return !_errors.empty();
+    return !errors_.empty();
   }
 
   const std::vector<Error>& getErrors() const {
-    return _errors;
+    return errors_;
   }
 
   const Summary& getSummary() const {
-    return _summary;
+    return summary_;
   }
 
   void setConfig(const ConsoleManager::Config& config) {
-    auto searcherConfig = ConsoleManager::buildSearcherConfig(_searcher.getConfig(), config);
-    _searcher.setConfig(searcherConfig);
+    auto searcherConfig = ConsoleManager::buildSearcherConfig(searcher_.getConfig(), config);
+    searcher_.setConfig(searcherConfig);
   }
 
 };
 
 } // namespace sunfish
 
-#endif // __SUNFISH_SOLVER__
+#endif // SUNFISH_SOLVER__

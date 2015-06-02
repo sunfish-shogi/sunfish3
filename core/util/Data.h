@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_DATA__
-#define __SUNFISH_DATA__
+#ifndef SUNFISH_DATA__
+#define SUNFISH_DATA__
 
 #include "../board/Bitboard.h"
 #include "../base/Piece.h"
@@ -94,4 +94,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_DATA__
+#endif // SUNFISH_DATA__

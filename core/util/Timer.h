@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_TIMER__
-#define __SUNFISH_TIMER__
+#ifndef SUNFISH_TIMER__
+#define SUNFISH_TIMER__
 
 #include <chrono>
 
@@ -39,4 +39,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_TIMER__
+#endif // SUNFISH_TIMER__

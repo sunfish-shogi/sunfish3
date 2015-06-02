@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_MATERIAL__
-#define __SUNFISH_MATERIAL__
+#ifndef SUNFISH_MATERIAL__
+#define SUNFISH_MATERIAL__
 
 #include "core/def.h"
 #include "core/base/Piece.h"
@@ -51,4 +51,4 @@ Value piecePromote(const Piece& piece);
 
 } // namespace sunfish
 
-#endif // __SUNFISH_MATERIAL__
+#endif // SUNFISH_MATERIAL__

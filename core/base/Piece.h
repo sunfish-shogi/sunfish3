@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_PIECE__
-#define __SUNFISH_PIECE__
+#ifndef SUNFISH_PIECE__
+#define SUNFISH_PIECE__
 
 #include <cstdint>
 
@@ -82,61 +82,61 @@ public:
 
 private:
 
-  uint8_t _index;
+  uint8_t index_;
 
 public:
 
-  Piece() : _index(Empty) {
+  Piece() : index_(Empty) {
   }
 
-  Piece(uint8_t index) : _index(index) {
+  Piece(uint8_t index) : index_(index) {
   }
 
   operator uint8_t() const {
-    return _index;
+    return index_;
   }
 
   bool exists() const {
-    return _index != Empty;
+    return index_ != Empty;
   }
   bool isEmpty() const {
-    return _index == Empty;
+    return index_ == Empty;
   }
 
   Piece hand() const {
-    return Piece(_index & HandMask);
+    return Piece(index_ & HandMask);
   }
   Piece promote() const {
-    return Piece(_index | Promotion);
+    return Piece(index_ | Promotion);
   }
   Piece unpromote() const {
-    return Piece(_index & ~Promotion);
+    return Piece(index_ & ~Promotion);
   }
   Piece kindOnly() const {
-    return Piece(_index & KindMask);
+    return Piece(index_ & KindMask);
   }
   Piece black() const {
-    return Piece(_index & ~White);
+    return Piece(index_ & ~White);
   }
   Piece white() const {
-    return Piece(_index | White);
+    return Piece(index_ | White);
   }
 
   bool isUnpromoted() const {
     return !isPromoted();
   }
   bool isPromoted() const {
-    return _index & Promotion;
+    return index_ & Promotion;
   }
   bool isBlack() const {
-    return !(_index & (Empty | White));
+    return !(index_ & (Empty | White));
   }
   bool isWhite() const {
-    return _index & White;
+    return index_ & White;
   }
 
   Piece next() const {
-    uint8_t nextIndex = _index + 1U;
+    uint8_t nextIndex = index_ + 1U;
     if ((nextIndex == (Promotion | BGold)) ||
         (nextIndex == (Promotion | WGold)) ||
         (nextIndex == (Promotion | BKing))) {
@@ -145,14 +145,14 @@ public:
     return Piece(nextIndex);
   }
   Piece nextUnsafe() const {
-    return Piece(_index + 1U);
+    return Piece(index_ + 1U);
   }
 
   const char* toString() const {
-    return names[_index];
+    return names[index_];
   }
   const char* toStringCsa(bool kind_only = false) const {
-    return kind_only ? namesCsaKindOnly[kindOnly()._index] : namesCsa[_index];
+    return kind_only ? namesCsaKindOnly[kindOnly().index_] : namesCsa[index_];
   }
   static Piece parse(const char* str);
   static Piece parseCsa(const char* str);
@@ -166,4 +166,4 @@ public:
 #define PIECE_KIND_EACH(piece)   for (sunfish::Piece (piece) = sunfish::Piece::KindBegin; (piece) != sunfish::Piece::KindEnd; (piece) = (piece).nextUnsafe())
 #define HAND_EACH(piece)         for (sunfish::Piece (piece) = sunfish::Piece::HandBegin; (piece) != sunfish::Piece::HandEnd; (piece) = (piece).nextUnsafe())
 
-#endif //__SUNFISH_PIECE__
+#endif //SUNFISH_PIECE__

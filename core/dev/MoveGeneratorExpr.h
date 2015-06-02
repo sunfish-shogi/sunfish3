@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_MOVEGENERATOREXPR__
-#define __SUNFISH_MOVEGENERATOREXPR__
+#ifndef SUNFISH_MOVEGENERATOREXPR__
+#define SUNFISH_MOVEGENERATOREXPR__
 
 #if !defined(NDEBUG)
 
@@ -23,4 +23,4 @@ public:
 
 #endif // !defined(NDEBUG)
 
-#endif // __SUNFISH_MOVEGENERATOREXPR__
+#endif // SUNFISH_MOVEGENERATOREXPR__

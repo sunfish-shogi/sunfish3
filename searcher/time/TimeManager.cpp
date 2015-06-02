@@ -23,36 +23,36 @@ float sigmoid(float x) {
 namespace sunfish {
 
 void TimeManager::init() {
-  _depth = 0;
+  depth_ = 0;
 }
 
 void TimeManager::nextDepth() {
-  _depth++;
-  assert(_depth < Tree::StackSize);
+  depth_++;
+  assert(depth_ < Tree::StackSize);
 }
 
 void TimeManager::startDepth() {
-  _stack[_depth].firstMove = Move::empty();
-  _stack[_depth].firstValue = -Value::Inf;
+  stack_[depth_].firstMove = Move::empty();
+  stack_[depth_].firstValue = -Value::Inf;
 }
 
 void TimeManager::addMove(Move move, Value value) {
-  if (value > _stack[_depth].firstValue) {
-    _stack[_depth].firstMove = move;
-    _stack[_depth].firstValue = value;
+  if (value > stack_[depth_].firstValue) {
+    stack_[depth_].firstMove = move;
+    stack_[depth_].firstValue = value;
   }
 }
 
 bool TimeManager::isEasy(float limit, float elapsed) {
   CONSTEXPR int easyDepth = 5;
 
-  if (_depth <= easyDepth) {
+  if (depth_ <= easyDepth) {
     return false;
   }
 
-  const auto& easy = _stack[_depth-easyDepth];
-  const auto& prev = _stack[_depth-1];
-  const auto& curr = _stack[_depth];
+  const auto& easy = stack_[depth_-easyDepth];
+  const auto& prev = stack_[depth_-1];
+  const auto& curr = stack_[depth_];
 
   limit = std::min(limit, 3600.0f);
 

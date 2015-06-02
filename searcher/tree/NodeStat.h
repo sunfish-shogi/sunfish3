@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_NODESTAT__
-#define __SUNFISH_NODESTAT__
+#ifndef SUNFISH_NODESTAT__
+#define SUNFISH_NODESTAT__
 
 #include <cstdint>
 
@@ -26,31 +26,31 @@ public:
 
 private:
 
-  uint32_t _stat;
+  uint32_t stat_;
 
   void set(uint32_t flag) {
-    _stat |= flag;
+    stat_ |= flag;
   }
 
   void unset(uint32_t flag) {
-    _stat &= ~flag;
+    stat_ &= ~flag;
   }
 
   bool is(uint32_t flag) const {
-    return _stat & flag;
+    return stat_ & flag;
   }
 
 public:
-  NodeStat() : _stat(Default) {
+  NodeStat() : stat_(Default) {
   }
 
-  NodeStat(uint32_t stat) : _stat(stat) {
+  NodeStat(uint32_t stat) : stat_(stat) {
   }
 
-  NodeStat(const NodeStat& src) : _stat(src._stat) {
+  NodeStat(const NodeStat& src) : stat_(src.stat_) {
   }
 
-#define __METHOD__(s) \
+#define METHOD__(s) \
   NodeStat& set ## s() { \
     set(s); \
     return *this; \
@@ -63,18 +63,18 @@ public:
     return is(s); \
   }
 
-  __METHOD__(NullMove);
-  __METHOD__(Recapture);
-  __METHOD__(Mate);
-  __METHOD__(HashCut);
-  __METHOD__(Recursion);
-  __METHOD__(MateThreat);
+  METHOD__(NullMove);
+  METHOD__(Recapture);
+  METHOD__(Mate);
+  METHOD__(HashCut);
+  METHOD__(Recursion);
+  METHOD__(MateThreat);
 
   operator uint32_t() const {
-    return _stat;
+    return stat_;
   }
 };
 
 } // namespace sunfish
 
-#endif // __SUNFISH_NODESTAT__
+#endif // SUNFISH_NODESTAT__

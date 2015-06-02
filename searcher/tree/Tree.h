@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_TREE__
-#define __SUNFISH_TREE__
+#ifndef SUNFISH_TREE__
+#define SUNFISH_TREE__
 
 #include "PV.h"
 #include "NodeStat.h"
@@ -84,25 +84,25 @@ private:
   };
 
   /** stack */
-  Node _stack[StackSize];
+  Node stack_[StackSize];
 
   /** SHEK table */
-  ShekTable _shekTable;
+  ShekTable shekTable_;
 
   /** 局面 */
-  Board _board;
+  Board board_;
 
   /** ルート局面からの手数 */
-  int _ply;
+  int ply_;
 
   /** ソートキー */
-  int32_t _sortValues[1024];
+  int32_t sortValues_[1024];
 
   /** 開始局面からの王手履歴 */
-  CheckHist _checkHist[1024];
-  int _checkHistCount;
+  CheckHist checkHist_[1024];
+  int checkHistCount_;
 
-  std::mutex _mutex;
+  std::mutex mutex_;
 
   struct Tlp {
     int treeId;
@@ -119,7 +119,7 @@ private:
     Value standPat;
     NodeStat stat;
     bool improving;
-  } _tlp;
+  } tlp_;
 
   void clearStack();
 
@@ -133,108 +133,108 @@ public:
   void release(const std::vector<Move>& record);
 
   int getPly() const {
-    return _ply;
+    return ply_;
   }
 
   bool isStackFull() const {
     // killer や mate で判定を省略するため余裕を設ける。
-    assert(_ply <= StackSize - 8);
-    return _ply >= StackSize - 8;
+    assert(ply_ <= StackSize - 8);
+    return ply_ >= StackSize - 8;
   }
 
   Moves& getMoves() {
-    return _stack[_ply].moves;
+    return stack_[ply_].moves;
   }
 
   GenPhase& getGenPhase() {
-    return _stack[_ply].genPhase;
+    return stack_[ply_].genPhase;
   }
 
   bool isThroughPhase() const {
-    return _stack[_ply].isThroughPhase;
+    return stack_[ply_].isThroughPhase;
   }
 
   void setThroughPhase(bool b) {
-    _stack[_ply].isThroughPhase = b;
+    stack_[ply_].isThroughPhase = b;
   }
 
   const Move& getFrontMove() const {
-    assert(_ply >= 1);
-    return _stack[_ply].move;
+    assert(ply_ >= 1);
+    return stack_[ply_].move;
   }
 
   const Move& getPreFrontMove() const {
-    assert(_ply >= 2);
-    return _stack[_ply-1].move;
+    assert(ply_ >= 2);
+    return stack_[ply_-1].move;
   }
 
   bool isRecapture(const Move& move) const {
-    assert(_ply >= 1);
-    const auto& fmove = _stack[_ply].move;
+    assert(ply_ >= 1);
+    const auto& fmove = stack_[ply_].move;
     return !fmove.isEmpty() && fmove.to() == move.to() &&
       (fmove.isCapturing() || (fmove.promote() && fmove.piece() != Piece::Silver));
   }
 
   bool isRecaptureOnFrontier() const {
-    assert(_ply >= 2);
-    const auto& move = _stack[_ply].move;
-    const auto& fmove = _stack[_ply-1].move;
+    assert(ply_ >= 2);
+    const auto& move = stack_[ply_].move;
+    const auto& fmove = stack_[ply_-1].move;
     return !fmove.isEmpty() && fmove.to() == move.to() &&
       (fmove.isCapturing() || (fmove.promote() && fmove.piece() != Piece::Silver));
   }
 
   Moves::iterator getNextMove() {
-    return _stack[_ply].ite;
+    return stack_[ply_].ite;
   }
 
   Moves::iterator getCurrentMove() {
-    assert(_stack[_ply].ite != _stack[_ply].moves.begin());
-    return _stack[_ply].ite - 1;
+    assert(stack_[ply_].ite != stack_[ply_].moves.begin());
+    return stack_[ply_].ite - 1;
   }
 
   Moves::iterator getBegin() {
-    return _stack[_ply].moves.begin();
+    return stack_[ply_].moves.begin();
   }
 
   Moves::iterator getEnd() {
-    return _stack[_ply].moves.end();
+    return stack_[ply_].moves.end();
   }
 
   Moves::iterator selectFirstMove() {
-    return _stack[_ply].ite = _stack[_ply].moves.begin();
+    return stack_[ply_].ite = stack_[ply_].moves.begin();
   }
 
   Moves::iterator selectNextMove() {
-    assert(_stack[_ply].ite != _stack[_ply].moves.end());
-    return _stack[_ply].ite++;
+    assert(stack_[ply_].ite != stack_[ply_].moves.end());
+    return stack_[ply_].ite++;
   }
 
   Moves::iterator selectPreviousMove() {
-    assert(_stack[_ply].ite != _stack[_ply].moves.begin());
-    return _stack[_ply].ite--;
+    assert(stack_[ply_].ite != stack_[ply_].moves.begin());
+    return stack_[ply_].ite--;
   }
 
   Moves::iterator addMove(const Move& move) {
-    _stack[_ply].moves.add(move);
-    return _stack[_ply].moves.end() - 1;
+    stack_[ply_].moves.add(move);
+    return stack_[ply_].moves.end() - 1;
   }
 
   void rejectPreviousMove() {
-    assert(_stack[_ply].ite != _stack[_ply].moves.begin());
-    _stack[_ply].ite--;
-    _stack[_ply].moves.removeStable(_stack[_ply].ite);
+    assert(stack_[ply_].ite != stack_[ply_].moves.begin());
+    stack_[ply_].ite--;
+    stack_[ply_].moves.removeStable(stack_[ply_].ite);
   }
 
   void removeAfter(const Moves::iterator ite) {
-    return _stack[_ply].moves.removeAfter(ite);
+    return stack_[ply_].moves.removeAfter(ite);
   }
 
   int getIndexByIterator(const Moves::iterator ite) const {
-    return (int)(ite - _stack[_ply].moves.begin());
+    return (int)(ite - stack_[ply_].moves.begin());
   }
 
   int getIndexByMove(const Move& move) const {
-    const auto& moves = _stack[_ply].moves;
+    const auto& moves = stack_[ply_].moves;
     for (int i = 0; i < moves.size(); i++) {
       if (moves[i].equals(move)) {
         return i;
@@ -245,43 +245,43 @@ public:
 
   void setSortValue(const Moves::iterator ite, int32_t value) {
     auto index = getIndexByIterator(ite);
-    _sortValues[index] = value;
+    sortValues_[index] = value;
   }
 
   int32_t getSortValue(const Moves::iterator ite) {
     auto index = getIndexByIterator(ite);
-    return _sortValues[index];
+    return sortValues_[index];
   }
 
   void setSortValues(const int32_t* sortValues) {
-    unsigned size = _stack[_ply].moves.size();
-    memcpy(_sortValues, sortValues, sizeof(int32_t) * size);
+    unsigned size = stack_[ply_].moves.size();
+    memcpy(sortValues_, sortValues, sizeof(int32_t) * size);
   }
 
   void sort(const Moves::iterator begin);
 
   void sortAll() {
-    sort(_stack[_ply].moves.begin());
+    sort(stack_[ply_].moves.begin());
   }
 
   void sortAfterCurrent(int offset = 0) {
-    sort(_stack[_ply].ite + offset);
+    sort(stack_[ply_].ite + offset);
   }
 
   bool isChecking() {
-    return _stack[_ply].checking;
+    return stack_[ply_].checking;
   }
 
   bool isCheckingOnFrontier() {
-    return _ply >= 1 ? _stack[_ply-1].checking : false;
+    return ply_ >= 1 ? stack_[ply_-1].checking : false;
   }
 
   const Board& getBoard() const {
-    return _board;
+    return board_;
   }
 
   void initGenPhase(GenPhase phase = GenPhase::Hash) {
-    auto& node = _stack[_ply];
+    auto& node = stack_[ply_];
     node.moves.clear();
     node.histMoves.clear();
     node.genPhase = phase;
@@ -296,7 +296,7 @@ public:
   }
 
   void resetGenPhase() {
-    auto& node = _stack[_ply];
+    auto& node = stack_[ply_];
     node.genPhase = GenPhase::End;
     node.expStat = 0x00;
     node.isThroughPhase = false;
@@ -309,64 +309,64 @@ public:
   }
 
   Value getValue() const {
-    auto& node = _stack[_ply];
+    auto& node = stack_[ply_];
     return node.valuePair.value();
   }
 
   Value getFrontValue() const {
-    auto& node = _stack[_ply-1];
+    auto& node = stack_[ply_-1];
     return node.valuePair.value();
   }
 
   Value getPrefrontValue() const {
-    auto& node = _stack[_ply-2];
+    auto& node = stack_[ply_-2];
     return node.valuePair.value();
   }
 
   const ValuePair& getValuePair() const {
-    auto& node = _stack[_ply];
+    auto& node = stack_[ply_];
     return node.valuePair;
   }
 
   bool hasPrefrontierNode() const {
-    return _ply >= 2;
+    return ply_ >= 2;
   }
 
   template <bool positionalOnly = false>
   Value estimate(const Move& move, Evaluator& eval) const {
-    return eval.estimate<positionalOnly>(_board, move);
+    return eval.estimate<positionalOnly>(board_, move);
   }
 
   bool makeMove(Evaluator& eval) {
-    assert(_stack[_ply].ite != _stack[_ply].moves.begin());
+    assert(stack_[ply_].ite != stack_[ply_].moves.begin());
     // frontier node
-    auto& front = _stack[_ply];
+    auto& front = stack_[ply_];
     // move
     Move& move = *(front.ite-1);
     move.unsetCaptured();
     // SHEK
-    _shekTable.set(_board);
+    shekTable_.set(board_);
     // check history
-    _checkHist[_checkHistCount].check = front.checking;
-    _checkHist[_checkHistCount].hash = _board.getHash();
-    _checkHistCount++;
-    bool checking = _board.isCheck(move);
+    checkHist_[checkHistCount_].check = front.checking;
+    checkHist_[checkHistCount_].hash = board_.getHash();
+    checkHistCount_++;
+    bool checking = board_.isCheck(move);
     // make move
-    if (!_board.makeMove(move)) {
-      _shekTable.unset(_board);
-      _checkHistCount--;
+    if (!board_.makeMove(move)) {
+      shekTable_.unset(board_);
+      checkHistCount_--;
       return false;
     }
-    _ply++;
+    ply_++;
     // current node
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     curr.move = move;
     curr.checking = checking;
-    assert(checking == _board.isChecking());
+    assert(checking == board_.isChecking());
     curr.pv.init();
-    curr.valuePair = eval.evaluateDiff(_board, front.valuePair, move);
+    curr.valuePair = eval.evaluateDiff(board_, front.valuePair, move);
     // child node
-    auto& child = _stack[_ply+1];
+    auto& child = stack_[ply_+1];
     child.killer1 = Move::empty();
     child.killer2 = Move::empty();
     child.nocap1 = Move::empty();
@@ -377,33 +377,33 @@ public:
   }
 
   void unmakeMove() {
-    auto& curr = _stack[_ply];
-    _ply--;
-    assert(_stack[_ply].ite != _stack[_ply].moves.begin());
-    _board.unmakeMove(curr.move);
-    _shekTable.unset(_board);
-    _checkHistCount--;
+    auto& curr = stack_[ply_];
+    ply_--;
+    assert(stack_[ply_].ite != stack_[ply_].moves.begin());
+    board_.unmakeMove(curr.move);
+    shekTable_.unset(board_);
+    checkHistCount_--;
   }
 
   void makeNullMove() {
     // check history
-    _checkHist[_checkHistCount].check = false;
-    _checkHist[_checkHistCount].hash = _board.getHash();
-    _checkHistCount++;
+    checkHist_[checkHistCount_].check = false;
+    checkHist_[checkHistCount_].hash = board_.getHash();
+    checkHistCount_++;
     // make move
-    _board.makeNullMove();
-    _ply++;
+    board_.makeNullMove();
+    ply_++;
     // current node
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     curr.move.setEmpty();
     curr.checking = false;
-    assert(!_board.isChecking());
+    assert(!board_.isChecking());
     curr.pv.init();
     // frontier node
-    auto& front = _stack[_ply-1];
+    auto& front = stack_[ply_-1];
     curr.valuePair = front.valuePair;
     // child node
-    auto& child = _stack[_ply+1];
+    auto& child = stack_[ply_+1];
     child.killer1 = Move::empty();
     child.killer2 = Move::empty();
     child.nocap1 = Move::empty();
@@ -413,17 +413,17 @@ public:
   }
 
   void unmakeNullMove() {
-    _ply--;
-    _board.unmakeNullMove();
-    _checkHistCount--;
+    ply_--;
+    board_.unmakeNullMove();
+    checkHistCount_--;
   }
 
   bool makeMoveFast(const Move& move) {
     Move mtemp = move;
     mtemp.unsetCaptured();
-    if (_board.makeMove(mtemp)) {
-      _ply++;
-      auto& curr = _stack[_ply];
+    if (board_.makeMove(mtemp)) {
+      ply_++;
+      auto& curr = stack_[ply_];
       curr.move = mtemp;
       return true;
     }
@@ -431,166 +431,166 @@ public:
   }
 
   void unmakeMoveFast() {
-    auto& curr = _stack[_ply];
-    _ply--;
-    _board.unmakeMove(curr.move);
+    auto& curr = stack_[ply_];
+    ply_--;
+    board_.unmakeMove(curr.move);
   }
 
   void updatePV(int depth) {
-    auto& curr = _stack[_ply];
-    auto& next = _stack[_ply+1];
+    auto& curr = stack_[ply_];
+    auto& next = stack_[ply_+1];
     auto& move = *getCurrentMove();
     curr.pv.set(move, depth, next.pv);
   }
 
   void updatePV(int depth, Tree& child) {
-    auto& curr = _stack[_ply];
-    auto& next = child._stack[_ply+1];
+    auto& curr = stack_[ply_];
+    auto& next = child.stack_[ply_+1];
     auto& move = *child.getCurrentMove();
     curr.pv.set(move, depth, next.pv);
   }
 
   void updatePVNull(int depth) {
-    auto& curr = _stack[_ply];
-    auto& next = _stack[_ply+1];
+    auto& curr = stack_[ply_];
+    auto& next = stack_[ply_+1];
     curr.pv.set(Move::empty(), depth, next.pv);
   }
 
   const PV& getPV() const {
-    auto& node = _stack[_ply];
+    auto& node = stack_[ply_];
     return node.pv;
   }
 
   ShekTable& getShekTable() {
-    return _shekTable;
+    return shekTable_;
   }
 
   ShekStat checkShek() const {
-    return _shekTable.check(_board);
+    return shekTable_.check(board_);
   }
 
   Node& getCurrentNode() {
-    return _stack[_ply];
+    return stack_[ply_];
   }
 
   const Node& getCurrentNode() const {
-    return _stack[_ply];
+    return stack_[ply_];
   }
 
   Node& getChildNode() {
-    return _stack[_ply+1];
+    return stack_[ply_+1];
   }
 
   const Node& getChildNode() const {
-    return _stack[_ply+1];
+    return stack_[ply_+1];
   }
 
   bool isPriorMove(const Move& move) const {
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     return curr.hash == move ||
       curr.nocap1 == move || curr.nocap2 == move;
   }
 
   void setHash(const Move& move) {
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     curr.hash = move;
   }
 
   const Move& getHash() const {
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     return curr.hash;
   }
 
   const Move& getKiller1() const {
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     return curr.killer1;
   }
 
   const Move& getKiller2() const {
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     return curr.killer2;
   }
 
   Value getKiller1Value() const {
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     return curr.kvalue1;
   }
 
   Value getKiller2Value() const {
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     return curr.kvalue2;
   }
 
   const Move& getCapture1() const {
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     return curr.capture1;
   }
 
   const Move& getCapture2() const {
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     return curr.capture2;
   }
 
   Value getCapture1Value() const {
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     return curr.cvalue1;
   }
 
   Value getCapture2Value() const {
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     return curr.cvalue2;
   }
 
   const Move& getExcluded() const {
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     return curr.excluded;
   }
 
   void setExcluded(const Move& move) {
-    auto& curr = _stack[_ply];
+    auto& curr = stack_[ply_];
     curr.excluded = move;
   }
 
-  const PV& __debug__getNextPV() const {
-    auto& next = _stack[_ply+1];
+  const PV& debug__getNextPV() const {
+    auto& next = stack_[ply_+1];
     return next.pv;
   }
 
   RepStatus getCheckRepStatus() const;
 
-  std::string __debug__getPath() const;
+  std::string debug__getPath() const;
 
-  bool __debug__matchPath(const char* path ) const;
+  bool debug__matchPath(const char* path ) const;
 
   void use(int wid) {
-    _tlp.used = true;
-    _tlp.workerId = wid;
-    _tlp.parentTreeId = InvalidId;
-    _tlp.shutdown.store(false);
+    tlp_.used = true;
+    tlp_.workerId = wid;
+    tlp_.parentTreeId = InvalidId;
+    tlp_.shutdown.store(false);
   }
 
   void use(Tree& parent, int wid) {
     fastCopy(parent);
-    _tlp.used = true;
-    _tlp.workerId = wid;
-    _tlp.parentTreeId = parent._tlp.treeId;
-    _tlp.shutdown.store(false);
+    tlp_.used = true;
+    tlp_.workerId = wid;
+    tlp_.parentTreeId = parent.tlp_.treeId;
+    tlp_.shutdown.store(false);
   }
 
   void unuse() {
-    _tlp.used = false;
+    tlp_.used = false;
   }
 
   std::mutex& getMutex() {
-    return _mutex;
+    return mutex_;
   }
 
   Tlp& getTlp() {
-    return _tlp;
+    return tlp_;
   }
 
 };
 
 } // namespace sunfish
 
-#endif // __SUNFISH_TREE__
+#endif // SUNFISH_TREE__

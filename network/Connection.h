@@ -2,8 +2,8 @@
  * Connection.h
  */
 
-#ifndef __SUNFISH_CONNECTION__
-#define __SUNFISH_CONNECTION__
+#ifndef SUNFISH_CONNECTION__
+#define SUNFISH_CONNECTION__
 
 #include "core/def.h"
 
@@ -37,24 +37,24 @@ namespace sunfish {
 
 class Connection {
 private:
-  std::string _host;
-  int _port;
+  std::string host_;
+  int port_;
 #ifdef WIN32
-  SOCKET _sock;
+  SOCKET sock_;
 #else
-  int _sock;
+  int sock_;
 #endif
-  std::queue<std::string> _received;
-  int _keepalive;
-  int _keepidle;
-  int _keepintvl;
-  int _keepcnt;
+  std::queue<std::string> received_;
+  int keepalive_;
+  int keepidle_;
+  int keepintvl_;
+  int keepcnt_;
 
   void init() {
-    _keepalive = 1;
-    _keepidle = 7200;
-    _keepintvl = 75;
-    _keepcnt = 3;
+    keepalive_ = 1;
+    keepidle_ = 7200;
+    keepintvl_ = 75;
+    keepcnt_ = 3;
   }
 
 public:
@@ -64,26 +64,26 @@ public:
   Connection(const Connection&) = delete;
   Connection(Connection&&) = delete;
 
-  Connection(const std::string& _host, int port)
-      : _host(_host), _port(port) {
+  Connection(const std::string& host_, int port)
+      : host_(host_), port_(port) {
     init();
   }
 
   void setHost(const std::string& host) {
-    _host = host;
+    host_ = host;
   }
 
   void setPort(int port) {
-    _port = port;
+    port_ = port;
   }
 
   void setKeepalive(
       int keepalive, int keepidle,
       int keepintvl, int keepcnt) {
-    _keepalive = keepalive;
-    _keepidle = keepidle;
-    _keepintvl = keepintvl;
-    _keepcnt = keepcnt;
+    keepalive_ = keepalive;
+    keepidle_ = keepidle;
+    keepintvl_ = keepintvl;
+    keepcnt_ = keepcnt;
   }
 
   bool connect();
@@ -93,8 +93,8 @@ public:
   bool receive();
 
   std::string getReceivedString() {
-    std::string str = _received.front();
-    _received.pop();
+    std::string str = received_.front();
+    received_.pop();
     return str;
   }
 
@@ -105,4 +105,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_CONNECTION__
+#endif // SUNFISH_CONNECTION__

@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-#define BB_EXE_OPE(p) { Bitboard Board::*__P__ = &Board::_bb ## p; { BB_OPE } }
+#define BB_EXE_OPE(p) { Bitboard Board::*P__ = &Board::bb ## p ## _; { BB_OPE } }
 
 #define BB_OPE_EACH \
 BB_EXE_OPE(BOccupy) \
@@ -38,36 +38,36 @@ Board::Board(const CompactBoard& cheapBoard) {
   init(cheapBoard);
 }
 
-const Bitboard& Board::_getBB(const Piece& piece) const {
+const Bitboard& Board::getBB_(const Piece& piece) const {
   switch(piece) {
-  case Piece::BPawn     : return _bbBPawn;
-  case Piece::BLance    : return _bbBLance;
-  case Piece::BKnight   : return _bbBKnight;
-  case Piece::BSilver   : return _bbBSilver;
-  case Piece::BGold     : return _bbBGold;
-  case Piece::BBishop   : return _bbBBishop;
-  case Piece::BRook     : return _bbBRook;
-  case Piece::BKing     : return _bbBKing;
-  case Piece::BTokin    : return _bbBTokin;
-  case Piece::BProLance : return _bbBProLance;
-  case Piece::BProKnight: return _bbBProKnight;
-  case Piece::BProSilver: return _bbBProSilver;
-  case Piece::BHorse    : return _bbBHorse;
-  case Piece::BDragon   : return _bbBDragon;
-  case Piece::WPawn     : return _bbWPawn;
-  case Piece::WLance    : return _bbWLance;
-  case Piece::WKnight   : return _bbWKnight;
-  case Piece::WSilver   : return _bbWSilver;
-  case Piece::WGold     : return _bbWGold;
-  case Piece::WBishop   : return _bbWBishop;
-  case Piece::WRook     : return _bbWRook;
-  case Piece::WKing     : return _bbWKing;
-  case Piece::WTokin    : return _bbWTokin;
-  case Piece::WProLance : return _bbWProLance;
-  case Piece::WProKnight: return _bbWProKnight;
-  case Piece::WProSilver: return _bbWProSilver;
-  case Piece::WHorse    : return _bbWHorse;
-  case Piece::WDragon   : return _bbWDragon;
+  case Piece::BPawn     : return bbBPawn_;
+  case Piece::BLance    : return bbBLance_;
+  case Piece::BKnight   : return bbBKnight_;
+  case Piece::BSilver   : return bbBSilver_;
+  case Piece::BGold     : return bbBGold_;
+  case Piece::BBishop   : return bbBBishop_;
+  case Piece::BRook     : return bbBRook_;
+  case Piece::BKing     : return bbBKing_;
+  case Piece::BTokin    : return bbBTokin_;
+  case Piece::BProLance : return bbBProLance_;
+  case Piece::BProKnight: return bbBProKnight_;
+  case Piece::BProSilver: return bbBProSilver_;
+  case Piece::BHorse    : return bbBHorse_;
+  case Piece::BDragon   : return bbBDragon_;
+  case Piece::WPawn     : return bbWPawn_;
+  case Piece::WLance    : return bbWLance_;
+  case Piece::WKnight   : return bbWKnight_;
+  case Piece::WSilver   : return bbWSilver_;
+  case Piece::WGold     : return bbWGold_;
+  case Piece::WBishop   : return bbWBishop_;
+  case Piece::WRook     : return bbWRook_;
+  case Piece::WKing     : return bbWKing_;
+  case Piece::WTokin    : return bbWTokin_;
+  case Piece::WProLance : return bbWProLance_;
+  case Piece::WProKnight: return bbWProKnight_;
+  case Piece::WProSilver: return bbWProSilver_;
+  case Piece::WHorse    : return bbWHorse_;
+  case Piece::WDragon   : return bbWDragon_;
   default:
     assert(false);
   }
@@ -75,20 +75,20 @@ const Bitboard& Board::_getBB(const Piece& piece) const {
 }
 
 void Board::init() {
-  _black = true;
+  black_ = true;
 
-  _blackHand.init();
-  _whiteHand.init();
+  blackHand_.init();
+  whiteHand_.init();
 
-#define BB_OPE ((*this).*__P__).init();
+#define BB_OPE ((*this).*P__).init();
   BB_OPE_EACH;
 #undef BB_OPE
 
-  _posBKing = Position::Invalid;
-  _posWKing = Position::Invalid;
+  posBKing_ = Position::Invalid;
+  posWKing_ = Position::Invalid;
 
   POSITION_EACH(pos) {
-    _board[pos] = Piece::Empty;
+    board_[pos] = Piece::Empty;
   }
 
   refreshHash();
@@ -97,69 +97,69 @@ void Board::init() {
 void Board::init(Handicap handicap) {
   init();
 
-  _board[P19] = Piece::BLance;
-  _board[P29] = Piece::BKnight;
-  _board[P39] = Piece::BSilver;
-  _board[P49] = Piece::BGold;
-  _board[P59] = Piece::BKing;
-  _board[P69] = Piece::BGold;
-  _board[P79] = Piece::BSilver;
-  _board[P89] = Piece::BKnight;
-  _board[P99] = Piece::BLance;
+  board_[P19] = Piece::BLance;
+  board_[P29] = Piece::BKnight;
+  board_[P39] = Piece::BSilver;
+  board_[P49] = Piece::BGold;
+  board_[P59] = Piece::BKing;
+  board_[P69] = Piece::BGold;
+  board_[P79] = Piece::BSilver;
+  board_[P89] = Piece::BKnight;
+  board_[P99] = Piece::BLance;
 
-  _board[P28] = Piece::BRook;
-  _board[P88] = Piece::BBishop;
+  board_[P28] = Piece::BRook;
+  board_[P88] = Piece::BBishop;
 
-  _board[P17] = Piece::BPawn;
-  _board[P27] = Piece::BPawn;
-  _board[P37] = Piece::BPawn;
-  _board[P47] = Piece::BPawn;
-  _board[P57] = Piece::BPawn;
-  _board[P67] = Piece::BPawn;
-  _board[P77] = Piece::BPawn;
-  _board[P87] = Piece::BPawn;
-  _board[P97] = Piece::BPawn;
+  board_[P17] = Piece::BPawn;
+  board_[P27] = Piece::BPawn;
+  board_[P37] = Piece::BPawn;
+  board_[P47] = Piece::BPawn;
+  board_[P57] = Piece::BPawn;
+  board_[P67] = Piece::BPawn;
+  board_[P77] = Piece::BPawn;
+  board_[P87] = Piece::BPawn;
+  board_[P97] = Piece::BPawn;
 
-  _board[P11] = Piece::WLance;
-  _board[P21] = Piece::WKnight;
-  _board[P31] = Piece::WSilver;
-  _board[P41] = Piece::WGold;
-  _board[P51] = Piece::WKing;
-  _board[P61] = Piece::WGold;
-  _board[P71] = Piece::WSilver;
-  _board[P81] = Piece::WKnight;
-  _board[P91] = Piece::WLance;
+  board_[P11] = Piece::WLance;
+  board_[P21] = Piece::WKnight;
+  board_[P31] = Piece::WSilver;
+  board_[P41] = Piece::WGold;
+  board_[P51] = Piece::WKing;
+  board_[P61] = Piece::WGold;
+  board_[P71] = Piece::WSilver;
+  board_[P81] = Piece::WKnight;
+  board_[P91] = Piece::WLance;
 
-  _board[P22] = Piece::WBishop;
-  _board[P82] = Piece::WRook;
+  board_[P22] = Piece::WBishop;
+  board_[P82] = Piece::WRook;
 
-  _board[P13] = Piece::WPawn;
-  _board[P23] = Piece::WPawn;
-  _board[P33] = Piece::WPawn;
-  _board[P43] = Piece::WPawn;
-  _board[P53] = Piece::WPawn;
-  _board[P63] = Piece::WPawn;
-  _board[P73] = Piece::WPawn;
-  _board[P83] = Piece::WPawn;
-  _board[P93] = Piece::WPawn;
+  board_[P13] = Piece::WPawn;
+  board_[P23] = Piece::WPawn;
+  board_[P33] = Piece::WPawn;
+  board_[P43] = Piece::WPawn;
+  board_[P53] = Piece::WPawn;
+  board_[P63] = Piece::WPawn;
+  board_[P73] = Piece::WPawn;
+  board_[P83] = Piece::WPawn;
+  board_[P93] = Piece::WPawn;
 
   POSITION_EACH(pos) {
-    auto piece = _board[pos];
+    auto piece = board_[pos];
     if (!piece.isEmpty()) {
       Bitboard& bb = getBB(piece);
-      Bitboard& occ = piece.isBlack() ? _bbBOccupy : _bbWOccupy;
+      Bitboard& occ = piece.isBlack() ? bbBOccupy_ : bbWOccupy_;
       bb.set(pos);
       occ.set(pos);
     }
   }
 
-  _posBKing = P59;
-  _posWKing = P51;
+  posBKing_ = P59;
+  posWKing_ = P51;
 
   if (handicap == Handicap::TwoPieces) {
-    _black = false;
-    _bbWBishop.unset(Position(2, 2));
-    _bbWRook.unset(Position(8, 2));
+    black_ = false;
+    bbWBishop_.unset(Position(2, 2));
+    bbWRook_.unset(Position(8, 2));
   }
 
   refreshHash();
@@ -170,7 +170,7 @@ void Board::init(const CompactBoard& cheapBoard) {
 
   for (int index = 0; ; index++) {
     if (cheapBoard.buf[index] & CompactBoard::End) {
-      _black = (cheapBoard.buf[index] & CompactBoard::Black) ? true : false;
+      black_ = (cheapBoard.buf[index] & CompactBoard::Black) ? true : false;
       break;
     }
 
@@ -180,22 +180,22 @@ void Board::init(const CompactBoard& cheapBoard) {
 
     Piece piece = c;
     if (s == CompactBoard::Hand) {
-      auto& hand = piece.isBlack() ? _blackHand : _whiteHand;
+      auto& hand = piece.isBlack() ? blackHand_ : whiteHand_;
       hand.inc(piece.kindOnly());
 
     } else {
       Position pos = s;
 
-      _board[pos] = piece;
+      board_[pos] = piece;
       Bitboard& bb = getBB(piece);
-      Bitboard& occ = piece.isBlack() ? _bbBOccupy : _bbWOccupy;
+      Bitboard& occ = piece.isBlack() ? bbBOccupy_ : bbWOccupy_;
       bb.set(pos);
       occ.set(pos);
 
       if (piece == Piece::BKing) {
-        _posBKing = pos;
+        posBKing_ = pos;
       } else if (piece == Piece::WKing) {
-        _posWKing = pos;
+        posWKing_ = pos;
       }
     }
   }
@@ -203,34 +203,34 @@ void Board::init(const CompactBoard& cheapBoard) {
 
 void Board::refreshHash() {
 
-  _boardHash = 0ull;
-  _handHash = 0ull;
+  boardHash_ = 0ull;
+  handHash_ = 0ull;
 
   POSITION_EACH(pos) {
-    auto& piece = _board[pos];
+    auto& piece = board_[pos];
     if (piece.exists()) {
-      _boardHash ^= Zobrist::board(pos, piece);
+      boardHash_ ^= Zobrist::board(pos, piece);
     }
   }
 
-#define __HASH_HAND__(piece) { \
-int num = _blackHand.getUnsafe(Piece::piece); \
+#define HASH_HAND__(piece) { \
+int num = blackHand_.getUnsafe(Piece::piece); \
 for (int i = 0; i < num; i++) { \
-  _handHash ^= Zobrist::handB ## piece (i); \
+  handHash_ ^= Zobrist::handB ## piece (i); \
 } \
-num = _whiteHand.getUnsafe(Piece::piece); \
+num = whiteHand_.getUnsafe(Piece::piece); \
 for (int i = 0; i < num; i++) { \
-  _handHash ^= Zobrist::handW ## piece (i); \
+  handHash_ ^= Zobrist::handW ## piece (i); \
 } \
 }
 
-  __HASH_HAND__(Pawn);
-  __HASH_HAND__(Lance);
-  __HASH_HAND__(Knight);
-  __HASH_HAND__(Silver);
-  __HASH_HAND__(Gold);
-  __HASH_HAND__(Bishop);
-  __HASH_HAND__(Rook);
+  HASH_HAND__(Pawn);
+  HASH_HAND__(Lance);
+  HASH_HAND__(Knight);
+  HASH_HAND__(Silver);
+  HASH_HAND__(Gold);
+  HASH_HAND__(Bishop);
+  HASH_HAND__(Rook);
 
 }
 
@@ -243,7 +243,7 @@ CompactBoard Board::getCompactBoard() const {
   int index = 0;
 
   POSITION_EACH(pos) {
-    Piece piece = _board[pos];
+    Piece piece = board_[pos];
     if (!piece.isEmpty()) {
       uint16_t c = static_cast<uint16_t>(piece.operator uint8_t()) << CompactBoard::PieceShift;
       uint16_t s = static_cast<uint16_t>(pos.operator int32_t());
@@ -252,7 +252,7 @@ CompactBoard Board::getCompactBoard() const {
   }
 
   HAND_EACH(piece) {
-    int num = _blackHand.get(piece);
+    int num = blackHand_.get(piece);
     uint16_t c = piece.black() << CompactBoard::PieceShift;
     for (int n = 0; n < num; n++) {
       cb.buf[index++] = c | CompactBoard::Hand;
@@ -260,7 +260,7 @@ CompactBoard Board::getCompactBoard() const {
   }
 
   HAND_EACH(piece) {
-    int num = _whiteHand.get(piece);
+    int num = whiteHand_.get(piece);
     uint16_t c = piece.white() << CompactBoard::PieceShift;
     for (int n = 0; n < num; n++) {
       cb.buf[index++] = c | CompactBoard::Hand;
@@ -268,23 +268,20 @@ CompactBoard Board::getCompactBoard() const {
   }
 
   cb.buf[index] = CompactBoard::End;
-  if (_black) {
+  if (black_) {
     cb.buf[index] |= CompactBoard::Black;
   }
 
   return cb;
 }
 
-namespace _PinDir {
-  enum Type {
-    Up, Down, Hor, RightUp, RightDown, None
-  };
+enum class PinDir : int {
+  Up, Down, Hor, RightUp, RightDown, None
 };
-typedef _PinDir::Type PinDir;
 
 class PinDirTable {
 private:
-  PinDir _pinDir[Position::N][Position::N];
+  PinDir pinDir_[Position::N][Position::N];
   PinDirTable() {
     POSITION_EACH(pos1) {
       POSITION_EACH(pos2) {
@@ -293,15 +290,15 @@ private:
         int file2 = pos2.getFile();
         int rank2 = pos2.getRank();
         if (file1 == file2) {
-          _pinDir[pos1][pos2] = rank1 < rank2 ? PinDir::Up : PinDir::Down;
+          pinDir_[pos1][pos2] = rank1 < rank2 ? PinDir::Up : PinDir::Down;
         } else if (rank1 == rank2) {
-          _pinDir[pos1][pos2] = PinDir::Hor;
+          pinDir_[pos1][pos2] = PinDir::Hor;
         } else if (rank1 - rank2 == file1 - file2) {
-          _pinDir[pos1][pos2] = PinDir::RightUp;
+          pinDir_[pos1][pos2] = PinDir::RightUp;
         } else if (rank1 - rank2 == file2 - file1) {
-          _pinDir[pos1][pos2] = PinDir::RightDown;
+          pinDir_[pos1][pos2] = PinDir::RightDown;
         } else {
-          _pinDir[pos1][pos2] = PinDir::None;
+          pinDir_[pos1][pos2] = PinDir::None;
         }
       }
     }
@@ -309,7 +306,7 @@ private:
   static const PinDirTable table;
 public:
   static PinDir get(const Position& pos1, const Position& pos2) {
-    return table._pinDir[pos1][pos2];
+    return table.pinDir_[pos1][pos2];
   }
 };
 const PinDirTable PinDirTable::table;
@@ -318,34 +315,34 @@ const PinDirTable PinDirTable::table;
  * ピンチェック
  */
 template<bool black>
-bool Board::_isPin(const Position& pos, const Bitboard& occ) const {
+bool Board::isPin_(const Position& pos, const Bitboard& occ) const {
   if (black) {
 
-    switch (PinDirTable::get(pos, _posBKing)) {
+    switch (PinDirTable::get(pos, posBKing_)) {
     case PinDir::Up: {
       // 上
       Bitboard bb = MoveTables::vertical(pos, occ);
-      return bb & _bbBKing && bb & (_bbWLance | _bbWRook | _bbWDragon);
+      return bb & bbBKing_ && bb & (bbWLance_ | bbWRook_ | bbWDragon_);
     }
     case PinDir::Down: {
       // 下
       Bitboard bb = MoveTables::vertical(pos, occ);
-      return bb & _bbBKing && bb & (_bbWRook | _bbWDragon);
+      return bb & bbBKing_ && bb & (bbWRook_ | bbWDragon_);
     }
     case PinDir::Hor: {
       // 横
       Bitboard bb = MoveTables::horizontal(pos, occ);
-      return bb & _bbBKing && bb & (_bbWRook | _bbWDragon);
+      return bb & bbBKing_ && bb & (bbWRook_ | bbWDragon_);
     }
     case PinDir::RightUp: {
       // 右上がり/左下がり
       Bitboard bb = MoveTables::rightUpX(pos, occ);
-      return bb & _bbBKing && bb & (_bbWBishop | _bbWHorse);
+      return bb & bbBKing_ && bb & (bbWBishop_ | bbWHorse_);
     }
     case PinDir::RightDown: {
       // 右下がり/左上がり
       Bitboard bb = MoveTables::rightDownX(pos, occ);
-      return bb & _bbBKing && bb & (_bbWBishop | _bbWHorse);
+      return bb & bbBKing_ && bb & (bbWBishop_ | bbWHorse_);
     }
     default:
       return false;
@@ -353,31 +350,31 @@ bool Board::_isPin(const Position& pos, const Bitboard& occ) const {
 
   } else {
 
-    switch (PinDirTable::get(pos, _posWKing)) {
+    switch (PinDirTable::get(pos, posWKing_)) {
     case PinDir::Up: {
       // 上
       Bitboard bb = MoveTables::vertical(pos, occ);
-      return bb & _bbWKing && bb & (_bbBRook | _bbBDragon);
+      return bb & bbWKing_ && bb & (bbBRook_ | bbBDragon_);
     }
     case PinDir::Down: {
       // 下
       Bitboard bb = MoveTables::vertical(pos, occ);
-      return bb & _bbWKing && bb & (_bbBLance | _bbBRook | _bbBDragon);
+      return bb & bbWKing_ && bb & (bbBLance_ | bbBRook_ | bbBDragon_);
     }
     case PinDir::Hor: {
       // 横
       Bitboard bb = MoveTables::horizontal(pos, occ);
-      return bb & _bbWKing && bb & (_bbBRook | _bbBDragon);
+      return bb & bbWKing_ && bb & (bbBRook_ | bbBDragon_);
     }
     case PinDir::RightUp: {
       // 右上がり/左下がり
       Bitboard bb = MoveTables::rightUpX(pos, occ);
-      return bb & _bbWKing && bb & (_bbBBishop | _bbBHorse);
+      return bb & bbWKing_ && bb & (bbBBishop_ | bbBHorse_);
     }
     case PinDir::RightDown: {
       // 右下がり/左上がり
       Bitboard bb = MoveTables::rightDownX(pos, occ);
-      return bb & _bbWKing && bb & (_bbBBishop | _bbBHorse);
+      return bb & bbWKing_ && bb & (bbBBishop_ | bbBHorse_);
     }
     default:
       return false;
@@ -385,55 +382,55 @@ bool Board::_isPin(const Position& pos, const Bitboard& occ) const {
 
   }
 }
-template bool Board::_isPin<true>(const Position& pos, const Bitboard& occ) const;
-template bool Board::_isPin<false>(const Position& pos, const Bitboard& occ) const;
+template bool Board::isPin_<true>(const Position& pos, const Bitboard& occ) const;
+template bool Board::isPin_<false>(const Position& pos, const Bitboard& occ) const;
 
 /**
  * 盤面の駒をセットします。
  */
 void Board::setBoardPiece(const Position& pos, const Piece& piece) {
-  _board[pos] = piece;
-  if (_posBKing == pos) {
-    _posBKing = Position::Invalid;
+  board_[pos] = piece;
+  if (posBKing_ == pos) {
+    posBKing_ = Position::Invalid;
   }
-  if (_posWKing == pos) {
-    _posWKing = Position::Invalid;
+  if (posWKing_ == pos) {
+    posWKing_ = Position::Invalid;
   }
-#define BB_OPE ((*this).*__P__).unset(pos);
+#define BB_OPE ((*this).*P__).unset(pos);
   BB_OPE_EACH;
 #undef BB_OPE
   if (piece.exists()) {
     switch (piece) {
-    case Piece::BPawn     : _bbBPawn.set(pos); break;
-    case Piece::BLance    : _bbBLance.set(pos); break;
-    case Piece::BKnight   : _bbBKnight.set(pos); break;
-    case Piece::BSilver   : _bbBSilver.set(pos); break;
-    case Piece::BGold     : _bbBGold.set(pos); break;
-    case Piece::BBishop   : _bbBBishop.set(pos); break;
-    case Piece::BRook     : _bbBRook.set(pos); break;
-    case Piece::BKing     : _bbBKing.set(pos); _posBKing = pos; break;
-    case Piece::BTokin    : _bbBTokin.set(pos); break;
-    case Piece::BProLance : _bbBProLance.set(pos); break;
-    case Piece::BProKnight: _bbBProKnight.set(pos); break;
-    case Piece::BProSilver: _bbBProSilver.set(pos); break;
-    case Piece::BHorse    : _bbBHorse.set(pos); break;
-    case Piece::BDragon   : _bbBDragon.set(pos); break;
-    case Piece::WPawn     : _bbWPawn.set(pos); break;
-    case Piece::WLance    : _bbWLance.set(pos); break;
-    case Piece::WKnight   : _bbWKnight.set(pos); break;
-    case Piece::WSilver   : _bbWSilver.set(pos); break;
-    case Piece::WGold     : _bbWGold.set(pos); break;
-    case Piece::WBishop   : _bbWBishop.set(pos); break;
-    case Piece::WRook     : _bbWRook.set(pos); break;
-    case Piece::WKing     : _bbWKing.set(pos); _posWKing = pos; break;
-    case Piece::WTokin    : _bbWTokin.set(pos); break;
-    case Piece::WProLance : _bbWProLance.set(pos); break;
-    case Piece::WProKnight: _bbWProKnight.set(pos); break;
-    case Piece::WProSilver: _bbWProSilver.set(pos); break;
-    case Piece::WHorse    : _bbWHorse.set(pos); break;
-    case Piece::WDragon   : _bbWDragon.set(pos); break;
+    case Piece::BPawn     : bbBPawn_.set(pos); break;
+    case Piece::BLance    : bbBLance_.set(pos); break;
+    case Piece::BKnight   : bbBKnight_.set(pos); break;
+    case Piece::BSilver   : bbBSilver_.set(pos); break;
+    case Piece::BGold     : bbBGold_.set(pos); break;
+    case Piece::BBishop   : bbBBishop_.set(pos); break;
+    case Piece::BRook     : bbBRook_.set(pos); break;
+    case Piece::BKing     : bbBKing_.set(pos); posBKing_ = pos; break;
+    case Piece::BTokin    : bbBTokin_.set(pos); break;
+    case Piece::BProLance : bbBProLance_.set(pos); break;
+    case Piece::BProKnight: bbBProKnight_.set(pos); break;
+    case Piece::BProSilver: bbBProSilver_.set(pos); break;
+    case Piece::BHorse    : bbBHorse_.set(pos); break;
+    case Piece::BDragon   : bbBDragon_.set(pos); break;
+    case Piece::WPawn     : bbWPawn_.set(pos); break;
+    case Piece::WLance    : bbWLance_.set(pos); break;
+    case Piece::WKnight   : bbWKnight_.set(pos); break;
+    case Piece::WSilver   : bbWSilver_.set(pos); break;
+    case Piece::WGold     : bbWGold_.set(pos); break;
+    case Piece::WBishop   : bbWBishop_.set(pos); break;
+    case Piece::WRook     : bbWRook_.set(pos); break;
+    case Piece::WKing     : bbWKing_.set(pos); posWKing_ = pos; break;
+    case Piece::WTokin    : bbWTokin_.set(pos); break;
+    case Piece::WProLance : bbWProLance_.set(pos); break;
+    case Piece::WProKnight: bbWProKnight_.set(pos); break;
+    case Piece::WProSilver: bbWProSilver_.set(pos); break;
+    case Piece::WHorse    : bbWHorse_.set(pos); break;
+    case Piece::WDragon   : bbWDragon_.set(pos); break;
     }
-    (piece.isBlack() ? _bbBOccupy : _bbWOccupy).set(pos);
+    (piece.isBlack() ? bbBOccupy_ : bbWOccupy_).set(pos);
   }
 }
 
@@ -441,52 +438,52 @@ void Board::setBoardPiece(const Position& pos, const Piece& piece) {
  * 王手判定
  */
 template<bool black>
-bool Board::_isChecking(const Position& king, const Bitboard& occ) const {
+bool Board::isChecking_(const Position& king, const Bitboard& occ) const {
   if (black) {
     // 1マス移動
-    if (MoveTables::bpawn(king) & _bbWPawn ||
-        MoveTables::bknight(king) & _bbWKnight ||
-        MoveTables::bsilver(king) & _bbWSilver ||
-        MoveTables::bgold(king) & (_bbWGold | _bbWTokin | _bbWProLance | _bbWProKnight | _bbWProSilver) ||
-        MoveTables::king(king) & (_bbWKing | _bbWHorse | _bbWDragon)) {
+    if (MoveTables::bpawn(king) & bbWPawn_ ||
+        MoveTables::bknight(king) & bbWKnight_ ||
+        MoveTables::bsilver(king) & bbWSilver_ ||
+        MoveTables::bgold(king) & (bbWGold_ | bbWTokin_ | bbWProLance_ | bbWProKnight_ | bbWProSilver_) ||
+        MoveTables::king(king) & (bbWKing_ | bbWHorse_ | bbWDragon_)) {
       return true;
     }
 
     // 跳び駒の利き
-    if (MoveTables::blance(king, occ) & _bbWLance ||
-        MoveTables::bishop(king, occ) & (_bbWBishop | _bbWHorse) ||
-        MoveTables::rook(king, occ) & (_bbWRook | _bbWDragon)) {
+    if (MoveTables::blance(king, occ) & bbWLance_ ||
+        MoveTables::bishop(king, occ) & (bbWBishop_ | bbWHorse_) ||
+        MoveTables::rook(king, occ) & (bbWRook_ | bbWDragon_)) {
       return true;
     }
   } else {
     // 1マス移動
-    if (MoveTables::wpawn(king) & _bbBPawn ||
-        MoveTables::wknight(king) & _bbBKnight ||
-        MoveTables::wsilver(king) & _bbBSilver ||
-        MoveTables::wgold(king) & (_bbBGold | _bbBTokin | _bbBProLance | _bbBProKnight | _bbBProSilver) ||
-        MoveTables::king(king) & (_bbBKing | _bbBHorse | _bbBDragon)) {
+    if (MoveTables::wpawn(king) & bbBPawn_ ||
+        MoveTables::wknight(king) & bbBKnight_ ||
+        MoveTables::wsilver(king) & bbBSilver_ ||
+        MoveTables::wgold(king) & (bbBGold_ | bbBTokin_ | bbBProLance_ | bbBProKnight_ | bbBProSilver_) ||
+        MoveTables::king(king) & (bbBKing_ | bbBHorse_ | bbBDragon_)) {
       return true;
     }
 
     // 跳び駒の利き
-    if (MoveTables::wlance(king, occ) & _bbBLance ||
-        MoveTables::bishop(king, occ) & (_bbBBishop | _bbBHorse) ||
-        MoveTables::rook(king, occ) & (_bbBRook | _bbBDragon)) {
+    if (MoveTables::wlance(king, occ) & bbBLance_ ||
+        MoveTables::bishop(king, occ) & (bbBBishop_ | bbBHorse_) ||
+        MoveTables::rook(king, occ) & (bbBRook_ | bbBDragon_)) {
       return true;
     }
   }
   return false;
 }
-template bool Board::_isChecking<true>(const Position& king, const Bitboard& occ) const;
-template bool Board::_isChecking<false>(const Position& king, const Bitboard& occ) const;
+template bool Board::isChecking_<true>(const Position& king, const Bitboard& occ) const;
+template bool Board::isChecking_<false>(const Position& king, const Bitboard& occ) const;
 
 /**
  * 移動する駒による王手かどうかチェック
  */
 template<bool black, DirectionEx dir>
-bool Board::_isDirectCheck(const Move& move) const {
+bool Board::isDirectCheck_(const Move& move) const {
 
-#define SHORT_ATTACK_CHECK ((black ? _posWKing : _posBKing) == \
+#define SHORT_ATTACK_CHECK ((black ? posWKing_ : posBKing_) == \
   (dir == DirectionEx::Up ? move.to().up() : \
   dir == DirectionEx::Down ? move.to().down() : \
   dir == DirectionEx::Left ? move.to().left() : \
@@ -498,8 +495,8 @@ bool Board::_isDirectCheck(const Move& move) const {
   dir == DirectionEx::LeftUpKnight ? move.to().leftUpKnight() : \
   dir == DirectionEx::LeftDownKnight ? move.to().leftDownKnight() : \
   dir == DirectionEx::RightUpKnight ? move.to().rightUpKnight() : move.to().rightDownKnight()))
-#define LONG_ATTACK_CHECK(PieceType) (MoveTables::PieceType(move.to(), getBOccupy() | getWOccupy()).check(black ? _posWKing : _posBKing))
-#define LONG_ATTACK_CHECK_LANCE ((black ? MoveTables::blance(move.to(), getBOccupy() | getWOccupy()) : MoveTables::wlance(move.to(), getBOccupy() | getWOccupy())).check(black ? _posWKing : _posBKing))
+#define LONG_ATTACK_CHECK(PieceType) (MoveTables::PieceType(move.to(), getBOccupy() | getWOccupy()).check(black ? posWKing_ : posBKing_))
+#define LONG_ATTACK_CHECK_LANCE ((black ? MoveTables::blance(move.to(), getBOccupy() | getWOccupy()) : MoveTables::wlance(move.to(), getBOccupy() | getWOccupy())).check(black ? posWKing_ : posBKing_))
 
   auto piece = move.promote() ? move.piece().promote() : move.piece();
 
@@ -592,37 +589,37 @@ bool Board::_isDirectCheck(const Move& move) const {
  * 開き王手かどうかチェック
  */
 template<bool black, Direction dir>
-bool Board::_isDiscoveredCheck(const Position& king, const Position& from) const {
+bool Board::isDiscoveredCheck_(const Position& king, const Position& from) const {
   auto occ = getBOccupy() | getWOccupy();
   occ.unset(from);
 
   if (black) {
     if (dir == Direction::Down) {
-      if (MoveTables::wlance(king, occ) & (_bbBLance | _bbBRook | _bbBDragon)) {
+      if (MoveTables::wlance(king, occ) & (bbBLance_ | bbBRook_ | bbBDragon_)) {
         return true;
       }
     } else if (dir == Direction::Up || dir == Direction::Left || dir == Direction::Right) {
-      if (MoveTables::rook(king, occ) & (_bbBRook | _bbBDragon)) {
+      if (MoveTables::rook(king, occ) & (bbBRook_ | bbBDragon_)) {
         return true;
       }
     } else {
       assert(dir == Direction::LeftUp || dir == Direction::LeftDown || dir == Direction::RightUp || dir == Direction::RightDown);
-      if (MoveTables::bishop(king, occ) & (_bbBBishop | _bbBHorse)) {
+      if (MoveTables::bishop(king, occ) & (bbBBishop_ | bbBHorse_)) {
         return true;
       }
     }
   } else {
     if (dir == Direction::Up) {
-      if (MoveTables::blance(king, occ) & (_bbWLance | _bbWRook | _bbWDragon)) {
+      if (MoveTables::blance(king, occ) & (bbWLance_ | bbWRook_ | bbWDragon_)) {
         return true;
       }
     } else if (dir == Direction::Down || dir == Direction::Left || dir == Direction::Right) {
-      if (MoveTables::rook(king, occ) & (_bbWRook | _bbWDragon)) {
+      if (MoveTables::rook(king, occ) & (bbWRook_ | bbWDragon_)) {
         return true;
       }
     } else {
       assert(dir == Direction::LeftUp || dir == Direction::LeftDown || dir == Direction::RightUp || dir == Direction::RightDown);
-      if (MoveTables::bishop(king, occ) & (_bbWBishop | _bbWHorse)) {
+      if (MoveTables::bishop(king, occ) & (bbWBishop_ | bbWHorse_)) {
         return true;
       }
     }
@@ -632,15 +629,15 @@ bool Board::_isDiscoveredCheck(const Position& king, const Position& from) const
 }
 
 template<bool black>
-bool Board::_isCheck(const Move& move) const {
+bool Board::isCheck_(const Move& move) const {
 
   // 1. 動かした駒による王手を調べる
   auto to = move.to();
-  auto king = black ? _posWKing : _posBKing;
+  auto king = black ? posWKing_ : posBKing_;
 
   if (move.piece() != Piece::King) {
     switch (to.dirEx(king)) {
-#define AS_DIR(dirname) case DirectionEx::dirname: if (_isDirectCheck<black, DirectionEx::dirname>(move)) { return true; } break;
+#define AS_DIR(dirname) case DirectionEx::dirname: if (isDirectCheck_<black, DirectionEx::dirname>(move)) { return true; } break;
       AS_DIR(Up) AS_DIR(Down) AS_DIR(Left) AS_DIR(Right)
       AS_DIR(LeftUp) AS_DIR(LeftDown) AS_DIR(RightUp) AS_DIR(RightDown)
       AS_DIR(LeftUpKnight) AS_DIR(LeftDownKnight) AS_DIR(RightUpKnight) AS_DIR(RightDownKnight)
@@ -670,7 +667,7 @@ bool Board::_isCheck(const Move& move) const {
 
   switch (dirF) {
 #define AS_DIR(dirname) \
-    case Direction::dirname: return _isDiscoveredCheck<black, Direction::dirname>(king, from);
+    case Direction::dirname: return isDiscoveredCheck_<black, Direction::dirname>(king, from);
     AS_DIR(Up) AS_DIR(Down) AS_DIR(Left) AS_DIR(Right)
     AS_DIR(LeftUp) AS_DIR(LeftDown) AS_DIR(RightUp) AS_DIR(RightDown)
 #undef AS_DIR
@@ -678,179 +675,179 @@ bool Board::_isCheck(const Move& move) const {
   }
 
 }
-template bool Board::_isCheck<true>(const Move& move) const;
-template bool Board::_isCheck<false>(const Move& move) const;
+template bool Board::isCheck_<true>(const Move& move) const;
+template bool Board::isCheck_<false>(const Move& move) const;
 
 /**
  * 現在の局面で歩を打って王手をする手が打ち歩詰めであるかチェックします。
  */
 template<bool black>
-bool Board::_isPawnDropMate() const {
-  auto occ = _bbBOccupy | _bbWOccupy;
-  auto king = !black ? _posBKing : _posWKing;
-  auto pawn = !black ? _posBKing.up() : _posWKing.down();
+bool Board::isPawnDropMate_() const {
+  auto occ = bbBOccupy_ | bbWOccupy_;
+  auto king = !black ? posBKing_ : posWKing_;
+  auto pawn = !black ? posBKing_.up() : posWKing_.down();
 
   // king
   auto bb = MoveTables::king(king);
-  bb &= !black ? ~_bbBOccupy : ~_bbWOccupy;
+  bb &= !black ? ~bbBOccupy_ : ~bbWOccupy_;
   BB_EACH_OPE(to, bb, {
     auto occ2 = occ;
     occ2.set(pawn);
-    if (!_isChecking<!black>(to, occ2)) {
+    if (!isChecking_<!black>(to, occ2)) {
       return false;
     }
   });
 
   // knight
-  bb = !black ? _bbBKnight : _bbWKnight;
+  bb = !black ? bbBKnight_ : bbWKnight_;
   bb &= !black ? MoveTables::wknight(pawn) : MoveTables::bknight(pawn);
   BB_EACH_OPE(from, bb,
-    if (_isValidMove<!black>(Piece::Knight, from, pawn)) {
+    if (isValidMove_<!black>(Piece::Knight, from, pawn)) {
       return false;
     }
   );
 
   // silver
-  bb = !black ? _bbBSilver : _bbWSilver;
+  bb = !black ? bbBSilver_ : bbWSilver_;
   bb &= !black ? MoveTables::wsilver(pawn) : MoveTables::bsilver(pawn);
   BB_EACH_OPE(from, bb, {
-    if (_isValidMove<!black>(Piece::Silver, from, pawn)) {
+    if (isValidMove_<!black>(Piece::Silver, from, pawn)) {
       return false;
     }
   });
 
   // gold
-  bb = !black ? _bbBGold : _bbWGold;
+  bb = !black ? bbBGold_ : bbWGold_;
   bb &= !black ? MoveTables::wgold(pawn) : MoveTables::bgold(pawn);
   BB_EACH_OPE(from, bb,
-    if (_isValidMove<!black>(Piece::Gold, from, pawn)) {
+    if (isValidMove_<!black>(Piece::Gold, from, pawn)) {
       return false;
     }
   );
 
   // bishop
-  bb = !black ? _bbBBishop : _bbWBishop;
+  bb = !black ? bbBBishop_ : bbWBishop_;
   bb &= MoveTables::bishop(pawn, occ);
   BB_EACH_OPE(from, bb,
-    if (_isValidMove<!black>(Piece::Bishop, from, pawn)) {
+    if (isValidMove_<!black>(Piece::Bishop, from, pawn)) {
       return false;
     }
   );
 
   // rook
-  bb = !black ? _bbBRook : _bbWRook;
+  bb = !black ? bbBRook_ : bbWRook_;
   bb &= MoveTables::rook(pawn, occ);
   BB_EACH_OPE(from, bb,
-    if (_isValidMove<!black>(Piece::Rook, from, pawn)) {
+    if (isValidMove_<!black>(Piece::Rook, from, pawn)) {
       return false;
     }
   );
 
   // pawnkin
-  bb = !black ? _bbBTokin : _bbWTokin;
+  bb = !black ? bbBTokin_ : bbWTokin_;
   bb &= !black ? MoveTables::wgold(pawn) : MoveTables::bgold(pawn);
   BB_EACH_OPE(from, bb,
-    if (_isValidMove<!black>(Piece::Tokin, from, pawn)) {
+    if (isValidMove_<!black>(Piece::Tokin, from, pawn)) {
       return false;
     }
   );
 
   // promoted lance
-  bb = !black ? _bbBProLance : _bbWProLance;
+  bb = !black ? bbBProLance_ : bbWProLance_;
   bb &= !black ? MoveTables::wgold(pawn) : MoveTables::bgold(pawn);
   BB_EACH_OPE(from, bb,
-    if (_isValidMove<!black>(Piece::ProLance, from, pawn)) {
+    if (isValidMove_<!black>(Piece::ProLance, from, pawn)) {
       return false;
     }
   );
 
   // promoted knight
-  bb = !black ? _bbBProKnight : _bbWProKnight;
+  bb = !black ? bbBProKnight_ : bbWProKnight_;
   bb &= !black ? MoveTables::wgold(pawn) : MoveTables::bgold(pawn);
   BB_EACH_OPE(from, bb,
-    if (_isValidMove<!black>(Piece::ProKnight, from, pawn)) {
+    if (isValidMove_<!black>(Piece::ProKnight, from, pawn)) {
       return false;
     }
   );
 
   // promoted silver
-  bb = !black ? _bbBProSilver : _bbWProSilver;
+  bb = !black ? bbBProSilver_ : bbWProSilver_;
   bb &= !black ? MoveTables::wgold(pawn) : MoveTables::bgold(pawn);
   BB_EACH_OPE(from, bb,
-    if (_isValidMove<!black>(Piece::ProSilver, from, pawn)) {
+    if (isValidMove_<!black>(Piece::ProSilver, from, pawn)) {
       return false;
     }
   );
 
   // horse
-  bb = !black ? _bbBHorse : _bbWHorse;
+  bb = !black ? bbBHorse_ : bbWHorse_;
   bb &= MoveTables::horse(pawn, occ);
   BB_EACH_OPE(from, bb,
-    if (_isValidMove<!black>(Piece::Horse, from, pawn)) {
+    if (isValidMove_<!black>(Piece::Horse, from, pawn)) {
       return false;
     }
   );
 
   // dragon
-  bb = !black ? _bbBDragon : _bbWDragon;
+  bb = !black ? bbBDragon_ : bbWDragon_;
   bb &= MoveTables::dragon(pawn, occ);
   BB_EACH_OPE(from, bb,
-    if (_isValidMove<!black>(Piece::Dragon, from, pawn)) {
+    if (isValidMove_<!black>(Piece::Dragon, from, pawn)) {
       return false;
     }
   );
 
   return true;
 }
-template bool Board::_isPawnDropMate<true>() const;
-template bool Board::_isPawnDropMate<false>() const;
+template bool Board::isPawnDropMate_<true>() const;
+template bool Board::isPawnDropMate_<false>() const;
 
 /**
  * 持駒を打つ手が合法手かどうかチェックします。
  * TODO: rename
  */
 template<bool black>
-inline bool Board::_isValidMove(const Piece& piece, const Position& to) const {
+inline bool Board::isValidMove_(const Piece& piece, const Position& to) const {
   // 打ち歩詰め判定
-  if (black && piece == Piece::Pawn && to.up() == _posWKing) {
-    if (_isPawnDropMate<true>()) {
+  if (black && piece == Piece::Pawn && to.up() == posWKing_) {
+    if (isPawnDropMate_<true>()) {
       return false;
     }
-  } else if (!black && piece == Piece::Pawn && to.down() == _posBKing) {
-    if (_isPawnDropMate<false>()) {
+  } else if (!black && piece == Piece::Pawn && to.down() == posBKing_) {
+    if (isPawnDropMate_<false>()) {
       return false;
     }
   }
 
   return true;
 }
-template bool Board::_isValidMove<true>(const Piece& piece, const Position& to) const;
-template bool Board::_isValidMove<false>(const Piece& piece, const Position& to) const;
+template bool Board::isValidMove_<true>(const Piece& piece, const Position& to) const;
+template bool Board::isValidMove_<false>(const Piece& piece, const Position& to) const;
 
 /**
  * 盤上の駒を移動させる手が合法手かどうかチェックします。
  * TODO: rename
  */
 template<bool black>
-inline bool Board::_isValidMove(const Piece& piece, const Position& from, const Position& to) const {
+inline bool Board::isValidMove_(const Piece& piece, const Position& from, const Position& to) const {
   if (piece == Piece::King) {
 
     // 王手放置判定
-    auto occ = _bbBOccupy | _bbWOccupy;
-    occ = (black ? _bbBKing : _bbWKing).andNot(occ); // 玉の元居た位置を除外
-    if (_isChecking<black>(to, occ)) {
+    auto occ = bbBOccupy_ | bbWOccupy_;
+    occ = (black ? bbBKing_ : bbWKing_).andNot(occ); // 玉の元居た位置を除外
+    if (isChecking_<black>(to, occ)) {
       return false;
     }
 
   } else { // not (piece == Piece::King)
 
     // pin判定
-    auto king = black ? _posBKing : _posWKing;
+    auto king = black ? posBKing_ : posWKing_;
     // 玉からの方向が変化している場合のみチェック
     if (PinDirTable::get(king, from) != PinDirTable::get(king, to)) {
-      auto occ = _bbBOccupy | _bbWOccupy;
+      auto occ = bbBOccupy_ | bbWOccupy_;
       occ.set(to); // 移動先のビットをセット
-      if (_isPin<black>(from, occ)) {
+      if (isPin_<black>(from, occ)) {
         return false;
       }
     }
@@ -859,8 +856,8 @@ inline bool Board::_isValidMove(const Piece& piece, const Position& from, const 
 
   return true;
 }
-template bool Board::_isValidMove<true>(const Piece& piece, const Position& from, const Position& to) const;
-template bool Board::_isValidMove<false>(const Piece& piece, const Position& from, const Position& to) const;
+template bool Board::isValidMove_<true>(const Piece& piece, const Position& from, const Position& to) const;
+template bool Board::isValidMove_<false>(const Piece& piece, const Position& from, const Position& to) const;
 
 /**
  * 指し手が合法手であるか厳密なチェックをします。
@@ -868,8 +865,8 @@ template bool Board::_isValidMove<false>(const Piece& piece, const Position& fro
  * @param move
  */
 template<bool black>
-bool Board::_isValidMoveStrict(const Move& move) const {
-  auto occ = _bbBOccupy | _bbWOccupy;
+bool Board::isValidMoveStrict_(const Move& move) const {
+  auto occ = bbBOccupy_ | bbWOccupy_;
   auto piece = move.piece();
   auto to = move.to();
 
@@ -895,7 +892,7 @@ bool Board::_isValidMoveStrict(const Move& move) const {
 
   if (move.isHand()) {
 
-    auto& hand = black ? _blackHand : _whiteHand;
+    auto& hand = black ? blackHand_ : whiteHand_;
 
     if (hand.get(piece) == 0) {
       return false;
@@ -907,14 +904,14 @@ bool Board::_isValidMoveStrict(const Move& move) const {
 
     if (piece == Piece::Pawn) {
       for (int rank = 1; rank <= Position::RankN; rank++) {
-        auto piece0 = _board[Position(move.to().getFile(), rank)];
+        auto piece0 = board_[Position(move.to().getFile(), rank)];
         if (piece0 == (black ? Piece::BPawn : Piece::WPawn)) {
           return false;
         }
       }
     }
 
-    if (!_isValidMove<black>(piece, to)) {
+    if (!isValidMove_<black>(piece, to)) {
       return false;
     }
 
@@ -923,11 +920,11 @@ bool Board::_isValidMoveStrict(const Move& move) const {
     auto from = move.from();
     bool promote = move.promote();
 
-    if (_board[from] != (black ? piece.black() : piece.white())) {
+    if (board_[from] != (black ? piece.black() : piece.white())) {
       return false;
     }
 
-    if ((black ? _bbBOccupy : _bbWOccupy).check(to)) {
+    if ((black ? bbBOccupy_ : bbWOccupy_).check(to)) {
       return false;
     }
 
@@ -1041,197 +1038,197 @@ bool Board::_isValidMoveStrict(const Move& move) const {
   if (!temp.makeMoveIrr(move)) {
     return false;
   }
-  temp._black = black; // 無理やり手番を変更する。
+  temp.black_ = black; // 無理やり手番を変更する。
   if (temp.isChecking()) {
     return false;
   }
 
   return true;
 }
-template bool Board::_isValidMoveStrict<true>(const Move& move) const;
-template bool Board::_isValidMoveStrict<false>(const Move& move) const;
+template bool Board::isValidMoveStrict_<true>(const Move& move) const;
+template bool Board::isValidMoveStrict_<false>(const Move& move) const;
 
 /**
  * 指定した手で局面を進めます。
  * @param move
  */
 template<bool black>
-bool Board::_makeMove(Move& move) {
+bool Board::makeMove_(Move& move) {
   bool promote = move.promote();
   const auto& piece = move.piece();
   const auto& to = move.to();
 
   if (move.isHand()) {
 
-    if (!_isValidMove<black>(piece, to)) {
+    if (!isValidMove_<black>(piece, to)) {
       return false;
     }
 
-    Hand& hand = black ? _blackHand : _whiteHand;
+    Hand& hand = black ? blackHand_ : whiteHand_;
     assert(!piece.isPromoted());
     int num = hand.decUnsafe(piece);
-    _handHash ^= black ? Zobrist::handBlack(piece, num) : Zobrist::handWhite(piece, num);
+    handHash_ ^= black ? Zobrist::handBlack(piece, num) : Zobrist::handWhite(piece, num);
 
   } else { // !move.isHand()
 
     const auto& from = move.from();
 
-    if (!_isValidMove<black>(piece, from, to)) {
+    if (!isValidMove_<black>(piece, from, to)) {
       return false;
     }
 
     if (black) {
-      assert(_board[from] == piece.black());
-      _bbBOccupy.unset(from);
+      assert(board_[from] == piece.black());
+      bbBOccupy_.unset(from);
       switch (piece) {
-      case Piece::Pawn     : _bbBPawn.unset(from); break;
-      case Piece::Lance    : _bbBLance.unset(from); break;
-      case Piece::Knight   : _bbBKnight.unset(from); break;
-      case Piece::Silver   : _bbBSilver.unset(from); break;
-      case Piece::Gold     : _bbBGold.unset(from); break;
-      case Piece::Bishop   : _bbBBishop.unset(from); break;
-      case Piece::Rook     : _bbBRook.unset(from); break;
-      case Piece::King     : _bbBKing.unset(from); break;
-      case Piece::Tokin    : _bbBTokin.unset(from); break;
-      case Piece::ProLance : _bbBProLance.unset(from); break;
-      case Piece::ProKnight: _bbBProKnight.unset(from); break;
-      case Piece::ProSilver: _bbBProSilver.unset(from); break;
-      case Piece::Horse    : _bbBHorse.unset(from); break;
-      case Piece::Dragon   : _bbBDragon.unset(from); break;
+      case Piece::Pawn     : bbBPawn_.unset(from); break;
+      case Piece::Lance    : bbBLance_.unset(from); break;
+      case Piece::Knight   : bbBKnight_.unset(from); break;
+      case Piece::Silver   : bbBSilver_.unset(from); break;
+      case Piece::Gold     : bbBGold_.unset(from); break;
+      case Piece::Bishop   : bbBBishop_.unset(from); break;
+      case Piece::Rook     : bbBRook_.unset(from); break;
+      case Piece::King     : bbBKing_.unset(from); break;
+      case Piece::Tokin    : bbBTokin_.unset(from); break;
+      case Piece::ProLance : bbBProLance_.unset(from); break;
+      case Piece::ProKnight: bbBProKnight_.unset(from); break;
+      case Piece::ProSilver: bbBProSilver_.unset(from); break;
+      case Piece::Horse    : bbBHorse_.unset(from); break;
+      case Piece::Dragon   : bbBDragon_.unset(from); break;
       default:
         assert(false);
       }
     } else { // white
-      assert(_board[from] == piece.white());
-      _bbWOccupy.unset(from);
+      assert(board_[from] == piece.white());
+      bbWOccupy_.unset(from);
       switch (piece) {
-      case Piece::Pawn     : _bbWPawn.unset(from); break;
-      case Piece::Lance    : _bbWLance.unset(from); break;
-      case Piece::Knight   : _bbWKnight.unset(from); break;
-      case Piece::Silver   : _bbWSilver.unset(from); break;
-      case Piece::Gold     : _bbWGold.unset(from); break;
-      case Piece::Bishop   : _bbWBishop.unset(from); break;
-      case Piece::Rook     : _bbWRook.unset(from); break;
-      case Piece::King     : _bbWKing.unset(from); break;
-      case Piece::Tokin    : _bbWTokin.unset(from); break;
-      case Piece::ProLance : _bbWProLance.unset(from); break;
-      case Piece::ProKnight: _bbWProKnight.unset(from); break;
-      case Piece::ProSilver: _bbWProSilver.unset(from); break;
-      case Piece::Horse    : _bbWHorse.unset(from); break;
-      case Piece::Dragon   : _bbWDragon.unset(from); break;
+      case Piece::Pawn     : bbWPawn_.unset(from); break;
+      case Piece::Lance    : bbWLance_.unset(from); break;
+      case Piece::Knight   : bbWKnight_.unset(from); break;
+      case Piece::Silver   : bbWSilver_.unset(from); break;
+      case Piece::Gold     : bbWGold_.unset(from); break;
+      case Piece::Bishop   : bbWBishop_.unset(from); break;
+      case Piece::Rook     : bbWRook_.unset(from); break;
+      case Piece::King     : bbWKing_.unset(from); break;
+      case Piece::Tokin    : bbWTokin_.unset(from); break;
+      case Piece::ProLance : bbWProLance_.unset(from); break;
+      case Piece::ProKnight: bbWProKnight_.unset(from); break;
+      case Piece::ProSilver: bbWProSilver_.unset(from); break;
+      case Piece::Horse    : bbWHorse_.unset(from); break;
+      case Piece::Dragon   : bbWDragon_.unset(from); break;
       default:
         assert(false);
       }
     }
-    _board[from] = Piece::Empty;
-    _boardHash ^= Zobrist::board(from, black ? piece : piece.white());
+    board_[from] = Piece::Empty;
+    boardHash_ ^= Zobrist::board(from, black ? piece : piece.white());
 
     // capturing
-    const auto& captured = _board[to];
+    const auto& captured = board_[to];
     if (captured.exists()) {
       if (black) {
         assert(captured.isWhite());
-        _bbWOccupy.unset(to);
+        bbWOccupy_.unset(to);
         switch (captured) {
-        case Piece::WPawn     : _bbWPawn.unset(to); move.setCaptured(Piece::Pawn); break;
-        case Piece::WLance    : _bbWLance.unset(to); move.setCaptured(Piece::Lance); break;
-        case Piece::WKnight   : _bbWKnight.unset(to); move.setCaptured(Piece::Knight); break;
-        case Piece::WSilver   : _bbWSilver.unset(to); move.setCaptured(Piece::Silver); break;
-        case Piece::WGold     : _bbWGold.unset(to); move.setCaptured(Piece::Gold); break;
-        case Piece::WBishop   : _bbWBishop.unset(to); move.setCaptured(Piece::Bishop); break;
-        case Piece::WRook     : _bbWRook.unset(to); move.setCaptured(Piece::Rook); break;
+        case Piece::WPawn     : bbWPawn_.unset(to); move.setCaptured(Piece::Pawn); break;
+        case Piece::WLance    : bbWLance_.unset(to); move.setCaptured(Piece::Lance); break;
+        case Piece::WKnight   : bbWKnight_.unset(to); move.setCaptured(Piece::Knight); break;
+        case Piece::WSilver   : bbWSilver_.unset(to); move.setCaptured(Piece::Silver); break;
+        case Piece::WGold     : bbWGold_.unset(to); move.setCaptured(Piece::Gold); break;
+        case Piece::WBishop   : bbWBishop_.unset(to); move.setCaptured(Piece::Bishop); break;
+        case Piece::WRook     : bbWRook_.unset(to); move.setCaptured(Piece::Rook); break;
         case Piece::WKing     : assert(false); break;
-        case Piece::WTokin    : _bbWTokin.unset(to); move.setCaptured(Piece::Tokin); break;
-        case Piece::WProLance : _bbWProLance.unset(to); move.setCaptured(Piece::ProLance); break;
-        case Piece::WProKnight: _bbWProKnight.unset(to); move.setCaptured(Piece::ProKnight); break;
-        case Piece::WProSilver: _bbWProSilver.unset(to); move.setCaptured(Piece::ProSilver); break;
-        case Piece::WHorse    : _bbWHorse.unset(to); move.setCaptured(Piece::Horse); break;
-        case Piece::WDragon   : _bbWDragon.unset(to); move.setCaptured(Piece::Dragon); break;
+        case Piece::WTokin    : bbWTokin_.unset(to); move.setCaptured(Piece::Tokin); break;
+        case Piece::WProLance : bbWProLance_.unset(to); move.setCaptured(Piece::ProLance); break;
+        case Piece::WProKnight: bbWProKnight_.unset(to); move.setCaptured(Piece::ProKnight); break;
+        case Piece::WProSilver: bbWProSilver_.unset(to); move.setCaptured(Piece::ProSilver); break;
+        case Piece::WHorse    : bbWHorse_.unset(to); move.setCaptured(Piece::Horse); break;
+        case Piece::WDragon   : bbWDragon_.unset(to); move.setCaptured(Piece::Dragon); break;
         default:
           assert(false);
         }
       } else { // white
         assert(captured.isBlack());
-        _bbBOccupy.unset(to);
+        bbBOccupy_.unset(to);
         switch (captured) {
-        case Piece::BPawn     : _bbBPawn.unset(to); move.setCaptured(Piece::Pawn); break;
-        case Piece::BLance    : _bbBLance.unset(to); move.setCaptured(Piece::Lance); break;
-        case Piece::BKnight   : _bbBKnight.unset(to); move.setCaptured(Piece::Knight); break;
-        case Piece::BSilver   : _bbBSilver.unset(to); move.setCaptured(Piece::Silver); break;
-        case Piece::BGold     : _bbBGold.unset(to); move.setCaptured(Piece::Gold); break;
-        case Piece::BBishop   : _bbBBishop.unset(to); move.setCaptured(Piece::Bishop); break;
-        case Piece::BRook     : _bbBRook.unset(to); move.setCaptured(Piece::Rook); break;
+        case Piece::BPawn     : bbBPawn_.unset(to); move.setCaptured(Piece::Pawn); break;
+        case Piece::BLance    : bbBLance_.unset(to); move.setCaptured(Piece::Lance); break;
+        case Piece::BKnight   : bbBKnight_.unset(to); move.setCaptured(Piece::Knight); break;
+        case Piece::BSilver   : bbBSilver_.unset(to); move.setCaptured(Piece::Silver); break;
+        case Piece::BGold     : bbBGold_.unset(to); move.setCaptured(Piece::Gold); break;
+        case Piece::BBishop   : bbBBishop_.unset(to); move.setCaptured(Piece::Bishop); break;
+        case Piece::BRook     : bbBRook_.unset(to); move.setCaptured(Piece::Rook); break;
         case Piece::BKing     : assert(false); break;
-        case Piece::BTokin    : _bbBTokin.unset(to); move.setCaptured(Piece::Tokin); break;
-        case Piece::BProLance : _bbBProLance.unset(to); move.setCaptured(Piece::ProLance); break;
-        case Piece::BProKnight: _bbBProKnight.unset(to); move.setCaptured(Piece::ProKnight); break;
-        case Piece::BProSilver: _bbBProSilver.unset(to); move.setCaptured(Piece::ProSilver); break;
-        case Piece::BHorse    : _bbBHorse.unset(to); move.setCaptured(Piece::Horse); break;
-        case Piece::BDragon   : _bbBDragon.unset(to); move.setCaptured(Piece::Dragon); break;
+        case Piece::BTokin    : bbBTokin_.unset(to); move.setCaptured(Piece::Tokin); break;
+        case Piece::BProLance : bbBProLance_.unset(to); move.setCaptured(Piece::ProLance); break;
+        case Piece::BProKnight: bbBProKnight_.unset(to); move.setCaptured(Piece::ProKnight); break;
+        case Piece::BProSilver: bbBProSilver_.unset(to); move.setCaptured(Piece::ProSilver); break;
+        case Piece::BHorse    : bbBHorse_.unset(to); move.setCaptured(Piece::Horse); break;
+        case Piece::BDragon   : bbBDragon_.unset(to); move.setCaptured(Piece::Dragon); break;
         default:
           assert(false);
         }
       }
-      _boardHash ^= Zobrist::board(to, captured);
+      boardHash_ ^= Zobrist::board(to, captured);
 
       // hand
-      auto& hand = black ? _blackHand : _whiteHand;
+      auto& hand = black ? blackHand_ : whiteHand_;
       Piece captured_k = captured.kindOnly().unpromote();
       int num = hand.incUnsafe(captured_k) - 1;
-      _handHash ^= black ? Zobrist::handBlack(captured_k, num) : Zobrist::handWhite(captured_k, num);
+      handHash_ ^= black ? Zobrist::handBlack(captured_k, num) : Zobrist::handWhite(captured_k, num);
     }
   }
 
   // to
   if (black) {
-    _bbBOccupy.set(to);
+    bbBOccupy_.set(to);
   } else {
-    _bbWOccupy.set(to);
+    bbWOccupy_.set(to);
   }
   if (!promote) {
     if (black) {
       switch (piece) {
-      case Piece::Pawn     : _bbBPawn.set(to); assert(to.getRank() >= 2); break;
-      case Piece::Lance    : _bbBLance.set(to); assert(to.getRank() >= 2); break;
-      case Piece::Knight   : _bbBKnight.set(to); assert(to.getRank() >= 3); break;
-      case Piece::Silver   : _bbBSilver.set(to); break;
-      case Piece::Gold     : _bbBGold.set(to); break;
-      case Piece::Bishop   : _bbBBishop.set(to); break;
-      case Piece::Rook     : _bbBRook.set(to); break;
-      case Piece::King     : _bbBKing.set(to); _posBKing = to; break;
-      case Piece::Tokin    : _bbBTokin.set(to); break;
-      case Piece::ProLance : _bbBProLance.set(to); break;
-      case Piece::ProKnight: _bbBProKnight.set(to); break;
-      case Piece::ProSilver: _bbBProSilver.set(to); break;
-      case Piece::Horse    : _bbBHorse.set(to); break;
-      case Piece::Dragon   : _bbBDragon.set(to); break;
+      case Piece::Pawn     : bbBPawn_.set(to); assert(to.getRank() >= 2); break;
+      case Piece::Lance    : bbBLance_.set(to); assert(to.getRank() >= 2); break;
+      case Piece::Knight   : bbBKnight_.set(to); assert(to.getRank() >= 3); break;
+      case Piece::Silver   : bbBSilver_.set(to); break;
+      case Piece::Gold     : bbBGold_.set(to); break;
+      case Piece::Bishop   : bbBBishop_.set(to); break;
+      case Piece::Rook     : bbBRook_.set(to); break;
+      case Piece::King     : bbBKing_.set(to); posBKing_ = to; break;
+      case Piece::Tokin    : bbBTokin_.set(to); break;
+      case Piece::ProLance : bbBProLance_.set(to); break;
+      case Piece::ProKnight: bbBProKnight_.set(to); break;
+      case Piece::ProSilver: bbBProSilver_.set(to); break;
+      case Piece::Horse    : bbBHorse_.set(to); break;
+      case Piece::Dragon   : bbBDragon_.set(to); break;
       default:
         assert(false);
       }
-      _board[to] = piece;
-      _boardHash ^= Zobrist::board(to, piece);
+      board_[to] = piece;
+      boardHash_ ^= Zobrist::board(to, piece);
     } else {
       switch (piece) {
-      case Piece::Pawn     : _bbWPawn.set(to); assert(to.getRank() <= 8); break;
-      case Piece::Lance    : _bbWLance.set(to); assert(to.getRank() <= 8); break;
-      case Piece::Knight   : _bbWKnight.set(to); assert(to.getRank() <= 7); break;
-      case Piece::Silver   : _bbWSilver.set(to); break;
-      case Piece::Gold     : _bbWGold.set(to); break;
-      case Piece::Bishop   : _bbWBishop.set(to); break;
-      case Piece::Rook     : _bbWRook.set(to); break;
-      case Piece::King     : _bbWKing.set(to); _posWKing = to; break;
-      case Piece::Tokin    : _bbWTokin.set(to); break;
-      case Piece::ProLance : _bbWProLance.set(to); break;
-      case Piece::ProKnight: _bbWProKnight.set(to); break;
-      case Piece::ProSilver: _bbWProSilver.set(to); break;
-      case Piece::Horse    : _bbWHorse.set(to); break;
-      case Piece::Dragon   : _bbWDragon.set(to); break;
+      case Piece::Pawn     : bbWPawn_.set(to); assert(to.getRank() <= 8); break;
+      case Piece::Lance    : bbWLance_.set(to); assert(to.getRank() <= 8); break;
+      case Piece::Knight   : bbWKnight_.set(to); assert(to.getRank() <= 7); break;
+      case Piece::Silver   : bbWSilver_.set(to); break;
+      case Piece::Gold     : bbWGold_.set(to); break;
+      case Piece::Bishop   : bbWBishop_.set(to); break;
+      case Piece::Rook     : bbWRook_.set(to); break;
+      case Piece::King     : bbWKing_.set(to); posWKing_ = to; break;
+      case Piece::Tokin    : bbWTokin_.set(to); break;
+      case Piece::ProLance : bbWProLance_.set(to); break;
+      case Piece::ProKnight: bbWProKnight_.set(to); break;
+      case Piece::ProSilver: bbWProSilver_.set(to); break;
+      case Piece::Horse    : bbWHorse_.set(to); break;
+      case Piece::Dragon   : bbWDragon_.set(to); break;
       default:
         assert(false);
       }
       Piece piece_w = piece.white();
-      _board[to] = piece_w;
-      _boardHash ^= Zobrist::board(to, piece_w);
+      board_[to] = piece_w;
+      boardHash_ ^= Zobrist::board(to, piece_w);
     }
   } else { // promote
     Piece piece_p;
@@ -1240,27 +1237,27 @@ bool Board::_makeMove(Move& move) {
       assert(to.getRank() <= 3 || move.from().getRank() <= 3);
       switch (piece) {
       case Piece::Pawn:
-        _bbBTokin.set(to);
+        bbBTokin_.set(to);
         piece_p = Piece::BTokin;
         break;
       case Piece::Lance:
-        _bbBProLance.set(to);
+        bbBProLance_.set(to);
         piece_p = Piece::BProLance;
         break;
       case Piece::Knight:
-        _bbBProKnight.set(to);
+        bbBProKnight_.set(to);
         piece_p = Piece::BProKnight;
         break;
       case Piece::Silver:
-        _bbBProSilver.set(to);
+        bbBProSilver_.set(to);
         piece_p = Piece::BProSilver;
         break;
       case Piece::Bishop:
-        _bbBHorse.set(to);
+        bbBHorse_.set(to);
         piece_p = Piece::BHorse;
         break;
       case Piece::Rook:
-        _bbBDragon.set(to);
+        bbBDragon_.set(to);
         piece_p = Piece::BDragon;
         break;
       default:
@@ -1271,274 +1268,274 @@ bool Board::_makeMove(Move& move) {
       assert(to.getRank() >= 7 || move.from().getRank() >= 7);
       switch (piece) {
       case Piece::Pawn:
-        _bbWTokin.set(to);
+        bbWTokin_.set(to);
         piece_p = Piece::WTokin;
         break;
       case Piece::Lance:
-        _bbWProLance.set(to);
+        bbWProLance_.set(to);
         piece_p = Piece::WProLance;
         break;
       case Piece::Knight:
-        _bbWProKnight.set(to);
+        bbWProKnight_.set(to);
         piece_p = Piece::WProKnight;
         break;
       case Piece::Silver:
-        _bbWProSilver.set(to);
+        bbWProSilver_.set(to);
         piece_p = Piece::WProSilver;
         break;
       case Piece::Bishop:
-        _bbWHorse.set(to);
+        bbWHorse_.set(to);
         piece_p = Piece::WHorse;
         break;
       case Piece::Rook:
-        _bbWDragon.set(to);
+        bbWDragon_.set(to);
         piece_p = Piece::WDragon;
         break;
       default:
         assert(false);
       }
     }
-    _board[to] = piece_p;
-    _boardHash ^= Zobrist::board(to, piece_p);
+    board_[to] = piece_p;
+    boardHash_ ^= Zobrist::board(to, piece_p);
   }
 
   // next turn
-  _black = !black;
+  black_ = !black;
 
   return true;
 }
 
-template bool Board::_makeMove<true>(Move&);
-template bool Board::_makeMove<false>(Move&);
+template bool Board::makeMove_<true>(Move&);
+template bool Board::makeMove_<false>(Move&);
 
 /**
  * 局面を1手戻します。
  */
 template<bool black>
-bool Board::_unmakeMove(const Move& move) {
+bool Board::unmakeMove_(const Move& move) {
   bool promote = move.promote();
   auto piece = move.piece();
   auto to = move.to();
 
   if (move.isHand()) {
 
-    auto& hand = black ? _blackHand : _whiteHand;
+    auto& hand = black ? blackHand_ : whiteHand_;
     assert(!piece.isPromoted());
     int num = hand.incUnsafe(piece) - 1;
-    _handHash ^= black ? Zobrist::handBlack(piece, num) : Zobrist::handWhite(piece, num);
+    handHash_ ^= black ? Zobrist::handBlack(piece, num) : Zobrist::handWhite(piece, num);
 
-    _board[to] = Piece::Empty;
+    board_[to] = Piece::Empty;
 
   } else { // !move.isHand()
 
     // from
     auto from = move.from();
-    assert(_board[from] == Piece::Empty);
+    assert(board_[from] == Piece::Empty);
     if (black) {
-      assert(_board[to] == (promote ? piece.black().promote() : piece.black()));
-      _bbBOccupy.set(from);
+      assert(board_[to] == (promote ? piece.black().promote() : piece.black()));
+      bbBOccupy_.set(from);
       switch (piece) {
-      case Piece::Pawn     : _bbBPawn.set(from); break;
-      case Piece::Lance    : _bbBLance.set(from); break;
-      case Piece::Knight   : _bbBKnight.set(from); break;
-      case Piece::Silver   : _bbBSilver.set(from); break;
-      case Piece::Gold     : _bbBGold.set(from); break;
-      case Piece::Bishop   : _bbBBishop.set(from); break;
-      case Piece::Rook     : _bbBRook.set(from); break;
-      case Piece::King     : _bbBKing.set(from); _posBKing = from; break;
-      case Piece::Tokin    : _bbBTokin.set(from); break;
-      case Piece::ProLance : _bbBProLance.set(from); break;
-      case Piece::ProKnight: _bbBProKnight.set(from); break;
-      case Piece::ProSilver: _bbBProSilver.set(from); break;
-      case Piece::Horse    : _bbBHorse.set(from); break;
-      case Piece::Dragon   : _bbBDragon.set(from); break;
+      case Piece::Pawn     : bbBPawn_.set(from); break;
+      case Piece::Lance    : bbBLance_.set(from); break;
+      case Piece::Knight   : bbBKnight_.set(from); break;
+      case Piece::Silver   : bbBSilver_.set(from); break;
+      case Piece::Gold     : bbBGold_.set(from); break;
+      case Piece::Bishop   : bbBBishop_.set(from); break;
+      case Piece::Rook     : bbBRook_.set(from); break;
+      case Piece::King     : bbBKing_.set(from); posBKing_ = from; break;
+      case Piece::Tokin    : bbBTokin_.set(from); break;
+      case Piece::ProLance : bbBProLance_.set(from); break;
+      case Piece::ProKnight: bbBProKnight_.set(from); break;
+      case Piece::ProSilver: bbBProSilver_.set(from); break;
+      case Piece::Horse    : bbBHorse_.set(from); break;
+      case Piece::Dragon   : bbBDragon_.set(from); break;
       default:
         assert(false);
       }
-      _board[from] = piece;
-      _boardHash ^= Zobrist::board(from, piece);
+      board_[from] = piece;
+      boardHash_ ^= Zobrist::board(from, piece);
     } else {
-      assert(_board[to] == (promote ? piece.white().promote() : piece.white()));
-      _bbWOccupy.set(from);
+      assert(board_[to] == (promote ? piece.white().promote() : piece.white()));
+      bbWOccupy_.set(from);
       switch (piece) {
-      case Piece::Pawn     : _bbWPawn.set(from); break;
-      case Piece::Lance    : _bbWLance.set(from); break;
-      case Piece::Knight   : _bbWKnight.set(from); break;
-      case Piece::Silver   : _bbWSilver.set(from); break;
-      case Piece::Gold     : _bbWGold.set(from); break;
-      case Piece::Bishop   : _bbWBishop.set(from); break;
-      case Piece::Rook     : _bbWRook.set(from); break;
-      case Piece::King     : _bbWKing.set(from); _posWKing = from; break;
-      case Piece::Tokin    : _bbWTokin.set(from); break;
-      case Piece::ProLance : _bbWProLance.set(from); break;
-      case Piece::ProKnight: _bbWProKnight.set(from); break;
-      case Piece::ProSilver: _bbWProSilver.set(from); break;
-      case Piece::Horse    : _bbWHorse.set(from); break;
-      case Piece::Dragon   : _bbWDragon.set(from); break;
+      case Piece::Pawn     : bbWPawn_.set(from); break;
+      case Piece::Lance    : bbWLance_.set(from); break;
+      case Piece::Knight   : bbWKnight_.set(from); break;
+      case Piece::Silver   : bbWSilver_.set(from); break;
+      case Piece::Gold     : bbWGold_.set(from); break;
+      case Piece::Bishop   : bbWBishop_.set(from); break;
+      case Piece::Rook     : bbWRook_.set(from); break;
+      case Piece::King     : bbWKing_.set(from); posWKing_ = from; break;
+      case Piece::Tokin    : bbWTokin_.set(from); break;
+      case Piece::ProLance : bbWProLance_.set(from); break;
+      case Piece::ProKnight: bbWProKnight_.set(from); break;
+      case Piece::ProSilver: bbWProSilver_.set(from); break;
+      case Piece::Horse    : bbWHorse_.set(from); break;
+      case Piece::Dragon   : bbWDragon_.set(from); break;
       default:
         assert(false);
       }
       Piece piece_w = piece.white();
-      _board[from] = piece_w;
-      _boardHash ^= Zobrist::board(from, piece_w);
+      board_[from] = piece_w;
+      boardHash_ ^= Zobrist::board(from, piece_w);
     }
 
     // capturing
     if (move.isCapturing()) {
       auto captured = move.captured();
       if (black) {
-        _bbWOccupy.set(to);
+        bbWOccupy_.set(to);
         switch (captured) {
-        case Piece::Pawn     : _bbWPawn.set(to); assert(to.getRank() <= 8); break;
-        case Piece::Lance    : _bbWLance.set(to); assert(to.getRank() <= 8); break;
-        case Piece::Knight   : _bbWKnight.set(to); assert(to.getRank() <= 7); break;
-        case Piece::Silver   : _bbWSilver.set(to); break;
-        case Piece::Gold     : _bbWGold.set(to); break;
-        case Piece::Bishop   : _bbWBishop.set(to); break;
-        case Piece::Rook     : _bbWRook.set(to); break;
+        case Piece::Pawn     : bbWPawn_.set(to); assert(to.getRank() <= 8); break;
+        case Piece::Lance    : bbWLance_.set(to); assert(to.getRank() <= 8); break;
+        case Piece::Knight   : bbWKnight_.set(to); assert(to.getRank() <= 7); break;
+        case Piece::Silver   : bbWSilver_.set(to); break;
+        case Piece::Gold     : bbWGold_.set(to); break;
+        case Piece::Bishop   : bbWBishop_.set(to); break;
+        case Piece::Rook     : bbWRook_.set(to); break;
         case Piece::King     : assert(false); break;
-        case Piece::Tokin    : _bbWTokin.set(to); break;
-        case Piece::ProLance : _bbWProLance.set(to); break;
-        case Piece::ProKnight: _bbWProKnight.set(to); break;
-        case Piece::ProSilver: _bbWProSilver.set(to); break;
-        case Piece::Horse    : _bbWHorse.set(to); break;
-        case Piece::Dragon   : _bbWDragon.set(to); break;
+        case Piece::Tokin    : bbWTokin_.set(to); break;
+        case Piece::ProLance : bbWProLance_.set(to); break;
+        case Piece::ProKnight: bbWProKnight_.set(to); break;
+        case Piece::ProSilver: bbWProSilver_.set(to); break;
+        case Piece::Horse    : bbWHorse_.set(to); break;
+        case Piece::Dragon   : bbWDragon_.set(to); break;
         default:
           assert(false);
         }
         Piece captured_w = captured.white();
-        _board[to] = captured_w;
-        _boardHash ^= Zobrist::board(to, captured_w);
+        board_[to] = captured_w;
+        boardHash_ ^= Zobrist::board(to, captured_w);
       } else {
-        _bbBOccupy.set(to);
+        bbBOccupy_.set(to);
         switch (captured) {
-        case Piece::Pawn     : _bbBPawn.set(to); assert(to.getRank() >= 2); break;
-        case Piece::Lance    : _bbBLance.set(to); assert(to.getRank() >= 2); break;
-        case Piece::Knight   : _bbBKnight.set(to); assert(to.getRank() >= 3); break;
-        case Piece::Silver   : _bbBSilver.set(to); break;
-        case Piece::Gold     : _bbBGold.set(to); break;
-        case Piece::Bishop   : _bbBBishop.set(to); break;
-        case Piece::Rook     : _bbBRook.set(to); break;
+        case Piece::Pawn     : bbBPawn_.set(to); assert(to.getRank() >= 2); break;
+        case Piece::Lance    : bbBLance_.set(to); assert(to.getRank() >= 2); break;
+        case Piece::Knight   : bbBKnight_.set(to); assert(to.getRank() >= 3); break;
+        case Piece::Silver   : bbBSilver_.set(to); break;
+        case Piece::Gold     : bbBGold_.set(to); break;
+        case Piece::Bishop   : bbBBishop_.set(to); break;
+        case Piece::Rook     : bbBRook_.set(to); break;
         case Piece::King     : assert(false); break;
-        case Piece::Tokin    : _bbBTokin.set(to); break;
-        case Piece::ProLance : _bbBProLance.set(to); break;
-        case Piece::ProKnight: _bbBProKnight.set(to); break;
-        case Piece::ProSilver: _bbBProSilver.set(to); break;
-        case Piece::Horse    : _bbBHorse.set(to); break;
-        case Piece::Dragon   : _bbBDragon.set(to); break;
+        case Piece::Tokin    : bbBTokin_.set(to); break;
+        case Piece::ProLance : bbBProLance_.set(to); break;
+        case Piece::ProKnight: bbBProKnight_.set(to); break;
+        case Piece::ProSilver: bbBProSilver_.set(to); break;
+        case Piece::Horse    : bbBHorse_.set(to); break;
+        case Piece::Dragon   : bbBDragon_.set(to); break;
         default:
           assert(false);
         }
-        _board[to] = captured;
-        _boardHash ^= Zobrist::board(to, captured);
+        board_[to] = captured;
+        boardHash_ ^= Zobrist::board(to, captured);
       }
 
       // hand
-      auto& hand = black ? _blackHand : _whiteHand;
+      auto& hand = black ? blackHand_ : whiteHand_;
       Piece captured_u = captured.unpromote();
       int num = hand.decUnsafe(captured_u);
-      _handHash ^= black ? Zobrist::handBlack(captured_u, num) : Zobrist::handWhite(captured_u, num);
+      handHash_ ^= black ? Zobrist::handBlack(captured_u, num) : Zobrist::handWhite(captured_u, num);
     } else {
-      _board[to] = Piece::Empty;
+      board_[to] = Piece::Empty;
     }
 
   }
 
   // to
   if (black) {
-    _bbBOccupy.unset(to);
+    bbBOccupy_.unset(to);
   } else {
-    _bbWOccupy.unset(to);
+    bbWOccupy_.unset(to);
   }
   if (!promote) {
     if (black) {
       switch (piece) {
-      case Piece::Pawn     : _bbBPawn.unset(to); break;
-      case Piece::Lance    : _bbBLance.unset(to); break;
-      case Piece::Knight   : _bbBKnight.unset(to); break;
-      case Piece::Silver   : _bbBSilver.unset(to); break;
-      case Piece::Gold     : _bbBGold.unset(to); break;
-      case Piece::Bishop   : _bbBBishop.unset(to); break;
-      case Piece::Rook     : _bbBRook.unset(to); break;
-      case Piece::King     : _bbBKing.unset(to); break;
-      case Piece::Tokin    : _bbBTokin.unset(to); break;
-      case Piece::ProLance : _bbBProLance.unset(to); break;
-      case Piece::ProKnight: _bbBProKnight.unset(to); break;
-      case Piece::ProSilver: _bbBProSilver.unset(to); break;
-      case Piece::Horse    : _bbBHorse.unset(to); break;
-      case Piece::Dragon   : _bbBDragon.unset(to); break;
+      case Piece::Pawn     : bbBPawn_.unset(to); break;
+      case Piece::Lance    : bbBLance_.unset(to); break;
+      case Piece::Knight   : bbBKnight_.unset(to); break;
+      case Piece::Silver   : bbBSilver_.unset(to); break;
+      case Piece::Gold     : bbBGold_.unset(to); break;
+      case Piece::Bishop   : bbBBishop_.unset(to); break;
+      case Piece::Rook     : bbBRook_.unset(to); break;
+      case Piece::King     : bbBKing_.unset(to); break;
+      case Piece::Tokin    : bbBTokin_.unset(to); break;
+      case Piece::ProLance : bbBProLance_.unset(to); break;
+      case Piece::ProKnight: bbBProKnight_.unset(to); break;
+      case Piece::ProSilver: bbBProSilver_.unset(to); break;
+      case Piece::Horse    : bbBHorse_.unset(to); break;
+      case Piece::Dragon   : bbBDragon_.unset(to); break;
       default:
         assert(false);
       }
     } else {
       switch (piece) {
-      case Piece::Pawn     : _bbWPawn.unset(to); break;
-      case Piece::Lance    : _bbWLance.unset(to); break;
-      case Piece::Knight   : _bbWKnight.unset(to); break;
-      case Piece::Silver   : _bbWSilver.unset(to); break;
-      case Piece::Gold     : _bbWGold.unset(to); break;
-      case Piece::Bishop   : _bbWBishop.unset(to); break;
-      case Piece::Rook     : _bbWRook.unset(to); break;
-      case Piece::King     : _bbWKing.unset(to); break;
-      case Piece::Tokin    : _bbWTokin.unset(to); break;
-      case Piece::ProLance : _bbWProLance.unset(to); break;
-      case Piece::ProKnight: _bbWProKnight.unset(to); break;
-      case Piece::ProSilver: _bbWProSilver.unset(to); break;
-      case Piece::Horse    : _bbWHorse.unset(to); break;
-      case Piece::Dragon   : _bbWDragon.unset(to); break;
+      case Piece::Pawn     : bbWPawn_.unset(to); break;
+      case Piece::Lance    : bbWLance_.unset(to); break;
+      case Piece::Knight   : bbWKnight_.unset(to); break;
+      case Piece::Silver   : bbWSilver_.unset(to); break;
+      case Piece::Gold     : bbWGold_.unset(to); break;
+      case Piece::Bishop   : bbWBishop_.unset(to); break;
+      case Piece::Rook     : bbWRook_.unset(to); break;
+      case Piece::King     : bbWKing_.unset(to); break;
+      case Piece::Tokin    : bbWTokin_.unset(to); break;
+      case Piece::ProLance : bbWProLance_.unset(to); break;
+      case Piece::ProKnight: bbWProKnight_.unset(to); break;
+      case Piece::ProSilver: bbWProSilver_.unset(to); break;
+      case Piece::Horse    : bbWHorse_.unset(to); break;
+      case Piece::Dragon   : bbWDragon_.unset(to); break;
       default:
         assert(false);
       }
     }
-    _boardHash ^= Zobrist::board(to, black ? piece : piece.white());
+    boardHash_ ^= Zobrist::board(to, black ? piece : piece.white());
   } else {
     if (black) {
       switch (piece) {
-      case Piece::Pawn: _bbBTokin.unset(to); break;
-      case Piece::Lance: _bbBProLance.unset(to); break;
-      case Piece::Knight: _bbBProKnight.unset(to); break;
-      case Piece::Silver: _bbBProSilver.unset(to); break;
-      case Piece::Bishop: _bbBHorse.unset(to); break;
-      case Piece::Rook: _bbBDragon.unset(to); break;
+      case Piece::Pawn: bbBTokin_.unset(to); break;
+      case Piece::Lance: bbBProLance_.unset(to); break;
+      case Piece::Knight: bbBProKnight_.unset(to); break;
+      case Piece::Silver: bbBProSilver_.unset(to); break;
+      case Piece::Bishop: bbBHorse_.unset(to); break;
+      case Piece::Rook: bbBDragon_.unset(to); break;
       default:
         assert(false);
       }
     } else {
       switch (piece) {
-      case Piece::Pawn: _bbWTokin.unset(to); break;
-      case Piece::Lance: _bbWProLance.unset(to); break;
-      case Piece::Knight: _bbWProKnight.unset(to); break;
-      case Piece::Silver: _bbWProSilver.unset(to); break;
-      case Piece::Bishop: _bbWHorse.unset(to); break;
-      case Piece::Rook: _bbWDragon.unset(to); break;
+      case Piece::Pawn: bbWTokin_.unset(to); break;
+      case Piece::Lance: bbWProLance_.unset(to); break;
+      case Piece::Knight: bbWProKnight_.unset(to); break;
+      case Piece::Silver: bbWProSilver_.unset(to); break;
+      case Piece::Bishop: bbWHorse_.unset(to); break;
+      case Piece::Rook: bbWDragon_.unset(to); break;
       default:
         assert(false);
       }
     }
-    _boardHash ^= Zobrist::board(to, black ? piece.promote() : piece.promote().white());
+    boardHash_ ^= Zobrist::board(to, black ? piece.promote() : piece.promote().white());
   }
 
   // next turn
-  _black = black;
+  black_ = black;
 
   return true;
 }
 
-template bool Board::_unmakeMove<true>(const Move& move);
-template bool Board::_unmakeMove<false>(const Move& move);
+template bool Board::unmakeMove_<true>(const Move& move);
+template bool Board::unmakeMove_<false>(const Move& move);
 
 /**
  * パスをして相手に手番を渡します。
  */
 void Board::makeNullMove() {
-  _black = !_black;
+  black_ = !black_;
 }
 
 /**
  * パスした手を元に戻します。
  */
 void Board::unmakeNullMove() {
-  _black = !_black;
+  black_ = !black_;
 }
 
 /**
@@ -1548,30 +1545,30 @@ bool Board::validate() const {
   PIECE_EACH(piece) {
     const auto& bb = getBB(piece);
     POSITION_EACH(pos) {
-      if (_board[pos] == piece) {
+      if (board_[pos] == piece) {
         if (!bb.check(pos)) {
           return false;
         }
 
         if (piece.isBlack()) {
-          if (!_bbBOccupy.check(pos)) {
+          if (!bbBOccupy_.check(pos)) {
             return false;
           }
-          if (_bbWOccupy.check(pos)) {
+          if (bbWOccupy_.check(pos)) {
             return false;
           }
         } else if (piece.isWhite()) {
-          if (_bbBOccupy.check(pos)) {
+          if (bbBOccupy_.check(pos)) {
             return false;
           }
-          if (!_bbWOccupy.check(pos)) {
+          if (!bbWOccupy_.check(pos)) {
             return false;
           }
         } else {
-          if (_bbBOccupy.check(pos)) {
+          if (bbBOccupy_.check(pos)) {
             return false;
           }
-          if (_bbWOccupy.check(pos)) {
+          if (bbWOccupy_.check(pos)) {
             return false;
           }
         }
@@ -1633,7 +1630,7 @@ std::string Board::toString(bool showNumbers) const {
   bool is_first = true;
   oss << "black: ";
   HAND_EACH(piece) {
-    int count = _blackHand.get(piece);
+    int count = blackHand_.get(piece);
     if (count) {
       if (is_first) { is_first = false; } else { oss << ' '; }
       oss << piece.toString();
@@ -1647,7 +1644,7 @@ std::string Board::toString(bool showNumbers) const {
   is_first = true;
   oss << "white: ";
   HAND_EACH(piece) {
-    int count = _whiteHand.get(piece);
+    int count = whiteHand_.get(piece);
     if (count) {
       if (is_first) { is_first = false; } else { oss << ' '; }
       oss << piece.toString();
@@ -1658,7 +1655,7 @@ std::string Board::toString(bool showNumbers) const {
   }
   oss << '\n';
 
-  oss << "next: " << (_black ? "black" : "white") << '\n';
+  oss << "next: " << (black_ ? "black" : "white") << '\n';
 
   return oss.str();
 }
@@ -1690,14 +1687,14 @@ std::string Board::toStringCsa() const {
   bool existsBlackHand = false;
   bool existsWhiteHand = false;
   HAND_EACH(piece) {
-    existsBlackHand |= _blackHand.get(piece) != 0;
-    existsWhiteHand |= _whiteHand.get(piece) != 0;
+    existsBlackHand |= blackHand_.get(piece) != 0;
+    existsWhiteHand |= whiteHand_.get(piece) != 0;
   }
 
   if (existsBlackHand) {
     oss << "P+";
     HAND_EACH(piece) {
-      int count = _blackHand.get(piece);
+      int count = blackHand_.get(piece);
       for (int i = 0; i < count; i++) {
         oss << "00" << piece.toStringCsa(true);
       }
@@ -1708,7 +1705,7 @@ std::string Board::toStringCsa() const {
   if (existsWhiteHand) {
     oss << "P-";
     HAND_EACH(piece) {
-      int count = _whiteHand.get(piece);
+      int count = whiteHand_.get(piece);
       for (int i = 0; i < count; i++) {
         oss << "00" << piece.toStringCsa(true);
       }

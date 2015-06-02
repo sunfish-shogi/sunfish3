@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_TT__
-#define __SUNFISH_TT__
+#ifndef SUNFISH_TT__
+#define SUNFISH_TT__
 
 #include "TTE.h"
 #include "../table/HashTable.h"
@@ -14,17 +14,17 @@ namespace sunfish {
 class TT : public HashTable<TTEs> {
 private:
 
-  uint32_t _age;
+  uint32_t age_;
 
 public:
 
-  TT() : HashTable<TTEs>(TT_INDEX_WIDTH), _age(1) {}
+  TT() : HashTable<TTEs>(TT_INDEX_WIDTH), age_(1) {}
   TT(const TT&) = delete;
   TT(TT&&) = delete;
 
   void evolve() {
-    _age = _age % (TTE::AgeMax-1) + 1;
-    assert(_age != TTE::InvalidAge);
+    age_ = age_ % (TTE::AgeMax-1) + 1;
+    assert(age_ != TTE::InvalidAge);
   }
 
   TTStatus entry(uint64_t hash,
@@ -34,7 +34,7 @@ public:
     TTE e;
     TTEs& entities = getEntity(hash);
     entities.get(hash, e);
-    if (e.update(hash, alpha, beta, value, depth, ply, move, _age, stat)) {
+    if (e.update(hash, alpha, beta, value, depth, ply, move, age_, stat)) {
       return entities.set(e);
     }
     return TTStatus::Reject;
@@ -44,7 +44,7 @@ public:
     TTE e;
     TTEs& entities = getEntity(hash);
     entities.get(hash, e);
-    e.updatePV(hash, depth, move, _age);
+    e.updatePV(hash, depth, move, age_);
     return entities.set(e);
   }
 
@@ -56,4 +56,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_TT__
+#endif // SUNFISH_TT__

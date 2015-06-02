@@ -2,8 +2,8 @@
  * RemainingTime.h
  */
 
-#ifndef __SUNFISH_REMAININGTIME__
-#define __SUNFISH_REMAININGTIME__
+#ifndef SUNFISH_REMAININGTIME__
+#define SUNFISH_REMAININGTIME__
 
 #include <string>
 #include <sstream>
@@ -12,57 +12,57 @@ namespace sunfish {
 
 class RemainingTime {
 private:
-  int _total;
-  int _remain;
-  int _readoff;
+  int total_;
+  int remain_;
+  int readoff_;
 
 public:
   RemainingTime() {
   }
 
   RemainingTime(int total, int readoff)
-      : _total(total), _readoff(readoff) {
+      : total_(total), readoff_(readoff) {
     reset();
   }
 
   void init(int total, int readoff = 0) {
-    _total = total;
-    _readoff = readoff;
+    total_ = total;
+    readoff_ = readoff;
     reset();
   }
 
   void reset() {
-    _remain = _total;
+    remain_ = total_;
   }
 
   int use(int sec) {
-    _remain = _remain > sec ? _remain - sec : 0;
-    return _remain;
+    remain_ = remain_ > sec ? remain_ - sec : 0;
+    return remain_;
   }
 
   int usable() const {
-    return _remain + _readoff;
+    return remain_ + readoff_;
   }
 
   int isLimited() const {
-    return _total != 0 || _readoff != 0;
+    return total_ != 0 || readoff_ != 0;
   }
 
   int getTotal() const {
-    return _total;
+    return total_;
   }
 
   int getRemain() const {
-    return _remain;
+    return remain_;
   }
 
   int getReadoff() const {
-    return _readoff;
+    return readoff_;
   }
 
   std::string toString() const {
     std::ostringstream oss;
-    oss << _remain << '/' << _total << ' ' << _readoff;
+    oss << remain_ << '/' << total_ << ' ' << readoff_;
     return oss.str();
   }
 
@@ -70,4 +70,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_REMAININGTIME__
+#endif // SUNFISH_REMAININGTIME__

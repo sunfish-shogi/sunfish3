@@ -2,8 +2,8 @@
  * CsaClient.h
  */
 
-#ifndef __SUNFISH_CSACLIENT__
-#define __SUNFISH_CSACLIENT__
+#ifndef SUNFISH_CSACLIENT__
+#define SUNFISH_CSACLIENT__
 
 #include "RemainingTime.h"
 #include "config/Config.h"
@@ -67,7 +67,7 @@ public:
   };
 
 private:
-  std::mutex _recvMutex;
+  std::mutex recvMutex_;
 
   struct RECV_DATA {
     unsigned flag;
@@ -88,41 +88,41 @@ private:
   };
 
   /** 受信データ */
-  std::queue<RECV_DATA> _recvQueue;
+  std::queue<RECV_DATA> recvQueue_;
 
   /** 対局終了フラグ */
-  unsigned _endFlags;
+  unsigned endFlags_;
 
   /** 設定ファイル */
-  const char* _configFilename;
+  const char* configFilename_;
 
   /** 通信設定 */
-  Config _config;
+  Config config_;
 
   /** 探索設定 */
-  Searcher::Config _searchConfigBase;
+  Searcher::Config searchConfigBase_;
 
   /** 開始局面 */
-  Board _board;
+  Board board_;
 
   /** 棋譜 */
-  Record _record;
+  Record record_;
 
   /** 思考部 */
-  Searcher _searcher;
+  Searcher searcher_;
 
   /** 定跡 */
-  Book _book;
+  Book book_;
 
   /** サーバとのコネクション */
-  Connection _con;
+  Connection con_;
 
   /** 先手の持ち時間 */
-  RemainingTime _blackTime;
+  RemainingTime blackTime_;
   /** 後手の持ち時間 */
-  RemainingTime _whiteTime;
+  RemainingTime whiteTime_;
 
-  std::atomic<bool> _ponderCompleted;
+  std::atomic<bool> ponderCompleted_;
 
   struct GameSummary {
     /** 自分の手番が黒か */
@@ -137,17 +137,17 @@ private:
     int totalTime;
     /** 秒読み */
     int readoff;
-  } _gameSummary;
+  } gameSummary_;
 
   void init() {
-    while (!_recvQueue.empty()) {
-      _recvQueue.pop();
+    while (!recvQueue_.empty()) {
+      recvQueue_.pop();
     }
-    _endFlags = RECV_NULL;
-    _gameSummary.gameId = "";
-    _gameSummary.blackName = "";
-    _gameSummary.whiteName = "";
-    _gameSummary.totalTime = 0;
+    endFlags_ = RECV_NULL;
+    gameSummary_.gameId = "";
+    gameSummary_.blackName = "";
+    gameSummary_.whiteName = "";
+    gameSummary_.totalTime = 0;
   }
 
   /**
@@ -196,7 +196,7 @@ private:
 
   bool send(const char* str) {
     printSentString(str);
-    return _con.sendln(str);
+    return con_.sendln(str);
   }
 
   bool waitGameSummary() {
@@ -207,7 +207,7 @@ private:
 
   int getUsedTime(const std::string& recvStr);
 
-  static void _recvGameSummary(CsaClient* p) {
+  static void recvGameSummary_(CsaClient* p) {
     p->recvGameSummary();
   }
 
@@ -256,7 +256,7 @@ public:
   ~CsaClient() = default;
 
   void setConfigFile(const char* filename) {
-    _configFilename = filename;
+    configFilename_ = filename;
   }
 
   /**
@@ -267,4 +267,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_CSACLIENT__
+#endif // SUNFISH_CSACLIENT__

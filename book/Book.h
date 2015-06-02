@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH3__BOOK__
-#define __SUNFISH3__BOOK__
+#ifndef SUNFISH3__BOOK__
+#define SUNFISH3__BOOK__
 
 #include "core/move/Moves.h"
 #include "core/util/Random.h"
@@ -30,28 +30,28 @@ using BookMoves = std::vector<BookMove>;
 
 class BookElement {
 private:
-  uint32_t _count;
-  BookMoves _moves;
+  uint32_t count_;
+  BookMoves moves_;
 
 public:
-  BookElement() : _count(0) {}
+  BookElement() : count_(0) {}
   BookElement(const BookElement&) = default;
   BookElement(BookElement&) = default;
 
   bool add(const Move& move);
   uint32_t getCount() const {
-    return _count;
+    return count_;
   }
   const BookMoves getMoves() const {
-    return _moves;
+    return moves_;
   }
   BookResult selectRandom(Random& random) const;
   template <class Filter>
   void filter(Filter filterFunc) {
-    for (auto ite = _moves.begin(); ite != _moves.end(); ) {
+    for (auto ite = moves_.begin(); ite != moves_.end(); ) {
       if (!filterFunc(*ite)) {
-        _count -= ite->count;
-        ite = _moves.erase(ite);
+        count_ -= ite->count;
+        ite = moves_.erase(ite);
       } else {
         ++ite;
       }
@@ -65,7 +65,7 @@ public:
 class Book {
 private:
 
-  std::unordered_map<uint64_t, BookElement> _map;
+  std::unordered_map<uint64_t, BookElement> map_;
   Random random;
 
 public:
@@ -76,15 +76,15 @@ public:
   ~Book() = default;
 
   bool add(uint64_t hash, const Move& move);
-  void clear() { _map.clear(); }
+  void clear() { map_.clear(); }
   const BookElement* find(uint64_t hash) const;
   BookResult selectRandom(uint64_t hash);
   template <class Filter>
   void filter(Filter filterFunc) {
-    for (auto ite = _map.begin(); ite != _map.end();) {
+    for (auto ite = map_.begin(); ite != map_.end();) {
       ite->second.filter(filterFunc);
       if (ite->second.getCount() == 0) {
-        ite = _map.erase(ite);
+        ite = map_.erase(ite);
       } else {
         ++ite;
       }
@@ -106,4 +106,4 @@ public:
 
 } // namespace sunfish
 
-#endif /* defined(__SUNFISH3__BOOK__) */
+#endif /* defined(SUNFISH3__BOOK__) */

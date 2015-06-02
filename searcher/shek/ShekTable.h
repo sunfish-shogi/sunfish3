@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_SHEKTABLE__
-#define __SUNFISH_SHEKTABLE__
+#ifndef SUNFISH_SHEKTABLE__
+#define SUNFISH_SHEKTABLE__
 
 #include "ShekEntity.h"
 #include "../table/HashTable.h"
@@ -52,4 +52,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_SHEKTABLE__
+#endif // SUNFISH_SHEKTABLE__

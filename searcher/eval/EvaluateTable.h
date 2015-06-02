@@ -4,8 +4,8 @@
  *      Author: ryosuke
  */
 
-#ifndef __SUNFISH_EVALUATETABLE__
-#define __SUNFISH_EVALUATETABLE__
+#ifndef SUNFISH_EVALUATETABLE__
+#define SUNFISH_EVALUATETABLE__
 
 #include "EvaluateEntity.h"
 #include "../table/HashTable.h"
@@ -33,4 +33,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_EVALUATETABLE__
+#endif // SUNFISH_EVALUATETABLE__

@@ -14,14 +14,14 @@ uint16_t Move::serialize16(const Move& obj) {
     return S16_EMPTY;
   } else if (obj.isHand()) {
     assert(!(obj.piece().isPromoted()));
-    uint32_t masked = obj._move & (TO | PIECE);
+    uint32_t masked = obj.move_ & (TO | PIECE);
     uint32_t shifted = (masked >> S16_HAND_SHIFT);
     assert(shifted < 0x0800);
     uint16_t data = (uint16_t)(shifted | S16_HAND);
     assert(((uint32_t)data & ~S16_HAND) < 0x0800);
     return data;
   } else {
-    uint32_t masked = obj._move & (FROM | TO | PROMOTE);
+    uint32_t masked = obj.move_ & (FROM | TO | PROMOTE);
     assert(masked < S16_HAND);
     uint16_t data = (uint16_t)masked;
     assert(!(data & S16_HAND));
@@ -36,12 +36,12 @@ Move Move::deserialize16(uint16_t value, const Board& board) {
     Move obj;
     uint32_t masked = (uint32_t)value & ~S16_HAND;
     assert(masked < 0x0800);
-    obj._move = masked << S16_HAND_SHIFT;
+    obj.move_ = masked << S16_HAND_SHIFT;
     assert(!obj.piece().isPromoted());
     return obj;
   } else {
     Move obj;
-    obj._move = value;
+    obj.move_ = value;
     obj.setPiece(board.getBoardPiece(obj.from()));
     return obj;
   }

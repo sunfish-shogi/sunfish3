@@ -10,7 +10,7 @@
 namespace sunfish {
 
 void Config::addDef(const char* name, const char* defaultValue) {
-  _defs[name] = { defaultValue };
+  defs_[name] = { defaultValue };
 }
 
 void Config::addDef(const char* name, int32_t defaultValue) {
@@ -29,7 +29,7 @@ bool Config::read(const char* filename) {
     return false;
   }
 
-  _data.clear();
+  data_.clear();
 
   for (int l = 0; ; l++) {
     char line[LINE_BUFFER_SIZE];
@@ -67,25 +67,25 @@ bool Config::readLine(const std::string& line) {
   std::string name = line.substr(0, sep);
   std::string value = line.substr(sep + 1);
 
-  auto ite = _defs.find(name);
+  auto ite = defs_.find(name);
 
-  if (ite == _defs.end()) {
+  if (ite == defs_.end()) {
     Loggers::error << __FILE_LINE__ << ": unknown key [" << name << "]";
     return false;
   }
 
-  _data[name] = value;
+  data_[name] = value;
   return true;
 }
 
 std::string Config::getString(const char* name) const {
-  auto idat = _data.find(name);
-  if (idat != _data.end()) {
+  auto idat = data_.find(name);
+  if (idat != data_.end()) {
     return idat->second;
   }
 
-  auto idef = _defs.find(name);
-  if (idef != _defs.end()) {
+  auto idef = defs_.find(name);
+  if (idef != defs_.end()) {
     return idef->second.defaultValue;
   }
 
@@ -119,7 +119,7 @@ bool Config::getBool(const std::string& name) const {
 
 std::string Config::toString() {
   std::ostringstream oss;
-  for (const auto& pair : _data) {
+  for (const auto& pair : data_) {
     const auto& name = pair.first;
     const auto& value = pair.second;
     oss << name << "\t: " << value << '\n';

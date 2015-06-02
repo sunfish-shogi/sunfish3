@@ -26,7 +26,7 @@ DirectionMaskTable<full>::DirectionMaskTable() {
 #define GEN_MASK(type, dir) \
 POSITION_EACH(from) { \
 for (Position to = from.safety ## dir(); (full ? to : to.safety ## dir()).isValid(); to = to.safety ## dir()) { \
-  _ ## type[from].set(to); \
+  type ## _[from].set(to); \
 } \
 }
   GEN_MASK(file, Up);
@@ -70,7 +70,7 @@ MagicNumberTable::MagicNumberTable() {
           magicHigh |= 1ULL << (64 - 7 + (pos.getRank() - 2) - (pos - Bitboard::LowBits));
         }
       }
-      _leftUp[basePos].init(magicHigh, magicLow);
+      leftUp_[basePos].init(magicHigh, magicLow);
     }
     {
       uint64_t magicLow = 0ULL;
@@ -89,7 +89,7 @@ MagicNumberTable::MagicNumberTable() {
           magicHigh |= 1ULL << (64 - 7 + (pos.getRank() - 2) - (pos - Bitboard::LowBits));
         }
       }
-      _rightUp[basePos].init(magicHigh, magicLow);
+      rightUp_[basePos].init(magicHigh, magicLow);
     }
   }
   for (int rank = 1; rank <= 9; rank++) {
@@ -105,7 +105,7 @@ MagicNumberTable::MagicNumberTable() {
     }
     for (int file = 1; file <= 9; file++) {
       Position pos(file, rank);
-      _rank[pos].init(magicHigh, magicLow);
+      rank_[pos].init(magicHigh, magicLow);
     }
   }
 }
@@ -118,48 +118,48 @@ MovePatternTable::MovePatternTable() {
     for (unsigned b = 0; b < 0x80; b++) {
       // up
       for (Position pos = basePos.safetyUp(); pos.isValid() && pos.getRank() >= 1; pos = pos.safetyUp()) {
-        _up[basePos][b].set(pos);
-        _file[basePos][b].set(pos);
+        up_[basePos][b].set(pos);
+        file_[basePos][b].set(pos);
         if (b & (1 << (pos.getRank() - 2))) { break; }
       }
       // down
       for (Position pos = basePos.safetyDown(); pos.isValid() && pos.getRank() <= 9; pos = pos.safetyDown()) {
-        _down[basePos][b].set(pos);
-        _file[basePos][b].set(pos);
+        down_[basePos][b].set(pos);
+        file_[basePos][b].set(pos);
         if (b & (1 << (pos.getRank() - 2))) { break; }
       }
       // left
       for (Position pos = basePos.safetyLeft(); pos.isValid() && pos.getFile() <= 9; pos = pos.safetyLeft()) {
-        _rank[basePos][b].set(pos);
-        _left[basePos][b].set(pos);
+        rank_[basePos][b].set(pos);
+        left_[basePos][b].set(pos);
         if (b & (1 << (8 - pos.getFile()))) { break; }
       }
       // right
       for (Position pos = basePos.safetyRight(); pos.isValid() && pos.getFile() >= 1; pos = pos.safetyRight()) {
-        _rank[basePos][b].set(pos);
-        _right[basePos][b].set(pos);
+        rank_[basePos][b].set(pos);
+        right_[basePos][b].set(pos);
         if (b & (1 << (8 - pos.getFile()))) { break; }
       }
       // left-up
       for (Position pos = basePos.safetyLeftUp(); pos.isValid() && pos.getFile() <= 9 && pos.getRank() >= 1; pos = pos.safetyLeftUp()) {
-        _leftUpX[basePos][b].set(pos);
-        _leftUp[basePos][b].set(pos);
+        leftUpX_[basePos][b].set(pos);
+        leftUp_[basePos][b].set(pos);
         if (b & (1 << (pos.getRank() - 2))) { break; }
       }
       for (Position pos = basePos.safetyRightDown(); pos.isValid() && pos.getFile() >= 1 && pos.getRank() <= 9; pos = pos.safetyRightDown()) {
-        _leftUpX[basePos][b].set(pos);
-        _rightDown[basePos][b].set(pos);
+        leftUpX_[basePos][b].set(pos);
+        rightDown_[basePos][b].set(pos);
         if (b & (1 << (pos.getRank() - 2))) { break; }
       }
       // right-up
       for (Position pos = basePos.safetyRightUp(); pos.isValid() && pos.getFile() >= 1 && pos.getRank() >= 1; pos = pos.safetyRightUp()) {
-        _rightUpX[basePos][b].set(pos);
-        _rightUp[basePos][b].set(pos);
+        rightUpX_[basePos][b].set(pos);
+        rightUp_[basePos][b].set(pos);
         if (b & (1 << (pos.getRank() - 2))) { break; }
       }
       for (Position pos = basePos.safetyLeftDown(); pos.isValid() && pos.getFile() <= 9 && pos.getRank() <= 9; pos = pos.safetyLeftDown()) {
-        _rightUpX[basePos][b].set(pos);
-        _leftDown[basePos][b].set(pos);
+        rightUpX_[basePos][b].set(pos);
+        leftDown_[basePos][b].set(pos);
         if (b & (1 << (pos.getRank() - 2))) { break; }
       }
     }
@@ -247,7 +247,7 @@ OneStepMoveTable<type>::OneStepMoveTable() {
     default:
       assert(false);
     }
-    _table[pos] = bb;
+    table_[pos] = bb;
   }
 }
 

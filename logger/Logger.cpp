@@ -7,7 +7,7 @@
 
 namespace sunfish {
 
-std::mutex Logger::_mutex;
+std::mutex Logger::mutex_;
 Logger Loggers::error("ERROR");
 Logger Loggers::warning("WARNING");
 Logger Loggers::message;

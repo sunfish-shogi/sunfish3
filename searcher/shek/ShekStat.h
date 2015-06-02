@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __sunfish_ShekStat__
-#define __sunfish_ShekStat__
+#ifndef sunfish_ShekStat__
+#define sunfish_ShekStat__
 
 namespace sunfish {
 
@@ -17,4 +17,4 @@ enum class ShekStat : int {
 
 } // namespace sunfish
 
-#endif // __sunfish_ShekStat__
+#endif // sunfish_ShekStat__

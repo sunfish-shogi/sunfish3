@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_RECORD__
-#define __SUNFISH_RECORD__
+#ifndef SUNFISH_RECORD__
+#define SUNFISH_RECORD__
 
 #include "../board/Board.h"
 #include "../move/Move.h"
@@ -25,30 +25,30 @@ struct RecordInfo {
 class Record {
 private:
 
-  Board _board;
-  std::vector<Move> _moves;
-  unsigned _count;
+  Board board_;
+  std::vector<Move> moves_;
+  unsigned count_;
 
 public:
 
-  Record() : _count(0) {
+  Record() : count_(0) {
   }
-  Record(const Board& board) : _board(board), _count(0) {
+  Record(const Board& board) : board_(board), count_(0) {
   }
-  Record(Board&& board) : _board(std::move(board)), _count(0) {
+  Record(Board&& board) : board_(std::move(board)), count_(0) {
   }
 
   void init(const Board& board) {
-    _board = board;
-    _moves.clear();
-    _moves.shrink_to_fit();
-    _count = 0;
+    board_ = board;
+    moves_.clear();
+    moves_.shrink_to_fit();
+    count_ = 0;
   }
   void init(Board::Handicap handicap) {
-    _board.init(handicap);
-    _moves.clear();
-    _moves.shrink_to_fit();
-    _count = 0;
+    board_.init(handicap);
+    moves_.clear();
+    moves_.shrink_to_fit();
+    count_ = 0;
   }
 
   /**
@@ -70,7 +70,7 @@ public:
    * 現在の局面を取得します。
    */
   const Board& getBoard() const {
-    return _board;
+    return board_;
   }
 
   /**
@@ -82,14 +82,14 @@ public:
    * 先手番かチェックします。
    */
   bool isBlack() const {
-    return _board.isBlack();
+    return board_.isBlack();
   }
 
   /**
    * 先手番かチェックします。
    */
   bool isBlackAt(int i) const {
-    return isBlack() ^ (((int)_count - i) % 2 != 0);
+    return isBlack() ^ (((int)count_ - i) % 2 != 0);
   }
 
   /**
@@ -110,39 +110,39 @@ public:
    * 指し手を返します。
    */
   Move getMoveAt(int i) const {
-    return _moves[i];
+    return moves_[i];
   }
 
   /**
    * 指し手を返します。
    */
   Move getMove() const {
-    return _count >= 1 ? getMoveAt(_count-1) : Move::empty();
+    return count_ >= 1 ? getMoveAt(count_-1) : Move::empty();
   }
 
   /**
    * 次の指し手を返します。
    */
   Move getNextMove() const {
-    return _count < getTotalCount() ? getMoveAt(_count) : Move::empty();
+    return count_ < getTotalCount() ? getMoveAt(count_) : Move::empty();
   }
 
   /**
    * 総手数を返します。
    */
   unsigned getTotalCount() const {
-    return (unsigned)_moves.size();
+    return (unsigned)moves_.size();
   }
 
   /**
    * 現在の手数を返します。
    */
   unsigned getCount() const {
-    return _count;
+    return count_;
   }
 
 };
 
 } // namespace sunfish
 
-#endif //__SUNFISH_RECORD__
+#endif //SUNFISH_RECORD__

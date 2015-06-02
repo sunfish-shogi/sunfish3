@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_SEE__
-#define __SUNFISH_SEE__
+#ifndef SUNFISH_SEE__
+#define SUNFISH_SEE__
 
 #include "core/board/Board.h"
 #include "../eval/Material.h"
@@ -25,12 +25,12 @@ public:
 private:
 
   // 8(近接) + 4(香) + 2(角/馬) + 2(飛/竜)
-  Attacker _b[16];
-  Attacker _w[16];
-  AttackerRef _bref[32];
-  AttackerRef _wref[32];
-  int _bnum;
-  int _wnum;
+  Attacker b_[16];
+  Attacker w_[16];
+  AttackerRef bref_[32];
+  AttackerRef wref_[32];
+  int bnum_;
+  int wnum_;
 
   template <bool shallow, Direction dir, bool isFirst>
   void generateAttacker(const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn, bool shortOnly);
@@ -68,23 +68,23 @@ public:
   void generateAttackers(const Board& board, const Move& move);
 
   const AttackerRef* getBlackList() const {
-    return _bref;
+    return bref_;
   }
 
   int getBlackNum() const {
-    return _bnum;
+    return bnum_;
   }
 
   const AttackerRef* getWhiteList() const {
-    return _wref;
+    return wref_;
   }
 
   int getWhiteNum() const {
-    return _wnum;
+    return wnum_;
   }
 
 };
 
 } // namespace sunfish
 
-#endif // __SUNFISH_SEE__
+#endif // SUNFISH_SEE__

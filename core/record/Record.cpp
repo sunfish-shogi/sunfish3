@@ -13,17 +13,17 @@ namespace sunfish {
 bool Record::makeMove(const Move& move) {
 
   Move mtemp = move;
-  if (!_board.makeMoveStrict(mtemp)) {
+  if (!board_.makeMoveStrict(mtemp)) {
     return false;
   }
 
-  if (_moves.size() <= _count || _moves[_count] != mtemp) {
-    while (_moves.size() > _count) {
-      _moves.pop_back();
+  if (moves_.size() <= count_ || moves_[count_] != mtemp) {
+    while (moves_.size() > count_) {
+      moves_.pop_back();
     }
-    _moves.push_back(mtemp);
+    moves_.push_back(mtemp);
   }
-  _count++;
+  count_++;
 
   return true;
 
@@ -34,15 +34,15 @@ bool Record::makeMove(const Move& move) {
  */
 bool Record::makeMove() {
 
-  if (_count >= _moves.size()) {
+  if (count_ >= moves_.size()) {
     return false;
   }
 
-  Move mtemp = _moves[_count];
-  if (!_board.makeMoveStrict(mtemp)) {
+  Move mtemp = moves_[count_];
+  if (!board_.makeMoveStrict(mtemp)) {
     return false;
   }
-  _count++;
+  count_++;
 
   return true;
 
@@ -53,13 +53,13 @@ bool Record::makeMove() {
  */
 bool Record::unmakeMove() {
 
-  if (_count == 0) {
+  if (count_ == 0) {
     return false;
   }
 
-  const Move& move = _moves[_count-1];
-  if (_board.unmakeMove(move)) {
-    _count--;
+  const Move& move = moves_[count_-1];
+  if (board_.unmakeMove(move)) {
+    count_--;
   } else {
     assert(false);
   }
@@ -72,11 +72,11 @@ bool Record::unmakeMove() {
  * 初期局面を取得します。
  */
 Board Record::getInitialBoard() const {
-  Board board = _board;
-  int count = _count;
+  Board board = board_;
+  int count = count_;
 
   while(count != 0) {
-    const Move& move = _moves[count-1];
+    const Move& move = moves_[count-1];
     board.unmakeMove(move);
     count--;
   }

@@ -35,24 +35,24 @@ namespace sunfish {
 const char* CsaClient::DEFAULT_CONFIG_FILE = "network.conf";
 
 CsaClient::CsaClient() {
-  _configFilename = DEFAULT_CONFIG_FILE;
+  configFilename_ = DEFAULT_CONFIG_FILE;
 
-  _config.addDef(CONF_HOST, "localhost");
-  _config.addDef(CONF_PORT, "4081");
-  _config.addDef(CONF_USER, "test");
-  _config.addDef(CONF_PASS, "");
-  _config.addDef(CONF_DEPTH, "32");
-  _config.addDef(CONF_LIMIT, "10");
-  _config.addDef(CONF_REPEAT, "1");
-  _config.addDef(CONF_WORKER, "1");
-  _config.addDef(CONF_PONDER, "1");
-  _config.addDef(CONF_KEEPALIVE, "1");
-  _config.addDef(CONF_KEEPIDLE, "120");
-  _config.addDef(CONF_KEEPINTVL, "60");
-  _config.addDef(CONF_KEEPCNT, "10");
-  _config.addDef(CONF_FLOODGATE, "0");
-  _config.addDef(CONF_KIFU, "Kifu");
-  _config.addDef(CONF_MONITOR, "");
+  config_.addDef(CONF_HOST, "localhost");
+  config_.addDef(CONF_PORT, "4081");
+  config_.addDef(CONF_USER, "test");
+  config_.addDef(CONF_PASS, "");
+  config_.addDef(CONF_DEPTH, "32");
+  config_.addDef(CONF_LIMIT, "10");
+  config_.addDef(CONF_REPEAT, "1");
+  config_.addDef(CONF_WORKER, "1");
+  config_.addDef(CONF_PONDER, "1");
+  config_.addDef(CONF_KEEPALIVE, "1");
+  config_.addDef(CONF_KEEPIDLE, "120");
+  config_.addDef(CONF_KEEPINTVL, "60");
+  config_.addDef(CONF_KEEPCNT, "10");
+  config_.addDef(CONF_FLOODGATE, "0");
+  config_.addDef(CONF_KIFU, "Kifu");
+  config_.addDef(CONF_MONITOR, "");
 }
 
 const CsaClient::ReceiveFlagSet* CsaClient::getFlagSets() {
@@ -63,7 +63,7 @@ const CsaClient::ReceiveFlagSet* CsaClient::getFlagSets() {
     { Wildcard("%*"), RECV_MOVE_EX, NULL, NULL },
     { Wildcard("+*"), RECV_MOVE_B, NULL, NULL },
     { Wildcard("-*"), RECV_MOVE_W, NULL, NULL },
-    { Wildcard("BEGIN Game_Summary"), RECV_SUMMARY, _recvGameSummary, NULL },
+    { Wildcard("BEGIN Game_Summary"), RECV_SUMMARY, recvGameSummary_, NULL },
     { Wildcard("START:*"), RECV_START, NULL, NULL },
     { Wildcard("REJECT:* by *"), RECV_REJECT, NULL, NULL },
     { Wildcard("#WIN"), RECV_WIN, NULL, "win" },
@@ -88,31 +88,31 @@ const CsaClient::ReceiveFlagSet* CsaClient::getFlagSets() {
  */
 bool CsaClient::execute() {
   // 設定の読み込み
-  if (!_config.read(_configFilename)) {
+  if (!config_.read(configFilename_)) {
     return false;
   }
-  Loggers::message << _config.toString();
+  Loggers::message << config_.toString();
 
   // 通信設定
-  _con.setHost(_config.getString(CONF_HOST));
-  _con.setPort(_config.getInt(CONF_PORT));
-  _con.setKeepalive(_config.getInt(CONF_KEEPALIVE), _config.getInt(CONF_KEEPIDLE),
-  _config.getInt(CONF_KEEPINTVL), _config.getInt(CONF_KEEPCNT));
+  con_.setHost(config_.getString(CONF_HOST));
+  con_.setPort(config_.getInt(CONF_PORT));
+  con_.setKeepalive(config_.getInt(CONF_KEEPALIVE), config_.getInt(CONF_KEEPIDLE),
+  config_.getInt(CONF_KEEPINTVL), config_.getInt(CONF_KEEPCNT));
 
   // 定跡読み込み
-  _book.readFile();
+  book_.readFile();
 
   // 探索設定
-  _searchConfigBase = _searcher.getConfig();
-  _searchConfigBase.maxDepth = _config.getInt(CONF_DEPTH);
-  _searchConfigBase.limitSeconds = _config.getDouble(CONF_LIMIT);
-  _searchConfigBase.enableLimit = _searchConfigBase.limitSeconds != 0.0;
-  _searchConfigBase.workerSize = std::max(_config.getInt(CONF_WORKER), 1);
-  _searchConfigBase.treeSize = Searcher::standardTreeSize(_searchConfigBase.workerSize);
-  _searcher.setConfig(_searchConfigBase);
+  searchConfigBase_ = searcher_.getConfig();
+  searchConfigBase_.maxDepth = config_.getInt(CONF_DEPTH);
+  searchConfigBase_.limitSeconds = config_.getDouble(CONF_LIMIT);
+  searchConfigBase_.enableLimit = searchConfigBase_.limitSeconds != 0.0;
+  searchConfigBase_.workerSize = std::max(config_.getInt(CONF_WORKER), 1);
+  searchConfigBase_.treeSize = Searcher::standardTreeSize(searchConfigBase_.workerSize);
+  searcher_.setConfig(searchConfigBase_);
 
   // 連続対局
-  int repeatCount = _config.getInt(CONF_REPEAT);
+  int repeatCount = config_.getInt(CONF_REPEAT);
   for (int i = 0; i < repeatCount; i++) {
     bool noError = game();
     if (!noError) {
@@ -128,9 +128,9 @@ bool CsaClient::execute() {
  */
 bool CsaClient::game() {
   // 接続を確立
-  if (!_con.connect()) {
-    Loggers::error << "ERROR: can not connect to " << _config.getString(CONF_HOST)
-        << ':' << _config.getInt(CONF_PORT);
+  if (!con_.connect()) {
+    Loggers::error << "ERROR: can not connect to " << config_.getString(CONF_HOST)
+        << ':' << config_.getInt(CONF_PORT);
     return false;
   }
 
@@ -156,11 +156,11 @@ bool CsaClient::game() {
   if (waitGameSummary() && agree()) {
 
     // 棋譜の初期化
-    _record.init(_board);
+    record_.init(board_);
 
     // 残り時間の初期化
-    _blackTime.init(_gameSummary.totalTime, _gameSummary.readoff);
-    _whiteTime.init(_gameSummary.totalTime, _gameSummary.readoff);
+    blackTime_.init(gameSummary_.totalTime, gameSummary_.readoff);
+    whiteTime_.init(gameSummary_.totalTime, gameSummary_.readoff);
 
     while (1) {
       bool ok = nextTurn();
@@ -176,7 +176,7 @@ bool CsaClient::game() {
   logout();
 
 lab_end:
-  _con.disconnect();
+  con_.disconnect();
   receiverThread.join();
 
   return success;
@@ -186,18 +186,18 @@ lab_end:
  * 対局を進める
  */
 bool CsaClient::nextTurn() {
-  std::string monitor = _config.getString(CONF_MONITOR);
+  std::string monitor = config_.getString(CONF_MONITOR);
   if (!monitor.empty()) {
     RecordInfo info = getRecordInfo();
-    CsaWriter::write(monitor, _record, &info);
+    CsaWriter::write(monitor, record_, &info);
   }
 
   // 残り時間を表示
-  Loggers::message << "Time(Black):" << _blackTime.toString();
-  Loggers::message << "Time(White):" << _whiteTime.toString();
+  Loggers::message << "Time(Black):" << blackTime_.toString();
+  Loggers::message << "Time(White):" << whiteTime_.toString();
 
   bool ok;
-  if (_gameSummary.black == _record.isBlack()) {
+  if (gameSummary_.black == record_.isBlack()) {
     // 自分の手番
     ok = myTurn();
   } else {
@@ -210,7 +210,7 @@ bool CsaClient::nextTurn() {
   }
 
   // 指し手を表示
-  Loggers::message << _record.getMove().toString();
+  Loggers::message << record_.getMove().toString();
 
   return true;
 }
@@ -225,9 +225,9 @@ bool CsaClient::myTurn() {
 
   // 定跡検索
   if (!ok) {
-    const auto& board = _record.getBoard();
+    const auto& board = record_.getBoard();
     uint64_t hash = board.getHash();
-    BookResult bookResult = _book.selectRandom(hash);
+    BookResult bookResult = book_.selectRandom(hash);
     if (!bookResult.move.isEmpty() && board.isValidMove(bookResult.move)) {
       myMove.move = bookResult.move;
       myMove.value = Value::Zero;
@@ -239,29 +239,29 @@ bool CsaClient::myTurn() {
 
   // 探索設定
   if (!ok) {
-    auto searchConfig = _searchConfigBase;
+    auto searchConfig = searchConfigBase_;
     buildSearchConfig(searchConfig);
-    _searcher.setConfig(searchConfig);
+    searcher_.setConfig(searchConfig);
 
     // 探索
     Loggers::message << "begin search: limit(sec)=" << searchConfig.limitSeconds;
-    _searcher.setRecord(_record);
-    ok = _searcher.idsearch(_record.getBoard(), myMove.move);
-    _searcher.clearRecord();
+    searcher_.setRecord(record_);
+    ok = searcher_.idsearch(record_.getBoard(), myMove.move);
+    searcher_.clearRecord();
     Loggers::message << "end search";
 
-    Loggers::message << _searcher.getInfoString();
+    Loggers::message << searcher_.getInfoString();
 
     if (ok) {
-      myMove.value = _searcher.getInfo().eval;
-      myMove.pv = _searcher.getInfo().pv;
+      myMove.value = searcher_.getInfo().eval;
+      myMove.pv = searcher_.getInfo().pv;
     }
   }
 
-  if (ok && _record.makeMove(myMove.move)) {
+  if (ok && record_.makeMove(myMove.move)) {
     // 指し手を送信
     std::string recvStr;
-    if (!sendMove(myMove, !_record.getBoard().isBlack(), &recvStr)) {
+    if (!sendMove(myMove, !record_.getBoard().isBlack(), &recvStr)) {
       // TODO: エラーの詳細を出力
       Loggers::error << "ERROR:could not send a move";
       return false;
@@ -269,10 +269,10 @@ bool CsaClient::myTurn() {
 
     // 消費時間の読み込み
     int usedTime = getUsedTime(recvStr);
-    if (_gameSummary.black) {
-      _blackTime.use(usedTime);
+    if (gameSummary_.black) {
+      blackTime_.use(usedTime);
     } else {
-      _whiteTime.use(usedTime);
+      whiteTime_.use(usedTime);
     }
 
   } else {
@@ -289,30 +289,30 @@ bool CsaClient::myTurn() {
  * 相手の手番
  */
 bool CsaClient::enemyTurn() {
-  bool enablePonder = _config.getBool(CONF_PONDER);
+  bool enablePonder = config_.getBool(CONF_PONDER);
 
   std::thread ponderThread;
 
   if (enablePonder) {
     // 相手番中の思考開始
-    _ponderCompleted.store(false);
+    ponderCompleted_.store(false);
     ponderThread = std::thread(std::bind(std::mem_fn(&CsaClient::ponder), this));
   }
 
   // 相手番の指し手を受信
   std::string recvStr;
-  unsigned mask = _gameSummary.black ? RECV_MOVE_W : RECV_MOVE_B;
+  unsigned mask = gameSummary_.black ? RECV_MOVE_W : RECV_MOVE_B;
   unsigned flags = waitReceive(mask | RECV_END_MSK, &recvStr);
 
   if (enablePonder) {
     // 探索が開始されていることを確認
-    while (!_searcher.isRunning() && !_ponderCompleted.load()) {
+    while (!searcher_.isRunning() && !ponderCompleted_.load()) {
       std::this_thread::yield();
     }
 
     // 相手番中の思考終了
     Loggers::message << "force interrupt";
-    _searcher.forceInterrupt();
+    searcher_.forceInterrupt();
     Loggers::message << "join...";
     ponderThread.join();
     Loggers::message << "completed";
@@ -321,18 +321,18 @@ bool CsaClient::enemyTurn() {
   if (flags & mask) {
     // 受信した指し手の読み込み
     Move move;
-    if (!CsaReader::readMove(recvStr.c_str(), _record.getBoard(), move) ||
-        !_record.makeMove(move)) {
+    if (!CsaReader::readMove(recvStr.c_str(), record_.getBoard(), move) ||
+        !record_.makeMove(move)) {
       Loggers::error << "ERROR:illegal move!!";
       return false;
     }
 
     // 消費時間の読み込み
     int usedTime = getUsedTime(recvStr);
-    if (_gameSummary.black) {
-      _whiteTime.use(usedTime);
+    if (gameSummary_.black) {
+      whiteTime_.use(usedTime);
     } else {
-      _blackTime.use(usedTime);
+      blackTime_.use(usedTime);
     }
 
   } else if (flags & RECV_END_MSK) {
@@ -353,24 +353,24 @@ bool CsaClient::enemyTurn() {
  * Ponder
  */
 void CsaClient::ponder() {
-  assert(_ponderCompleted.load() == false);
+  assert(ponderCompleted_.load() == false);
 
   // 相手番探索設定
-  auto searchConfig = _searchConfigBase;
+  auto searchConfig = searchConfigBase_;
   searchConfig.maxDepth = 32;
   searchConfig.enableLimit = false;
   searchConfig.ponder = true;
-  _searcher.setConfig(searchConfig);
+  searcher_.setConfig(searchConfig);
 
   // 探索
   Loggers::message << "begin ponder";
   Move move;
-  _searcher.setRecord(_record);
-  _searcher.idsearch(_record.getBoard(), move);
-  _searcher.clearRecord();
+  searcher_.setRecord(record_);
+  searcher_.idsearch(record_.getBoard(), move);
+  searcher_.clearRecord();
   Loggers::message << "end ponder";
 
-  _ponderCompleted.store(true);
+  ponderCompleted_.store(true);
 }
 
 /**
@@ -379,7 +379,7 @@ void CsaClient::ponder() {
 void CsaClient::buildSearchConfig(Searcher::Config& searchConfig) {
   // 思考時間設定
   if (searchConfig.enableLimit) {
-    const auto& myTime = _gameSummary.black ? _blackTime : _whiteTime;
+    const auto& myTime = gameSummary_.black ? blackTime_ : whiteTime_;
 
     // 次の一手で利用可能な最大時間
     float usableTime = myTime.usable();
@@ -400,7 +400,7 @@ void CsaClient::buildSearchConfig(Searcher::Config& searchConfig) {
 
 bool CsaClient::login() {
   std::ostringstream os;
-  os << "LOGIN " << _config.getString(CONF_USER) << ' ' << _config.getString(CONF_PASS);
+  os << "LOGIN " << config_.getString(CONF_USER) << ' ' << config_.getString(CONF_PASS);
   if (!send(os.str().c_str())) { return false; }
   unsigned response = waitReceive(RECV_LOGIN_MSK);
   return (response & RECV_LOGIN_OK) != 0U;
@@ -426,9 +426,9 @@ bool CsaClient::agree() {
 bool CsaClient::sendMove(const MyMove& myMove, bool black, std::string* str) {
   std::ostringstream oss;
   oss << myMove.move.toStringCsa(black);
-  if (_config.getBool(CONF_FLOODGATE)) {
+  if (config_.getBool(CONF_FLOODGATE)) {
     // 評価値
-    int sign = _gameSummary.black ? 1 : -1;
+    int sign = gameSummary_.black ? 1 : -1;
     oss << ",\'* " << (myMove.value * sign).int32();
     // 読み筋
     oss << ' ' << myMove.pv.toStringCsa(black);
@@ -436,7 +436,7 @@ bool CsaClient::sendMove(const MyMove& myMove, bool black, std::string* str) {
   if (!send(oss.str().c_str())) {
     return false;
   }
-  unsigned mask = _gameSummary.black ? RECV_MOVE_B : RECV_MOVE_W;
+  unsigned mask = gameSummary_.black ? RECV_MOVE_B : RECV_MOVE_W;
   unsigned response = waitReceive(mask | RECV_END_MSK, str);
   return (response & mask) != 0U;
 }
@@ -450,10 +450,10 @@ bool CsaClient::sendResign() {
 unsigned CsaClient::waitReceive(unsigned flags, std::string* str) {
   while (true) {
     {
-      std::lock_guard<std::mutex> lock(_recvMutex);
-      if (!_recvQueue.empty()) {
-        RECV_DATA data = _recvQueue.front();
-        _recvQueue.pop();
+      std::lock_guard<std::mutex> lock(recvMutex_);
+      if (!recvQueue_.empty()) {
+        RECV_DATA data = recvQueue_.front();
+        recvQueue_.pop();
         unsigned masked = data.flag & flags;
         if (masked) {
           if (str != NULL) {
@@ -478,8 +478,8 @@ int CsaClient::getUsedTime(const std::string& recvStr) {
 }
 
 void CsaClient::receiver() {
-  while (_con.receive()) {
-    std::string recvStr = _con.getReceivedString();
+  while (con_.receive()) {
+    std::string recvStr = con_.getReceivedString();
     printReceivedString(recvStr);
     bool ok = enqueue(recvStr);
     if (!ok) {
@@ -494,12 +494,12 @@ bool CsaClient::enqueue(const std::string& recvStr) {
       if (getFlagSets()[i].func != NULL) {
         getFlagSets()[i].func(this);
       }
-      std::lock_guard<std::mutex> lock(_recvMutex);
+      std::lock_guard<std::mutex> lock(recvMutex_);
       RECV_DATA data;
       data.flag = getFlagSets()[i].flag;
       data.str = recvStr;
-      _recvQueue.push(data);
-      _endFlags |= getFlagSets()[i].flag & RECV_END_MSK;
+      recvQueue_.push(data);
+      endFlags_ |= getFlagSets()[i].flag & RECV_END_MSK;
       return true;
     }
   }
@@ -507,8 +507,8 @@ bool CsaClient::enqueue(const std::string& recvStr) {
 }
 
 void CsaClient::recvGameSummary() {
-  while (_con.receive()) {
-    std::string recvStr = _con.getReceivedString();
+  while (con_.receive()) {
+    std::string recvStr = con_.getReceivedString();
     printReceivedString(recvStr);
     bool ok;
     if (recvStr == "BEGIN Time") {
@@ -539,19 +539,19 @@ bool CsaClient::inputGameSummary(std::string recvStr) {
 
   if (key == "Your_Turn") {
     if (value == "+") {
-      _gameSummary.black = true;
+      gameSummary_.black = true;
     } else if (value == "-") {
-      _gameSummary.black = false;
+      gameSummary_.black = false;
     } else {
       Loggers::warning << __FILE_LINE__ << ": unknown value [" << value << "]";
       return false;
     }
   } else if (key == "Game_ID") {
-    _gameSummary.gameId = value;
+    gameSummary_.gameId = value;
   } else if (key == "Name+") {
-    _gameSummary.blackName = value;
+    gameSummary_.blackName = value;
   } else if (key == "Name-") {
-    _gameSummary.whiteName = value;
+    gameSummary_.whiteName = value;
   } else if (key == "Protocol_Version") {
     // TODO
     WARN_IGNORED(key, value);
@@ -577,8 +577,8 @@ bool CsaClient::inputGameSummary(std::string recvStr) {
 }
 
 void CsaClient::recvTime() {
-  while (_con.receive()) {
-    std::string recvStr = _con.getReceivedString();
+  while (con_.receive()) {
+    std::string recvStr = con_.getReceivedString();
     printReceivedString(recvStr);
     if (recvStr == "END Time") {
       return;
@@ -613,10 +613,10 @@ bool CsaClient::inputTime(std::string recvStr) {
     WARN_IGNORED(key, value);
   } else if (key == "Total_Time") {
     // 持ち時間(省略時無制限)
-    _gameSummary.totalTime = std::stoi(value);
+    gameSummary_.totalTime = std::stoi(value);
   } else if (key == "Byoyomi") {
     // 秒読み
-    _gameSummary.readoff = std::stoi(value);
+    gameSummary_.readoff = std::stoi(value);
   } else {
     Loggers::warning << __FILE_LINE__ << ": unknown key [" << key << "]";
     return false;
@@ -625,8 +625,8 @@ bool CsaClient::inputTime(std::string recvStr) {
 }
 
 void CsaClient::recvBoard() {
-  while (_con.receive()) {
-    std::string recvStr = _con.getReceivedString();
+  while (con_.receive()) {
+    std::string recvStr = con_.getReceivedString();
     printReceivedString(recvStr);
     if (recvStr == "END Position") {
       return;
@@ -655,17 +655,17 @@ bool CsaClient::inputBoard(std::string recvStr) {
     }
   }
 
-  return CsaReader::readBoard(recvStr.c_str(), _board);
+  return CsaReader::readBoard(recvStr.c_str(), board_);
 }
 
 RecordInfo CsaClient::getRecordInfo() const {
   return RecordInfo{
-    _gameSummary.gameId,
-    _gameSummary.blackName,
-    _gameSummary.whiteName,
-    _gameSummary.totalTime / 60 / 60,
-    _gameSummary.totalTime / 60 % 60,
-    _gameSummary.readoff,
+    gameSummary_.gameId,
+    gameSummary_.blackName,
+    gameSummary_.whiteName,
+    gameSummary_.totalTime / 60 / 60,
+    gameSummary_.totalTime / 60 % 60,
+    gameSummary_.readoff,
   };
 }
 
@@ -675,26 +675,26 @@ void CsaClient::writeResult() {
   std::ofstream fout("csaClient.csv", std::ios::out | std::ios::app);
   std::ostringstream endStatus;
   for (int i = 0; i < RECV_NUM; i++) {
-    if (_endFlags & getFlagSets()[i].flag) {
+    if (endFlags_ & getFlagSets()[i].flag) {
       endStatus << getFlagSets()[i].name << ' ';
     }
   }
-  fout << _gameSummary.gameId << ','
-      << _gameSummary.blackName << ','
-      << _gameSummary.whiteName << ','
+  fout << gameSummary_.gameId << ','
+      << gameSummary_.blackName << ','
+      << gameSummary_.whiteName << ','
       << endStatus.str() << '\n';
   fout.close();
 
   // 棋譜の保存
-  std::string dir = _config.getString(CONF_KIFU);
+  std::string dir = config_.getString(CONF_KIFU);
   std::ostringstream path;
   path << dir;
   if (dir[dir.length()-1] != '/') {
     path << '/';
   }
-  path << _gameSummary.gameId << ".csa";
+  path << gameSummary_.gameId << ".csa";
   RecordInfo info = getRecordInfo();
-  CsaWriter::write(path.str().c_str(), _record, &info);
+  CsaWriter::write(path.str().c_str(), record_, &info);
 }
 
 } // namespace sunfish

@@ -10,27 +10,27 @@
 namespace sunfish {
 
 void Solver::setProblems(const std::vector<std::string>& problems) {
-  _problems.clear();
-  _problems.reserve(problems.size());
-  _problems = problems;
+  problems_.clear();
+  problems_.reserve(problems.size());
+  problems_ = problems;
 }
 
 void Solver::solve() {
-  for (const auto& problem : _problems) {
+  for (const auto& problem : problems_) {
     solve(problem);
   }
 
-  float correctRatio = (float)_summary.correct / _summary.total;
-  float incorrectRatio = (float)_summary.incorrect / _summary.total;
-  float ignoreRatio = (float)_summary.ignore / _summary.total;
+  float correctRatio = (float)summary_.correct / summary_.total;
+  float incorrectRatio = (float)summary_.incorrect / summary_.total;
+  float ignoreRatio = (float)summary_.ignore / summary_.total;
 
   Loggers::message << "Complete!!";
   Loggers::message << "";
   Loggers::message << "Summary:";
-  Loggers::message << "  total     : " << _summary.total;
-  Loggers::message << "  correct   : " << _summary.correct << " (" << correctRatio * 100.0 << "%)";
-  Loggers::message << "  incorrect : " << _summary.incorrect << " (" << incorrectRatio * 100.0 << "%)";
-  Loggers::message << "  ignore    : " << _summary.ignore << " (" << ignoreRatio * 100.0 << "%)";
+  Loggers::message << "  total     : " << summary_.total;
+  Loggers::message << "  correct   : " << summary_.correct << " (" << correctRatio * 100.0 << "%)";
+  Loggers::message << "  incorrect : " << summary_.incorrect << " (" << incorrectRatio * 100.0 << "%)";
+  Loggers::message << "  ignore    : " << summary_.ignore << " (" << ignoreRatio * 100.0 << "%)";
 }
 
 void Solver::solve(const std::string& problem) {
@@ -38,35 +38,35 @@ void Solver::solve(const std::string& problem) {
   Loggers::message << "[" << problem << "]";
 
   // 棋譜を読み込む
-  if (!CsaReader::read(problem, _record)) {
-    _errors.push_back({ problem, ErrorCode::FILE_READ_ERROR });
-    _summary.ignore++;
+  if (!CsaReader::read(problem, record_)) {
+    errors_.push_back({ problem, ErrorCode::FILE_READ_ERROR });
+    summary_.ignore++;
     Loggers::message << "read error: [" << problem << "]";
     return;
   }
 
   // 不正な手数
-  if (_record.getTotalCount() == 0) {
-    _errors.push_back({ problem, ErrorCode::INVALID_RECORD_LENGTH });
-    _summary.ignore++;
+  if (record_.getTotalCount() == 0) {
+    errors_.push_back({ problem, ErrorCode::INVALID_RECORD_LENGTH });
+    summary_.ignore++;
     Loggers::message << "invalid record: [" << problem << "]";
     return;
   }
 
   // 序盤30手を飛ばす
-  int size = (int)_record.getTotalCount();
+  int size = (int)record_.getTotalCount();
   int startPos = std::max(0, std::min(30, size-30));
 
-  while ((int)_record.getCount() > startPos && _record.unmakeMove())
+  while ((int)record_.getCount() > startPos && record_.unmakeMove())
     ;
 
   while (true) {
-    Move correct = _record.getNextMove();
+    Move correct = record_.getNextMove();
     if (correct.isEmpty()) {
       break;
     }
-    solve(_record.getBoard(), correct);
-    if (!_record.makeMove()) {
+    solve(record_.getBoard(), correct);
+    if (!record_.makeMove()) {
       break;
     }
   }
@@ -78,17 +78,17 @@ void Solver::solve(const Board& board, const Move& correct) {
   Loggers::message << board.toStringCsa();
 
   Move answer;
-  bool ok = _searcher.idsearch(board, answer);
+  bool ok = searcher_.idsearch(board, answer);
 
   bool result;
   if (ok && answer == correct) {
-    _summary.correct++;
+    summary_.correct++;
     result = true;
   } else {
-    _summary.incorrect++;
+    summary_.incorrect++;
     result = false;
   }
-  _summary.total++;
+  summary_.total++;
 
   bool black = board.isBlack();
   Loggers::message << "correct: " << correct.toStringCsa(black);

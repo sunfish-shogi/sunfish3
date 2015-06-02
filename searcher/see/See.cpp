@@ -31,12 +31,12 @@ void See::generateAttacker(const Board& board, const Position& to, const Bitboar
              dir == Direction::RightUp ? MovableTable[piece].leftDown :
              MovableTable[piece].leftUp) {
           if (piece.isBlack()) {
-            _b[_bnum++] = { material::pieceExchange(piece), false, dependOn };
-            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &_b[_bnum-1]); }
+            b_[bnum_++] = { material::pieceExchange(piece), false, dependOn };
+            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &b_[bnum_-1]); }
           } else {
             assert(piece.isWhite());
-            _w[_wnum++] = { material::pieceExchange(piece), false, dependOn };
-            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &_w[_wnum-1]); }
+            w_[wnum_++] = { material::pieceExchange(piece), false, dependOn };
+            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &w_[wnum_-1]); }
           }
         }
         return;
@@ -58,12 +58,12 @@ void See::generateAttacker(const Board& board, const Position& to, const Bitboar
              dir == Direction::RightUp ? LongMovableTable[piece].leftDown :
              LongMovableTable[piece].leftUp) {
           if (piece.isBlack()) {
-            _b[_bnum++] = { material::pieceExchange(piece), false, dependOn };
-            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &_b[_bnum-1]); }
+            b_[bnum_++] = { material::pieceExchange(piece), false, dependOn };
+            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &b_[bnum_-1]); }
           } else {
             assert(piece.isWhite());
-            _w[_wnum++] = { material::pieceExchange(piece), false, dependOn };
-            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &_w[_wnum-1]); }
+            w_[wnum_++] = { material::pieceExchange(piece), false, dependOn };
+            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &w_[wnum_-1]); }
           }
         }
       }
@@ -86,12 +86,12 @@ void See::generateAttacker(const Board& board, const Position& to, const Bitboar
              dir == Direction::Left ? MovableTable[piece].right :
              MovableTable[piece].left) {
           if (piece.isBlack()) {
-            _b[_bnum++] = { material::pieceExchange(piece), false, dependOn };
-            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &_b[_bnum-1]); }
+            b_[bnum_++] = { material::pieceExchange(piece), false, dependOn };
+            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &b_[bnum_-1]); }
           } else {
             assert(piece.isWhite());
-            _w[_wnum++] = { material::pieceExchange(piece), false, dependOn };
-            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &_w[_wnum-1]); }
+            w_[wnum_++] = { material::pieceExchange(piece), false, dependOn };
+            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &w_[wnum_-1]); }
           }
         }
         return;
@@ -113,12 +113,12 @@ void See::generateAttacker(const Board& board, const Position& to, const Bitboar
              dir == Direction::Left ? LongMovableTable[piece].right :
              LongMovableTable[piece].left) {
           if (piece.isBlack()) {
-            _b[_bnum++] = { material::pieceExchange(piece), false, dependOn };
-            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &_b[_bnum-1]); }
+            b_[bnum_++] = { material::pieceExchange(piece), false, dependOn };
+            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &b_[bnum_-1]); }
           } else {
             assert(piece.isWhite());
-            _w[_wnum++] = { material::pieceExchange(piece), false, dependOn };
-            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &_w[_wnum-1]); }
+            w_[wnum_++] = { material::pieceExchange(piece), false, dependOn };
+            if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &w_[wnum_-1]); }
           }
         }
       }
@@ -129,8 +129,8 @@ void See::generateAttacker(const Board& board, const Position& to, const Bitboar
 
 template <bool black>
 void See::generateKnightAttacker(const Board& board, const Position& from) {
-  auto& num = black ? _bnum : _wnum;
-  auto list = black ? _b : _w;
+  auto& num = black ? bnum_ : wnum_;
+  auto list = black ? b_ : w_;
 
   auto piece = board.getBoardPiece(from);
   if ((black && piece == Piece::BKnight) || (!black && piece == Piece::WKnight)) {
@@ -158,8 +158,8 @@ void See::generateAttackers(const Board& board, const Move& move) {
     occ &= ~Bitboard::mask(from);
   }
 
-  _bnum = 0;
-  _wnum = 0;
+  bnum_ = 0;
+  wnum_ = 0;
 
 #define GEN(dirname, except, shortOnly) \
   if (!(except)) { \
@@ -251,39 +251,39 @@ void See::generateAttackers(const Board& board, const Move& move) {
 #undef GEN_HV
 #undef GEN
 
-  assert(_bnum < (int)(sizeof(_b) / sizeof(_b[0])) - 1);
-  assert(_wnum < (int)(sizeof(_w) / sizeof(_w[0])) - 1);
+  assert(bnum_ < (int)(sizeof(b_) / sizeof(b_[0])) - 1);
+  assert(wnum_ < (int)(sizeof(w_) / sizeof(w_[0])) - 1);
   Attacker dummyAttacker;
   dummyAttacker.value = Value::Inf;
 
-  _bref[_bnum] = &dummyAttacker;
-  for (int i = _bnum - 1; i >= 0; i--) {
-    AttackerRef tmp = _bref[i] = &_b[i];
+  bref_[bnum_] = &dummyAttacker;
+  for (int i = bnum_ - 1; i >= 0; i--) {
+    AttackerRef tmp = bref_[i] = &b_[i];
     Value value = tmp->value;
     int j = i + 1;
-    for (; _bref[j]->value < value; j++) {
-      _bref[j-1] = _bref[j];
+    for (; bref_[j]->value < value; j++) {
+      bref_[j-1] = bref_[j];
     }
-    _bref[j-1] = tmp;
+    bref_[j-1] = tmp;
   }
 
-  _wref[_wnum] = &dummyAttacker;
-  for (int i = _wnum - 1; i >= 0; i--) {
-    AttackerRef tmp = _wref[i] = &_w[i];
+  wref_[wnum_] = &dummyAttacker;
+  for (int i = wnum_ - 1; i >= 0; i--) {
+    AttackerRef tmp = wref_[i] = &w_[i];
     Value value = tmp->value;
     int j = i + 1;
-    for (; _wref[j]->value < value; j++) {
-      _wref[j-1] = _wref[j];
+    for (; wref_[j]->value < value; j++) {
+      wref_[j-1] = wref_[j];
     }
-    _wref[j-1] = tmp;
+    wref_[j-1] = tmp;
   }
 
 }
 
 Value See::search(bool black, Value value, Value alpha, Value beta) {
 
-  auto ref = black ? _bref : _wref;
-  int num = black ? _bnum : _wnum;
+  auto ref = black ? bref_ : wref_;
+  int num = black ? bnum_ : wnum_;
 
   for (int i = 0; i < num; i++) {
     auto att = ref[i];

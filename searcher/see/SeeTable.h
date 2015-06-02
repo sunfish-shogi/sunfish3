@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_SEETABLE__
-#define __SUNFISH_SEETABLE__
+#ifndef SUNFISH_SEETABLE__
+#define SUNFISH_SEETABLE__
 
 #include "SeeEntity.h"
 #include "../table/HashTable.h"
@@ -32,4 +32,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_SEETABLE__
+#endif // SUNFISH_SEETABLE__

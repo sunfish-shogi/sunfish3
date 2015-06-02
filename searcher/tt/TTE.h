@@ -3,8 +3,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef __SUNFISH_TTE__
-#define __SUNFISH_TTE__
+#ifndef SUNFISH_TTE__
+#define SUNFISH_TTE__
 
 #include "../eval/Value.h"
 #include "../tree/NodeStat.h"
@@ -169,17 +169,17 @@ class TTEs {
 private:
 
   static CONSTEXPR uint32_t Size = 4;
-  TTE _slots[Size];
-  volatile uint32_t _lastAccess;
+  TTE slots_[Size];
+  volatile uint32_t lastAccess_;
 
 public:
 
-  TTEs() : _lastAccess(0) {
+  TTEs() : lastAccess_(0) {
   }
 
   void init(uint32_t) {
     for (uint32_t i = 0; i < Size; i++) {
-      _slots[i].init();
+      slots_[i].init();
     }
   }
 
@@ -190,4 +190,4 @@ public:
 
 } // namespace sunfish
 
-#endif // __SUNFISH_TTE__
+#endif // SUNFISH_TTE__

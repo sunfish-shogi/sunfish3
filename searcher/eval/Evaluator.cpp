@@ -117,8 +117,8 @@ bool Feature<T>::readFile(const char* filename) {
     return false;
   }
 
-  file.read((char*)_t->kpp, sizeof(_t->kpp));
-  file.read((char*)_t->kkp, sizeof(_t->kkp));
+  file.read((char*)t_->kpp, sizeof(t_->kpp));
+  file.read((char*)t_->kkp, sizeof(t_->kkp));
 
 
   file.close();
@@ -138,8 +138,8 @@ bool Feature<T>::writeFile(const char* filename) const {
     return false;
   }
 
-  file.write((const char*)_t->kpp, sizeof(_t->kpp));
-  file.write((const char*)_t->kkp, sizeof(_t->kkp));
+  file.write((const char*)t_->kpp, sizeof(t_->kpp));
+  file.write((const char*)t_->kkp, sizeof(t_->kkp));
 
   file.close();
 
@@ -379,17 +379,17 @@ U Feature<T>::extract(const Board& board, U delta) {
 #define ON_HAND(piece, pieceL, index) { \
   int count = board.getBlackHand(Piece::piece); \
   if (update) { \
-    _t->kkp[bking][wking][KKP_H ## pieceL+count] += ValueType(delta); \
+    t_->kkp[bking][wking][KKP_H ## pieceL+count] += ValueType(delta); \
   } else { \
-    positional += _t->kkp[bking][wking][KKP_H ## pieceL+count]; \
+    positional += t_->kkp[bking][wking][KKP_H ## pieceL+count]; \
   } \
   bList[index] = KPP_HB ## pieceL + count; \
   wList[index+1] = KPP_HW ## pieceL + count; \
   count = board.getWhiteHand(Piece::piece); \
   if (update) { \
-    _t->kkp[wkingR][bkingR][KKP_H ## pieceL+count] -= ValueType(delta); \
+    t_->kkp[wkingR][bkingR][KKP_H ## pieceL+count] -= ValueType(delta); \
   } else { \
-    positional -= _t->kkp[wkingR][bkingR][KKP_H ## pieceL+count]; \
+    positional -= t_->kkp[wkingR][bkingR][KKP_H ## pieceL+count]; \
   } \
   bList[index+1] = KPP_HW ## pieceL + count; \
   wList[index] = KPP_HB ## pieceL + count; \
@@ -410,9 +410,9 @@ U Feature<T>::extract(const Board& board, U delta) {
   auto bb = (blackBB); \
   BB_EACH_OPE(pos, bb, { \
     if (update) { \
-      _t->kkp[bking][wking][KKP_B ## pieceL+POS_INDEX_B(pos)] += ValueType(delta); \
+      t_->kkp[bking][wking][KKP_B ## pieceL+POS_INDEX_B(pos)] += ValueType(delta); \
     } else { \
-      positional += _t->kkp[bking][wking][KKP_B ## pieceL+POS_INDEX_B(pos)]; \
+      positional += t_->kkp[bking][wking][KKP_B ## pieceL+POS_INDEX_B(pos)]; \
     } \
     bList[num++] = KPP_BB ## pieceL + POS_INDEX_B(pos); \
     wTemp[nTemp++] = KPP_BW ## pieceL + POS_INDEX_W(pos.reverse()); \
@@ -420,9 +420,9 @@ U Feature<T>::extract(const Board& board, U delta) {
   bb = (whiteBB); \
   BB_EACH_OPE(pos, bb, { \
     if (update) { \
-      _t->kkp[wkingR][bkingR][KKP_B ## pieceL+POS_INDEX_B(pos.reverse())] -= ValueType(delta); \
+      t_->kkp[wkingR][bkingR][KKP_B ## pieceL+POS_INDEX_B(pos.reverse())] -= ValueType(delta); \
     } else { \
-      positional -= _t->kkp[wkingR][bkingR][KKP_B ## pieceL+POS_INDEX_B(pos.reverse())]; \
+      positional -= t_->kkp[wkingR][bkingR][KKP_B ## pieceL+POS_INDEX_B(pos.reverse())]; \
     } \
     bList[num++] = KPP_BW ## pieceL + POS_INDEX_W(pos); \
     wTemp[nTemp++] = KPP_BB ## pieceL + POS_INDEX_B(pos.reverse()); \
@@ -454,11 +454,11 @@ U Feature<T>::extract(const Board& board, U delta) {
       assert(by <= bx);
       assert(wy <= wx);
       if (update) {
-        _t->kpp[bking][kpp_index(bx, by)] += ValueType(delta);
-        _t->kpp[wkingR][kpp_index(wx, wy)] -= ValueType(delta);
+        t_->kpp[bking][kpp_index(bx, by)] += ValueType(delta);
+        t_->kpp[wkingR][kpp_index(wx, wy)] -= ValueType(delta);
       } else {
-        positional += _t->kpp[bking][kpp_index(bx, by)];
-        positional -= _t->kpp[wkingR][kpp_index(wx, wy)];
+        positional += t_->kpp[bking][kpp_index(bx, by)];
+        positional -= t_->kpp[wkingR][kpp_index(wx, wy)];
       }
     }
   }
@@ -499,17 +499,17 @@ Evaluator::Evaluator(Evaluator& ref) : Feature<int16_t>(ref) {
 }
 
 void Evaluator::init() {
-  memset(_t->kpp, 0, sizeof(_t->kpp));
-  memset(_t->kkp, 0, sizeof(_t->kkp));
+  memset(t_->kpp, 0, sizeof(t_->kpp));
+  memset(t_->kkp, 0, sizeof(t_->kkp));
 }
 
 void Evaluator::initRandom() {
   Random random;
   for (int i = 0; i < KPP_ALL; i++) {
-    _t->kpp[0][i] = (int16_t)(random.getInt32() % 21) - 10;
+    t_->kpp[0][i] = (int16_t)(random.getInt32() % 21) - 10;
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    _t->kkp[0][0][i] = (int16_t)(random.getInt32() % 21) - 10;
+    t_->kkp[0][0][i] = (int16_t)(random.getInt32() % 21) - 10;
   }
 }
 
@@ -554,8 +554,8 @@ std::shared_ptr<Evaluator::Table> Evaluator::readFvBin() {
   std::shared_ptr<Table> fvbin_ptr = std::make_shared<Table>();
   auto fvbin = fvbin_ptr.get();
 
-  file.read((char*)fvbin->kpp, sizeof(_t->kpp));
-  file.read((char*)fvbin->kkp, sizeof(_t->kkp));
+  file.read((char*)fvbin->kpp, sizeof(t_->kpp));
+  file.read((char*)fvbin->kkp, sizeof(t_->kkp));
 
   file.close();
 
@@ -569,10 +569,10 @@ void Evaluator::convertFromFvBin(Table* fvbin) {
 
 #if CONV_ERROR_CHECK
   for (int i = 0; i < KPP_ALL; i++) {
-    _t->kpp[0][i] = (int16_t)0x7fff;
+    t_->kpp[0][i] = (int16_t)0x7fff;
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    _t->kkp[0][0][i] = (int16_t)0x7fff;
+    t_->kkp[0][0][i] = (int16_t)0x7fff;
   }
 #endif
 
@@ -587,7 +587,7 @@ void Evaluator::convertFromFvBin(Table* fvbin) {
         int by = convertKppIndex4FvBin(y);
         int index = kpp_index(x, y);
         int bonaIndex = bx >= by ? kpp_index(bx, by) : kpp_index(by, bx);
-        _t->kpp[king][index] = fvbin->kpp[bona][bonaIndex];
+        t_->kpp[king][index] = fvbin->kpp[bona][bonaIndex];
       }
     }
   }
@@ -602,19 +602,19 @@ void Evaluator::convertFromFvBin(Table* fvbin) {
 
       for (int index = 0; index < KKP_MAX; index++) {
         int bonaIndex = convertKkpIndex4FvBin(index);
-        _t->kkp[bking][wking][index] = fvbin->kkp[bbona][wbona][bonaIndex];
+        t_->kkp[bking][wking][index] = fvbin->kkp[bbona][wbona][bonaIndex];
       }
     }
   }
 
 #if CONV_ERROR_CHECK
   for (int i = 0; i < KPP_ALL; i++) {
-    if (_t->kpp[0][i] == (int16_t)0x7fff) {
+    if (t_->kpp[0][i] == (int16_t)0x7fff) {
       Loggers::error << "error kpp " << i;
     }
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    if (_t->kkp[0][0][i] == (int16_t)0x7fff) {
+    if (t_->kkp[0][0][i] == (int16_t)0x7fff) {
       Loggers::error << "error kkp " << i;
     }
   }
@@ -626,7 +626,7 @@ void Evaluator::convertFromFvBin(Table* fvbin) {
  * 局面の駒割りを算出します。
  * @param board
  */
-Value Evaluator::_evaluateMaterial(const Board& board) const {
+Value Evaluator::evaluateMaterial_(const Board& board) const {
   Value material = Value::Zero;
 
   material += material::Pawn * board.getBPawn().count();
@@ -680,11 +680,11 @@ Value Evaluator::_evaluateMaterial(const Board& board) const {
  * 局面の評価値を算出します。
  * @param board
  */
-Value Evaluator::_evaluate(const Board& board) {
+Value Evaluator::evaluate_(const Board& board) {
   Value positional = extract<int32_t, false>(board, 0);
 
 #if ENABLE_HASHTABLE
-  _evaluateCache.set(board.getNoTurnHash(), positional);
+  evaluateCache_.set(board.getNoTurnHash(), positional);
 #endif
 
   return positional;
@@ -697,7 +697,7 @@ Value Evaluator::_evaluate(const Board& board) {
  * @param move
  */
 template <bool black>
-ValuePair Evaluator::_evaluateDiff(const Board& board, const ValuePair& prevValuePair, const Move& move) {
+ValuePair Evaluator::evaluateDiff_(const Board& board, const ValuePair& prevValuePair, const Move& move) {
 
   Value material = prevValuePair.material();;
   Value positional;
@@ -708,7 +708,7 @@ ValuePair Evaluator::_evaluateDiff(const Board& board, const ValuePair& prevValu
 
   // ハッシュ表から引く
 #if ENABLE_HASHTABLE
-  if (_evaluateCache.get(board.getNoTurnHash(), positional)) {
+  if (evaluateCache_.get(board.getNoTurnHash(), positional)) {
     if (!captured.isEmpty()) {
       if (black) {
         material += material::pieceExchange(captured);
@@ -745,7 +745,7 @@ ValuePair Evaluator::_evaluateDiff(const Board& board, const ValuePair& prevValu
       }
     }
 #endif
-    return ValuePair(material, _evaluate(board));
+    return ValuePair(material, evaluate_(board));
   }
 
   positional = prevValuePair.positional();
@@ -775,15 +775,15 @@ ValuePair Evaluator::_evaluateDiff(const Board& board, const ValuePair& prevValu
     if (black) {
       int num = board.getBlackHand(piece);
       int kkpIndex = kkpHandIndex(piece) + num;
-      positional += _t->kkp[bking][wking][kkpIndex];
-      positional -= _t->kkp[bking][wking][kkpIndex+1];
+      positional += t_->kkp[bking][wking][kkpIndex];
+      positional -= t_->kkp[bking][wking][kkpIndex+1];
       kppIndexFromB = kppHandIndex<true>(piece) + num;
       kppIndexFromW = kppHandIndex<false>(piece) + num;
     } else {
       int num = board.getWhiteHand(piece);
       int kkpIndex = kkpHandIndex(piece) + num;
-      positional -= _t->kkp[wkingR][bkingR][kkpIndex];
-      positional += _t->kkp[wkingR][bkingR][kkpIndex+1];
+      positional -= t_->kkp[wkingR][bkingR][kkpIndex];
+      positional += t_->kkp[wkingR][bkingR][kkpIndex+1];
       kppIndexFromB = kppHandIndex<false>(piece) + num;
       kppIndexFromW = kppHandIndex<true>(piece) + num;
     }
@@ -791,11 +791,11 @@ ValuePair Evaluator::_evaluateDiff(const Board& board, const ValuePair& prevValu
     // 盤上の駒を動かした場合
     auto from = move.from();
     if (black) {
-      positional -= _t->kkp[bking][wking][kkpBoardIndex(piece, from)];
+      positional -= t_->kkp[bking][wking][kkpBoardIndex(piece, from)];
       kppIndexFromB = kppBoardIndex<true>(piece, from);
       kppIndexFromW = kppBoardIndex<false>(piece, from.reverse());
     } else {
-      positional += _t->kkp[wkingR][bkingR][kkpBoardIndex(piece, from.reverse())];
+      positional += t_->kkp[wkingR][bkingR][kkpBoardIndex(piece, from.reverse())];
       kppIndexFromB = kppBoardIndex<false>(piece, from);
       kppIndexFromW = kppBoardIndex<true>(piece, from.reverse());
     }
@@ -807,24 +807,24 @@ ValuePair Evaluator::_evaluateDiff(const Board& board, const ValuePair& prevValu
     if (black) {
       material += material::piecePromote(piece);
       auto promoted = piece.promote();
-      positional += _t->kkp[bking][wking][kkpBoardIndex(promoted, to)];
+      positional += t_->kkp[bking][wking][kkpBoardIndex(promoted, to)];
       kppIndexToB = kppBoardIndex<true>(promoted, to);
       kppIndexToW = kppBoardIndex<false>(promoted, to.reverse());
     } else {
       material -= material::piecePromote(piece);
       auto promoted = piece.promote();
-      positional -= _t->kkp[wkingR][bkingR][kkpBoardIndex(promoted, to.reverse())];
+      positional -= t_->kkp[wkingR][bkingR][kkpBoardIndex(promoted, to.reverse())];
       kppIndexToB = kppBoardIndex<false>(promoted, to);
       kppIndexToW = kppBoardIndex<true>(promoted, to.reverse());
     }
   } else {
     // 成らなかった場合
     if (black) {
-      positional += _t->kkp[bking][wking][kkpBoardIndex(piece, to)];
+      positional += t_->kkp[bking][wking][kkpBoardIndex(piece, to)];
       kppIndexToB = kppBoardIndex<true>(piece, to);
       kppIndexToW = kppBoardIndex<false>(piece, to.reverse());
     } else {
-      positional -= _t->kkp[wkingR][bkingR][kkpBoardIndex(piece, to.reverse())];
+      positional -= t_->kkp[wkingR][bkingR][kkpBoardIndex(piece, to.reverse())];
       kppIndexToB = kppBoardIndex<false>(piece, to);
       kppIndexToW = kppBoardIndex<true>(piece, to.reverse());
     }
@@ -834,12 +834,12 @@ ValuePair Evaluator::_evaluateDiff(const Board& board, const ValuePair& prevValu
   if (!captured.isEmpty()) {
     if (black) {
       material += material::pieceExchange(captured);
-      positional += _t->kkp[wkingR][bkingR][kkpBoardIndex(captured, to.reverse())];
+      positional += t_->kkp[wkingR][bkingR][kkpBoardIndex(captured, to.reverse())];
       kppIndexCapturedB = kppBoardIndex<false>(captured, to);
       kppIndexCapturedW = kppBoardIndex<true>(captured, to.reverse());
     } else {
       material -= material::pieceExchange(captured);
-      positional -= _t->kkp[bking][wking][kkpBoardIndex(captured, to)];
+      positional -= t_->kkp[bking][wking][kkpBoardIndex(captured, to)];
       kppIndexCapturedB = kppBoardIndex<true>(captured, to);
       kppIndexCapturedW = kppBoardIndex<false>(captured, to.reverse());
     }
@@ -847,15 +847,15 @@ ValuePair Evaluator::_evaluateDiff(const Board& board, const ValuePair& prevValu
     if (black) {
       int num = board.getBlackHand(hand);
       int kkpIndex = kkpHandIndex(hand) + num;
-      positional += _t->kkp[bking][wking][kkpIndex];
-      positional -= _t->kkp[bking][wking][kkpIndex-1];
+      positional += t_->kkp[bking][wking][kkpIndex];
+      positional -= t_->kkp[bking][wking][kkpIndex-1];
       kppIndexCapHandB = kppHandIndex<true>(hand) + num;
       kppIndexCapHandW = kppHandIndex<false>(hand) + num;
     } else {
       int num = board.getWhiteHand(hand);
       int kkpIndex = kkpHandIndex(hand) + num;
-      positional -= _t->kkp[wkingR][bkingR][kkpIndex];
-      positional += _t->kkp[wkingR][bkingR][kkpIndex-1];
+      positional -= t_->kkp[wkingR][bkingR][kkpIndex];
+      positional += t_->kkp[wkingR][bkingR][kkpIndex-1];
       kppIndexCapHandB = kppHandIndex<false>(hand) + num;
       kppIndexCapHandW = kppHandIndex<true>(hand) + num;
     }
@@ -922,70 +922,70 @@ ValuePair Evaluator::_evaluateDiff(const Board& board, const ValuePair& prevValu
       int b = bList[i];
       int w = wList[i];
       // 持ち駒の現在の数
-      positional += _t->kpp[bking][kpp_index_safe(b, kppIndexFromB)];
-      positional -= _t->kpp[wkingR][kpp_index_safe(w, kppIndexFromW)];
+      positional += t_->kpp[bking][kpp_index_safe(b, kppIndexFromB)];
+      positional -= t_->kpp[wkingR][kpp_index_safe(w, kppIndexFromW)];
       // 持ち駒の元の数
-      positional -= _t->kpp[bking][kpp_index_safe(b, kppIndexFromB+1)];
-      positional += _t->kpp[wkingR][kpp_index_safe(w, kppIndexFromW+1)];
+      positional -= t_->kpp[bking][kpp_index_safe(b, kppIndexFromB+1)];
+      positional += t_->kpp[wkingR][kpp_index_safe(w, kppIndexFromW+1)];
       // 移動先の駒
-      positional += _t->kpp[bking][kpp_index_safe(b, kppIndexToB)];
-      positional -= _t->kpp[wkingR][kpp_index_safe(w, kppIndexToW)];
+      positional += t_->kpp[bking][kpp_index_safe(b, kppIndexToB)];
+      positional -= t_->kpp[wkingR][kpp_index_safe(w, kppIndexToW)];
       // 現在の局面では存在しないはずのインデクス
       assert(b != kppIndexFromB+1);
       assert(w != kppIndexFromW+1);
     }
     // 2重に足している特徴の組み合わせ(ループ内で足しすぎているので引く)
-    positional -= _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexToB)];
-    positional += _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexToW)];
+    positional -= t_->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexToB)];
+    positional += t_->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexToW)];
     // 前の局面に存在しなかった特徴の組み合わせ(ループ内で引きすぎている分を足す)
-    positional += _t->kpp[bking][kpp_index(kppIndexFromB+1, kppIndexFromB)];
-    positional += _t->kpp[bking][kpp_index_safe(kppIndexFromB+1, kppIndexToB)];
-    positional -= _t->kpp[wkingR][kpp_index(kppIndexFromW+1, kppIndexFromW)];
-    positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexFromW+1, kppIndexToW)];
+    positional += t_->kpp[bking][kpp_index(kppIndexFromB+1, kppIndexFromB)];
+    positional += t_->kpp[bking][kpp_index_safe(kppIndexFromB+1, kppIndexToB)];
+    positional -= t_->kpp[wkingR][kpp_index(kppIndexFromW+1, kppIndexFromW)];
+    positional -= t_->kpp[wkingR][kpp_index_safe(kppIndexFromW+1, kppIndexToW)];
     // 前の局面にしか存在しない特徴の組み合わせ(現局面には存在しないので引く)
-    positional -= _t->kpp[bking][kpp_index(kppIndexFromB+1, kppIndexFromB+1)];
-    positional += _t->kpp[wkingR][kpp_index(kppIndexFromW+1, kppIndexFromW+1)];
+    positional -= t_->kpp[bking][kpp_index(kppIndexFromB+1, kppIndexFromB+1)];
+    positional += t_->kpp[wkingR][kpp_index(kppIndexFromW+1, kppIndexFromW+1)];
   } else if (captured.isEmpty()) {
     // 駒を取らずに盤上の駒を移動した場合
     for (int i = 0; i < num; i++) {
       int b = bList[i];
       int w = wList[i];
       // 移動元の駒
-      positional -= _t->kpp[bking][kpp_index_safe(b, kppIndexFromB)];
-      positional += _t->kpp[wkingR][kpp_index_safe(w, kppIndexFromW)];
+      positional -= t_->kpp[bking][kpp_index_safe(b, kppIndexFromB)];
+      positional += t_->kpp[wkingR][kpp_index_safe(w, kppIndexFromW)];
       // 移動先の駒
-      positional += _t->kpp[bking][kpp_index_safe(b, kppIndexToB)];
-      positional -= _t->kpp[wkingR][kpp_index_safe(w, kppIndexToW)];
+      positional += t_->kpp[bking][kpp_index_safe(b, kppIndexToB)];
+      positional -= t_->kpp[wkingR][kpp_index_safe(w, kppIndexToW)];
       // 現在の局面では存在しないはずのインデクス
       assert(b != kppIndexFromB);
       assert(w != kppIndexFromW);
     }
     // 前の局面に存在しなかった特徴の組み合わせ(ループ内で引きすぎている分を足す)
-    positional += _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexToB)];
-    positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexToW)];
+    positional += t_->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexToB)];
+    positional -= t_->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexToW)];
     // 前の局面にしか存在しない特徴の組み合わせ(現局面には存在しないので引く)
-    positional -= _t->kpp[bking][kpp_index(kppIndexFromB, kppIndexFromB)];
-    positional += _t->kpp[wkingR][kpp_index(kppIndexFromW, kppIndexFromW)];
+    positional -= t_->kpp[bking][kpp_index(kppIndexFromB, kppIndexFromB)];
+    positional += t_->kpp[wkingR][kpp_index(kppIndexFromW, kppIndexFromW)];
   } else {
     // 駒を取った場合
     for (int i = 0; i < num; i++) {
       int b = bList[i];
       int w = wList[i];
       // 移動元の駒
-      positional -= _t->kpp[bking][kpp_index_safe(b, kppIndexFromB)];
-      positional += _t->kpp[wkingR][kpp_index_safe(w, kppIndexFromW)];
+      positional -= t_->kpp[bking][kpp_index_safe(b, kppIndexFromB)];
+      positional += t_->kpp[wkingR][kpp_index_safe(w, kppIndexFromW)];
       // 移動先の駒
-      positional += _t->kpp[bking][kpp_index_safe(b, kppIndexToB)];
-      positional -= _t->kpp[wkingR][kpp_index_safe(w, kppIndexToW)];
+      positional += t_->kpp[bking][kpp_index_safe(b, kppIndexToB)];
+      positional -= t_->kpp[wkingR][kpp_index_safe(w, kppIndexToW)];
       // 取られた駒
-      positional -= _t->kpp[bking][kpp_index_safe(b, kppIndexCapturedB)];
-      positional += _t->kpp[wkingR][kpp_index_safe(w, kppIndexCapturedW)];
+      positional -= t_->kpp[bking][kpp_index_safe(b, kppIndexCapturedB)];
+      positional += t_->kpp[wkingR][kpp_index_safe(w, kppIndexCapturedW)];
       // 持ち駒の現在の数
-      positional += _t->kpp[bking][kpp_index_safe(b, kppIndexCapHandB)];
-      positional -= _t->kpp[wkingR][kpp_index_safe(w, kppIndexCapHandW)];
+      positional += t_->kpp[bking][kpp_index_safe(b, kppIndexCapHandB)];
+      positional -= t_->kpp[wkingR][kpp_index_safe(w, kppIndexCapHandW)];
       // 持ち駒の元の数
-      positional -= _t->kpp[bking][kpp_index_safe(b, kppIndexCapHandB-1)];
-      positional += _t->kpp[wkingR][kpp_index_safe(w, kppIndexCapHandW-1)];
+      positional -= t_->kpp[bking][kpp_index_safe(b, kppIndexCapHandB-1)];
+      positional += t_->kpp[wkingR][kpp_index_safe(w, kppIndexCapHandW-1)];
       // 現在の局面では存在しないはずのインデクス
       assert(b != kppIndexFromB);
       assert(w != kppIndexFromW);
@@ -995,46 +995,46 @@ ValuePair Evaluator::_evaluateDiff(const Board& board, const ValuePair& prevValu
       assert(w != kppIndexCapHandW-1);
     }
     // 2重に足している特徴の組み合わせ(ループ内で足しすぎているので引く)
-    positional -= _t->kpp[bking][kpp_index(kppIndexToB, kppIndexCapHandB)];
-    positional += _t->kpp[wkingR][kpp_index(kppIndexToW, kppIndexCapHandW)];
+    positional -= t_->kpp[bking][kpp_index(kppIndexToB, kppIndexCapHandB)];
+    positional += t_->kpp[wkingR][kpp_index(kppIndexToW, kppIndexCapHandW)];
     // 前の局面に存在しなかった特徴の組み合わせ(ループ内で引きすぎている分を足す)
-    positional += _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexToB)];
-    positional += _t->kpp[bking][kpp_index(kppIndexFromB, kppIndexCapHandB)];
-    positional += _t->kpp[bking][kpp_index_safe(kppIndexCapturedB, kppIndexToB)];
-    positional += _t->kpp[bking][kpp_index(kppIndexCapturedB, kppIndexCapHandB)];
-    positional += _t->kpp[bking][kpp_index(kppIndexToB, kppIndexCapHandB-1)];
-    positional += _t->kpp[bking][kpp_index(kppIndexCapHandB, kppIndexCapHandB-1)];
-    positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexToW)];
-    positional -= _t->kpp[wkingR][kpp_index(kppIndexFromW, kppIndexCapHandW)];
-    positional -= _t->kpp[wkingR][kpp_index_safe(kppIndexCapturedW, kppIndexToW)];
-    positional -= _t->kpp[wkingR][kpp_index(kppIndexCapturedW, kppIndexCapHandW)];
-    positional -= _t->kpp[wkingR][kpp_index(kppIndexToW, kppIndexCapHandW-1)];
-    positional -= _t->kpp[wkingR][kpp_index(kppIndexCapHandW, kppIndexCapHandW-1)];
+    positional += t_->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexToB)];
+    positional += t_->kpp[bking][kpp_index(kppIndexFromB, kppIndexCapHandB)];
+    positional += t_->kpp[bking][kpp_index_safe(kppIndexCapturedB, kppIndexToB)];
+    positional += t_->kpp[bking][kpp_index(kppIndexCapturedB, kppIndexCapHandB)];
+    positional += t_->kpp[bking][kpp_index(kppIndexToB, kppIndexCapHandB-1)];
+    positional += t_->kpp[bking][kpp_index(kppIndexCapHandB, kppIndexCapHandB-1)];
+    positional -= t_->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexToW)];
+    positional -= t_->kpp[wkingR][kpp_index(kppIndexFromW, kppIndexCapHandW)];
+    positional -= t_->kpp[wkingR][kpp_index_safe(kppIndexCapturedW, kppIndexToW)];
+    positional -= t_->kpp[wkingR][kpp_index(kppIndexCapturedW, kppIndexCapHandW)];
+    positional -= t_->kpp[wkingR][kpp_index(kppIndexToW, kppIndexCapHandW-1)];
+    positional -= t_->kpp[wkingR][kpp_index(kppIndexCapHandW, kppIndexCapHandW-1)];
     // 前の局面にしか存在しない特徴の組み合わせ(現局面には存在しないので引く)
-    positional -= _t->kpp[bking][kpp_index(kppIndexFromB, kppIndexFromB)];
-    positional -= _t->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexCapturedB)];
-    positional -= _t->kpp[bking][kpp_index(kppIndexFromB, kppIndexCapHandB-1)];
-    positional -= _t->kpp[bking][kpp_index(kppIndexCapturedB, kppIndexCapturedB)];
-    positional -= _t->kpp[bking][kpp_index(kppIndexCapturedB, kppIndexCapHandB-1)];
-    positional -= _t->kpp[bking][kpp_index(kppIndexCapHandB-1, kppIndexCapHandB-1)];
-    positional += _t->kpp[wkingR][kpp_index(kppIndexFromW, kppIndexFromW)];
-    positional += _t->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexCapturedW)];
-    positional += _t->kpp[wkingR][kpp_index(kppIndexFromW, kppIndexCapHandW-1)];
-    positional += _t->kpp[wkingR][kpp_index(kppIndexCapturedW, kppIndexCapturedW)];
-    positional += _t->kpp[wkingR][kpp_index(kppIndexCapturedW, kppIndexCapHandW-1)];
-    positional += _t->kpp[wkingR][kpp_index(kppIndexCapHandW-1, kppIndexCapHandW-1)];
+    positional -= t_->kpp[bking][kpp_index(kppIndexFromB, kppIndexFromB)];
+    positional -= t_->kpp[bking][kpp_index_safe(kppIndexFromB, kppIndexCapturedB)];
+    positional -= t_->kpp[bking][kpp_index(kppIndexFromB, kppIndexCapHandB-1)];
+    positional -= t_->kpp[bking][kpp_index(kppIndexCapturedB, kppIndexCapturedB)];
+    positional -= t_->kpp[bking][kpp_index(kppIndexCapturedB, kppIndexCapHandB-1)];
+    positional -= t_->kpp[bking][kpp_index(kppIndexCapHandB-1, kppIndexCapHandB-1)];
+    positional += t_->kpp[wkingR][kpp_index(kppIndexFromW, kppIndexFromW)];
+    positional += t_->kpp[wkingR][kpp_index_safe(kppIndexFromW, kppIndexCapturedW)];
+    positional += t_->kpp[wkingR][kpp_index(kppIndexFromW, kppIndexCapHandW-1)];
+    positional += t_->kpp[wkingR][kpp_index(kppIndexCapturedW, kppIndexCapturedW)];
+    positional += t_->kpp[wkingR][kpp_index(kppIndexCapturedW, kppIndexCapHandW-1)];
+    positional += t_->kpp[wkingR][kpp_index(kppIndexCapHandW-1, kppIndexCapHandW-1)];
   }
 #endif // ENABLE_KPP
 
 #if ENABLE_HASHTABLE
-  _evaluateCache.set(board.getNoTurnHash(), positional);
+  evaluateCache_.set(board.getNoTurnHash(), positional);
 #endif
 
   return ValuePair(material, positional);
 
 }
-template ValuePair Evaluator::_evaluateDiff<true>(const Board&, const ValuePair&, const Move&);
-template ValuePair Evaluator::_evaluateDiff<false>(const Board&, const ValuePair&, const Move&);
+template ValuePair Evaluator::evaluateDiff_<true>(const Board&, const ValuePair&, const Move&);
+template ValuePair Evaluator::evaluateDiff_<false>(const Board&, const ValuePair&, const Move&);
 
 /**
  * 評価値の変化を推定します。
@@ -1042,13 +1042,13 @@ template ValuePair Evaluator::_evaluateDiff<false>(const Board&, const ValuePair
  * @param move
  */
 template <bool black, bool isKing, bool positionalOnly>
-Value Evaluator::_estimate(const Board& board, const Move& move) {
+Value Evaluator::estimate_(const Board& board, const Move& move) {
 
   Value value;
 
 #if ENABLE_HASHTABLE
   uint64_t hash = board.getHash() ^ (uint64_t)Move::serialize(move);
-  if (_estimateCache.get(hash, value)) {
+  if (estimateCache_.get(hash, value)) {
     return value;
   }
 #endif
@@ -1075,44 +1075,44 @@ Value Evaluator::_estimate(const Board& board, const Move& move) {
     if (black) {
       int num = board.getBlackHand(piece);
       int kkpIndex = kkpHandIndex(piece) + num;
-      positional += _t->kkp[bking][wking][kkpIndex];
-      positional -= _t->kkp[bking][wking][kkpIndex+1];
+      positional += t_->kkp[bking][wking][kkpIndex];
+      positional -= t_->kkp[bking][wking][kkpIndex+1];
       int kppIndexB = kppHandIndex<true>(piece) + num;
-      positional += _t->kpp[bking][kpp_index(kppIndexB)];
-      positional -= _t->kpp[bking][kpp_index(kppIndexB+1)];
+      positional += t_->kpp[bking][kpp_index(kppIndexB)];
+      positional -= t_->kpp[bking][kpp_index(kppIndexB+1)];
       int kppIndexW = kppHandIndex<false>(piece) + num;
-      positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
-      positional += _t->kpp[wkingR][kpp_index(kppIndexW+1)];
+      positional -= t_->kpp[wkingR][kpp_index(kppIndexW)];
+      positional += t_->kpp[wkingR][kpp_index(kppIndexW+1)];
     } else {
       int num = board.getWhiteHand(piece);
       int kkpIndex = kkpHandIndex(piece) + num;
-      positional -= _t->kkp[wkingR][bkingR][kkpIndex];
-      positional += _t->kkp[wkingR][bkingR][kkpIndex+1];
+      positional -= t_->kkp[wkingR][bkingR][kkpIndex];
+      positional += t_->kkp[wkingR][bkingR][kkpIndex+1];
       int kppIndexB = kppHandIndex<false>(piece) + num;
-      positional += _t->kpp[bking][kpp_index(kppIndexB)];
-      positional -= _t->kpp[bking][kpp_index(kppIndexB+1)];
+      positional += t_->kpp[bking][kpp_index(kppIndexB)];
+      positional -= t_->kpp[bking][kpp_index(kppIndexB+1)];
       int kppIndexW = kppHandIndex<true>(piece) + num;
-      positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
-      positional += _t->kpp[wkingR][kpp_index(kppIndexW+1)];
+      positional -= t_->kpp[wkingR][kpp_index(kppIndexW)];
+      positional += t_->kpp[wkingR][kpp_index(kppIndexW+1)];
     }
   } else {
     // 盤上の駒を動かした場合
     auto from = move.from();
     if (black) {
       if (!isKing) {
-        positional -= _t->kkp[bking][wking][kkpBoardIndex(piece, from)];
+        positional -= t_->kkp[bking][wking][kkpBoardIndex(piece, from)];
         int kppIndexB = kppBoardIndex<true>(piece, from);
-        positional += _t->kpp[bking][kpp_index(kppIndexB)];
+        positional += t_->kpp[bking][kpp_index(kppIndexB)];
         int kppIndexW = kppBoardIndex<false>(piece, from.reverse());
-        positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
+        positional -= t_->kpp[wkingR][kpp_index(kppIndexW)];
       }
     } else {
       if (!isKing) {
-        positional += _t->kkp[wkingR][bkingR][kkpBoardIndex(piece, from.reverse())];
+        positional += t_->kkp[wkingR][bkingR][kkpBoardIndex(piece, from.reverse())];
         int kppIndexB = kppBoardIndex<false>(piece, from);
-        positional += _t->kpp[bking][kpp_index(kppIndexB)];
+        positional += t_->kpp[bking][kpp_index(kppIndexB)];
         int kppIndexW = kppBoardIndex<true>(piece, from.reverse());
-        positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
+        positional -= t_->kpp[wkingR][kpp_index(kppIndexW)];
       }
     }
   }
@@ -1123,37 +1123,37 @@ Value Evaluator::_estimate(const Board& board, const Move& move) {
     if (black) {
       if (!positionalOnly) { material += material::piecePromote(piece); }
       auto promoted = piece.promote();
-      positional += _t->kkp[bking][wking][kkpBoardIndex(promoted, to)];
+      positional += t_->kkp[bking][wking][kkpBoardIndex(promoted, to)];
       int kppIndexB = kppBoardIndex<true>(promoted, to);
-      positional += _t->kpp[bking][kpp_index(kppIndexB)];
+      positional += t_->kpp[bking][kpp_index(kppIndexB)];
       int kppIndexW = kppBoardIndex<false>(promoted, to.reverse());
-      positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
+      positional -= t_->kpp[wkingR][kpp_index(kppIndexW)];
     } else {
       if (!positionalOnly) { material -= material::piecePromote(piece); }
       auto promoted = piece.promote();
-      positional -= _t->kkp[wkingR][bkingR][kkpBoardIndex(promoted, to.reverse())];
+      positional -= t_->kkp[wkingR][bkingR][kkpBoardIndex(promoted, to.reverse())];
       int kppIndexB = kppBoardIndex<false>(promoted, to);
-      positional -= _t->kpp[bking][kpp_index(kppIndexB)];
+      positional -= t_->kpp[bking][kpp_index(kppIndexB)];
       int kppIndexW = kppBoardIndex<true>(promoted, to.reverse());
-      positional += _t->kpp[wkingR][kpp_index(kppIndexW)];
+      positional += t_->kpp[wkingR][kpp_index(kppIndexW)];
     }
   } else {
     // 成らなかった場合
     if (black) {
       if (!isKing) {
-        positional += _t->kkp[bking][wking][kkpBoardIndex(piece, to)];
+        positional += t_->kkp[bking][wking][kkpBoardIndex(piece, to)];
         int kppIndexB = kppBoardIndex<true>(piece, to);
-        positional += _t->kpp[bking][kpp_index(kppIndexB)];
+        positional += t_->kpp[bking][kpp_index(kppIndexB)];
         int kppIndexW = kppBoardIndex<false>(piece, to.reverse());
-        positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
+        positional -= t_->kpp[wkingR][kpp_index(kppIndexW)];
       }
     } else {
       if (!isKing) {
-        positional -= _t->kkp[wkingR][bkingR][kkpBoardIndex(piece, to.reverse())];
+        positional -= t_->kkp[wkingR][bkingR][kkpBoardIndex(piece, to.reverse())];
         int kppIndexB = kppBoardIndex<false>(piece, to);
-        positional -= _t->kpp[bking][kpp_index(kppIndexB)];
+        positional -= t_->kpp[bking][kpp_index(kppIndexB)];
         int kppIndexW = kppBoardIndex<true>(piece, to.reverse());
-        positional += _t->kpp[wkingR][kpp_index(kppIndexW)];
+        positional += t_->kpp[wkingR][kpp_index(kppIndexW)];
       }
     }
   }
@@ -1162,42 +1162,42 @@ Value Evaluator::_estimate(const Board& board, const Move& move) {
   if (!captured.isEmpty()) {
     if (black) {
       if (!positionalOnly) { material += material::pieceExchange(captured); }
-      positional += _t->kkp[wkingR][bkingR][kkpBoardIndex(captured, to.reverse())];
+      positional += t_->kkp[wkingR][bkingR][kkpBoardIndex(captured, to.reverse())];
       int kppIndexB = kppBoardIndex<false>(captured, to);
-      positional += _t->kpp[bking][kpp_index(kppIndexB)];
+      positional += t_->kpp[bking][kpp_index(kppIndexB)];
       int kppIndexW = kppBoardIndex<true>(captured, to.reverse());
-      positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
+      positional -= t_->kpp[wkingR][kpp_index(kppIndexW)];
     } else {
       if (!positionalOnly) { material -= material::pieceExchange(captured); }
-      positional -= _t->kkp[bking][wking][kkpBoardIndex(captured, to)];
+      positional -= t_->kkp[bking][wking][kkpBoardIndex(captured, to)];
       int kppIndexB = kppBoardIndex<true>(captured, to);
-      positional -= _t->kpp[bking][kpp_index(kppIndexB)];
+      positional -= t_->kpp[bking][kpp_index(kppIndexB)];
       int kppIndexW = kppBoardIndex<false>(captured, to.reverse());
-      positional += _t->kpp[wkingR][kpp_index(kppIndexW)];
+      positional += t_->kpp[wkingR][kpp_index(kppIndexW)];
     }
     auto hand = captured.hand();
     if (black) {
       int num = board.getBlackHand(hand);
       int kkpIndex = kkpHandIndex(hand) + num;
-      positional += _t->kkp[bking][wking][kkpIndex];
-      positional -= _t->kkp[bking][wking][kkpIndex-1];
+      positional += t_->kkp[bking][wking][kkpIndex];
+      positional -= t_->kkp[bking][wking][kkpIndex-1];
       int kppIndexB = kppHandIndex<true>(hand) + num;
-      positional += _t->kpp[bking][kpp_index(kppIndexB)];
-      positional -= _t->kpp[bking][kpp_index(kppIndexB-1)];
+      positional += t_->kpp[bking][kpp_index(kppIndexB)];
+      positional -= t_->kpp[bking][kpp_index(kppIndexB-1)];
       int kppIndexW = kppHandIndex<false>(hand) + num;
-      positional -= _t->kpp[wkingR][kpp_index(kppIndexW)];
-      positional += _t->kpp[wkingR][kpp_index(kppIndexW-1)];
+      positional -= t_->kpp[wkingR][kpp_index(kppIndexW)];
+      positional += t_->kpp[wkingR][kpp_index(kppIndexW-1)];
     } else {
       int num = board.getWhiteHand(hand);
       int kkpIndex = kkpHandIndex(hand) + num;
-      positional -= _t->kkp[wkingR][bkingR][kkpIndex];
-      positional += _t->kkp[wkingR][bkingR][kkpIndex-1];
+      positional -= t_->kkp[wkingR][bkingR][kkpIndex];
+      positional += t_->kkp[wkingR][bkingR][kkpIndex-1];
       int kppIndexB = kppHandIndex<false>(hand) + num;
-      positional -= _t->kpp[bking][kpp_index(kppIndexB)];
-      positional += _t->kpp[bking][kpp_index(kppIndexB-1)];
+      positional -= t_->kpp[bking][kpp_index(kppIndexB)];
+      positional += t_->kpp[bking][kpp_index(kppIndexB-1)];
       int kppIndexW = kppHandIndex<true>(hand) + num;
-      positional += _t->kpp[wkingR][kpp_index(kppIndexW)];
-      positional -= _t->kpp[wkingR][kpp_index(kppIndexW-1)];
+      positional += t_->kpp[wkingR][kpp_index(kppIndexW)];
+      positional -= t_->kpp[wkingR][kpp_index(kppIndexW-1)];
     }
   }
 
@@ -1205,19 +1205,19 @@ Value Evaluator::_estimate(const Board& board, const Move& move) {
   value = black ? valuePair.value() : -valuePair.value();
 
 #if ENABLE_HASHTABLE
-  _estimateCache.set(hash, value);
+  estimateCache_.set(hash, value);
 #endif
 
   return value;
 }
-template Value Evaluator::_estimate<true, true, true>(const Board& board, const Move& move);
-template Value Evaluator::_estimate<true, false, true>(const Board& board, const Move& move);
-template Value Evaluator::_estimate<false, true, true>(const Board& board, const Move& move);
-template Value Evaluator::_estimate<false, false, true>(const Board& board, const Move& move);
-template Value Evaluator::_estimate<true, true, false>(const Board& board, const Move& move);
-template Value Evaluator::_estimate<true, false, false>(const Board& board, const Move& move);
-template Value Evaluator::_estimate<false, true, false>(const Board& board, const Move& move);
-template Value Evaluator::_estimate<false, false, false>(const Board& board, const Move& move);
+template Value Evaluator::estimate_<true, true, true>(const Board& board, const Move& move);
+template Value Evaluator::estimate_<true, false, true>(const Board& board, const Move& move);
+template Value Evaluator::estimate_<false, true, true>(const Board& board, const Move& move);
+template Value Evaluator::estimate_<false, false, true>(const Board& board, const Move& move);
+template Value Evaluator::estimate_<true, true, false>(const Board& board, const Move& move);
+template Value Evaluator::estimate_<true, false, false>(const Board& board, const Move& move);
+template Value Evaluator::estimate_<false, true, false>(const Board& board, const Move& move);
+template Value Evaluator::estimate_<false, false, false>(const Board& board, const Move& move);
 
 template class Feature<int16_t>;
 template class Feature<float>;
