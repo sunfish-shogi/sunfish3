@@ -277,6 +277,7 @@ bool Learn::miniBatch() {
 
   float elapsed = timer_.get();
   Loggers::message << "elapsed: " << elapsed;
+  Loggers::message << "unprocessed jobs: " << jobs_.size();
 
   count_++;
 
