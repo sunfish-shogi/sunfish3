@@ -24,7 +24,7 @@
 
 #define SEARCH_WINDOW           256
 #define NUMBER_OF_SIBLING_NODES 16
-#define MINI_BATCH_COUNT        128
+#define MINI_BATCH_COUNT        256
 #define MINI_BATCH_SCALE        ((1.0f * ValuePair::PositionalScale) / (NUMBER_OF_SIBLING_NODES * MINI_BATCH_COUNT))
 
 #define ENABLE_THREAD_PAIRING   0
