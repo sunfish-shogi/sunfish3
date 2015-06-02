@@ -284,6 +284,11 @@ public:
     return *t_;
   }
 
+  void clearCache() {
+    evaluateCache_.init();
+    estimateCache_.init();
+  }
+
 };
 
 } // namespace sunfish

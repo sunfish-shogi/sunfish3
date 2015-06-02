@@ -119,6 +119,8 @@ void Learn::genGradient(int wn, const Job& job) {
   // シャッフル
   std::shuffle(moves.begin(), moves.end(), rgens_[wn]);
 
+  searchers_[wn]->clearHistory();
+
   // 棋譜の手
   {
     // 探索
@@ -281,9 +283,11 @@ bool Learn::miniBatch() {
 
   count_++;
 
-  // TT を初期化
+  // ハッシュ表を初期化
+  eval_.clearCache();
   for (uint32_t wn = 0; wn < nt_; wn++) {
     searchers_[wn]->clearTT();
+    searchers_[wn]->clearSeeCache(); // 駒割りを学習しないなら関係ない
   }
 
   return true;

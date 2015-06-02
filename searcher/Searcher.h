@@ -397,6 +397,10 @@ public:
     tt_.init();
   }
 
+  void clearSeeCache() {
+    seeCache_.init();
+  }
+
   /**
    * historyをクリアします。
    */
