@@ -70,11 +70,11 @@ namespace {
     CONSTEXPR float a = 0.025f;
     CONSTEXPR float b = 32.0f * MINI_BATCH_SCALE;
     float s = sigmoid(a * x);
-    return (1.0f * s - s * s) * b;
+    return (1.0f * s - s * s) * (4.0f * b);
   }
 
   inline float norm(float x) {
-    CONSTEXPR float n = 0.005f * MINI_BATCH_SCALE;
+    CONSTEXPR float n = 0.01f * MINI_BATCH_SCALE;
     if (x > 0.0f) {
       return -n;
     } else if (x < 0.0f) {
