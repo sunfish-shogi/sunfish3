@@ -143,6 +143,10 @@ public:
     return a >= Value(0) ? a : -a;
   }
 
+  static Value ave(const Value& a, const Value& b) {
+    return (a + b) / 2;
+  }
+
   static void swap(Value& val1, Value& val2) {
     Value temp = val1;
     val1 = val2;

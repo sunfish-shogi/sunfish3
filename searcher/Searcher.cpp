@@ -2334,7 +2334,7 @@ bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta,
   auto& tree0 = trees_[0];
 
   bool hasPrevVal = pval != nullptr && (*pval != -Value::Inf);
-  Value baseVal = hasPrevVal ? *pval : 0;
+  Value baseVal = hasPrevVal ? *pval : Value::ave(baseAlpha, baseBeta);
   baseVal = Value::max(baseVal, baseAlpha);
   baseVal = Value::min(baseVal, baseBeta);
 
