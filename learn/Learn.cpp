@@ -147,6 +147,7 @@ void Learn::genGradient(int wn, const Job& job) {
 
   // その他の手
   int nmove = 0;
+  int nerr = 0;
   float gsum = 0;
   for (auto& move : moves) {
     // 探索
@@ -164,6 +165,10 @@ void Learn::genGradient(int wn, const Job& job) {
 
     // window を外れた場合は除外
     if (val <= alpha || val >= beta) {
+      nerr++;
+      if (nmove == 0 && nerr >= 16) {
+        break;
+      }
       continue;
     }
 
@@ -185,7 +190,7 @@ void Learn::genGradient(int wn, const Job& job) {
     }
   }
 
-  {
+  if (nmove != 0) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     // leaf 局面

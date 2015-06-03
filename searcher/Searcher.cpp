@@ -2513,12 +2513,12 @@ bool Searcher::idsearch(Move& best, Value alpha, Value beta) {
     storePV(tree0, tree0.getPV(), 0);
 #endif // ENABLE_STORE_PV
 
-    if (value >= Value::Mate) {
+    if (value >= beta) {
       result = true;
       break;
     }
 
-    if (value <= -Value::Mate) {
+    if (value <= alpha) {
       result = false;
       break;
     }
