@@ -49,61 +49,61 @@ namespace sunfish {
 
 namespace expt {
 
-  class PruningCounter {
-    uint64_t succ_[64];
-    uint64_t fail_[64];
-    int index(int depth) const {
-      return std::min(std::max(depth / Searcher::Depth1Ply, 0), 64);
-    }
-  public:
-    void clear() {
-      memset(succ_, 0, sizeof(succ_));
-      memset(fail_, 0, sizeof(fail_));
-    }
-    void succ(int depth) {
-      succ_[index(depth)]++;
-    }
-    void fail(int depth) {
-      fail_[index(depth)]++;
-    }
-    uint64_t succ(int depth) const {
-      return succ_[index(depth)];
-    }
-    uint64_t fail(int depth) const {
-      return fail_[index(depth)];
-    }
-    void print() const {
-      for (int i = 0; i < 64; i++) {
-        uint64_t s = succ_[i];
-        uint64_t f = fail_[i];
-        if (s != 0 || f != 0) {
-          float r = (float)f / (s + f) * 100.0;
-          Loggers::warning << "  " << i << ": " << f << "/" << (s+f) << " (" << r << "%)";
-        }
+class PruningCounter {
+  uint64_t succ_[64];
+  uint64_t fail_[64];
+  int index(int depth) const {
+    return std::min(std::max(depth / Searcher::Depth1Ply, 0), 64);
+  }
+public:
+  void clear() {
+    memset(succ_, 0, sizeof(succ_));
+    memset(fail_, 0, sizeof(fail_));
+  }
+  void succ(int depth) {
+    succ_[index(depth)]++;
+  }
+  void fail(int depth) {
+    fail_[index(depth)]++;
+  }
+  uint64_t succ(int depth) const {
+    return succ_[index(depth)];
+  }
+  uint64_t fail(int depth) const {
+    return fail_[index(depth)];
+  }
+  void print() const {
+    for (int i = 0; i < 64; i++) {
+      uint64_t s = succ_[i];
+      uint64_t f = fail_[i];
+      if (s != 0 || f != 0) {
+        float r = (float)f / (s + f) * 100.0;
+        Loggers::warning << "  " << i << ": " << f << "/" << (s+f) << " (" << r << "%)";
       }
     }
-  };
+  }
+};
 
 #if ENABLE_MOVE_COUNT_EXPT
-  uint64_t count_sum;
-  uint64_t count_num;
-  PruningCounter move_count_based_pruning;
+uint64_t count_sum;
+uint64_t count_num;
+PruningCounter move_count_based_pruning;
 #endif
 #if ENABLE_FUT_EXPT
-  PruningCounter futility_pruning;
+PruningCounter futility_pruning;
 #endif
 #if ENABLE_RAZOR_EXPT
-  PruningCounter razoring;
+PruningCounter razoring;
 #endif
 #if ENABLE_PROBCUT_EXPT
-  PruningCounter probcut;
+PruningCounter probcut;
 #endif
 #if ENABLE_MATE_HIST_EXPT
-  PruningCounter mate_hist;
-  PruningCounter mate_hist_n;
+PruningCounter mate_hist;
+PruningCounter mate_hist_n;
 #endif
 
-}
+} // namespace expt
 
 namespace search_param {
 

@@ -33,58 +33,58 @@ namespace sunfish {
 
 namespace {
 
-  void initSearcherConfig(Searcher& searcher, int snt) {
-    auto searchConfig = searcher.getConfig();
-    searchConfig.workerSize = snt;
-    searchConfig.treeSize = Searcher::standardTreeSize(snt);
-    searchConfig.enableLimit = false;
-    searchConfig.enableTimeManagement = false;
-    searchConfig.ponder = false;
-    searchConfig.logging = false;
-    searcher.setConfig(searchConfig);
-  }
-
-  void setSearcherDepth(Searcher& searcher, int depth) {
-    auto searchConfig = searcher.getConfig();
-    searchConfig.maxDepth = depth;
-    searcher.setConfig(searchConfig);
-  }
-
-  Board getPVLeaf(const Board& root, const Move& rmove, const PV& pv) {
-    Board board = root;
-    board.makeMoveIrr(rmove);
-    for (int d = 0; d < pv.size(); d++) {
-      Move move = pv.get(d).move;
-      if (move.isEmpty() || !board.makeMove(move)) {
-        break;
-      }
-    }
-    return board;
-  }
-
-  inline float sigmoid(float x) {
-    return 1.0f / (1.0f + std::exp(-x));
-  }
-
-  inline float gradient(float x) {
-    CONSTEXPR float a = 0.025f;
-    CONSTEXPR float b = 32.0f * MINI_BATCH_SCALE;
-    float s = sigmoid(a * x);
-    return (1.0f * s - s * s) * (4.0f * b);
-  }
-
-  inline float norm(float x) {
-    CONSTEXPR float n = 0.01f * MINI_BATCH_SCALE;
-    if (x > 0.0f) {
-      return -n;
-    } else if (x < 0.0f) {
-      return n;
-    } else {
-      return 0.0f;
-    }
-  }
-
+void initSearcherConfig(Searcher& searcher, int snt) {
+  auto searchConfig = searcher.getConfig();
+  searchConfig.workerSize = snt;
+  searchConfig.treeSize = Searcher::standardTreeSize(snt);
+  searchConfig.enableLimit = false;
+  searchConfig.enableTimeManagement = false;
+  searchConfig.ponder = false;
+  searchConfig.logging = false;
+  searcher.setConfig(searchConfig);
 }
+
+void setSearcherDepth(Searcher& searcher, int depth) {
+  auto searchConfig = searcher.getConfig();
+  searchConfig.maxDepth = depth;
+  searcher.setConfig(searchConfig);
+}
+
+Board getPVLeaf(const Board& root, const Move& rmove, const PV& pv) {
+  Board board = root;
+  board.makeMoveIrr(rmove);
+  for (int d = 0; d < pv.size(); d++) {
+    Move move = pv.get(d).move;
+    if (move.isEmpty() || !board.makeMove(move)) {
+      break;
+    }
+  }
+  return board;
+}
+
+inline float sigmoid(float x) {
+  return 1.0f / (1.0f + std::exp(-x));
+}
+
+inline float gradient(float x) {
+  CONSTEXPR float a = 0.025f;
+  CONSTEXPR float b = 32.0f * MINI_BATCH_SCALE;
+  float s = sigmoid(a * x);
+  return (1.0f * s - s * s) * (4.0f * b);
+}
+
+inline float norm(float x) {
+  CONSTEXPR float n = 0.01f * MINI_BATCH_SCALE;
+  if (x > 0.0f) {
+    return -n;
+  } else if (x < 0.0f) {
+    return n;
+  } else {
+    return 0.0f;
+  }
+}
+
+} // namespace
 
 /**
  * コンストラクタ
@@ -436,6 +436,6 @@ bool Learn::run() {
   return true;
 }
 
-}
+} // namespace sunfish
 
 #endif // NLEARN
