@@ -49,7 +49,9 @@ private:
 
   std::vector<std::unique_ptr<Searcher>> searchers_;
 
-  uint32_t count_;
+  uint32_t miniBatchCount_;
+
+  uint32_t miniBatchScale_;
 
   FV g_;
 

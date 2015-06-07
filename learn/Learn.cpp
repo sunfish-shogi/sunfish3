@@ -11,6 +11,7 @@
 #include "core/util/FileList.h"
 #include "core/def.h"
 #include "logger/Logger.h"
+#include "searcher/progress/Progression.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -22,10 +23,15 @@
 
 #define CONFPATH                "learn.conf"
 
-#define SEARCH_WINDOW           256
+#define MAX_HINGE_MARGIN        256
+#define MIN_HINGE_MARGIN        10
 #define NUMBER_OF_SIBLING_NODES 16
-#define MINI_BATCH_COUNT        256
-#define MINI_BATCH_SCALE        ((1.0f * ValuePair::PositionalScale) / (NUMBER_OF_SIBLING_NODES * MINI_BATCH_COUNT))
+#define MINI_BATCH_LENGTH       256
+
+#define BACKUP_CYCLE            20
+#define BACKUP_E_NAME           "_e.bin"
+#define BACKUP_W_NAME           "_w.bin"
+#define BACKUP_U_NAME           "_u.bin"
 
 #define ENABLE_THREAD_PAIRING   0
 
@@ -62,19 +68,20 @@ Board getPVLeaf(const Board& root, const Move& rmove, const PV& pv) {
   return board;
 }
 
-inline float sigmoid(float x) {
-  return 1.0f / (1.0f + std::exp(-x));
+inline int hingeMargin(const Board& board) {
+  float prog = (float)Progression::evaluate(board) / Progression::Scale;
+  float margin = MIN_HINGE_MARGIN + (MAX_HINGE_MARGIN - MIN_HINGE_MARGIN) * prog;
+  assert(margin >= MIN_HINGE_MARGIN);
+  assert(margin <= MAX_HINGE_MARGIN);
+  return std::round(margin);
 }
 
-inline float gradient(float x) {
-  CONSTEXPR float a = 0.025f;
-  CONSTEXPR float b = 32.0f * MINI_BATCH_SCALE;
-  float s = sigmoid(a * x);
-  return (1.0f * s - s * s) * (4.0f * b);
+inline float gradient() {
+  return 1.0f * ValuePair::PositionalScale;
 }
 
 inline float norm(float x) {
-  CONSTEXPR float n = 0.01f * MINI_BATCH_SCALE;
+  CONSTEXPR float n = 0.01f * ValuePair::PositionalScale;
   if (x > 0.0f) {
     return -n;
   } else if (x < 0.0f) {
@@ -82,6 +89,23 @@ inline float norm(float x) {
   } else {
     return 0.0f;
   }
+}
+
+inline void update(FV::ValueType& g,
+    FV::ValueType& w,
+    FV::ValueType& u,
+    Evaluator::ValueType& e,
+    uint32_t miniBatchScale,
+    uint32_t miniBatchCount,
+    float& max, float& magnitude) {
+  float f = g + norm(w);
+  f /= miniBatchScale;
+  g = 0.0f;
+  w += f;
+  u += f * miniBatchCount;
+  e = w;
+  max = std::max(max, std::abs(w));
+  magnitude += std::abs(w);
 }
 
 } // namespace
@@ -142,8 +166,8 @@ void Learn::genGradient(int wn, const Job& job) {
   }
 
   // 棋譜の手の評価値から window を決定
-  Value alpha = -val0 - SEARCH_WINDOW;
-  Value beta = -val0 + SEARCH_WINDOW;
+  Value alpha = -val0 - hingeMargin(board);
+  Value beta = Value::Mate;
 
   // その他の手
   int nmove = 0;
@@ -176,11 +200,11 @@ void Learn::genGradient(int wn, const Job& job) {
     Board leaf = getPVLeaf(board, move, pv);
 
     // 特徴抽出
-    float g = gradient(val.int32() - val0.int32());
-    g = g * (black ? 1 : -1);
+    float g = gradient() * (black ? 1 : -1);
     {
       std::lock_guard<std::mutex> lock(mutex_);
       g_.extract<float, true>(leaf, -g);
+      miniBatchScale_++;
     }
     gsum += g;
 
@@ -232,16 +256,18 @@ void Learn::work(int wn) {
  */
 bool Learn::miniBatch() {
 
-  if (jobs_.size() < MINI_BATCH_COUNT) {
+  if (jobs_.size() < MINI_BATCH_LENGTH) {
     return false;
   }
 
-  Loggers::message << "mini-bach (" << count_ << ")";
+  Loggers::message << "mini-bach (" << miniBatchCount_ << ")";
+
+  miniBatchScale_ = 0;
 
   {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    for (int i = 0; i < MINI_BATCH_COUNT; i++) {
+    for (int i = 0; i < MINI_BATCH_LENGTH; i++) {
       jobQueue_.push(jobs_.back());
       jobs_.pop_back();
     }
@@ -262,22 +288,22 @@ bool Learn::miniBatch() {
   float max = 0.0f;
   float magnitude = 0.0f;
   for (int i = 0; i < KPP_ALL; i++) {
-    float g = g_.t_->kpp[0][i] + norm(w_.t_->kpp[0][i]);
-    g_.t_->kpp[0][i] = 0.0f;
-    w_.t_->kpp[0][i] += g;
-    u_.t_->kpp[0][i] += g * count_;
-    eval_.t_->kpp[0][i] = w_.t_->kpp[0][i];
-    max = std::max(max, std::abs(w_.t_->kpp[0][i]));
-    magnitude += std::abs(w_.t_->kpp[0][i]);
+    update(g_.t_->kpp[0][i],
+        w_.t_->kpp[0][i],
+        u_.t_->kpp[0][i],
+        eval_.t_->kpp[0][i],
+        miniBatchScale_,
+        miniBatchCount_,
+        max, magnitude);
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    float g = g_.t_->kkp[0][0][i] + norm(w_.t_->kkp[0][0][i]);
-    g_.t_->kkp[0][0][i] = 0.0f;
-    w_.t_->kkp[0][0][i] += g;
-    u_.t_->kkp[0][0][i] += g * count_;
-    eval_.t_->kkp[0][0][i] = w_.t_->kkp[0][0][i];
-    max = std::max(max, std::abs(w_.t_->kkp[0][0][i]));
-    magnitude += std::abs(w_.t_->kkp[0][0][i]);
+    update(g_.t_->kkp[0][0][i],
+        w_.t_->kkp[0][0][i],
+        u_.t_->kkp[0][0][i],
+        eval_.t_->kkp[0][0][i],
+        miniBatchScale_,
+        miniBatchCount_,
+        max, magnitude);
   }
 
   Loggers::message << "max=" << max << " magnitude=" << magnitude;
@@ -286,7 +312,7 @@ bool Learn::miniBatch() {
   Loggers::message << "elapsed: " << elapsed;
   Loggers::message << "unprocessed jobs: " << jobs_.size();
 
-  count_++;
+  miniBatchCount_++;
 
   // ハッシュ表を初期化
   eval_.clearCache();
@@ -351,7 +377,7 @@ bool Learn::run() {
 
   // 初期化
   eval_.init();
-  count_ = 1;
+  miniBatchCount_ = 1;
   g_.init();
   w_.init();
   u_.init();
@@ -402,6 +428,13 @@ bool Learn::run() {
     if (!ok) {
       break;
     }
+
+    // backup
+    if (miniBatchCount_ % BACKUP_CYCLE == 0) {
+      eval_.writeFile(BACKUP_E_NAME);
+      w_.writeFile(BACKUP_W_NAME);
+      u_.writeFile(BACKUP_U_NAME);
+    }
   }
 
   // ワーカースレッド停止
@@ -417,13 +450,13 @@ bool Learn::run() {
   uint64_t magnitude = 0ull;
   uint32_t nonZero = 0u;
   for (int i = 0; i < KPP_ALL; i++) {
-    eval_.t_->kpp[0][i] = w_.t_->kpp[0][i] - u_.t_->kpp[0][i] / count_;
+    eval_.t_->kpp[0][i] = w_.t_->kpp[0][i] - u_.t_->kpp[0][i] / miniBatchCount_;
     max = std::max(max, (uint16_t)std::abs(eval_.t_->kpp[0][i]));
     magnitude += std::abs(eval_.t_->kpp[0][i]);
     nonZero += eval_.t_->kpp[0][i] != 0 ? 1 : 0;
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    eval_.t_->kkp[0][0][i] = w_.t_->kkp[0][0][i] - u_.t_->kkp[0][0][i] / count_;
+    eval_.t_->kkp[0][0][i] = w_.t_->kkp[0][0][i] - u_.t_->kkp[0][0][i] / miniBatchCount_;
     max = std::max(max, (uint16_t)std::abs(eval_.t_->kkp[0][0][i]));
     magnitude += std::abs(eval_.t_->kkp[0][0][i]);
     nonZero += eval_.t_->kkp[0][0][i] != 0 ? 1 : 0;

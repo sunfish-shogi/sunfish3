@@ -236,9 +236,41 @@ public:
   bool readFile();
 
   /**
+   * ファイルからパラメータを読み込みます。
+   * @param filename
+   */
+  bool readFile(const char* filename) {
+    return Feature<int16_t>::readFile(filename);
+  }
+
+  /**
+   * ファイルからパラメータを読み込みます。
+   * @param filename
+   */
+  bool readFile(const std::string& filename) {
+    return Feature<int16_t>::readFile(filename);
+  }
+
+  /**
    * ファイルにパラメータを書き出します。
    */
   bool writeFile() const;
+
+  /**
+   * ファイルにパラメータを書き出します。
+   * @param filename
+   */
+  bool writeFile(const char* filename) {
+    return Feature<int16_t>::writeFile(filename);
+  }
+
+  /**
+   * ファイルにパラメータを書き出します。
+   * @param filename
+   */
+  bool writeFile(const std::string& filename) const {
+    return Feature<int16_t>::writeFile(filename);
+  }
 
   /**
    * fv.bin があれば読み込んで並べ替えを行います。
