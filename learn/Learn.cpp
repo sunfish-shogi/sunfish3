@@ -108,20 +108,56 @@ inline void update(FV::ValueType& g,
   magnitude += std::abs(w);
 }
 
+inline void ave(const FV::ValueType& w,
+    const FV::ValueType& u,
+    Evaluator::ValueType& e,
+    uint32_t miniBatchCount,
+    uint16_t& max, uint64_t& magnitude, uint32_t& nonZero) {
+  e = w - u / miniBatchCount;
+  max = std::max(max, (uint16_t)std::abs(e));
+  magnitude += std::abs(e);
+  nonZero += e != 0 ? 1 : 0;
+}
+
 } // namespace
 
 /**
  * コンストラクタ
  */
-Learn::Learn() {
+Learn::Learn() : eval_(Evaluator::InitType::Zero) {
   config_.addDef(CONF_KIFU, "");
   config_.addDef(CONF_DEPTH, "3");
   config_.addDef(CONF_THREADS, "1");
 }
 
 /**
- * 勾配を計算します.
- *
+ * 平均化します。
+ */
+void Learn::average() {
+  uint16_t max = 0u;
+  uint64_t magnitude = 0ull;
+  uint32_t nonZero = 0u;
+  for (int i = 0; i < KPP_ALL; i++) {
+    ave(u_.t_->kpp[0][i],
+        w_.t_->kpp[0][i],
+        eval_.t_->kpp[0][i],
+        miniBatchCount_,
+        max, magnitude, nonZero);
+  }
+  for (int i = 0; i < KKP_ALL; i++) {
+    ave(u_.t_->kkp[0][0][i],
+        w_.t_->kkp[0][0][i],
+        eval_.t_->kkp[0][0][i],
+        miniBatchCount_,
+        max, magnitude, nonZero);
+  }
+
+  Loggers::message << "[final] max=" << max << " magnitude=" << magnitude;
+  Loggers::message << "[final] nonZero=" << nonZero << " zero=" << (KPP_ALL + KKP_ALL);
+}
+
+/**
+ * 勾配を計算します。
  */
 void Learn::genGradient(int wn, const Job& job) {
   Board board(job.board);
@@ -362,6 +398,8 @@ bool Learn::readCsa(size_t count, size_t total, const char* path) {
  * 機械学習を実行します。
  */
 bool Learn::run() {
+  Loggers::message << "begin learning";
+
   // 設定読み込み
   if (!config_.read(CONFPATH)) {
     return false;
@@ -446,30 +484,25 @@ bool Learn::run() {
   Loggers::message << "publishing..";
 
   // 平均を取る
-  uint16_t max = 0u;
-  uint64_t magnitude = 0ull;
-  uint32_t nonZero = 0u;
-  for (int i = 0; i < KPP_ALL; i++) {
-    eval_.t_->kpp[0][i] = w_.t_->kpp[0][i] - u_.t_->kpp[0][i] / miniBatchCount_;
-    max = std::max(max, (uint16_t)std::abs(eval_.t_->kpp[0][i]));
-    magnitude += std::abs(eval_.t_->kpp[0][i]);
-    nonZero += eval_.t_->kpp[0][i] != 0 ? 1 : 0;
-  }
-  for (int i = 0; i < KKP_ALL; i++) {
-    eval_.t_->kkp[0][0][i] = w_.t_->kkp[0][0][i] - u_.t_->kkp[0][0][i] / miniBatchCount_;
-    max = std::max(max, (uint16_t)std::abs(eval_.t_->kkp[0][0][i]));
-    magnitude += std::abs(eval_.t_->kkp[0][0][i]);
-    nonZero += eval_.t_->kkp[0][0][i] != 0 ? 1 : 0;
-  }
-
-  Loggers::message << "[final] max=" << max << " magnitude=" << magnitude;
-  Loggers::message << "[final] nonZero=" << nonZero << " zero=" << (KPP_ALL + KKP_ALL);
+  average();
 
   // 重みベクトルを保存
   eval_.writeFile();
 
   float elapsed = timer_.get();
   Loggers::message << "[final] elapsed: " << elapsed;
+
+  return true;
+}
+
+bool Learn::recover(int miniBatchCount) {
+  miniBatchCount_ = miniBatchCount;
+  w_.readFile(BACKUP_W_NAME);
+  u_.readFile(BACKUP_U_NAME);
+
+  average();
+
+  eval_.writeFile();
 
   return true;
 }

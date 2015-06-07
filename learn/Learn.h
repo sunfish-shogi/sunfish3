@@ -73,6 +73,8 @@ private:
 
   std::mutex mutex_;
 
+  void average();
+
   void genGradient(int wn, const Job& job);
 
   void work(int wn);
@@ -95,6 +97,8 @@ public:
    * 機械学習を実行します。
    */
   bool run();
+
+  bool recover(int miniBatchCount);
 
 };
 

@@ -22,6 +22,7 @@ int network();
 
 // learn.cpp
 int learn();
+int recoverLearning(int miniBatchCount);
 
 // solve.cpp
 int solve(const std::vector<std::string>& problems, const ConsoleManager::Config&);
@@ -59,6 +60,7 @@ int main(int argc, char** argv, char** /*envp*/) {
   po.addOption("network", "n", "network mode");
 #ifndef NLEARN
   po.addOption("learn", "l", "learning");
+  po.addOption("learn_recover", "lr", "learning", true);
 #endif // NLEARN
   po.addOption("problem", "p", "solve problems");
   po.addOption("profile", "solve problems");
@@ -89,6 +91,10 @@ int main(int argc, char** argv, char** /*envp*/) {
 #ifndef NLEARN
   } else if (po.has("learn")) {
     return learn();
+
+  } else if (po.has("learn_recover")) {
+    std::string miniBatchCount = po.getValue("learn_recover");
+    return recoverLearning(std::stoi(miniBatchCount));
 
 #endif // NLEARN
 #ifndef NDEBUG
