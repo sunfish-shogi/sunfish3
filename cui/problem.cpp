@@ -16,7 +16,7 @@ int solve(const std::vector<std::string>& problems, const ConsoleManager::Config
   // logger settings
   std::ofstream fout("problem.log", std::ios::out);
   if (fout) {
-    Loggers::message.addStream(fout);
+    Loggers::message.addStream(fout, true, true);
   }
   Loggers::error.addStream(std::cerr, "\x1b[31m", "\x1b[39m");
   Loggers::warning.addStream(std::cerr, "\x1b[33m", "\x1b[39m");

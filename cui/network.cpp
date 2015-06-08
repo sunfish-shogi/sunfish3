@@ -13,11 +13,11 @@ int network() {
   // logger settings
   std::ofstream fout("network.log", std::ios::out | std::ios::app);
   if (fout) {
-    Loggers::error.addStream(fout);
-    Loggers::warning.addStream(fout);
-    Loggers::message.addStream(fout);
-    Loggers::send.addStream(fout);
-    Loggers::receive.addStream(fout);
+    Loggers::error.addStream(fout, true, true);
+    Loggers::warning.addStream(fout, true, true);
+    Loggers::message.addStream(fout, true, true);
+    Loggers::send.addStream(fout, true, true);
+    Loggers::receive.addStream(fout, true, true);
   }
   Loggers::error.addStream(std::cerr, "\x1b[31m", "\x1b[39m");
   Loggers::warning.addStream(std::cerr, "\x1b[33m", "\x1b[39m");

@@ -18,6 +18,17 @@
 
 namespace sunfish {
 
+class LoggerUtil {
+private:
+
+  LoggerUtil();
+
+public:
+
+  static std::string getIso8601();
+
+};
+
 class Logger {
 public:
   class SubLogger {
@@ -87,19 +98,10 @@ public:
       }
       if (top) {
         if (it->timestamp) {
-          time_t t = time(nullptr);
-#if defined(_MSC_VER)
-          auto& lt = *localtime(&t);
-#else
-          struct tm lt;
-          localtime_r(&t, &lt);
-#endif
-          char tstr[32];
-          strftime(tstr, sizeof(tstr)-1, "%Y-%m-%dT%H:%M:%S\t", &lt);
-          *(it->pout) << tstr;
+          *(it->pout) << LoggerUtil::getIso8601();
         }
         if (it->loggerName && name_) {
-          *(it->pout) << '[' << name_ << ']';
+          *(it->pout) << name_ << ' ';
         }
       }
       *(it->pout) << t;

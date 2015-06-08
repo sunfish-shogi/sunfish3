@@ -26,12 +26,9 @@
 #define MAX_HINGE_MARGIN        256
 #define MIN_HINGE_MARGIN        10
 #define NUMBER_OF_SIBLING_NODES 16
-#define MINI_BATCH_LENGTH       256
+#define MINI_BATCH_LENGTH       512
 
 #define BACKUP_CYCLE            20
-#define BACKUP_E_NAME           "_e.bin"
-#define BACKUP_W_NAME           "_w.bin"
-#define BACKUP_U_NAME           "_u.bin"
 
 #define ENABLE_THREAD_PAIRING   0
 
@@ -81,7 +78,7 @@ inline float gradient() {
 }
 
 inline float norm(float x) {
-  CONSTEXPR float n = 0.01f * ValuePair::PositionalScale;
+  CONSTEXPR float n = 0.05f * ValuePair::PositionalScale;
   if (x > 0.0f) {
     return -n;
   } else if (x < 0.0f) {
@@ -89,34 +86,6 @@ inline float norm(float x) {
   } else {
     return 0.0f;
   }
-}
-
-inline void update(FV::ValueType& g,
-    FV::ValueType& w,
-    FV::ValueType& u,
-    Evaluator::ValueType& e,
-    uint32_t miniBatchScale,
-    uint32_t miniBatchCount,
-    float& max, float& magnitude) {
-  float f = g + norm(w);
-  f /= miniBatchScale;
-  g = 0.0f;
-  w += f;
-  u += f * miniBatchCount;
-  e = w;
-  max = std::max(max, std::abs(w));
-  magnitude += std::abs(w);
-}
-
-inline void ave(const FV::ValueType& w,
-    const FV::ValueType& u,
-    Evaluator::ValueType& e,
-    uint32_t miniBatchCount,
-    uint16_t& max, uint64_t& magnitude, uint32_t& nonZero) {
-  e = w - u / miniBatchCount;
-  max = std::max(max, (uint16_t)std::abs(e));
-  magnitude += std::abs(e);
-  nonZero += e != 0 ? 1 : 0;
 }
 
 } // namespace
@@ -134,26 +103,41 @@ Learn::Learn() : eval_(Evaluator::InitType::Zero) {
  * 平均化します。
  */
 void Learn::average() {
+  auto func = [this](const FV::ValueType& w, const FV::ValueType& u, Evaluator::ValueType& e) {
+    e = std::round(w - u / miniBatchCount_);
+  };
+
+  for (int i = 0; i < KPP_ALL; i++) {
+    func(u_.t_->kpp[0][i], w_.t_->kpp[0][i], eval_.t_->kpp[0][i]);
+  }
+  for (int i = 0; i < KKP_ALL; i++) {
+    func(u_.t_->kkp[0][0][i], w_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i]);
+  }
+}
+
+void Learn::analyzeEval() {
   uint16_t max = 0u;
   uint64_t magnitude = 0ull;
   uint32_t nonZero = 0u;
+
+  auto func = [](const Evaluator::ValueType& e,
+      uint16_t& max, uint64_t& magnitude, uint32_t& nonZero) {
+    max = std::max(max, (uint16_t)std::abs(e));
+    magnitude += std::abs(e);
+    nonZero += e != 0 ? 1 : 0;
+  };
+
   for (int i = 0; i < KPP_ALL; i++) {
-    ave(u_.t_->kpp[0][i],
-        w_.t_->kpp[0][i],
-        eval_.t_->kpp[0][i],
-        miniBatchCount_,
-        max, magnitude, nonZero);
+    func(eval_.t_->kpp[0][i], max, magnitude, nonZero);
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    ave(u_.t_->kkp[0][0][i],
-        w_.t_->kkp[0][0][i],
-        eval_.t_->kkp[0][0][i],
-        miniBatchCount_,
-        max, magnitude, nonZero);
+    func(eval_.t_->kkp[0][0][i], max, magnitude, nonZero);
   }
 
-  Loggers::message << "[final] max=" << max << " magnitude=" << magnitude;
-  Loggers::message << "[final] nonZero=" << nonZero << " zero=" << (KPP_ALL + KKP_ALL);
+  Loggers::message << "max=" << max;
+  Loggers::message << "\tmagnitude=" << magnitude;
+  Loggers::message << "\tnonZero=" << nonZero;
+  Loggers::message << "\tzero=" << (KPP_ALL + KKP_ALL - nonZero);
 }
 
 /**
@@ -203,7 +187,7 @@ void Learn::genGradient(int wn, const Job& job) {
 
   // 棋譜の手の評価値から window を決定
   Value alpha = -val0 - hingeMargin(board);
-  Value beta = Value::Mate;
+  Value beta = -val0 + MAX_HINGE_MARGIN;
 
   // その他の手
   int nmove = 0;
@@ -296,7 +280,7 @@ bool Learn::miniBatch() {
     return false;
   }
 
-  Loggers::message << "mini-bach (" << miniBatchCount_ << ")";
+  Loggers::message << "jobs=" << jobs_.size();
 
   miniBatchScale_ = 0;
 
@@ -320,35 +304,47 @@ bool Learn::miniBatch() {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 
-  // 値更新
+  // 勾配に従って値を更新する
+  auto update1 = [this](FV::ValueType& g, FV::ValueType& w, FV::ValueType& u) {
+    float f = g + norm(w);
+    f /= miniBatchScale_;
+    g = 0.0f;
+    w += f;
+    u += f * miniBatchCount_;
+  };
+  for (int i = 0; i < KPP_ALL; i++) {
+    update1(g_.t_->kpp[0][i], w_.t_->kpp[0][i], u_.t_->kpp[0][i]);
+  }
+  for (int i = 0; i < KKP_ALL; i++) {
+    update1(g_.t_->kkp[0][0][i], w_.t_->kkp[0][0][i], u_.t_->kkp[0][0][i]);
+  }
+
+  miniBatchCount_++;
+
+  // 平均化して保存する
+  average();
+  eval_.writeFile();
+
+  // 最後のwの値で更新する
+  auto update2 = [this](FV::ValueType& w, Evaluator::ValueType& e, float& max, float& magnitude) {
+    e = std::round(w);
+    max = std::max(max, std::abs(w));
+    magnitude += std::abs(w);
+  };
   float max = 0.0f;
   float magnitude = 0.0f;
   for (int i = 0; i < KPP_ALL; i++) {
-    update(g_.t_->kpp[0][i],
-        w_.t_->kpp[0][i],
-        u_.t_->kpp[0][i],
-        eval_.t_->kpp[0][i],
-        miniBatchScale_,
-        miniBatchCount_,
-        max, magnitude);
+    update2(w_.t_->kpp[0][i], eval_.t_->kpp[0][i], max, magnitude);
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    update(g_.t_->kkp[0][0][i],
-        w_.t_->kkp[0][0][i],
-        u_.t_->kkp[0][0][i],
-        eval_.t_->kkp[0][0][i],
-        miniBatchScale_,
-        miniBatchCount_,
-        max, magnitude);
+    update2(w_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i], max, magnitude);
   }
-
-  Loggers::message << "max=" << max << " magnitude=" << magnitude;
-
   float elapsed = timer_.get();
-  Loggers::message << "elapsed: " << elapsed;
-  Loggers::message << "unprocessed jobs: " << jobs_.size();
-
-  miniBatchCount_++;
+  Loggers::message
+    << "mini_batch_count=" << miniBatchCount_
+    << "\tmax=" << max
+    << "\tmagnitude=" << magnitude
+    << "\telapsed: " << elapsed;
 
   // ハッシュ表を初期化
   eval_.clearCache();
@@ -466,13 +462,6 @@ bool Learn::run() {
     if (!ok) {
       break;
     }
-
-    // backup
-    if (miniBatchCount_ % BACKUP_CYCLE == 0) {
-      eval_.writeFile(BACKUP_E_NAME);
-      w_.writeFile(BACKUP_W_NAME);
-      u_.writeFile(BACKUP_U_NAME);
-    }
   }
 
   // ワーカースレッド停止
@@ -481,28 +470,20 @@ bool Learn::run() {
     threads_[wn].join();
   }
 
-  Loggers::message << "publishing..";
-
-  // 平均を取る
-  average();
-
-  // 重みベクトルを保存
-  eval_.writeFile();
+  Loggers::message << "completed..";
+  analyzeEval();
 
   float elapsed = timer_.get();
-  Loggers::message << "[final] elapsed: " << elapsed;
+  Loggers::message << "elapsed: " << elapsed;
+  Loggers::message << "end learning";
 
   return true;
 }
 
-bool Learn::recover(int miniBatchCount) {
-  miniBatchCount_ = miniBatchCount;
-  w_.readFile(BACKUP_W_NAME);
-  u_.readFile(BACKUP_U_NAME);
+bool Learn::analyze() {
+  eval_.readFile();
 
-  average();
-
-  eval_.writeFile();
+  analyzeEval();
 
   return true;
 }

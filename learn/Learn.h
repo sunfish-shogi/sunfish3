@@ -75,6 +75,8 @@ private:
 
   void average();
 
+  void analyzeEval();
+
   void genGradient(int wn, const Job& job);
 
   void work(int wn);
@@ -98,7 +100,7 @@ public:
    */
   bool run();
 
-  bool recover(int miniBatchCount);
+  bool analyze();
 
 };
 

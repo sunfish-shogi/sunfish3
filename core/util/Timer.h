@@ -1,4 +1,4 @@
-/* timer.h
+/* Timer.h
  *
  * Kubo Ryosuke
  */

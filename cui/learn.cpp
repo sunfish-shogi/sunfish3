@@ -12,13 +12,11 @@
 using namespace sunfish;
 
 int learn() {
-
-  // logger settings
   std::ofstream fout("learn.log", std::ios::out | std::ios::app);
   if (fout) {
-    Loggers::error.addStream(fout);
-    Loggers::warning.addStream(fout);
-    Loggers::message.addStream(fout);
+    Loggers::error.addStream(fout, true, true);
+    Loggers::warning.addStream(fout, true, true);
+    Loggers::message.addStream(fout, true, true);
   }
   Loggers::error.addStream(std::cerr, "\x1b[31m", "\x1b[39m");
   Loggers::warning.addStream(std::cerr, "\x1b[33m", "\x1b[39m");
@@ -36,15 +34,7 @@ int learn() {
   return ok ? 0 : 1;
 }
 
-int recoverLearning(int miniBatchCount) {
-
-  // logger settings
-  std::ofstream fout("learn.log", std::ios::out | std::ios::app);
-  if (fout) {
-    Loggers::error.addStream(fout);
-    Loggers::warning.addStream(fout);
-    Loggers::message.addStream(fout);
-  }
+int analyzeEvalBin() {
   Loggers::error.addStream(std::cerr, "\x1b[31m", "\x1b[39m");
   Loggers::warning.addStream(std::cerr, "\x1b[33m", "\x1b[39m");
   Loggers::message.addStream(std::cerr);
@@ -56,7 +46,7 @@ int recoverLearning(int miniBatchCount) {
 #endif // NDEBUG
 
   Learn learn;
-  bool ok = learn.recover(miniBatchCount);
+  bool ok = learn.analyze();
 
   return ok ? 0 : 1;
 }
