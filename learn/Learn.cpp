@@ -74,11 +74,11 @@ inline int hingeMargin(const Board& board) {
 }
 
 inline float gradient() {
-  return 1.0f * ValuePair::PositionalScale;
+  return 2.0e-2f * ValuePair::PositionalScale;
 }
 
 inline float norm(float x) {
-  CONSTEXPR float n = 0.05f * ValuePair::PositionalScale;
+  CONSTEXPR float n = 1.0e-2f * ValuePair::PositionalScale;
   if (x > 0.0f) {
     return -n;
   } else if (x < 0.0f) {
