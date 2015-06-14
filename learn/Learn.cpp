@@ -134,10 +134,10 @@ void Learn::analyzeEval() {
     func(eval_.t_->kkp[0][0][i], max, magnitude, nonZero);
   }
 
-  Loggers::message << "max=" << max;
-  Loggers::message << "\tmagnitude=" << magnitude;
-  Loggers::message << "\tnonZero=" << nonZero;
-  Loggers::message << "\tzero=" << (KPP_ALL + KKP_ALL - nonZero);
+  Loggers::message << "max=" << max
+    << "\tmagnitude=" << magnitude
+    << "\tnonZero=" << nonZero
+    << "\tzero=" << (KPP_ALL + KKP_ALL - nonZero);
 }
 
 /**
