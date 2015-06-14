@@ -25,7 +25,7 @@ private:
 
 public:
 
-  static std::string getIso8601();
+  static const char* getIso8601();
 
 };
 

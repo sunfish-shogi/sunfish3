@@ -10,13 +10,12 @@
 
 namespace sunfish {
 
-std::string LoggerUtil::getIso8601() {
+const char* LoggerUtil::getIso8601() {
   using namespace std::chrono;
+  thread_local char buf[22];
   std::time_t t = duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
   std::tm m;
-  std::string buf(23, '\0');
-  assert(buf.size() == 23);
-  std::strftime(static_cast<char*>(&buf[0]), buf.size(), "%FT%TZ ", gmtime_r(&t, &m));
+  std::strftime(buf, sizeof(buf), "%FT%TZ ", gmtime_r(&t, &m));
   return buf;
 }
 
