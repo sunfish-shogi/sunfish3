@@ -28,8 +28,6 @@
 #define NUMBER_OF_SIBLING_NODES 16
 #define MINI_BATCH_LENGTH       512
 
-#define BACKUP_CYCLE            20
-
 #define ENABLE_THREAD_PAIRING   0
 
 namespace sunfish {
@@ -75,6 +73,10 @@ inline int hingeMargin(const Board& board) {
 
 inline float gradient() {
   return 2.0e-2f * ValuePair::PositionalScale;
+}
+
+inline float error(float x) {
+  return x * gradient();
 }
 
 inline float norm(float x) {
@@ -174,8 +176,8 @@ void Learn::genGradient(int wn, const Job& job) {
   Value beta = -val0 + MAX_HINGE_MARGIN;
 
   // その他の手
-  int nmove = 0;
-  int nerr = 0;
+  int in = 0;
+  int out = 0;
   float gsum = 0;
   for (auto& move : moves) {
     // 探索
@@ -191,13 +193,23 @@ void Learn::genGradient(int wn, const Job& job) {
     const auto& pv = info.pv;
     Value val = -info.eval;
 
+    // 不一致度の計測
+    if (in + out < 16) {
+      errorCount_++;
+      if (val >= alpha && val <= beta) {
+        errorSum_ += error(val.int32() - alpha.int32());
+      }
+    }
+
     // window を外れた場合は除外
     if (val <= alpha || val >= beta) {
-      nerr++;
-      if (nmove == 0 && nerr >= 16) {
+      out++;
+      if (in == 0 && out >= 16) {
         break;
       }
       continue;
+    } else {
+      in++;
     }
 
     // leaf 局面
@@ -212,13 +224,12 @@ void Learn::genGradient(int wn, const Job& job) {
     }
     gsum += g;
 
-    nmove++;
-    if (nmove >= NUMBER_OF_SIBLING_NODES) {
+    if (in >= NUMBER_OF_SIBLING_NODES) {
       break;
     }
   }
 
-  if (nmove != 0) {
+  if (in != 0) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     // leaf 局面
@@ -267,6 +278,8 @@ bool Learn::miniBatch() {
   Loggers::message << "jobs=" << jobs_.size();
 
   miniBatchScale_ = 0;
+  errorCount_ = 0;
+  errorSum_ = 0.0f;
 
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -325,10 +338,10 @@ bool Learn::miniBatch() {
     nonZero += e != 0 ? 1 : 0;
   };
   for (int i = 0; i < KPP_ALL; i++) {
-    average(u_.t_->kpp[0][i], w_.t_->kpp[0][i], eval_.t_->kpp[0][i], max, magnitude, nonZero);
+    average(w_.t_->kpp[0][i], u_.t_->kpp[0][i], eval_.t_->kpp[0][i], max, magnitude, nonZero);
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    average(u_.t_->kkp[0][0][i], w_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i], max, magnitude, nonZero);
+    average(w_.t_->kkp[0][0][i], u_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i], max, magnitude, nonZero);
   }
 
   // 保存
@@ -345,15 +358,14 @@ bool Learn::miniBatch() {
     update2(w_.t_->kkp[0][0][i], u_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i]);
   }
 
+  float error = errorSum_ / errorCount_;
   float elapsed = timer_.get();
   Loggers::message
-    << "mini_batch_count=" << miniBatchCount_
+    << "mini_batch_count=" << (miniBatchCount_ - 1)
+    << "\terror=" << error
     << "\tmax=" << max
     << "\tmagnitude=" << magnitude
     << "\tnon_zero=" << nonZero
-    << "\tmax_w=" << maxW
-    << "\tmagnitude_w=" << magnitudeW
-    << "\tmax_u=" << maxU
     << "\tmax_w=" << maxW
     << "\tmagnitude_w=" << magnitudeW
     << "\tmax_u=" << maxU

@@ -53,6 +53,10 @@ private:
 
   uint32_t miniBatchScale_;
 
+  uint32_t errorCount_;
+
+  float errorSum_;
+
   FV g_;
 
   FV w_;
