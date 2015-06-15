@@ -73,8 +73,6 @@ private:
 
   std::mutex mutex_;
 
-  void average();
-
   void analyzeEval();
 
   void genGradient(int wn, const Job& job);

@@ -99,30 +99,14 @@ Learn::Learn() : eval_(Evaluator::InitType::Zero) {
   config_.addDef(CONF_THREADS, "1");
 }
 
-/**
- * 平均化します。
- */
-void Learn::average() {
-  auto func = [this](const FV::ValueType& w, const FV::ValueType& u, Evaluator::ValueType& e) {
-    e = std::round(w - u / miniBatchCount_);
-  };
-
-  for (int i = 0; i < KPP_ALL; i++) {
-    func(u_.t_->kpp[0][i], w_.t_->kpp[0][i], eval_.t_->kpp[0][i]);
-  }
-  for (int i = 0; i < KKP_ALL; i++) {
-    func(u_.t_->kkp[0][0][i], w_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i]);
-  }
-}
-
 void Learn::analyzeEval() {
-  uint16_t max = 0u;
-  uint64_t magnitude = 0ull;
-  uint32_t nonZero = 0u;
+  Evaluator::ValueType max = 0;
+  int64_t magnitude = 0ll;
+  int32_t nonZero = 0;
 
   auto func = [](const Evaluator::ValueType& e,
-      uint16_t& max, uint64_t& magnitude, uint32_t& nonZero) {
-    max = std::max(max, (uint16_t)std::abs(e));
+      Evaluator::ValueType& max, int64_t& magnitude, int32_t& nonZero) {
+    max = std::max(max, (Evaluator::ValueType)std::abs(e));
     magnitude += std::abs(e);
     nonZero += e != 0 ? 1 : 0;
   };
@@ -304,46 +288,75 @@ bool Learn::miniBatch() {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 
+  Evaluator::ValueType max = 0;
+  int64_t magnitude = 0ll;
+  int32_t nonZero = 0;
+  FV::ValueType maxW = 0.0f;
+  double magnitudeW = 0.0f;
+  FV::ValueType maxU = 0.0f;
+
   // 勾配に従って値を更新する
-  auto update1 = [this](FV::ValueType& g, FV::ValueType& w, FV::ValueType& u) {
-    float f = g + norm(w);
+  auto update1 = [this](FV::ValueType& g, FV::ValueType& w, FV::ValueType& u,
+      FV::ValueType& maxW, double& magnitudeW, FV::ValueType& maxU) {
+    FV::ValueType f = g + norm(w);
     f /= miniBatchScale_;
     g = 0.0f;
     w += f;
     u += f * miniBatchCount_;
+    maxW = std::max(maxW, std::abs(w));
+    magnitudeW += std::abs(w);
+    maxU = std::max(maxU, std::abs(u));
   };
   for (int i = 0; i < KPP_ALL; i++) {
-    update1(g_.t_->kpp[0][i], w_.t_->kpp[0][i], u_.t_->kpp[0][i]);
+    update1(g_.t_->kpp[0][i], w_.t_->kpp[0][i], u_.t_->kpp[0][i], maxW, magnitudeW, maxU);
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    update1(g_.t_->kkp[0][0][i], w_.t_->kkp[0][0][i], u_.t_->kkp[0][0][i]);
+    update1(g_.t_->kkp[0][0][i], w_.t_->kkp[0][0][i], u_.t_->kkp[0][0][i], maxW, magnitudeW, maxU);
   }
 
   miniBatchCount_++;
 
-  // 平均化して保存する
-  average();
+  // 平均化
+  auto average = [this](const FV::ValueType& w, const FV::ValueType& u, Evaluator::ValueType& e,
+      Evaluator::ValueType& max, int64_t& magnitude, int32_t& nonZero) {
+    e = std::round(w - u / miniBatchCount_);
+    max = std::max(max, (Evaluator::ValueType)std::abs(e));
+    magnitude += std::abs(e);
+    nonZero += e != 0 ? 1 : 0;
+  };
+  for (int i = 0; i < KPP_ALL; i++) {
+    average(u_.t_->kpp[0][i], w_.t_->kpp[0][i], eval_.t_->kpp[0][i], max, magnitude, nonZero);
+  }
+  for (int i = 0; i < KKP_ALL; i++) {
+    average(u_.t_->kkp[0][0][i], w_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i], max, magnitude, nonZero);
+  }
+
+  // 保存
   eval_.writeFile();
 
   // 最後のwの値で更新する
-  auto update2 = [this](FV::ValueType& w, Evaluator::ValueType& e, float& max, float& magnitude) {
+  auto update2 = [this](FV::ValueType& w, FV::ValueType& u, Evaluator::ValueType& e) {
     e = std::round(w);
-    max = std::max(max, std::abs(w));
-    magnitude += std::abs(w);
   };
-  float max = 0.0f;
-  float magnitude = 0.0f;
   for (int i = 0; i < KPP_ALL; i++) {
-    update2(w_.t_->kpp[0][i], eval_.t_->kpp[0][i], max, magnitude);
+    update2(w_.t_->kpp[0][i], u_.t_->kpp[0][i], eval_.t_->kpp[0][i]);
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    update2(w_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i], max, magnitude);
+    update2(w_.t_->kkp[0][0][i], u_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i]);
   }
+
   float elapsed = timer_.get();
   Loggers::message
     << "mini_batch_count=" << miniBatchCount_
     << "\tmax=" << max
     << "\tmagnitude=" << magnitude
+    << "\tnon_zero=" << nonZero
+    << "\tmax_w=" << maxW
+    << "\tmagnitude_w=" << magnitudeW
+    << "\tmax_u=" << maxU
+    << "\tmax_w=" << maxW
+    << "\tmagnitude_w=" << magnitudeW
+    << "\tmax_u=" << maxU
     << "\telapsed: " << elapsed;
 
   // ハッシュ表を初期化
