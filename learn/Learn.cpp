@@ -311,8 +311,7 @@ bool Learn::miniBatch() {
   // 勾配に従って値を更新する
   auto update1 = [this](FV::ValueType& g, FV::ValueType& w, FV::ValueType& u,
       FV::ValueType& maxW, double& magnitudeW, FV::ValueType& maxU) {
-    FV::ValueType f = g + norm(w);
-    f /= miniBatchScale_;
+    FV::ValueType f = g / miniBatchScale_ + norm(w);
     g = 0.0f;
     w += f;
     u += f * miniBatchCount_;
