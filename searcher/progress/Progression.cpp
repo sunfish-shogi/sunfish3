@@ -9,6 +9,7 @@
 namespace sunfish {
 
 int Progression::evaluate(const Board& board) {
+	const int Scale = Progression::Scale;
   int invader0 = 0;
   int invader1 = 0;
   int invader2 = 0;

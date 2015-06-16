@@ -26,7 +26,7 @@
 #define MAX_HINGE_MARGIN        256
 #define MIN_HINGE_MARGIN        10
 #define NUMBER_OF_SIBLING_NODES 16
-#define MINI_BATCH_LENGTH       512
+#define MINI_BATCH_LENGTH       8192
 
 #define ENABLE_THREAD_PAIRING   0
 
@@ -348,14 +348,14 @@ bool Learn::miniBatch() {
   eval_.writeFile();
 
   // 最後のwの値で更新する
-  auto update2 = [this](FV::ValueType& w, FV::ValueType& u, Evaluator::ValueType& e) {
+  auto update2 = [this](FV::ValueType& w, Evaluator::ValueType& e) {
     e = std::round(w);
   };
   for (int i = 0; i < KPP_ALL; i++) {
-    update2(w_.t_->kpp[0][i], u_.t_->kpp[0][i], eval_.t_->kpp[0][i]);
+    update2(w_.t_->kpp[0][i], eval_.t_->kpp[0][i]);
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    update2(w_.t_->kkp[0][0][i], u_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i]);
+    update2(w_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i]);
   }
 
   float error = errorSum_ / errorCount_;
