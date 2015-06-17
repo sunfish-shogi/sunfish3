@@ -53,7 +53,7 @@ private:
 
   uint32_t miniBatchScale_;
 
-  uint32_t errorCount_;
+  std::atomic<uint32_t> errorCount_;
 
   float errorSum_;
 

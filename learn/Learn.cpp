@@ -80,7 +80,7 @@ inline float error(float x) {
 }
 
 inline float norm(float x) {
-  CONSTEXPR float n = 5.0e-2f * ValuePair::PositionalScale;
+  CONSTEXPR float n = 5.0e-3f * ValuePair::PositionalScale;
   if (x > 0.0f) {
     return -n;
   } else if (x < 0.0f) {
@@ -176,10 +176,13 @@ void Learn::genGradient(int wn, const Job& job) {
   Value beta = -val0 + MAX_HINGE_MARGIN;
 
   // その他の手
-  int in = 0;
-  int out = 0;
-  float gsum = 0;
+  int count = 0;
+  float gsum = 0.0f;
   for (auto& move : moves) {
+    if (count >= NUMBER_OF_SIBLING_NODES) {
+      break;
+    }
+
     // 探索
     CONSTEXPR int reduction = 1;
     bool valid = board.makeMove(move);
@@ -188,28 +191,22 @@ void Learn::genGradient(int wn, const Job& job) {
     searchers_[wn]->idsearch(board, tmpMove, alpha, beta);
     board.unmakeMove(move);
 
+    count++;
+
     // PV と評価値
     const auto& info = searchers_[wn]->getInfo();
     const auto& pv = info.pv;
     Value val = -info.eval;
 
     // 不一致度の計測
-    if (in + out < 16) {
-      errorCount_++;
-      if (val >= alpha && val <= beta) {
-        errorSum_ += error(val.int32() - alpha.int32());
-      }
+    errorCount_++;
+    if (val >= alpha && val <= beta) {
+      errorSum_ += error(val.int32() - alpha.int32());
     }
 
     // window を外れた場合は除外
     if (val <= alpha || val >= beta) {
-      out++;
-      if (in == 0 && out >= 16) {
-        break;
-      }
       continue;
-    } else {
-      in++;
     }
 
     // leaf 局面
@@ -220,16 +217,11 @@ void Learn::genGradient(int wn, const Job& job) {
     {
       std::lock_guard<std::mutex> lock(mutex_);
       g_.extract<float, true>(leaf, -g);
-      miniBatchScale_++;
     }
     gsum += g;
-
-    if (in >= NUMBER_OF_SIBLING_NODES) {
-      break;
-    }
   }
 
-  if (in != 0) {
+  if (gsum != 0.0f) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     // leaf 局面
@@ -237,6 +229,8 @@ void Learn::genGradient(int wn, const Job& job) {
 
     // 特徴抽出
     g_.extract<float, true>(leaf, gsum);
+
+    miniBatchScale_ += count;
   }
 }
 
