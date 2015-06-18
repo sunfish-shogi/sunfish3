@@ -200,9 +200,7 @@ void Learn::genGradient(int wn, const Job& job) {
 
     // 不一致度の計測
     errorCount_++;
-    if (val >= alpha && val <= beta) {
-      errorSum_ += error(val.int32() - alpha.int32());
-    }
+    errorSum_ += error(std::min(std::max(val.int32(), alpha.int32()), beta.int32()) - alpha.int32());
 
     // window を外れた場合は除外
     if (val <= alpha || val >= beta) {
