@@ -80,7 +80,7 @@ inline float error(float x) {
 }
 
 inline float norm(float x) {
-  CONSTEXPR float n = 5.0e-3f * ValuePair::PositionalScale;
+  CONSTEXPR float n = 1.0e-4f * ValuePair::PositionalScale;
   if (x > 0.0f) {
     return -n;
   } else if (x < 0.0f) {
