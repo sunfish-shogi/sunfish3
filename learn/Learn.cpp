@@ -26,7 +26,7 @@
 #define MAX_HINGE_MARGIN        256
 #define MIN_HINGE_MARGIN        10
 #define NUMBER_OF_SIBLING_NODES 16
-#define MINI_BATCH_LENGTH       8192
+#define MINI_BATCH_LENGTH       2048
 
 #define ENABLE_THREAD_PAIRING   0
 
