@@ -172,8 +172,8 @@ void Learn::genGradient(int wn, const Job& job) {
   }
 
   // 棋譜の手の評価値から window を決定
-  Value alpha = -val0 - hingeMargin(board);
-  Value beta = -val0 + MAX_HINGE_MARGIN;
+  Value alpha = val0 - hingeMargin(board);
+  Value beta = val0 + MAX_HINGE_MARGIN;
 
   // その他の手
   int count = 0;
@@ -188,7 +188,7 @@ void Learn::genGradient(int wn, const Job& job) {
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
     setSearcherDepth(*searchers_[wn], config_.getInt(CONF_DEPTH) - reduction);
-    searchers_[wn]->idsearch(board, tmpMove, alpha, beta);
+    searchers_[wn]->idsearch(board, tmpMove, -beta, -alpha);
     board.unmakeMove(move);
 
     count++;
