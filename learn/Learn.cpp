@@ -26,7 +26,8 @@
 #define MAX_HINGE_MARGIN        256
 #define MIN_HINGE_MARGIN        10
 #define NUMBER_OF_SIBLING_NODES 16
-#define MINI_BATCH_LENGTH       2048
+#define MINI_BATCH_LENGTH       512
+#define NORM                    1.0e-6f
 
 #define ENABLE_THREAD_PAIRING   0
 
@@ -80,7 +81,7 @@ inline float error(float x) {
 }
 
 inline float norm(float x) {
-  CONSTEXPR float n = 1.0e-4f * ValuePair::PositionalScale;
+  CONSTEXPR float n = NORM * ValuePair::PositionalScale;
   if (x > 0.0f) {
     return -n;
   } else if (x < 0.0f) {
@@ -219,7 +220,7 @@ void Learn::genGradient(int wn, const Job& job) {
     gsum += g;
   }
 
-  if (gsum != 0.0f) {
+  {
     std::lock_guard<std::mutex> lock(mutex_);
 
     // leaf 局面
@@ -228,7 +229,7 @@ void Learn::genGradient(int wn, const Job& job) {
     // 特徴抽出
     g_.extract<float, true>(leaf, gsum);
 
-    miniBatchScale_ += count;
+    miniBatchScale_ += NUMBER_OF_SIBLING_NODES;
   }
 }
 
@@ -487,7 +488,6 @@ bool Learn::run() {
   }
 
   Loggers::message << "completed..";
-  analyzeEval();
 
   float elapsed = timer_.get();
   Loggers::message << "elapsed: " << elapsed;
