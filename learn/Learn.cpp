@@ -26,8 +26,9 @@
 #define MAX_HINGE_MARGIN        256
 #define MIN_HINGE_MARGIN        10
 #define NUMBER_OF_SIBLING_NODES 16
-#define MINI_BATCH_LENGTH       512
+#define MINI_BATCH_LENGTH       256
 #define NORM                    1.0e-6f
+#define GRADIENT                4.0f
 
 #define ENABLE_THREAD_PAIRING   0
 
@@ -73,7 +74,7 @@ inline int hingeMargin(const Board& board) {
 }
 
 inline float gradient() {
-  return 1.0f * ValuePair::PositionalScale;
+  return GRADIENT * ValuePair::PositionalScale;
 }
 
 inline float error(float x) {
