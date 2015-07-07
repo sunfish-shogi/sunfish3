@@ -6,7 +6,7 @@ Sunfish is computer Shogi program.
 Build
 -----
 
-### GCC/Clang
+### Makefile
 
 ```
 make release
@@ -18,13 +18,11 @@ make release -j
 make clean
 ```
 
-### Xcode
+### CMake
 
-Open `sunfish3.xcodeproj` and build `release/debug > My Mac`.
-
-### VC
-
-TODO..
+```
+cmake path/to/src
+```
 
 Usage
 -----
@@ -37,7 +35,7 @@ Usage
 # help
 ./sunfish --help
 
-# network (csa protocol)
+# network (CSA protocol)
 ./sunfish -n
 
 # unit test
