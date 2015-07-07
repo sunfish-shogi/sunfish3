@@ -1,21 +1,15 @@
-PROF:=gprof
-PROFOUT:=profile.txt
-RM:=rm
+CMAKE:=cmake
+MKDIR:=mkdir
+LN:=ln
+TEST:=test
 
 SUNFISH:=sunfish
-SOURCES:=$(shell find . -name "*.cpp")
-OBJECTS:=$(SOURCES:.cpp=.o)
-DEPENDS:=$(SOURCES:.cpp=.d)
+EVAL_BIN:=eval.bin
+BUILD_DIR:=build
+PROF:=gprof
+PROFOUT:=profile.txt
 
-OPT:=-std=c++11 -DUNIX -Wall -W -msse2 -fno-rtti -pthread -I .
-RELEASE_OPT:=-O3 -DNDEBUG -DNLEARN
-DEBUG_OPT:=-g -DNLEARN
-PROFILE_OPT:=-pg -O2 -DNDEBUG -DNLEARN
-LEARN_OPT:=-O3 -DNDEBUG
-
-override CXXFLAGS+=$(OPT)
-
-.PHONY: release release-pgo debug profile profile1 learn clean run-prof run-prof1
+.PHONY: release release-pgo release-prof debug profile profile1 learn clean run-prof run-prof1
 
 help:
 	@echo 'usage:'
@@ -28,45 +22,63 @@ help:
 	@echo '  make clean'
 
 release:
-	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(RELEASE_OPT)' $(SUNFISH)
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Release ../../src && \
+	$(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 
 release-pgo:
-	$(MAKE) clean; $(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(RELEASE_OPT) -fprofile-generate' $(SUNFISH)
+	$(TEST) -f $(EVAL_BIN)
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Release -D PROFILE_GENERATE=ON ../../src && \
+	$(MAKE) clean && $(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 	$(MAKE) run-prof
-	$(MAKE) clean; $(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(RELEASE_OPT) -fprofile-use' $(SUNFISH)
+	cd $(BUILD_DIR)/$@ && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Release -D PROFILE_USE=ON ../../src && \
+	$(MAKE) clean && $(MAKE)
 
 debug:
-	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(DEBUG_OPT)' $(SUNFISH)
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Debug ../../src && \
+	$(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
+
+release-prof:
+	$(TEST) -f $(EVAL_BIN)
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Release -D PROFILE=ON ../../src && \
+	$(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 
 profile:
-	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(PROFILE_OPT)' $(SUNFISH)
+	$(MAKE) release-prof
 	$(MAKE) run-prof
 	@$(SHELL) -c '$(PROF) ./$(SUNFISH) > $(PROFOUT)'
+	@echo "Look $(PROFOUT)."
 
 profile1:
-	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(PROFILE_OPT)' $(SUNFISH)
+	$(MAKE) release-prof
 	$(MAKE) run-prof1
 	@$(SHELL) -c '$(PROF) ./$(SUNFISH) > $(PROFOUT)'
+	@echo "Look $(PROFOUT)."
 
 learn:
-	$(MAKE) CXXFLAGS='$(CXXFLAGS) $(OPT) $(LEARN_OPT)' $(SUNFISH)
-
-$(SUNFISH): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(LIBS) -o $@ $^
-
-.cpp.o:
-	$(CXX) $(CXXFLAGS) -o $@ -c $<
-
-%.d: %.cpp
-	@$(SHELL) -c '$(CXX) -MM $(CXXFLAGS) $< | sed "s|^.*:|$*.o $@:|g" > $@; [ -s $@ ] || rm -f $@'
+	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	cd $(BUILD_DIR)/$@ && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Release -D LEARNING=ON ../../src && \
+	$(MAKE)
+	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 
 clean:
-	$(RM) $(SUNFISH) $(OBJECTS) $(DEPENDS)
+	$(RM) -rf $(BUILD_DIR) $(SUNFISH)
 
 run-prof:
-	@./$(SUNFISH) --profile -d 30 -t 10
+	./$(SUNFISH) --profile -d 30 -t 10
 
 run-prof1:
-	@./$(SUNFISH) --profile1 -d 30 -t 10
-
--include $(DEPENDS)
+	./$(SUNFISH) --profile1 -d 30 -t 10

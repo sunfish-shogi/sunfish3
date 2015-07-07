@@ -18,6 +18,10 @@ network.html
 *.org
 *.tar.gz
 Kifu-for-JS
+build
+
+# CMake
+!CMakeLists.txt
 
 # Xcode
 sunfish3.xcodeproj/xcuserdata
