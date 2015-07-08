@@ -6,7 +6,7 @@ Sunfish is computer Shogi program.
 Build
 -----
 
-### Makefile
+### Linux / OS X
 
 ```
 make release
@@ -18,7 +18,7 @@ make release -j
 make clean
 ```
 
-### CMake
+### Other Platforms
 
 ```
 cmake path/to/src
