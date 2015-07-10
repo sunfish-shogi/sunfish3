@@ -27,13 +27,15 @@ bool TTE::update(uint64_t newHash,
 
   if (checkHash(newHash)) {
     // 深さが劣るものは登録させない。
-    if (newDepth < (int)_2.depth && _1.age == newAge &&
+    if (newDepth < getDepth() && getAge() == newAge &&
         newValue < Value::Mate && newValue > -Value::Mate) {
       return false;
     }
+    // 更新
+    _2 &= TT_MOVE_MASK;
   } else {
-    _1.hash = TT_ENC_HASH(newHash);
-    _2.move = Move::S16_EMPTY;
+    // 新規登録
+    _2 = Move::S16_EMPTY << TT_MOVE_SHIFT;
   }
 
   if (newValue >= Value::Mate) {
@@ -59,16 +61,19 @@ bool TTE::update(uint64_t newHash,
   int32_t value = TT_ENC_VALUE(newValue);
   assert(value >= 0);
   assert(value < (1<<TT_VALUE_WIDTH));
-  _2.value = value;
-  _2.valueType = newValueType;
-  _2.depth = (uint32_t)newDepth;
-  if (move != Move::S16_EMPTY) {
-    _2.move = move;
-  }
-  _1.mateThreat = stat.isMateThreat();
-  _1.age = newAge;
 
-  _2.checkSum = calcCheckSum();
+  _1 = newHash & TT_HASH_MASK;
+  _1 |= ((uint64_t)newAge) << TT_AGE_SHIFT;
+  _1 |= ((uint64_t)stat.isMateThreat()) << TT_MATE_SHIFT;
+         
+  _2 |= ((uint64_t)value) << TT_VALUE_SHIFT;
+  _2 |= ((uint64_t)newValueType) << TT_VTYPE_SHIFT;
+  _2 |= ((uint64_t)newDepth) << TT_DEPTH_SHIFT;
+  if (move != Move::S16_EMPTY) {
+    _2 &= ~TT_MOVE_MASK;
+    _2 |= ((uint64_t)move) << TT_MOVE_SHIFT;
+  }
+  _2 |= calcCheckSum();
 
   return true;
 
@@ -80,24 +85,27 @@ void TTE::updatePV(uint64_t newHash, int newDepth, uint16_t move, uint32_t newAg
   }
 
   if (checkHash(newHash)) {
-    if (newDepth >= (int)_2.depth || _1.age != newAge) {
-      _2.valueType = None;
-      _2.depth = (uint32_t)newDepth;
+    if (newDepth >= getDepth() || getAge() != newAge) {
+      _2 &= ~(TT_VTYPE_MASK | TT_DEPTH_MASK | TT_CSUM_MASK);
+      _2 |= ((uint64_t)None) << TT_VTYPE_SHIFT;
+      _2 |= ((uint64_t)newDepth) << TT_DEPTH_SHIFT;
+    } else {
+      _2 &= ~(TT_CSUM_MASK);
     }
   } else {
-    _1.hash = TT_ENC_HASH(newHash);
-    _2.move = Move::S16_EMPTY;
-    _2.valueType = None;
-    _2.depth = (uint32_t)newDepth;
+    _2 = Move::S16_EMPTY << TT_MOVE_SHIFT;
+    _2 |= ((uint64_t)None) << TT_VTYPE_SHIFT;
+    _2 |= ((uint64_t)newDepth) << TT_DEPTH_SHIFT;
   }
+
+  _1 = newHash & TT_HASH_MASK;
+  _1 |= ((uint64_t)newAge) << TT_AGE_SHIFT;
 
   if (move != Move::S16_EMPTY) {
-    _2.move = move;
+    _2 &= ~TT_MOVE_MASK;
+    _2 |= ((uint64_t)move) << TT_MOVE_SHIFT;
   }
-  _1.mateThreat = false;
-  _1.age = newAge;
-
-  _2.checkSum = calcCheckSum();
+  _2 |= calcCheckSum();
 }
 
 TTStatus TTEs::set(const TTE& entity) {

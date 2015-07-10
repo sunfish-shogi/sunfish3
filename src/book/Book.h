@@ -36,7 +36,8 @@ private:
 public:
   BookElement() : count_(0) {}
   BookElement(const BookElement&) = default;
-  BookElement(BookElement&) = default;
+  BookElement(BookElement&& src) NOEXCEPT : count_(std::move(src.count_)), moves_(std::move(moves_)) {
+  }
 
   bool add(const Move& move);
   uint32_t getCount() const {

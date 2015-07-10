@@ -12,12 +12,21 @@
 
 #define SHEK_INDEX_WIDTH 16
 
-#define SHEK_HASH_WIDTH  56
 #define SHEK_COUNT_WIDTH 5
 #define SHEK_TURN_WIDTH  1
+#define SHEK_HASH_WIDTH  58
 
-#define SHEK_ENC_HASH(hash) ((hash) >> (64 - SHEK_HASH_WIDTH))
+#define SHEK_COUNT_SHIFT 0
+#define SHEK_TURN_SHIFT  (SHEK_COUNT_SHIFT + SHEK_COUNT_WIDTH)
 
+#define SHEK_COUNT_MASK  ((1llu << SHEK_COUNT_WIDTH) - 1llu)
+#define SHEK_TURN_MASK   (1llu << SHEK_COUNT_WIDTH)
+#define SHEK_HASH_MASK   (~((1llu << (64 - SHEK_HASH_WIDTH)) - 1llu))
+
+static_assert(SHEK_COUNT_WIDTH + SHEK_TURN_WIDTH + SHEK_HASH_WIDTH <= 64, "invalid data size");
+static_assert((SHEK_COUNT_MASK & SHEK_TURN_MASK) == 0llu, "invalid mask");
+static_assert((SHEK_COUNT_MASK & SHEK_HASH_MASK) == 0llu, "invalid mask");
+static_assert((SHEK_TURN_MASK & SHEK_HASH_MASK) == 0llu, "invalid mask");
 static_assert((SHEK_INDEX_WIDTH > 64 - SHEK_HASH_WIDTH), "invalid hash length");
 
 namespace sunfish {
@@ -26,25 +35,19 @@ class ShekEntity {
 private:
 
   HandSet handSet_;
-  struct {
-    uint32_t count : SHEK_COUNT_WIDTH;
-    bool blackTurn : SHEK_TURN_WIDTH;
-    uint64_t hash : SHEK_HASH_WIDTH;
-  } _;
-
-  static_assert(sizeof(_) == 8, "invalid struct size");
+  uint64_t _;
 
 public:
 
   void init(uint64_t invalidKey) {
-    _.hash = SHEK_ENC_HASH(invalidKey);
+    _ = invalidKey;
   }
 
   ShekStat check(const HandSet& handSet, bool blackTurn) const {
     // 持ち駒をチェックする
     ShekStat stat = handSet.compareTo(handSet_, blackTurn);
 
-    if (_.blackTurn != blackTurn) {
+    if (((_ & SHEK_TURN_MASK) != 0llu) != blackTurn) {
       if (stat == ShekStat::Equal) {
         // 手番が逆で持ち駒が等しい => 優越
         stat = ShekStat::Superior;
@@ -58,27 +61,26 @@ public:
   }
 
   void set(uint64_t hash, const HandSet& handSet, bool blackTurn) {
-    _.hash = SHEK_ENC_HASH(hash);
     handSet_ = handSet;
-    _.blackTurn = blackTurn;
-    _.count = 0;
+    _ = hash & SHEK_HASH_MASK;
+    _ |= (uint64_t)(blackTurn) << SHEK_TURN_SHIFT;
   }
 
   void retain() {
-    assert(_.count < ((0x01 << SHEK_COUNT_WIDTH) - 1));
-    _.count++;
+    assert((_ & SHEK_COUNT_MASK) != SHEK_COUNT_MASK);
+    _++;
   }
 
   void release(uint64_t invalidKey) {
-    assert(_.count != 0);
-    _.count--;
-    if (_.count == 0) {
-      _.hash = SHEK_ENC_HASH(invalidKey);
+    assert((_ & SHEK_COUNT_MASK) != 0llu);
+    _--;
+    if ((_ & SHEK_COUNT_MASK) == 0llu) {
+      _ = invalidKey;
     }
   }
 
   bool checkHash(uint64_t hash) const {
-    return _.hash == SHEK_ENC_HASH(hash);
+    return ((_ ^ hash) & SHEK_HASH_MASK) == 0llu;
   }
 
 };

@@ -15,12 +15,20 @@ namespace sunfish {
 class MateHistory {
 private:
 
-  uint64_t hist_[Position::N][Piece::Num][Position::N];
+  uint64_t (*hist_)[Piece::Num][Position::N];
 
 public:
   static const uint32_t Scale = 0x2000;
   static const uint32_t Margin = 100;
   static const uint64_t Max = 0x0008000000000000ull;
+
+  MateHistory() {
+    hist_ = new uint64_t[Position::N][Piece::Num][Position::N];
+  }
+
+  ~MateHistory() {
+    delete[] hist_;
+  }
 
   void clear() {
     memset(hist_, 0, sizeof(hist_));

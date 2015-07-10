@@ -12,12 +12,13 @@ TEST(CsaClient, test) {
   auto flagSets = sunfish::CsaClient::getFlagSets();
 
   auto probe = [flagSets](const char* str) {
+    using RetType = sunfish::CsaClient::RECV_FLAG;
     for (int i = 0; i < sunfish::CsaClient::RECV_NUM; i++) {
       if (flagSets[i].wildcard.match(str)) {
-        return flagSets[i].flag;
+        return static_cast<RetType>(flagSets[i].flag);
       }
     }
-    return sunfish::CsaClient::RECV_FLAG::RECV_NULL;
+    return static_cast<RetType>(sunfish::CsaClient::RECV_FLAG::RECV_NULL);
   };
 
   ASSERT_EQ(probe("LOGIN:sunfish OK"), sunfish::CsaClient::RECV_LOGIN_OK);

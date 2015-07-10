@@ -107,15 +107,12 @@ private:
   /** mate history */
   MateHistory mateHistory_;
 
-  /** record */
-  std::vector<Move> record_;
+  SeeTable<18> seeCache_;
 
   /** values of child node of root node */
   int rootValues_[1024];
 
   int rootDepth_;
-
-  SeeTable<18> seeCache_;
 
   std::mutex splitMutex_;
 
@@ -127,6 +124,9 @@ private:
 
   /** 思考時間制御 */
   TimeManager timeManager_;
+
+  /** record */
+  std::vector<Move> record_;
 
   /**
    * 設定の初期化

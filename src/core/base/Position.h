@@ -8,6 +8,7 @@
 
 #include "../def.h"
 #include <string>
+#include <cstdint>
 #include <cassert>
 
 namespace sunfish {

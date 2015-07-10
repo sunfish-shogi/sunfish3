@@ -7,6 +7,7 @@
 #include "tree/Worker.h"
 #include "tree/NodeStat.h"
 #include "see/See.h"
+#include "core/def.h"
 #include "core/move/MoveGenerator.h"
 #include "logger/Logger.h"
 #include <iomanip>
@@ -156,7 +157,7 @@ namespace search_func {
   }
 
   inline uint64_t excludedHash(const Move& move) {
-    constexpr uint64_t key = 0xc7ebffd8801628a7llu;
+    CONSTEXPR uint64_t key = 0xc7ebffd8801628a7llu;
     uint32_t m = Move::serialize(move);
     return key ^ m;
   }
@@ -495,7 +496,7 @@ std::string Searcher::getInfoString() const {
   lines.emplace_back("1rep extension ", format2(info_.onerepExtension, info_.expanded));
   lines.emplace_back("recap extension", format2(info_.recapExtension, info_.expanded));
 
-  int columns = 2;
+  const int columns = 2;
   int rows = (lines.size() + columns - 1) / columns;
   int maxLength[columns];
   memset(maxLength, 0, sizeof(int) * columns);

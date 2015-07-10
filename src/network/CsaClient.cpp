@@ -3,6 +3,7 @@
  */
 
 #include "CsaClient.h"
+#include "core/def.h"
 #include "core/record/Record.h"
 #include "core/record/CsaReader.h"
 #include "core/record/CsaWriter.h"
@@ -385,7 +386,7 @@ void CsaClient::buildSearchConfig(Searcher::Config& searchConfig) {
     float usableTime = myTime.usable();
 
     // マージン
-    constexpr float marginTime = 1.0f;
+    CONSTEXPR float marginTime = 1.0f;
 
     // 最大思考時間を確定
     usableTime = std::min(usableTime - marginTime, std::max(usableTime / 5.0f, myTime.getReadoff() * 3.0f));
