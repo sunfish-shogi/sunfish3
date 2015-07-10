@@ -471,7 +471,7 @@ private:
   static int getLast_(uint32_t bits){
 #if defined(WIN32) && !defined(__MINGW32__)
     int b;
-    return _BitScanReverse((DWORD*)&b, bits) ? (32-b) : 0;
+    return _BitScanReverse((DWORD*)&b, bits) ? (b+1) : 0;
 #elif defined(UNIX)
     return bits == 0x00 ? 0 : (32 - __builtin_clz(bits));
 #else
