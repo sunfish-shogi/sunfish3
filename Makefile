@@ -1,4 +1,5 @@
 CMAKE:=cmake
+CMAKE_CACHE:=CMakeCache.txt
 MKDIR:=mkdir
 LN:=ln
 TEST:=test
@@ -31,11 +32,13 @@ release:
 release-pgo:
 	$(TEST) -f $(EVAL_BIN)
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
+	$(RM) -f $(BUILD_DIR)/$@/$(CMAKE_CACHE)
 	cd $(BUILD_DIR)/$@ && \
 	$(CMAKE) -D CMAKE_BUILD_TYPE=Release -D PROFILE_GENERATE=ON ../../src && \
 	$(MAKE) clean && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 	$(MAKE) run-prof
+	$(RM) -f $(BUILD_DIR)/$@/$(CMAKE_CACHE)
 	cd $(BUILD_DIR)/$@ && \
 	$(CMAKE) -D CMAKE_BUILD_TYPE=Release -D PROFILE_USE=ON ../../src && \
 	$(MAKE) clean && $(MAKE)
