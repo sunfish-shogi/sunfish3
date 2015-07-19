@@ -36,7 +36,7 @@ if(NOT ("${LEARNING}" MATCHES "(1|ON)"))
 endif()
 
 add_subdirectory(cui)
-add_subdirectory(learn)
+add_subdirectory(learning)
 add_subdirectory(network)
 add_subdirectory(searcher)
 add_subdirectory(book)
@@ -68,7 +68,7 @@ add_executable(sunfish
 )
 
 target_link_libraries(sunfish cui)
-target_link_libraries(sunfish learn)
+target_link_libraries(sunfish learning)
 target_link_libraries(sunfish network)
 target_link_libraries(sunfish searcher)
 target_link_libraries(sunfish book)

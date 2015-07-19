@@ -1,13 +1,14 @@
-/* Learn.h
+/* OnlineLearning.h
  * 
  * Kubo Ryosuke
  */
 
-#ifndef SUNFISH_LEARN__
-#define SUNFISH_LEARN__
+#ifndef SUNFISH_ONLINELEARNING__
+#define SUNFISH_ONLINELEARNING__
 
 #ifndef NLEARN
 
+#include "./FV.h"
 #include "config/Config.h"
 #include "core/board/Board.h"
 #include "core/move/Move.h"
@@ -24,14 +25,7 @@
 
 namespace sunfish {
 
-class FV : public Feature<float> {
-public:
-  void init() {
-    memset(t_, 0, sizeof(*t_));
-  }
-};
-
-class Learn {
+class OnlineLearning {
 private:
 
   struct Job {
@@ -41,7 +35,7 @@ private:
 
   Timer timer_;
 
-  Config config_;
+  const Config& config_;
 
   Evaluator eval_;
 
@@ -86,28 +80,30 @@ private:
   bool miniBatch();
 
   /**
-   * 棋譜ファイルを読み込んで学習します。
+   * $B4}Ih%U%!%$%k$rFI$_9~$s$G3X=,$7$^$9!#(B
    */
   bool readCsa(size_t count, size_t total, const char* path);
 
 public:
 
   /**
-   * コンストラクタ
+   * $B%3%s%9%H%i%/%?(B
    */
-  Learn();
+  OnlineLearning(const Config& config)
+    : config_(config),
+      eval_(Evaluator::InitType::Zero) {
+  }
+
 
   /**
-   * 機械学習を実行します。
+   * $B5!3#3X=,$r<B9T$7$^$9!#(B
    */
   bool run();
 
-  bool analyze();
-
 };
 
-}
+} // namespace sunfish
 
 #endif // NLEARN
 
-#endif // SUNFISH_LEARN__
+#endif // SUNFISH_ONLINELEARNING__

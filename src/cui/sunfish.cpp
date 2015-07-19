@@ -20,7 +20,7 @@ int generateBook(const std::string& directory);
 // network.cpp
 int network();
 
-// learn.cpp
+// learning.cpp
 int learn();
 int analyzeEvalBin();
 

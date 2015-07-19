@@ -5,7 +5,8 @@
 
 #ifndef NLEARN
 
-#include "learn/Learn.h"
+#include "learning/Learning.h"
+#include "searcher/eval/Evaluator.h"
 #include "logger/Logger.h"
 #include <fstream>
 
@@ -28,8 +29,8 @@ int learn() {
   Loggers::develop.addStream(std::cerr, "\x1b[37m", "\x1b[39m");
 #endif // NDEBUG
 
-  Learn learn;
-  bool ok = learn.run();
+  Learning learning;
+  bool ok = learning.run();
 
   return ok ? 0 : 1;
 }
@@ -45,10 +46,33 @@ int analyzeEvalBin() {
   Loggers::develop.addStream(std::cerr, "\x1b[37m", "\x1b[39m");
 #endif // NDEBUG
 
-  Learn learn;
-  bool ok = learn.analyze();
+  Evaluator eval;
+  eval.readFile();
 
-  return ok ? 0 : 1;
+  Evaluator::ValueType max = 0;
+  int64_t magnitude = 0ll;
+  int32_t nonZero = 0;
+
+  auto func = [](const Evaluator::ValueType& e,
+      Evaluator::ValueType& max, int64_t& magnitude, int32_t& nonZero) {
+    max = std::max(max, (Evaluator::ValueType)std::abs(e));
+    magnitude += std::abs(e);
+    nonZero += e != 0 ? 1 : 0;
+  };
+
+  for (int i = 0; i < KPP_ALL; i++) {
+    func(eval.t_->kpp[0][i], max, magnitude, nonZero);
+  }
+  for (int i = 0; i < KKP_ALL; i++) {
+    func(eval.t_->kkp[0][0][i], max, magnitude, nonZero);
+  }
+
+  Loggers::message << "max=" << max
+    << "\tmagnitude=" << magnitude
+    << "\tnonZero=" << nonZero
+    << "\tzero=" << (KPP_ALL + KKP_ALL - nonZero);
+
+  return 1;
 }
 
 #endif // NLEARN

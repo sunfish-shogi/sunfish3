@@ -8,7 +8,7 @@ add_library(cui STATIC
 	book.cpp
 	CMakeLists.txt
 	dev.cpp
-	learn.cpp
+	learning.cpp
 	network.cpp
 	problem.cpp
 	profile.cpp
