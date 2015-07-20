@@ -12,7 +12,8 @@
 #define LCONF_KIFU        "kifu"
 #define LCONF_DEPTH       "depth"
 #define LCONF_THREADS     "threads"
-                        
+#define LCONF_ITERATION   "iteration"
+
 #define LCONF_MODE_BATCH  "batch"
 #define LCONF_MODE_ONLINE "online"
 

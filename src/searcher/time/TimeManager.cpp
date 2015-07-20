@@ -13,7 +13,7 @@
 
 namespace {
 
-float sigmoid(float x) {
+inline float sigmoid(float x) {
   CONSTEXPR float g = 4.0;
   return 1.0 / (1.0 + std::exp((-g)*x));
 }

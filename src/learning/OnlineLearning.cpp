@@ -7,6 +7,7 @@
 
 #include "./OnlineLearning.h"
 #include "./LearningConfig.h"
+#include "config/Config.h"
 #include "core/move/MoveGenerator.h"
 #include "core/record/CsaReader.h"
 #include "core/util/FileList.h"
@@ -25,22 +26,9 @@
 #define NORM                    1.0e-6f
 #define GRADIENT                4.0f
 
-#define ENABLE_THREAD_PAIRING   0
-
 namespace sunfish {
 
 namespace {
-
-void initSearcherConfig(Searcher& searcher, int snt) {
-  auto searchConfig = searcher.getConfig();
-  searchConfig.workerSize = snt;
-  searchConfig.treeSize = Searcher::standardTreeSize(snt);
-  searchConfig.enableLimit = false;
-  searchConfig.enableTimeManagement = false;
-  searchConfig.ponder = false;
-  searchConfig.logging = false;
-  searcher.setConfig(searchConfig);
-}
 
 void setSearcherDepth(Searcher& searcher, int depth) {
   auto searchConfig = searcher.getConfig();
@@ -392,14 +380,6 @@ bool OnlineLearning::run() {
   // 学習スレッド数
   nt_ = config_.getInt(LCONF_THREADS);
 
-  // 探索スレッド数
-#if ENABLE_THREAD_PAIRING
-  int snt = nt_ >= 4 ? 2 : 1;
-#else
-  int snt = 1;
-#endif
-  nt_ = nt_ / snt;
-
   // Searcher生成
   uint32_t seed = static_cast<uint32_t>(time(NULL));
   rgens_.clear();
@@ -408,7 +388,15 @@ bool OnlineLearning::run() {
     rgens_.emplace_back(seed);
     seed = rgens_.back()();
     searchers_.emplace_back(new Searcher(eval_));
-    initSearcherConfig(*searchers_.back().get(), snt);
+
+    auto searchConfig = searchers_.back()->getConfig();
+    searchConfig.workerSize = 1;
+    searchConfig.treeSize = Searcher::standardTreeSize(searchConfig.workerSize);
+    searchConfig.enableLimit = false;
+    searchConfig.enableTimeManagement = false;
+    searchConfig.ponder = false;
+    searchConfig.logging = false;
+    searchers_.back()->setConfig(searchConfig);
   }
 
   // 棋譜の取り込み

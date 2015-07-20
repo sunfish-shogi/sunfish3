@@ -4,5 +4,6 @@ project(sunfish CXX)
 
 add_library(learning STATIC
 	Learning.cpp
+	BatchLearning.cpp
 	OnlineLearning.cpp
 )

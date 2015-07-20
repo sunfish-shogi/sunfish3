@@ -9,7 +9,6 @@
 #ifndef NLEARN
 
 #include "./FV.h"
-#include "config/Config.h"
 #include "core/board/Board.h"
 #include "core/move/Move.h"
 #include "core/util/Timer.h"
@@ -24,6 +23,9 @@
 #include <cstring>
 
 namespace sunfish {
+
+class Config;
+class Searcher;
 
 class OnlineLearning {
 private:
@@ -93,7 +95,6 @@ public:
     : config_(config),
       eval_(Evaluator::InitType::Zero) {
   }
-
 
   /**
    * 機械学習を実行します。

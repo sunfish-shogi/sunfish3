@@ -27,7 +27,6 @@ struct CompactBoard {
   };
 
   uint16_t buf[41];
-
 };
 
 class Board {
@@ -118,7 +117,7 @@ public:
   void refreshHash();
 
   /**
-   * 冗長性の低いデータに変換します。
+   * 冗長性の低い表現に変換します。
    */
   CompactBoard getCompactBoard() const;
 
