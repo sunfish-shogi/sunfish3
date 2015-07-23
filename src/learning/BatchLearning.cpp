@@ -3,6 +3,8 @@
  * Kubo Ryosuke
  */
 
+#ifndef NLEARN
+
 #include "BatchLearning.h"
 #include "./LearningConfig.h"
 #include "config/Config.h"
@@ -524,3 +526,5 @@ bool BatchLearning::run() {
 }
 
 }
+
+#endif // NLEARN
