@@ -17,6 +17,7 @@
 #include "time/TimeManager.h"
 #include "core/record/Record.h"
 #include "core/util/Timer.h"
+#include "core/util/Random.h"
 #include <algorithm>
 #include <mutex>
 #include <atomic>
@@ -127,6 +128,8 @@ private:
 
   /** record */
   std::vector<Move> record_;
+
+  Random random_;
 
   /**
    * 設定の初期化

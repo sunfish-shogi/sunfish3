@@ -11,6 +11,7 @@
 #include "core/move/MoveGenerator.h"
 #include "logger/Logger.h"
 #include <iomanip>
+#include <algorithm>
 #include <cmath>
 
 #define ENABLE_HIST_REUSE             1
@@ -2483,6 +2484,9 @@ void Searcher::generateMovesOnRoot() {
       ++ite;
     }
   }
+
+  // シャッフル
+  random_.shuffle(moves.begin(), moves.end());
 }
 
 /**

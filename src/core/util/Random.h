@@ -8,20 +8,22 @@
 
 #include "../def.h"
 #include <random>
+#include <algorithm>
 #include <ctime>
 #include <cstdint>
 
 namespace sunfish {
 
-class Random {
+template <class GenType>
+class BaseRandom {
 private:
-  std::mt19937 rgen;
+  GenType rgen;
 
 public:
-  Random() : rgen(static_cast<unsigned>(time(NULL))) {
+  BaseRandom() : rgen(static_cast<unsigned>(time(NULL))) {
   }
-  Random(const Random&) = delete;
-  Random(Random&&) = delete;
+  BaseRandom(const BaseRandom&) = delete;
+  BaseRandom(BaseRandom&&) = delete;
 
   uint16_t getInt16() {
     std::uniform_int_distribution<uint16_t> dst16;
@@ -58,18 +60,13 @@ public:
     return dstBit(rgen);
   }
 
-  template <class T>
-  void shuffle(T array[], int size) {
-    for (int i = size - 1; i > 0; i--) {
-      int r = getInt32(i+1);
-      if (r != i) {
-        T tmp = array[i];
-        array[i] = array[r];
-        array[r] = tmp;
-      }
-    }
+  template <class Iterator>
+  void shuffle(Iterator begin, Iterator end) {
+    std::shuffle(begin, end, rgen);
   }
 };
+
+using Random = BaseRandom<std::mt19937>;
 
 } // namespace sunfish
 
