@@ -13,7 +13,7 @@
 namespace sunfish {
 
 template <bool shallow, Direction dir, bool isFirst>
-void See::generateAttacker(const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn, bool shortOnly) {
+void See::generateAttacker(const Board& board, const Square& to, const Bitboard& occ, Attacker* dependOn, bool shortOnly) {
 
   // 斜め
   if (dir == Direction::LeftUp || dir == Direction::LeftDown ||
@@ -51,7 +51,7 @@ void See::generateAttacker(const Board& board, const Position& to, const Bitboar
                  MoveTables::rightDown(to, occ));
       bb &= occ;
       auto from = bb.pickFirst();
-      if (from != Position::Invalid) {
+      if (from != Square::Invalid) {
         auto piece = board.getBoardPiece(from);
         if (dir == Direction::LeftUp ? LongMovableTable[piece].rightDown :
              dir == Direction::LeftDown ? LongMovableTable[piece].rightUp :
@@ -106,7 +106,7 @@ void See::generateAttacker(const Board& board, const Position& to, const Bitboar
                  MoveTables::right(to, occ));
       bb &= occ;
       auto from = bb.pickFirst();
-      if (from != Position::Invalid) {
+      if (from != Square::Invalid) {
         auto piece = board.getBoardPiece(from);
         if (dir == Direction::Up ? LongMovableTable[piece].down :
              dir == Direction::Down ? LongMovableTable[piece].up :
@@ -128,7 +128,7 @@ void See::generateAttacker(const Board& board, const Position& to, const Bitboar
 }
 
 template <bool black>
-void See::generateKnightAttacker(const Board& board, const Position& from) {
+void See::generateKnightAttacker(const Board& board, const Square& from) {
   auto& num = black ? bnum_ : wnum_;
   auto list = black ? b_ : w_;
 
@@ -141,15 +141,15 @@ void See::generateKnightAttacker(const Board& board, const Position& from) {
 
 template <bool shallow>
 void See::generateAttackers(const Board& board, const Move& move) {
-  Position to = move.to();
+  Square to = move.to();
   HSideType sideTypeH = to.sideTypeH();
   VSideType sideTypeV = to.sideTypeV();
   Bitboard occ = board.getBOccupy() | board.getWOccupy();
-  Position exceptPos;
+  Square exceptPos;
   Direction exceptDir;
 
   if (move.isHand()) {
-    exceptPos = Position::Invalid;
+    exceptPos = Square::Invalid;
     exceptDir = Direction::None;
   } else {
     auto from = move.from();

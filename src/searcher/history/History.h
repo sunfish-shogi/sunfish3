@@ -7,7 +7,7 @@
 #define SUNFISH_HISTORY__
 
 #include "core/base/Piece.h"
-#include "core/base/Position.h"
+#include "core/base/Square.h"
 #include "core/move/Move.h"
 #include "logger/Logger.h"
 #include <cstring>
@@ -16,7 +16,7 @@ namespace sunfish {
 
 class History {
 private:
-  static CONSTEXPR int Board = Position::N;
+  static CONSTEXPR int Board = Square::N;
   static CONSTEXPR int Hand = Piece::KindNum;
   static CONSTEXPR int From = Board + Hand;
   static CONSTEXPR int To = Board;

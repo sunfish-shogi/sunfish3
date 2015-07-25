@@ -33,7 +33,7 @@ inline int kpp_index_safe(int x, int y) {
   return x >= y ? kpp_index(x, y) : kpp_index(y, x);
 }
 
-int posIndexBPawn[] = {
+int sqIndexBPawn[] = {
   -1,  0,  1,  2,  3,  4,  5,  6,  7,
   -1,  8,  9, 10, 11, 12, 13, 14, 15,
   -1, 16, 17, 18, 19, 20, 21, 22, 23,
@@ -45,7 +45,7 @@ int posIndexBPawn[] = {
   -1, 64, 65, 66, 67, 68, 69, 70, 71,
 };
 
-int posIndexWPawn[] = {
+int sqIndexWPawn[] = {
    0,  1,  2,  3,  4,  5,  6,  7, -1,
    8,  9, 10, 11, 12, 13, 14, 15, -1,
   16, 17, 18, 19, 20, 21, 22, 23, -1,
@@ -57,7 +57,7 @@ int posIndexWPawn[] = {
   64, 65, 66, 67, 68, 69, 70, 71, -1,
 };
 
-int posIndexBKnight[] = {
+int sqIndexBKnight[] = {
   -1, -1,  0,  1,  2,  3,  4,  5,  6,
   -1, -1,  7,  8,  9, 10, 11, 12, 13,
   -1, -1, 14, 15, 16, 17, 18, 19, 20,
@@ -69,7 +69,7 @@ int posIndexBKnight[] = {
   -1, -1, 56, 57, 58, 59, 60, 61, 62,
 };
 
-int posIndexWKnight[] = {
+int sqIndexWKnight[] = {
    0,  1,  2,  3,  4,  5,  6, -1, -1,
    7,  8,  9, 10, 11, 12, 13, -1, -1,
   14, 15, 16, 17, 18, 19, 20, -1, -1,
@@ -82,7 +82,7 @@ int posIndexWKnight[] = {
 };
 
 // sunfish to bonanza
-int posS2B[] = {
+int sqS2B[] = {
    0,  9, 18, 27, 36, 45, 54, 63, 72,
    1, 10, 19, 28, 37, 46, 55, 64, 73,
    2, 11, 20, 29, 38, 47, 56, 65, 74,
@@ -96,12 +96,12 @@ int posS2B[] = {
 
 } // namespace
 
-#define POS_INDEX_BPAWN(pos)   (posIndexBPawn[(pos)])
-#define POS_INDEX_WPAWN(pos)   (posIndexWPawn[(pos)])
-#define POS_INDEX_BKNIGHT(pos) (posIndexBKnight[(pos)])
-#define POS_INDEX_WKNIGHT(pos) (posIndexWKnight[(pos)])
-#define POS_INDEX_BNORMAL(pos) (pos)
-#define POS_INDEX_WNORMAL(pos) (pos)
+#define SQ_INDEX_BPAWN(sq)   (sqIndexBPawn[(sq)])
+#define SQ_INDEX_WPAWN(sq)   (sqIndexWPawn[(sq)])
+#define SQ_INDEX_BKNIGHT(sq) (sqIndexBKnight[(sq)])
+#define SQ_INDEX_WKNIGHT(sq) (sqIndexWKnight[(sq)])
+#define SQ_INDEX_BNORMAL(sq) (sq)
+#define SQ_INDEX_WNORMAL(sq) (sq)
 
 namespace sunfish {
 
@@ -146,10 +146,10 @@ bool Feature<T>::writeFile(const char* filename) const {
   return true;
 }
 
-int posInv(int table[], int in) {
-  POSITION_EACH(pos) {
-    if (table[pos] == in) {
-      return pos;
+int sqInv(int table[], int in) {
+  SQUARE_EACH(sq) {
+    if (table[sq] == in) {
+      return sq;
     }
   }
   return -1;
@@ -167,12 +167,12 @@ int convertKppIndex4FvBin(int index) {
   };
 
   static const BoardInfo biList[] = {
-    { KPP_BBPAWN,   KPP_BWPAWN,   -9,  posIndexBPawn },
-    { KPP_BWPAWN,   KPP_BBLANCE,  0,   posIndexWPawn },
-    { KPP_BBLANCE,  KPP_BWLANCE,  -9,  posIndexBPawn },
-    { KPP_BWLANCE,  KPP_BBKNIGHT, 0,   posIndexWPawn },
-    { KPP_BBKNIGHT, KPP_BWKNIGHT, -18, posIndexBKnight },
-    { KPP_BWKNIGHT, KPP_BBSILVER, 0,   posIndexWKnight },
+    { KPP_BBPAWN,   KPP_BWPAWN,   -9,  sqIndexBPawn },
+    { KPP_BWPAWN,   KPP_BBLANCE,  0,   sqIndexWPawn },
+    { KPP_BBLANCE,  KPP_BWLANCE,  -9,  sqIndexBPawn },
+    { KPP_BWLANCE,  KPP_BBKNIGHT, 0,   sqIndexWPawn },
+    { KPP_BBKNIGHT, KPP_BWKNIGHT, -18, sqIndexBKnight },
+    { KPP_BWKNIGHT, KPP_BBSILVER, 0,   sqIndexWKnight },
     { KPP_BBSILVER, KPP_BWSILVER, 0,   nullptr },
     { KPP_BWSILVER, KPP_BBGOLD,   0,   nullptr },
     { KPP_BBGOLD,   KPP_BWGOLD,   0,   nullptr },
@@ -194,15 +194,15 @@ int convertKppIndex4FvBin(int index) {
   for (unsigned i = 0; i < sizeof(biList)/sizeof(biList[0]); i++) {
     const auto& bi = biList[i];
     if (bi.begin <= index && index < bi.end) {
-      int pos = index - bi.begin;
-      assert(pos >= 0);
-      assert(pos < 81);
+      int sq = index - bi.begin;
+      assert(sq >= 0);
+      assert(sq < 81);
       if (bi.table != nullptr) {
-        pos = posInv(bi.table, pos);
-        assert(pos >= 0);
-        assert(pos < 81);
+        sq = sqInv(bi.table, sq);
+        assert(sq >= 0);
+        assert(sq < 81);
       }
-      int result = bi.begin + posS2B[pos] + bi.offset;
+      int result = bi.begin + sqS2B[sq] + bi.offset;
       assert(bi.begin <= result);
       assert(result < bi.end);
       return result;
@@ -224,9 +224,9 @@ int convertKkpIndex4FvBin(int index) {
   };
 
   static const BoardInfo biList[] = {
-    { KKP_BPAWN,   KKP_BLANCE,   -9,  posIndexBPawn },
-    { KKP_BLANCE,  KKP_BKNIGHT,  -9,  posIndexBPawn },
-    { KKP_BKNIGHT, KKP_BSILVER, -18, posIndexBKnight },
+    { KKP_BPAWN,   KKP_BLANCE,   -9,  sqIndexBPawn },
+    { KKP_BLANCE,  KKP_BKNIGHT,  -9,  sqIndexBPawn },
+    { KKP_BKNIGHT, KKP_BSILVER, -18, sqIndexBKnight },
     { KKP_BSILVER, KKP_BGOLD,     0,   nullptr },
     { KKP_BGOLD,   KKP_BBISHOP,   0,   nullptr },
     { KKP_BBISHOP, KKP_BHORSE,    0,   nullptr },
@@ -242,15 +242,15 @@ int convertKkpIndex4FvBin(int index) {
   for (unsigned i = 0; i < sizeof(biList)/sizeof(biList[0]); i++) {
     const auto& bi = biList[i];
     if (bi.begin <= index && index < bi.end) {
-      int pos = index - bi.begin;
-      assert(pos >= 0);
-      assert(pos < 81);
+      int sq = index - bi.begin;
+      assert(sq >= 0);
+      assert(sq < 81);
       if (bi.table != nullptr) {
-        pos = posInv(bi.table, pos);
+        sq = sqInv(bi.table, sq);
       }
-      assert(pos >= 0);
-      assert(pos < 81);
-      int result = bi.begin + posS2B[pos] + bi.offset;
+      assert(sq >= 0);
+      assert(sq < 81);
+      int result = bi.begin + sqS2B[sq] + bi.offset;
       assert(bi.begin <= result);
       assert(result < bi.end);
       return result;
@@ -263,21 +263,21 @@ int convertKkpIndex4FvBin(int index) {
 /**
  * 盤上の駒の種類から KKP のインデクスを取得します。
  */
-int kkpBoardIndex(Piece piece, const Position& pos) {
+int kkpBoardIndex(Piece piece, const Square& sq) {
   switch (piece) {
-    case Piece::BPawn:      case Piece::WPawn:      return KKP_BPAWN + posIndexBPawn[pos];
-    case Piece::BLance:     case Piece::WLance:     return KKP_BLANCE + posIndexBPawn[pos];
-    case Piece::BKnight:    case Piece::WKnight:    return KKP_BKNIGHT + posIndexBKnight[pos];
-    case Piece::BSilver:    case Piece::WSilver:    return KKP_BSILVER + pos;
-    case Piece::BGold:      case Piece::WGold:      return KKP_BGOLD + pos;
-    case Piece::BBishop:    case Piece::WBishop:    return KKP_BBISHOP + pos;
-    case Piece::BRook:      case Piece::WRook:      return KKP_BROOK + pos;
-    case Piece::BTokin:     case Piece::WTokin:     return KKP_BGOLD + pos;
-    case Piece::BProLance:  case Piece::WProLance:  return KKP_BGOLD + pos;
-    case Piece::BProKnight: case Piece::WProKnight: return KKP_BGOLD + pos;
-    case Piece::BProSilver: case Piece::WProSilver: return KKP_BGOLD + pos;
-    case Piece::BHorse:     case Piece::WHorse:     return KKP_BHORSE + pos;
-    case Piece::BDragon:    case Piece::WDragon:    return KKP_BDRAGON + pos;
+    case Piece::BPawn:      case Piece::WPawn:      return KKP_BPAWN + sqIndexBPawn[sq];
+    case Piece::BLance:     case Piece::WLance:     return KKP_BLANCE + sqIndexBPawn[sq];
+    case Piece::BKnight:    case Piece::WKnight:    return KKP_BKNIGHT + sqIndexBKnight[sq];
+    case Piece::BSilver:    case Piece::WSilver:    return KKP_BSILVER + sq;
+    case Piece::BGold:      case Piece::WGold:      return KKP_BGOLD + sq;
+    case Piece::BBishop:    case Piece::WBishop:    return KKP_BBISHOP + sq;
+    case Piece::BRook:      case Piece::WRook:      return KKP_BROOK + sq;
+    case Piece::BTokin:     case Piece::WTokin:     return KKP_BGOLD + sq;
+    case Piece::BProLance:  case Piece::WProLance:  return KKP_BGOLD + sq;
+    case Piece::BProKnight: case Piece::WProKnight: return KKP_BGOLD + sq;
+    case Piece::BProSilver: case Piece::WProSilver: return KKP_BGOLD + sq;
+    case Piece::BHorse:     case Piece::WHorse:     return KKP_BHORSE + sq;
+    case Piece::BDragon:    case Piece::WDragon:    return KKP_BDRAGON + sq;
   }
 
   assert(false);
@@ -314,21 +314,21 @@ int kkpHandIndex(Piece piece) {
  * 盤上の先手の駒の種類から KPP のインデクスを取得します。
  */
 template <bool blackPiece>
-int kppBoardIndex(Piece piece, const Position& pos) {
+int kppBoardIndex(Piece piece, const Square& sq) {
   switch (piece) {
-    case Piece::BPawn:      case Piece::WPawn:      return (blackPiece ? KPP_BBPAWN   : KPP_BWPAWN) + (blackPiece ? posIndexBPawn[pos] : posIndexWPawn[pos]);
-    case Piece::BLance:     case Piece::WLance:     return (blackPiece ? KPP_BBLANCE  : KPP_BWLANCE) + (blackPiece ? posIndexBPawn[pos] : posIndexWPawn[pos]);
-    case Piece::BKnight:    case Piece::WKnight:    return (blackPiece ? KPP_BBKNIGHT : KPP_BWKNIGHT) + (blackPiece ? posIndexBKnight[pos] : posIndexWKnight[pos]);
-    case Piece::BSilver:    case Piece::WSilver:    return (blackPiece ? KPP_BBSILVER : KPP_BWSILVER) + pos;
-    case Piece::BGold:      case Piece::WGold:      return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
-    case Piece::BBishop:    case Piece::WBishop:    return (blackPiece ? KPP_BBBISHOP : KPP_BWBISHOP) + pos;
-    case Piece::BRook:      case Piece::WRook:      return (blackPiece ? KPP_BBROOK   : KPP_BWROOK) + pos;
-    case Piece::BTokin:     case Piece::WTokin:     return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
-    case Piece::BProLance:  case Piece::WProLance:  return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
-    case Piece::BProKnight: case Piece::WProKnight: return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
-    case Piece::BProSilver: case Piece::WProSilver: return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + pos;
-    case Piece::BHorse:     case Piece::WHorse:     return (blackPiece ? KPP_BBHORSE  : KPP_BWHORSE) + pos;
-    case Piece::BDragon:    case Piece::WDragon:    return (blackPiece ? KPP_BBDRAGON : KPP_BWDRAGON) + pos;
+    case Piece::BPawn:      case Piece::WPawn:      return (blackPiece ? KPP_BBPAWN   : KPP_BWPAWN) + (blackPiece ? sqIndexBPawn[sq] : sqIndexWPawn[sq]);
+    case Piece::BLance:     case Piece::WLance:     return (blackPiece ? KPP_BBLANCE  : KPP_BWLANCE) + (blackPiece ? sqIndexBPawn[sq] : sqIndexWPawn[sq]);
+    case Piece::BKnight:    case Piece::WKnight:    return (blackPiece ? KPP_BBKNIGHT : KPP_BWKNIGHT) + (blackPiece ? sqIndexBKnight[sq] : sqIndexWKnight[sq]);
+    case Piece::BSilver:    case Piece::WSilver:    return (blackPiece ? KPP_BBSILVER : KPP_BWSILVER) + sq;
+    case Piece::BGold:      case Piece::WGold:      return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + sq;
+    case Piece::BBishop:    case Piece::WBishop:    return (blackPiece ? KPP_BBBISHOP : KPP_BWBISHOP) + sq;
+    case Piece::BRook:      case Piece::WRook:      return (blackPiece ? KPP_BBROOK   : KPP_BWROOK) + sq;
+    case Piece::BTokin:     case Piece::WTokin:     return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + sq;
+    case Piece::BProLance:  case Piece::WProLance:  return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + sq;
+    case Piece::BProKnight: case Piece::WProKnight: return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + sq;
+    case Piece::BProSilver: case Piece::WProSilver: return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + sq;
+    case Piece::BHorse:     case Piece::WHorse:     return (blackPiece ? KPP_BBHORSE  : KPP_BWHORSE) + sq;
+    case Piece::BDragon:    case Piece::WDragon:    return (blackPiece ? KPP_BBDRAGON : KPP_BWDRAGON) + sq;
   }
 
   assert(false);
@@ -365,8 +365,8 @@ template <class T>
 template <class U, bool update>
 U Feature<T>::extract(const Board& board, U delta) {
   U positional = 0;
-  auto bking = board.getBKingPosition();
-  auto wking = board.getWKingPosition();
+  auto bking = board.getBKingSquare();
+  auto wking = board.getWKingSquare();
   auto bkingR = bking.reverse();
   auto wkingR = wking.reverse();
 
@@ -405,42 +405,42 @@ U Feature<T>::extract(const Board& board, U delta) {
 
 #undef ON_HAND
 
-#define ON_BOARD(blackBB, whiteBB, pieceL, POS_INDEX_B, POS_INDEX_W) { \
+#define ON_BOARD(blackBB, whiteBB, pieceL, SQ_INDEX_B, SQ_INDEX_W) { \
   nTemp = 0; \
   auto bb = (blackBB); \
-  BB_EACH_OPE(pos, bb, { \
+  BB_EACH_OPE(sq, bb, { \
     if (update) { \
-      t_->kkp[bking][wking][KKP_B ## pieceL+POS_INDEX_B(pos)] += ValueType(delta); \
+      t_->kkp[bking][wking][KKP_B ## pieceL+SQ_INDEX_B(sq)] += ValueType(delta); \
     } else { \
-      positional += t_->kkp[bking][wking][KKP_B ## pieceL+POS_INDEX_B(pos)]; \
+      positional += t_->kkp[bking][wking][KKP_B ## pieceL+SQ_INDEX_B(sq)]; \
     } \
-    bList[num++] = KPP_BB ## pieceL + POS_INDEX_B(pos); \
-    wTemp[nTemp++] = KPP_BW ## pieceL + POS_INDEX_W(pos.reverse()); \
+    bList[num++] = KPP_BB ## pieceL + SQ_INDEX_B(sq); \
+    wTemp[nTemp++] = KPP_BW ## pieceL + SQ_INDEX_W(sq.reverse()); \
   }); \
   bb = (whiteBB); \
-  BB_EACH_OPE(pos, bb, { \
+  BB_EACH_OPE(sq, bb, { \
     if (update) { \
-      t_->kkp[wkingR][bkingR][KKP_B ## pieceL+POS_INDEX_B(pos.reverse())] -= ValueType(delta); \
+      t_->kkp[wkingR][bkingR][KKP_B ## pieceL+SQ_INDEX_B(sq.reverse())] -= ValueType(delta); \
     } else { \
-      positional -= t_->kkp[wkingR][bkingR][KKP_B ## pieceL+POS_INDEX_B(pos.reverse())]; \
+      positional -= t_->kkp[wkingR][bkingR][KKP_B ## pieceL+SQ_INDEX_B(sq.reverse())]; \
     } \
-    bList[num++] = KPP_BW ## pieceL + POS_INDEX_W(pos); \
-    wTemp[nTemp++] = KPP_BB ## pieceL + POS_INDEX_B(pos.reverse()); \
+    bList[num++] = KPP_BW ## pieceL + SQ_INDEX_W(sq); \
+    wTemp[nTemp++] = KPP_BB ## pieceL + SQ_INDEX_B(sq.reverse()); \
   }); \
   for (int i = 0; i < nTemp; i++) { wList[num-i-1] = wTemp[i]; } \
 }
 
-  ON_BOARD(board.getBPawn(), board.getWPawn(), PAWN, POS_INDEX_BPAWN, POS_INDEX_WPAWN);
-  ON_BOARD(board.getBLance(),board.getWLance(), LANCE, POS_INDEX_BPAWN, POS_INDEX_WPAWN);
-  ON_BOARD(board.getBKnight(), board.getWKnight(), KNIGHT, POS_INDEX_BKNIGHT, POS_INDEX_WKNIGHT);
-  ON_BOARD(board.getBSilver(), board.getWSilver(), SILVER, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
+  ON_BOARD(board.getBPawn(), board.getWPawn(), PAWN, SQ_INDEX_BPAWN, SQ_INDEX_WPAWN);
+  ON_BOARD(board.getBLance(),board.getWLance(), LANCE, SQ_INDEX_BPAWN, SQ_INDEX_WPAWN);
+  ON_BOARD(board.getBKnight(), board.getWKnight(), KNIGHT, SQ_INDEX_BKNIGHT, SQ_INDEX_WKNIGHT);
+  ON_BOARD(board.getBSilver(), board.getWSilver(), SILVER, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
   ON_BOARD(board.getBGold() | board.getBTokin() | board.getBProLance() | board.getBProKnight() | board.getBProSilver(),
            board.getWGold() | board.getWTokin() | board.getWProLance() | board.getWProKnight() | board.getWProSilver(), GOLD,
-           POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-  ON_BOARD(board.getBBishop(), board.getWBishop(), BISHOP, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-  ON_BOARD(board.getBHorse(), board.getWHorse(), HORSE, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-  ON_BOARD(board.getBRook(), board.getWRook(), ROOK, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-  ON_BOARD(board.getBDragon(), board.getWDragon(), DRAGON, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
+           SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
+  ON_BOARD(board.getBBishop(), board.getWBishop(), BISHOP, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
+  ON_BOARD(board.getBHorse(), board.getWHorse(), HORSE, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
+  ON_BOARD(board.getBRook(), board.getWRook(), ROOK, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
+  ON_BOARD(board.getBDragon(), board.getWDragon(), DRAGON, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
 
 #undef ON_BOARD
 
@@ -577,9 +577,9 @@ void Evaluator::convertFromFvBin(Table* fvbin) {
 #endif
 
   // king-piece-piece
-  POSITION_EACH(kingPos) {
+  SQUARE_EACH(kingPos) {
     int king = kingPos;
-    int bona = posS2B[king];
+    int bona = sqS2B[king];
 
     for (int x = 0; x < KPP_MAX; x++) {
       int bx = convertKppIndex4FvBin(x);
@@ -593,12 +593,12 @@ void Evaluator::convertFromFvBin(Table* fvbin) {
   }
 
   // king-king-piece
-  POSITION_EACH(bkingPos) {
-    POSITION_EACH(wkingPos) {
+  SQUARE_EACH(bkingPos) {
+    SQUARE_EACH(wkingPos) {
       int bking = bkingPos;
       int wking = wkingPos;
-      int bbona = posS2B[bking];
-      int wbona = posS2B[wking];
+      int bbona = sqS2B[bking];
+      int wbona = sqS2B[wking];
 
       for (int index = 0; index < KKP_MAX; index++) {
         int bonaIndex = convertKkpIndex4FvBin(index);
@@ -753,8 +753,8 @@ ValuePair Evaluator::evaluateDiff_(const Board& board, const ValuePair& prevValu
   auto to = move.to();
   bool isProm = move.promote();
 
-  auto bking = board.getBKingPosition();
-  auto wking = board.getWKingPosition();
+  auto bking = board.getBKingSquare();
+  auto wking = board.getWKingSquare();
   auto bkingR = bking.reverse();
   auto wkingR = wking.reverse();
 
@@ -886,32 +886,32 @@ ValuePair Evaluator::evaluateDiff_(const Board& board, const ValuePair& prevValu
 
 #undef ON_HAND
 
-#define ON_BOARD(blackBB, whiteBB, pieceL, POS_INDEX_B, POS_INDEX_W) { \
+#define ON_BOARD(blackBB, whiteBB, pieceL, SQ_INDEX_B, SQ_INDEX_W) { \
   nTemp = 0; \
   auto bb = (blackBB); \
-  BB_EACH_OPE(pos, bb, { \
-    bList[num++] = KPP_BB ## pieceL + POS_INDEX_B(pos); \
-    wTemp[nTemp++] = KPP_BW ## pieceL + POS_INDEX_W(pos.reverse()); \
+  BB_EACH_OPE(sq, bb, { \
+    bList[num++] = KPP_BB ## pieceL + SQ_INDEX_B(sq); \
+    wTemp[nTemp++] = KPP_BW ## pieceL + SQ_INDEX_W(sq.reverse()); \
   }); \
   bb = (whiteBB); \
-  BB_EACH_OPE(pos, bb, { \
-    bList[num++] = KPP_BW ## pieceL + POS_INDEX_W(pos); \
-    wTemp[nTemp++] = KPP_BB ## pieceL + POS_INDEX_B(pos.reverse()); \
+  BB_EACH_OPE(sq, bb, { \
+    bList[num++] = KPP_BW ## pieceL + SQ_INDEX_W(sq); \
+    wTemp[nTemp++] = KPP_BB ## pieceL + SQ_INDEX_B(sq.reverse()); \
   }); \
   for (int i = 0; i < nTemp; i++) { wList[num-i-1] = wTemp[i]; } \
 }
 
-  ON_BOARD(board.getBPawn(), board.getWPawn(), PAWN, POS_INDEX_BPAWN, POS_INDEX_WPAWN);
-  ON_BOARD(board.getBLance(),board.getWLance(), LANCE, POS_INDEX_BPAWN, POS_INDEX_WPAWN);
-  ON_BOARD(board.getBKnight(), board.getWKnight(), KNIGHT, POS_INDEX_BKNIGHT, POS_INDEX_WKNIGHT);
-  ON_BOARD(board.getBSilver(), board.getWSilver(), SILVER, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
+  ON_BOARD(board.getBPawn(), board.getWPawn(), PAWN, SQ_INDEX_BPAWN, SQ_INDEX_WPAWN);
+  ON_BOARD(board.getBLance(),board.getWLance(), LANCE, SQ_INDEX_BPAWN, SQ_INDEX_WPAWN);
+  ON_BOARD(board.getBKnight(), board.getWKnight(), KNIGHT, SQ_INDEX_BKNIGHT, SQ_INDEX_WKNIGHT);
+  ON_BOARD(board.getBSilver(), board.getWSilver(), SILVER, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
   ON_BOARD(board.getBGold() | board.getBTokin() | board.getBProLance() | board.getBProKnight() | board.getBProSilver(),
            board.getWGold() | board.getWTokin() | board.getWProLance() | board.getWProKnight() | board.getWProSilver(), GOLD,
-           POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-  ON_BOARD(board.getBBishop(), board.getWBishop(), BISHOP, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-  ON_BOARD(board.getBHorse(), board.getWHorse(), HORSE, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-  ON_BOARD(board.getBRook(), board.getWRook(), ROOK, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
-  ON_BOARD(board.getBDragon(), board.getWDragon(), DRAGON, POS_INDEX_BNORMAL, POS_INDEX_WNORMAL);
+           SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
+  ON_BOARD(board.getBBishop(), board.getWBishop(), BISHOP, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
+  ON_BOARD(board.getBHorse(), board.getWHorse(), HORSE, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
+  ON_BOARD(board.getBRook(), board.getWRook(), ROOK, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
+  ON_BOARD(board.getBDragon(), board.getWDragon(), DRAGON, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
 
 #undef ON_BOARD
 
@@ -1064,8 +1064,8 @@ Value Evaluator::estimate_(const Board& board, const Move& move) {
   auto to = move.to();
   bool isProm = move.promote();
 
-  auto bking = board.getBKingPosition();
-  auto wking = board.getWKingPosition();
+  auto bking = board.getBKingSquare();
+  auto wking = board.getWKingSquare();
   auto bkingR = bking.reverse();
   auto wkingR = wking.reverse();
 

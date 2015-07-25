@@ -37,7 +37,7 @@ TEST(BitboardTest, testShift) {
 
 TEST(BitboardTest, testIterate) {
   Bitboard bb;
-  Position pos;
+  Square sq;
   bb.init();
   bb.set(P95);
   bb.set(P41);
@@ -46,28 +46,28 @@ TEST(BitboardTest, testIterate) {
 
   ASSERT_EQ(P95, bb.getFirst());
   ASSERT_EQ(P27, bb.getLast());
-  pos = bb.pickFirst();
-  ASSERT_EQ(P95, pos);
+  sq = bb.pickFirst();
+  ASSERT_EQ(P95, sq);
 
   ASSERT_EQ(P41, bb.getFirst());
   ASSERT_EQ(P27, bb.getLast());
-  pos = bb.pickFirst();
-  ASSERT_EQ(P41, pos);
+  sq = bb.pickFirst();
+  ASSERT_EQ(P41, sq);
 
   ASSERT_EQ(P48, bb.getFirst());
   ASSERT_EQ(P27, bb.getLast());
-  pos = bb.pickFirst();
-  ASSERT_EQ(P48, pos);
+  sq = bb.pickFirst();
+  ASSERT_EQ(P48, sq);
 
   ASSERT_EQ(P27, bb.getFirst());
   ASSERT_EQ(P27, bb.getLast());
-  pos = bb.pickFirst();
-  ASSERT_EQ(P27, pos);
+  sq = bb.pickFirst();
+  ASSERT_EQ(P27, sq);
 
-  ASSERT_EQ(Position::Invalid, bb.getFirst());
-  ASSERT_EQ(Position::Invalid, bb.getLast());
-  pos = bb.pickFirst();
-  ASSERT(pos.isInvalid());
+  ASSERT_EQ(Square::Invalid, bb.getFirst());
+  ASSERT_EQ(Square::Invalid, bb.getLast());
+  sq = bb.pickFirst();
+  ASSERT(sq.isInvalid());
 }
 
 #endif // !defined(NDEBUG)

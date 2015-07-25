@@ -7,7 +7,7 @@
 #define SUNFISH_BITBOARD__
 
 #include "../def.h"
-#include "../base/Position.h"
+#include "../base/Square.h"
 #include "../util/StringUtil.h"
 #include <cstdint>
 
@@ -163,25 +163,25 @@ private:
 # define high0_ bb_.i32[2]
 # define high1_ bb_.i32[3]
 
-  explicit Bitboard(int pos) {
-    init(pos);
+  explicit Bitboard(int sq) {
+    init(sq);
   }
-  explicit Bitboard(const Position& pos) {
-    init(pos);
+  explicit Bitboard(const Square& sq) {
+    init(sq);
   }
 
-  Bitboard& init(int pos) {
-    if (pos < LowBits) {
+  Bitboard& init(int sq) {
+    if (sq < LowBits) {
       high_ = 0x00LL;
-      low_ |= 0x01LL << (pos);
+      low_ |= 0x01LL << (sq);
     } else {
-      high_ |= 0x01LL << (pos-LowBits);
+      high_ |= 0x01LL << (sq-LowBits);
       low_ = 0x00LL;
     }
     return *this;
   }
-  Bitboard& init(const Position& pos) {
-    return init((int)pos);
+  Bitboard& init(const Square& sq) {
+    return init((int)sq);
   }
 
 public:
@@ -210,9 +210,9 @@ public:
     low_ = low;
   }
 
-  static const Bitboard& mask(int pos);
-  static const Bitboard& mask(const Position& pos) {
-    return mask((int)pos);
+  static const Bitboard& mask(int sq);
+  static const Bitboard& mask(const Square& sq) {
+    return mask((int)sq);
   }
   static const Bitboard& file(int file) {
     return file_[file-1];
@@ -389,31 +389,31 @@ public:
     return *this << distance;
   }
   Bitboard left(int distance = 1) const {
-    return *this >> (distance * Position::RankN);
+    return *this >> (distance * Square::RankN);
   }
   Bitboard right(int distance = 1) const {
-    return *this << (distance * Position::RankN);
+    return *this << (distance * Square::RankN);
   }
 
-  Bitboard& set(int pos) {
-    *this |= mask(pos);
+  Bitboard& set(int sq) {
+    *this |= mask(sq);
     return *this;
   }
-  Bitboard& set(const Position& pos) {
-    return set((int)pos);
+  Bitboard& set(const Square& sq) {
+    return set((int)sq);
   }
-  Bitboard& unset(int pos) {
-    *this &= ~mask(pos);
+  Bitboard& unset(int sq) {
+    *this &= ~mask(sq);
     return *this;
   }
-  Bitboard& unset(const Position& pos) {
-    return unset((int)pos);
+  Bitboard& unset(const Square& sq) {
+    return unset((int)sq);
   }
-  bool check(int pos) const {
-    return *this & mask(pos);
+  bool check(int sq) const {
+    return *this & mask(sq);
   }
-  bool check(const Position& pos) const {
-    return check((int)pos);
+  bool check(const Square& sq) const {
+    return check((int)sq);
   }
   uint64_t low() const {
     return low_;
@@ -435,11 +435,11 @@ public:
     return high1_;
   }
 
-  static bool isLow(const Position& pos) {
-    return pos < (int)LowBits;
+  static bool isLow(const Square& sq) {
+    return sq < (int)LowBits;
   }
-  static bool isHigh(const Position& pos) {
-    return !isLow(pos);
+  static bool isHigh(const Square& sq) {
+    return !isLow(sq);
   }
 
 private:
@@ -506,7 +506,7 @@ public:
         return getFirst_(high_ >> 32) + 32 + (int)LowBits - 1;
       }
     }
-    return Position::Invalid;
+    return Square::Invalid;
   }
   int getLast() const {
     if (high_) {
@@ -524,7 +524,7 @@ public:
         return getLast_((uint32_t)low_) - 1;
       }
     }
-    return Position::Invalid;
+    return Square::Invalid;
   }
 
   int pickFirst() {
@@ -545,7 +545,7 @@ public:
       high_ &= ~(0x01LL << b);
       b += (int)LowBits;
     } else {
-      b = Position::Invalid;
+      b = Square::Invalid;
     }
     return b;
   }
@@ -585,28 +585,28 @@ public:
 } // namespace sunfish
 
 // for-each
-#define BB_EACH(pos, bb) \
-for (sunfish::Position pos = bb.pickFirst(); pos.isValid(); pos = bb.pickFirst())
+#define BB_EACH(sq, bb) \
+for (sunfish::Square sq = bb.pickFirst(); sq.isValid(); sq = bb.pickFirst())
 
 // for-each
-#define BB_EACH_OPE(pos, bb, ope) \
+#define BB_EACH_OPE(sq, bb, ope) \
 do { \
-  BB_EACH_OPE_LOW0(pos, bb, ope); \
-  BB_EACH_OPE_LOW1(pos, bb, ope); \
-  BB_EACH_OPE_HIGH0(pos, bb, ope); \
-  BB_EACH_OPE_HIGH1(pos, bb, ope); \
+  BB_EACH_OPE_LOW0(sq, bb, ope); \
+  BB_EACH_OPE_LOW1(sq, bb, ope); \
+  BB_EACH_OPE_HIGH0(sq, bb, ope); \
+  BB_EACH_OPE_HIGH1(sq, bb, ope); \
 } while(false)
 
-#define BB_EACH_OPE_LOW0(pos, bb, ope) \
-for (sunfish::Position pos; bb.low0(); ) { pos = bb.pickLow0First(); { ope } }
+#define BB_EACH_OPE_LOW0(sq, bb, ope) \
+for (sunfish::Square sq; bb.low0(); ) { sq = bb.pickLow0First(); { ope } }
 
-#define BB_EACH_OPE_LOW1(pos, bb, ope) \
-for (sunfish::Position pos; bb.low1(); ) { pos = bb.pickLow1First(); { ope } }
+#define BB_EACH_OPE_LOW1(sq, bb, ope) \
+for (sunfish::Square sq; bb.low1(); ) { sq = bb.pickLow1First(); { ope } }
 
-#define BB_EACH_OPE_HIGH0(pos, bb, ope) \
-for (sunfish::Position pos; bb.high0(); ) { pos = bb.pickHigh0First(); { ope } }
+#define BB_EACH_OPE_HIGH0(sq, bb, ope) \
+for (sunfish::Square sq; bb.high0(); ) { sq = bb.pickHigh0First(); { ope } }
 
-#define BB_EACH_OPE_HIGH1(pos, bb, ope) \
-for (sunfish::Position pos; bb.high1(); ) { pos = bb.pickHigh1First(); { ope } }
+#define BB_EACH_OPE_HIGH1(sq, bb, ope) \
+for (sunfish::Square sq; bb.high1(); ) { sq = bb.pickHigh1First(); { ope } }
 
 #endif //SUNFISH_BITBOARD__

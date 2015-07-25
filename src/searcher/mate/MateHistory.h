@@ -15,7 +15,7 @@ namespace sunfish {
 class MateHistory {
 private:
 
-  uint64_t (*hist_)[Piece::Num][Position::N];
+  uint64_t (*hist_)[Piece::Num][Square::N];
 
 public:
   static const uint32_t Scale = 0x2000;
@@ -23,7 +23,7 @@ public:
   static const uint64_t Max = 0x0008000000000000ull;
 
   MateHistory() {
-    hist_ = new uint64_t[Position::N][Piece::Num][Position::N];
+    hist_ = new uint64_t[Square::N][Piece::Num][Square::N];
   }
 
   ~MateHistory() {
@@ -34,10 +34,10 @@ public:
     memset(hist_, 0, sizeof(hist_));
   }
 
-  void update(const Position& king, const Move& move, bool mate) {
+  void update(const Square& king, const Move& move, bool mate) {
     uint64_t v = mate ? 0x100000001llu : 0x100000000llu;
     Piece piece = move.piece();
-    Position to = move.to();
+    Square to = move.to();
     uint64_t h = hist_[king][piece][to];
     h += v;
     if (h >= Max) {
@@ -46,9 +46,9 @@ public:
     hist_[king][piece][to] = h;
   }
 
-  uint64_t getData(const Position& king, const Move& move) const {
+  uint64_t getData(const Square& king, const Move& move) const {
     Piece piece = move.piece();
-    Position to = move.to();
+    Square to = move.to();
     uint64_t data = hist_[king][piece][to];
     return data;
   }

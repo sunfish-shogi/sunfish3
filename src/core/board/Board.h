@@ -15,7 +15,7 @@ namespace sunfish {
 
 struct CompactBoard {
   enum {
-    PositionMask = 0x007f,
+    SquareMask = 0x007f,
     PieceMask    = 0x0f80,
 
     Black        = 0x4000,
@@ -67,15 +67,15 @@ private:
   uint64_t boardHash_;
   uint64_t handHash_;
 
-  Position posBKing_;
-  Position posWKing_;
+  Square sqBKing_;
+  Square sqWKing_;
 
   Hand blackHand_;
   Hand whiteHand_;
 
   bool black_;
 
-  Piece board_[Position::N];
+  Piece board_[Square::N];
 
   Bitboard& getBB(const Piece& piece) {
     return *(const_cast<Bitboard*>(&getBB_(piece)));
@@ -84,18 +84,18 @@ private:
     return getBB_(piece);
   }
   const Bitboard& getBB_(const Piece& piece) const;
-  template<bool black> bool isPin_(const Position& pos, const Bitboard& occ) const;
-  template<bool black> bool isChecking_(const Position& king, const Bitboard& occ) const;
+  template<bool black> bool isPin_(const Square& sq, const Bitboard& occ) const;
+  template<bool black> bool isChecking_(const Square& king, const Bitboard& occ) const;
   template<bool black> bool isChecking_() const {
     Bitboard occ = bbBOccupy_ | bbWOccupy_;
-    return isChecking_<black>(black ? posBKing_ : posWKing_, occ);
+    return isChecking_<black>(black ? sqBKing_ : sqWKing_, occ);
   }
   template<bool black, DirectionEx dir> bool isDirectCheck_(const Move& move) const;
-  template<bool black, Direction dir> bool isDiscoveredCheck_(const Position& king, const Position& from) const;
+  template<bool black, Direction dir> bool isDiscoveredCheck_(const Square& king, const Square& from) const;
   template<bool black> bool isCheck_(const Move& move) const;
   template<bool black> bool isPawnDropMate_() const;
-  template<bool black> bool isValidMove_(const Piece& piece, const Position& to) const;
-  template<bool black> bool isValidMove_(const Piece& piece, const Position& from, const Position& to) const;
+  template<bool black> bool isValidMove_(const Piece& piece, const Square& to) const;
+  template<bool black> bool isValidMove_(const Piece& piece, const Square& from, const Square& to) const;
   template<bool black> bool isValidMoveStrict_(const Move& move) const;
   template<bool black> bool makeMove_(Move& move);
   template<bool black> bool unmakeMove_(const Move& move);
@@ -143,8 +143,8 @@ public:
   }
 
   /** 盤面の駒を取得します。 */
-  Piece getBoardPiece(const Position& pos) const {
-    return board_[pos];
+  Piece getBoardPiece(const Square& sq) const {
+    return board_[sq];
   }
   /** 先手の持ち駒を取得します。 */
   const Hand& getBlackHand() const {
@@ -187,16 +187,16 @@ public:
     return !black_;
   }
   /** 先手の玉の位置を取得します。 */
-  const Position& getBKingPosition() const {
-    return posBKing_;
+  const Square& getBKingSquare() const {
+    return sqBKing_;
   }
   /** 後手の玉の位置を取得します。 */
-  const Position& getWKingPosition() const {
-    return posWKing_;
+  const Square& getWKingSquare() const {
+    return sqWKing_;
   }
 
   /** 盤面の駒をセットします。 */
-  void setBoardPiece(const Position& pos, const Piece& piece);
+  void setBoardPiece(const Square& sq, const Piece& piece);
   /** 先手の持ち駒をセットします。 */
   void setBlackHand(const Piece& piece, int count) {
     blackHand_.set(piece, count);
@@ -255,11 +255,11 @@ public:
    */
   bool isValidMove(const Move& move) const {
     const Piece& piece = move.piece();
-    const Position& to = move.to();
+    const Square& to = move.to();
     if (move.isHand()) {
       return black_ ? isValidMove_<true>(piece, to) : isValidMove_<false>(piece, to);
     } else {
-      const Position& from = move.from();
+      const Square& from = move.from();
       return black_ ? isValidMove_<true>(piece, from, to) : isValidMove_<false>(piece, from, to);
     }
   }

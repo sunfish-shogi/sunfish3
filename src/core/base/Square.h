@@ -1,10 +1,10 @@
-/* Position.h
+/* Square.h
  *
  * Kubo Ryosuke
  */
 
-#ifndef SUNFISH_POSITION__
-#define SUNFISH_POSITION__
+#ifndef SUNFISH_SQUARE__
+#define SUNFISH_SQUARE__
 
 #include "../def.h"
 #include <string>
@@ -80,7 +80,7 @@ inline Direction getReversedDir(Direction dir) {
   }
 }
 
-class Position {
+class Square {
 private:
 
   static const int32_t DistanceTable[17][17];
@@ -100,11 +100,11 @@ public:
   static CONSTEXPR int32_t Begin = 0;
   static CONSTEXPR int32_t End = Begin + N;
 
-  Position() : index_(Invalid) {
+  Square() : index_(Invalid) {
   }
-  Position(int32_t index) : index_(index) {
+  Square(int32_t index) : index_(index) {
   }
-  explicit Position(int32_t file, int32_t rank) {
+  explicit Square(int32_t file, int32_t rank) {
     set(file, rank);
   }
 
@@ -115,11 +115,11 @@ public:
     return index_;
   }
 
-  Position& set(int32_t index) {
+  Square& set(int32_t index) {
     index_ = index;
     return *this;
   }
-  Position& set(int32_t file, int32_t rank) {
+  Square& set(int32_t file, int32_t rank) {
     index_ = (9 - file) * RankN + rank - 1;
     return *this;
   }
@@ -190,117 +190,117 @@ public:
       return getRank() - 1 <= 6;
     }
   }
-  Position reverse() const {
+  Square reverse() const {
     return N - 1 - index_;
   }
-  Position up(int32_t distance = 1) const {
+  Square up(int32_t distance = 1) const {
     assert(getRank() != 1);
     return index_ - distance;
   }
-  Position down(int32_t distance = 1) const {
+  Square down(int32_t distance = 1) const {
     assert(getRank() != 9);
     return index_ + distance;
   }
-  Position left(int32_t distance = 1) const {
+  Square left(int32_t distance = 1) const {
     assert(getFile() != 9);
     return index_ - distance * RankN;
   }
-  Position right(int32_t distance = 1) const {
+  Square right(int32_t distance = 1) const {
     assert(getFile() != 1);
     return index_ + distance * RankN;
   }
-  Position leftUp(int32_t distance = 1) const {
+  Square leftUp(int32_t distance = 1) const {
     assert(getRank() != 1);
     assert(getFile() != 9);
     return (*this).left(distance).up(distance);
   }
-  Position leftDown(int32_t distance = 1) const {
+  Square leftDown(int32_t distance = 1) const {
     assert(getRank() != 9);
     assert(getFile() != 9);
     return (*this).left(distance).down(distance);
   }
-  Position rightUp(int32_t distance = 1) const {
+  Square rightUp(int32_t distance = 1) const {
     assert(getRank() != 1);
     assert(getFile() != 1);
     return (*this).right(distance).up(distance);
   }
-  Position rightDown(int32_t distance = 1) const {
+  Square rightDown(int32_t distance = 1) const {
     assert(getRank() != 9);
     assert(getFile() != 1);
     return (*this).right(distance).down(distance);
   }
-  Position leftUpKnight() const {
+  Square leftUpKnight() const {
     assert(getRank() >= 3);
     assert(getFile() != 9);
     return (*this).left().up(2);
   }
-  Position leftDownKnight() const {
+  Square leftDownKnight() const {
     assert(getRank() <= 7);
     assert(getFile() != 9);
     return (*this).left().down(2);
   }
-  Position rightUpKnight() const {
+  Square rightUpKnight() const {
     assert(getRank() >= 3);
     assert(getFile() != 1);
     return (*this).right().up(2);
   }
-  Position rightDownKnight() const {
+  Square rightDownKnight() const {
     assert(getRank() <= 7);
     assert(getFile() != 1);
     return (*this).right().down(2);
   }
-  Position safetyUp(int32_t distance = 1) const {
-    if (isInvalid()) { return Position(Invalid); }
+  Square safetyUp(int32_t distance = 1) const {
+    if (isInvalid()) { return Square(Invalid); }
     int32_t file = getFile();
     int32_t rank = getRank() - distance;
-    return rank >= 1 ? Position(file, rank) : Position(Invalid);
+    return rank >= 1 ? Square(file, rank) : Square(Invalid);
   }
-  Position safetyDown(int32_t distance = 1) const {
-    if (isInvalid()) { return Position(Invalid); }
+  Square safetyDown(int32_t distance = 1) const {
+    if (isInvalid()) { return Square(Invalid); }
     int32_t file = getFile();
     int32_t rank = getRank() + distance;
-    return rank <= 9 ? Position(file, rank) : Position(Invalid);
+    return rank <= 9 ? Square(file, rank) : Square(Invalid);
   }
-  Position safetyLeft(int32_t distance = 1) const {
-    if (isInvalid()) { return Position(Invalid); }
+  Square safetyLeft(int32_t distance = 1) const {
+    if (isInvalid()) { return Square(Invalid); }
     int32_t file = getFile() + distance;
     int32_t rank = getRank();
-    return file <= 9 ? Position(file, rank) : Position(Invalid);
+    return file <= 9 ? Square(file, rank) : Square(Invalid);
   }
-  Position safetyRight(int32_t distance = 1) const {
-    if (isInvalid()) { return Position(Invalid); }
+  Square safetyRight(int32_t distance = 1) const {
+    if (isInvalid()) { return Square(Invalid); }
     int32_t file = getFile() - distance;
     int32_t rank = getRank();
-    return file >= 1 ? Position(file, rank) : Position(Invalid);
+    return file >= 1 ? Square(file, rank) : Square(Invalid);
   }
-  Position safetyLeftUp(int32_t distance = 1) const {
+  Square safetyLeftUp(int32_t distance = 1) const {
     return (*this).safetyLeft(distance).safetyUp(distance);
   }
-  Position safetyLeftDown(int32_t distance = 1) const {
+  Square safetyLeftDown(int32_t distance = 1) const {
     return (*this).safetyLeft(distance).safetyDown(distance);
   }
-  Position safetyRightUp(int32_t distance = 1) const {
+  Square safetyRightUp(int32_t distance = 1) const {
     return (*this).safetyRight(distance).safetyUp(distance);
   }
-  Position safetyRightDown(int32_t distance = 1) const {
+  Square safetyRightDown(int32_t distance = 1) const {
     return (*this).safetyRight(distance).safetyDown(distance);
   }
-  Position safetyLeftUpKnight() const {
+  Square safetyLeftUpKnight() const {
     return (*this).safetyLeft().safetyUp(2);
   }
-  Position safetyLeftDownKnight() const {
+  Square safetyLeftDownKnight() const {
     return (*this).safetyLeft().safetyDown(2);
   }
-  Position safetyRightUpKnight() const {
+  Square safetyRightUpKnight() const {
     return (*this).safetyRight().safetyUp(2);
   }
-  Position safetyRightDownKnight() const {
+  Square safetyRightDownKnight() const {
     return (*this).safetyRight().safetyDown(2);
   }
-  Position next() const {
+  Square next() const {
     return index_ + 1;
   }
-  Position nextRightDown() const {
+  Square nextRightDown() const {
     int32_t file = index_ / RankN;
     if (file == 8) {
       int32_t rank = index_ % RankN;
@@ -311,17 +311,17 @@ public:
     }
     return index_ + RankN;
   }
-  int32_t distance(const Position& to) const {
+  int32_t distance(const Square& to) const {
     int32_t rank = to.index_ % RankN - index_ % RankN + 8;
     int32_t file = to.index_ / RankN - index_ / RankN + 8;
     return DistanceTable[rank][file];
   }
-  Direction dir(const Position& to) const {
+  Direction dir(const Square& to) const {
     int32_t rank = to.index_ % RankN - index_ % RankN + 8;
     int32_t file = to.index_ / RankN - index_ / RankN + 8;
     return DirectionTable[rank][file];
   }
-  DirectionEx dirEx(const Position& to) const {
+  DirectionEx dirEx(const Square& to) const {
     int32_t rank = to.index_ % RankN - index_ % RankN + 8;
     int32_t file = to.index_ / RankN - index_ / RankN + 8;
     return DirectionTableEx[rank][file];
@@ -336,15 +336,15 @@ public:
   }
 
   std::string toString() const;
-  static Position parse(const char* str);
+  static Square parse(const char* str);
 
 };
 
 } // namespace sunfish
 
-#define POSITION_EACH(pos)    for (sunfish::Position (pos) = sunfish::Position::Begin; (pos) != sunfish::Position::End; (pos) = (pos).next())
+#define SQUARE_EACH(sq)    for (sunfish::Square (sq) = sunfish::Square::Begin; (sq) != sunfish::Square::End; (sq) = (sq).next())
 
 // scanning right-down
-#define POSITION_EACH_RD(pos) for (sunfish::Position (pos) = P91; (pos) != sunfish::Position::End; (pos) = (pos).nextRightDown())
+#define SQUARE_EACH_RD(sq) for (sunfish::Square (sq) = P91; (sq) != sunfish::Square::End; (sq) = (sq).nextRightDown())
 
-#endif //SUNFISH_POSITION__
+#endif //SUNFISH_SQUARE__

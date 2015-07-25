@@ -82,7 +82,7 @@ MovableFlags LongMovableTable[] = {
 template <int PieceType>
 AtacckableTable<PieceType>::AtacckableTable() {
 
-  POSITION_EACH(king) {
+  SQUARE_EACH(king) {
     Bitboard& bb = table[(uint8_t)king];
     bb.init();
 
@@ -92,7 +92,7 @@ AtacckableTable<PieceType>::AtacckableTable() {
         bb.set(king.safetyDown().safetyLeft());
         bb.set(king.safetyDown().safetyRight());
       }
-      if (king.safetyDown() != Position::Invalid && king.safetyDown().isPromotable<true>()) {
+      if (king.safetyDown() != Square::Invalid && king.safetyDown().isPromotable<true>()) {
         bb.set(king.safetyDown(2).safetyLeft());
         bb.set(king.safetyDown(2).safetyRight());
       }
@@ -104,14 +104,14 @@ AtacckableTable<PieceType>::AtacckableTable() {
         bb.set(king.safetyUp().safetyLeft());
         bb.set(king.safetyUp().safetyRight());
       }
-      if (king.safetyUp() != Position::Invalid && king.safetyUp().isPromotable<false>()) {
+      if (king.safetyUp() != Square::Invalid && king.safetyUp().isPromotable<false>()) {
         bb.set(king.safetyUp(2).safetyLeft());
         bb.set(king.safetyUp(2).safetyRight());
       }
     }
 
     if (PieceType == Piece::BLance) {
-      for (Position from = king.safetyDown(); from != Position::Invalid; from = from.safetyDown()) {
+      for (Square from = king.safetyDown(); from != Square::Invalid; from = from.safetyDown()) {
         bb.set(from);
         if (king.isPromotable<true>()) {
           bb.set(from.safetyLeft());
@@ -121,7 +121,7 @@ AtacckableTable<PieceType>::AtacckableTable() {
     }
 
     if (PieceType == Piece::WLance) {
-      for (Position from = king.safetyUp(); from != Position::Invalid; from = from.safetyUp()) {
+      for (Square from = king.safetyUp(); from != Square::Invalid; from = from.safetyUp()) {
         bb.set(from);
         if (king.isPromotable<false>()) {
           bb.set(from.safetyLeft());
@@ -134,7 +134,7 @@ AtacckableTable<PieceType>::AtacckableTable() {
       bb.set(king.safetyDown(4).safetyLeft(2));
       bb.set(king.safetyDown(4));
       bb.set(king.safetyDown(4).safetyRight(2));
-      if (king.safetyUp() != Position::Invalid && king.safetyUp().isPromotable<true>()) {
+      if (king.safetyUp() != Square::Invalid && king.safetyUp().isPromotable<true>()) {
         bb.set(king.safetyDown().safetyLeft());
         bb.set(king.safetyDown().safetyRight());
       }
@@ -143,7 +143,7 @@ AtacckableTable<PieceType>::AtacckableTable() {
         bb.set(king.safetyDown(2));
         bb.set(king.safetyDown(2).safetyRight(2));
       }
-      if (king.safetyDown() != Position::Invalid && king.safetyDown().isPromotable<true>()) {
+      if (king.safetyDown() != Square::Invalid && king.safetyDown().isPromotable<true>()) {
         bb.set(king.safetyDown(3).safetyLeft(2));
         bb.set(king.safetyDown(3).safetyLeft());
         bb.set(king.safetyDown(3));
@@ -156,7 +156,7 @@ AtacckableTable<PieceType>::AtacckableTable() {
       bb.set(king.safetyUp(4).safetyLeft(2));
       bb.set(king.safetyUp(4));
       bb.set(king.safetyUp(4).safetyRight(2));
-      if (king.safetyDown() != Position::Invalid && king.safetyDown().isPromotable<false>()) {
+      if (king.safetyDown() != Square::Invalid && king.safetyDown().isPromotable<false>()) {
         bb.set(king.safetyUp().safetyLeft());
         bb.set(king.safetyUp().safetyRight());
       }
@@ -165,7 +165,7 @@ AtacckableTable<PieceType>::AtacckableTable() {
         bb.set(king.safetyUp(2));
         bb.set(king.safetyUp(2).safetyRight(2));
       }
-      if (king.safetyUp() != Position::Invalid && king.safetyUp().isPromotable<false>()) {
+      if (king.safetyUp() != Square::Invalid && king.safetyUp().isPromotable<false>()) {
         bb.set(king.safetyUp(3).safetyLeft(2));
         bb.set(king.safetyUp(3).safetyLeft());
         bb.set(king.safetyUp(3));
@@ -187,7 +187,7 @@ AtacckableTable<PieceType>::AtacckableTable() {
       bb.set(king.safetyUp(2).safetyLeft(2));
       bb.set(king.safetyUp(2));
       bb.set(king.safetyUp(2).safetyRight(2));
-      if (king.safetyUp() != Position::Invalid && king.safetyUp().isPromotable<true>()) {
+      if (king.safetyUp() != Square::Invalid && king.safetyUp().isPromotable<true>()) {
         bb.set(king.safetyUp().safetyLeft(2));
         bb.set(king.safetyUp());
         bb.set(king.safetyUp().safetyRight(2));
@@ -213,7 +213,7 @@ AtacckableTable<PieceType>::AtacckableTable() {
       bb.set(king.safetyDown(2).safetyLeft(2));
       bb.set(king.safetyDown(2));
       bb.set(king.safetyDown(2).safetyRight(2));
-      if (king.safetyDown() != Position::Invalid && king.safetyDown().isPromotable<false>()) {
+      if (king.safetyDown() != Square::Invalid && king.safetyDown().isPromotable<false>()) {
         bb.set(king.safetyDown().safetyLeft(2));
         bb.set(king.safetyDown());
         bb.set(king.safetyDown().safetyRight(2));
@@ -256,46 +256,46 @@ AtacckableTable<PieceType>::AtacckableTable() {
       bb.set(king.safetyDown(2));
     }
 
-#define POS_BISHOP_EACH(king, dir1, dir2, dir3) \
-for (Position p1 = (king).safety ## dir1(); p1 != Position::Invalid; p1 = (p1).safety ## dir1()) { \
-for (Position p = p1.safety ## dir2(); p != Position::Invalid; p = (p).safety ## dir2()) { \
+#define SQ_BISHOP_EACH(king, dir1, dir2, dir3) \
+for (Square p1 = (king).safety ## dir1(); p1 != Square::Invalid; p1 = (p1).safety ## dir1()) { \
+for (Square p = p1.safety ## dir2(); p != Square::Invalid; p = (p).safety ## dir2()) { \
 bb.set(p); \
 } \
-for (Position p = p1.safety ## dir3(); p != Position::Invalid; p = (p).safety ## dir3()) { \
+for (Square p = p1.safety ## dir3(); p != Square::Invalid; p = (p).safety ## dir3()) { \
 bb.set(p); \
 } \
 }
 #define SET_BISHOP(king) do { \
-POS_BISHOP_EACH((king), LeftUp, LeftDown, RightUp); \
-POS_BISHOP_EACH((king), RightDown, LeftDown, RightUp); \
-POS_BISHOP_EACH((king), LeftDown, LeftUp, RightDown); \
-POS_BISHOP_EACH((king), RightUp, LeftUp, RightDown); \
+SQ_BISHOP_EACH((king), LeftUp, LeftDown, RightUp); \
+SQ_BISHOP_EACH((king), RightDown, LeftDown, RightUp); \
+SQ_BISHOP_EACH((king), LeftDown, LeftUp, RightDown); \
+SQ_BISHOP_EACH((king), RightUp, LeftUp, RightDown); \
 } while(false)
 
     if (PieceType == Piece::BBishop) {
       SET_BISHOP(king);
-      if (king.safetyUp() != Position::Invalid && king.safetyUp().isPromotable<true>()) {
+      if (king.safetyUp() != Square::Invalid && king.safetyUp().isPromotable<true>()) {
         SET_BISHOP(king.safetyUp());
       }
       if (king.isPromotable<true>()) {
         SET_BISHOP(king.safetyLeft());
         SET_BISHOP(king.safetyRight());
       }
-      if (king.safetyDown() != Position::Invalid && king.safetyUp().isPromotable<true>()) {
+      if (king.safetyDown() != Square::Invalid && king.safetyUp().isPromotable<true>()) {
         SET_BISHOP(king.safetyDown());
       }
     }
 
     if (PieceType == Piece::WBishop) {
       SET_BISHOP(king);
-      if (king.safetyDown() != Position::Invalid && king.safetyUp().isPromotable<false>()) {
+      if (king.safetyDown() != Square::Invalid && king.safetyUp().isPromotable<false>()) {
         SET_BISHOP(king.safetyDown());
       }
       if (king.isPromotable<false>()) {
         SET_BISHOP(king.safetyLeft());
         SET_BISHOP(king.safetyRight());
       }
-      if (king.safetyUp() != Position::Invalid && king.safetyUp().isPromotable<false>()) {
+      if (king.safetyUp() != Square::Invalid && king.safetyUp().isPromotable<false>()) {
         SET_BISHOP(king.safetyUp());
       }
     }
@@ -308,7 +308,7 @@ POS_BISHOP_EACH((king), RightUp, LeftUp, RightDown); \
       SET_BISHOP(king.safetyDown());
     }
 
-#undef POS_BISHOP_EACH
+#undef SQ_BISHOP_EACH
 #undef SET_BISHOP
 
   }

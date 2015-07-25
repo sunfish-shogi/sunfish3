@@ -369,7 +369,7 @@ void Searcher::before(const Board& initialBoard) {
   // timer 初期化
   timer_.set();
 
-  // transposition table
+  // transsquare table
   tt_.evolve(); // 世代更新
 
   // hisotory heuristic
@@ -1049,7 +1049,7 @@ bool Searcher::isNeedMateSearch(Tree& tree, bool black, int depth) {
   }
 
   const Board& board = tree.getBoard();
-  Position king = black ? board.getWKingPosition() : board.getBKingPosition();
+  Square king = black ? board.getWKingSquare() : board.getBKingSquare();
   Move move = tree.getPreFrontMove();
 
   uint64_t data = mateHistory_.getData(king, move);
@@ -1071,7 +1071,7 @@ void Searcher::updateMateHistory(Tree& tree, bool black, bool mate) {
   }
 
   const Board& board = tree.getBoard();
-  Position king = black ? board.getWKingPosition() : board.getBKingPosition();
+  Square king = black ? board.getWKingSquare() : board.getBKingSquare();
   Move move = tree.getPreFrontMove();
 
   mateHistory_.update(king, move, mate);
@@ -1368,7 +1368,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
     hash ^= search_func::excludedHash(tree.getExcluded());
   }
 
-  // transposition table
+  // transsquare table
   Move hashMove = Move::empty();
   Value hashValue;
   uint32_t hashValueType;

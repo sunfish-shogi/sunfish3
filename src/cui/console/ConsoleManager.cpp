@@ -34,11 +34,11 @@ struct CommandSet {
 const CommandSet commandSet[COMMAND_NUM] = {
   { "q", "quit", Command::Quit, "quit." },
   { "h", "help", Command::Help, "show this help." },
-  { "p", "prev", Command::Prev, "go to previous position." },
-  { "n", "next", Command::Next, "go to next position." },
+  { "p", "prev", Command::Prev, "go to previous square." },
+  { "n", "next", Command::Next, "go to next square." },
   { "t", "top", Command::Top, "go to top of this record." },
   { "e", "end", Command::End, "go to end of this record." },
-  { "s", "search", Command::Search, "search from current position." },
+  { "s", "search", Command::Search, "search from current square." },
   { "m", "moves", Command::Moves, "show legal moves." },
   { "b", "book", Command::Book, "probe book." },
   { nullptr, "clear-tt", Command::ClearTT, "clear TT." },
@@ -97,13 +97,13 @@ bool ConsoleManager::inputMove(const char* str, const Board& board, Move& move) 
   }
 
   // 移動元
-  auto to = Position::parse(&str[2]);
+  auto to = Square::parse(&str[2]);
   if (!to.isValid()) {
     return false;
   }
 
   // 移動先
-  auto from = Position::parse(&str[0]);
+  auto from = Square::parse(&str[0]);
 
   if (from.isValid()) {
     // 盤上の駒を動かす手

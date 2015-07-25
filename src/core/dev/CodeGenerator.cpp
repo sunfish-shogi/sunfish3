@@ -8,7 +8,7 @@
 #include "CodeGenerator.h"
 #include "core/util/Random.h"
 #include "core/base/Piece.h"
-#include "core/base/Position.h"
+#include "core/base/Square.h"
 #include <iostream>
 
 namespace sunfish {
@@ -18,8 +18,8 @@ namespace sunfish {
  */
 static void generateZobristOnBoard(Random& random) {
 
-  std::cout << "const uint64_t Zobrist::Board[Position::N][Piece::Num] = {\n";
-  POSITION_EACH(pos) {
+  std::cout << "const uint64_t Zobrist::Board[Square::N][Piece::Num] = {\n";
+  SQUARE_EACH(sq) {
     std::cout << "\t{\n";
     PIECE_EACH_UNSAFE(piece) {
       std::cout << "\t\t0x" << std::hex << random.getInt64() << "ll,\n";

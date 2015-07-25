@@ -515,7 +515,7 @@ void CsaClient::recvGameSummary() {
     if (recvStr == "BEGIN Time") {
       recvTime();
       ok = true;
-    } else if (recvStr == "BEGIN Position") {
+    } else if (recvStr == "BEGIN Square") {
       recvBoard();
       ok = true;
     } else if (recvStr == "END Game_Summary") {
@@ -629,7 +629,7 @@ void CsaClient::recvBoard() {
   while (con_.receive()) {
     std::string recvStr = con_.getReceivedString();
     printReceivedString(recvStr);
-    if (recvStr == "END Position") {
+    if (recvStr == "END Square") {
       return;
     }
     bool ok = inputBoard(recvStr);

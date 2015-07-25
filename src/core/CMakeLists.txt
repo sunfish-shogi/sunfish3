@@ -4,7 +4,7 @@ project(sunfish CXX)
 
 add_library(core STATIC
 	base/Piece.cpp
-	base/Position.cpp
+	base/Square.cpp
 	board/Bitboard.cpp
 	board/Board.cpp
 	board/Zobrist.cpp

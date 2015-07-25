@@ -20,8 +20,8 @@ int Progression::evaluate(const Board& board) {
 
   for (int file = 1; file <= 9; file++) {
     for (int rank = 1; rank <= 3; rank++) {
-      Position pos(file, rank);
-      Piece piece = board.getBoardPiece(pos);
+      Square sq(file, rank);
+      Piece piece = board.getBoardPiece(sq);
       switch (piece) {
       case Piece::BPawn:
         invader0++;
@@ -37,8 +37,8 @@ int Progression::evaluate(const Board& board) {
     }
 
     for (int rank = 7; rank <= 9; rank++) {
-      Position pos(file, rank);
-      Piece piece = board.getBoardPiece(pos);
+      Square sq(file, rank);
+      Piece piece = board.getBoardPiece(sq);
       switch (piece) {
       case Piece::WPawn:
         invader0++;

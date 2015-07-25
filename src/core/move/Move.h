@@ -8,7 +8,7 @@
 
 #include "../def.h"
 #include "../base/Piece.h"
-#include "../base/Position.h"
+#include "../base/Square.h"
 #include <cassert>
 #include <climits>
 #include <algorithm>
@@ -50,14 +50,14 @@ public:
 
   Move() {
   }
-  Move(const Piece& piece, const Position& from, const Position& to, bool promote, bool safe = true) {
+  Move(const Piece& piece, const Square& from, const Square& to, bool promote, bool safe = true) {
     if (safe) {
       set(piece, from, to, promote);
     } else {
       setUnsafe(piece, from, to, promote);
     }
   }
-  Move(const Piece& piece, const Position& to, bool safe = true) {
+  Move(const Piece& piece, const Square& to, bool safe = true) {
     if (safe) {
       set(piece, to);
     } else {
@@ -85,7 +85,7 @@ public:
 
 private:
   template<bool safe>
-  void set_(const Piece& piece, const Position& from, const Position& to, bool promote) {
+  void set_(const Piece& piece, const Square& from, const Square& to, bool promote) {
     assert(!piece.isEmpty());
     assert(piece.isUnpromoted() || !promote);
     move_ = ((uint32_t)from + 1)
@@ -96,17 +96,17 @@ private:
     }
   }
 public:
-  void set(const Piece& piece, const Position& from, const Position& to, bool promote) {
+  void set(const Piece& piece, const Square& from, const Square& to, bool promote) {
     set_<true>(piece, from, to, promote);
   }
-  void setUnsafe(const Piece& piece, const Position& from, const Position& to, bool promote) {
+  void setUnsafe(const Piece& piece, const Square& from, const Square& to, bool promote) {
     set_<false>(piece, from, to, promote);
   }
 
   // move from hand
 private:
   template<bool safe>
-  void set_(const Piece& piece, const Position& to) {
+  void set_(const Piece& piece, const Square& to) {
     assert(!piece.isEmpty());
     assert(!piece.isWhite());
     assert(piece.isUnpromoted());
@@ -115,10 +115,10 @@ private:
           | ((uint32_t)hand << PIECE_SHIFT);
   }
 public:
-  void set(const Piece& piece, const Position& to) {
+  void set(const Piece& piece, const Square& to) {
     set_<true>(piece, to);
   }
-  void setUnsafe(const Piece& piece, const Position& to) {
+  void setUnsafe(const Piece& piece, const Square& to) {
     set_<false>(piece, to);
   }
 
@@ -130,10 +130,10 @@ public:
   }
 
   // setters
-  void setFrom(const Position& from) {
+  void setFrom(const Square& from) {
     move_ = (move_ & ~FROM) | (from + 1);
   }
-  void setTo(const Position& to) {
+  void setTo(const Square& to) {
     move_ = (move_ & ~TO) | (to << TO_SHIFT);
   }
   void setPromote(bool enable = true) {
@@ -160,10 +160,10 @@ public:
   }
 
   // getters
-  Position from() const {
+  Square from() const {
     return (move_ & FROM) - 1;
   }
-  Position to() const {
+  Square to() const {
     return (move_ & TO) >> TO_SHIFT;
   }
   bool promote() const {

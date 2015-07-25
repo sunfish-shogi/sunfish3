@@ -53,7 +53,7 @@ add_executable(sunfish
 	test/core/MovesTest.cpp
 	test/core/MoveTest.cpp
 	test/core/PieceTest.cpp
-	test/core/PositionTest.cpp
+	test/core/SquareTest.cpp
 	test/core/WildcardTest.cpp
 	test/core/ZobristTest.cpp
 	test/network/CsaClientTest.cpp

@@ -16,8 +16,8 @@ namespace sunfish {
 
 template <bool black>
 void MoveGenChecker::generate(const Board& board, Moves& moves) const {
-  POSITION_EACH(to) {
-    POSITION_EACH(from) {
+  SQUARE_EACH(to) {
+    SQUARE_EACH(from) {
       Piece piece = board.getBoardPiece(from);
       if (piece.isEmpty()) {
         continue;

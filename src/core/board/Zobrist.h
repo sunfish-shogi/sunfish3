@@ -6,7 +6,7 @@
 #ifndef SUNFISH_ZOBRIST__
 #define SUNFISH_ZOBRIST__
 
-#include "../base/Position.h"
+#include "../base/Square.h"
 #include "../base/Piece.h"
 #include <cstdint>
 #include <cassert>
@@ -18,7 +18,7 @@ private:
 
   Zobrist();
 
-  static const uint64_t Board[Position::N][Piece::Num];
+  static const uint64_t Board[Square::N][Piece::Num];
   static const uint64_t HandBPawn[18];
   static const uint64_t HandBLance[4];
   static const uint64_t HandBKnight[4];
@@ -37,8 +37,8 @@ private:
 
 public:
 
-  static uint64_t board(const Position& pos, const Piece& piece) {
-    return Board[pos][piece];
+  static uint64_t board(const Square& sq, const Piece& piece) {
+    return Board[sq][piece];
   }
 
 #define FUNC_HAND__(piece) \

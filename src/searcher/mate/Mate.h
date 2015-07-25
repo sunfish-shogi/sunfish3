@@ -71,7 +71,7 @@ private:
   Mate();
 
   template<bool black, bool recursive = true>
-  static bool isProtected_(const Board& board, const Position& to, const Bitboard& occ, const Bitboard& occNoAttacker, const Position& king);
+  static bool isProtected_(const Board& board, const Square& to, const Bitboard& occ, const Bitboard& occNoAttacker, const Square& king);
 
   template<bool black>
   static bool isProtected_(const Board& board, Bitboard& bb, const Bitboard& occ, const Bitboard& occNoAttacker);

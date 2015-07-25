@@ -7,7 +7,7 @@
 
 namespace sunfish {
 
-const uint64_t Zobrist::Board[Position::N][Piece::Num] = {
+const uint64_t Zobrist::Board[Square::N][Piece::Num] = {
   {
     0xc74ffc48638b9ff7ll,
     0x43ce896ec0edab7ll,

@@ -33,10 +33,10 @@ private:
   int wnum_;
 
   template <bool shallow, Direction dir, bool isFirst>
-  void generateAttacker(const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn, bool shortOnly);
+  void generateAttacker(const Board& board, const Square& to, const Bitboard& occ, Attacker* dependOn, bool shortOnly);
 
   template <bool shallow, Direction dir>
-  void generateAttackerR(const Board& board, const Position& to, const Bitboard& occ, Attacker* dependOn) {
+  void generateAttackerR(const Board& board, const Square& to, const Bitboard& occ, Attacker* dependOn) {
     HSideType sideTypeH = to.sideTypeH();
     VSideType sideTypeV = to.sideTypeV();
     if ((sideTypeH == HSideType::Top && (dir == Direction::Up || dir == Direction::LeftUp || dir == Direction::RightUp)) ||
@@ -55,7 +55,7 @@ private:
   }
 
   template <bool black>
-  void generateKnightAttacker(const Board& board, const Position& from);
+  void generateKnightAttacker(const Board& board, const Square& from);
 
   Value search(bool black, Value value, Value alpha, Value beta);
 

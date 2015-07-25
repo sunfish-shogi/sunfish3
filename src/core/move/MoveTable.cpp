@@ -24,8 +24,8 @@ template <bool full>
 DirectionMaskTable<full>::DirectionMaskTable() {
   // mask
 #define GEN_MASK(type, dir) \
-POSITION_EACH(from) { \
-for (Position to = from.safety ## dir(); (full ? to : to.safety ## dir()).isValid(); to = to.safety ## dir()) { \
+SQUARE_EACH(from) { \
+for (Square to = from.safety ## dir(); (full ? to : to.safety ## dir()).isValid(); to = to.safety ## dir()) { \
   type ## _[from].set(to); \
 } \
 }
@@ -52,22 +52,22 @@ for (Position to = from.safety ## dir(); (full ? to : to.safety ## dir()).isVali
  * MagicNumberTable
  */
 MagicNumberTable::MagicNumberTable() {
-  POSITION_EACH(basePos) {
+  SQUARE_EACH(basePos) {
     {
       uint64_t magicLow = 0ULL;
       uint64_t magicHigh = 0ULL;
-      for (Position pos = basePos.safetyLeftUp(); pos.safetyLeftUp().isValid(); pos = pos.safetyLeftUp()) {
-        if (Bitboard::isLow(pos)) {
-          magicLow |= 1ULL << (64 - 7 + (pos.getRank() - 2) - pos);
+      for (Square sq = basePos.safetyLeftUp(); sq.safetyLeftUp().isValid(); sq = sq.safetyLeftUp()) {
+        if (Bitboard::isLow(sq)) {
+          magicLow |= 1ULL << (64 - 7 + (sq.getRank() - 2) - sq);
         } else {
-          magicHigh |= 1ULL << (64 - 7 + (pos.getRank() - 2) - (pos - Bitboard::LowBits));
+          magicHigh |= 1ULL << (64 - 7 + (sq.getRank() - 2) - (sq - Bitboard::LowBits));
         }
       }
-      for (Position pos = basePos.safetyRightDown(); pos.safetyRightDown().isValid(); pos = pos.safetyRightDown()) {
-        if (Bitboard::isLow(pos)) {
-          magicLow |= 1ULL << (64 - 7 + (pos.getRank() - 2) - pos);
+      for (Square sq = basePos.safetyRightDown(); sq.safetyRightDown().isValid(); sq = sq.safetyRightDown()) {
+        if (Bitboard::isLow(sq)) {
+          magicLow |= 1ULL << (64 - 7 + (sq.getRank() - 2) - sq);
         } else {
-          magicHigh |= 1ULL << (64 - 7 + (pos.getRank() - 2) - (pos - Bitboard::LowBits));
+          magicHigh |= 1ULL << (64 - 7 + (sq.getRank() - 2) - (sq - Bitboard::LowBits));
         }
       }
       leftUp_[basePos].init(magicHigh, magicLow);
@@ -75,18 +75,18 @@ MagicNumberTable::MagicNumberTable() {
     {
       uint64_t magicLow = 0ULL;
       uint64_t magicHigh = 0ULL;
-      for (Position pos = basePos.safetyRightUp(); pos.safetyRightUp().isValid(); pos = pos.safetyRightUp()) {
-        if (Bitboard::isLow(pos)) {
-          magicLow |= 1ULL << (64 - 7 + (pos.getRank() - 2) - pos);
+      for (Square sq = basePos.safetyRightUp(); sq.safetyRightUp().isValid(); sq = sq.safetyRightUp()) {
+        if (Bitboard::isLow(sq)) {
+          magicLow |= 1ULL << (64 - 7 + (sq.getRank() - 2) - sq);
         } else {
-          magicHigh |= 1ULL << (64 - 7 + (pos.getRank() - 2) - (pos - Bitboard::LowBits));
+          magicHigh |= 1ULL << (64 - 7 + (sq.getRank() - 2) - (sq - Bitboard::LowBits));
         }
       }
-      for (Position pos = basePos.safetyLeftDown(); pos.safetyLeftDown().isValid(); pos = pos.safetyLeftDown()) {
-        if (Bitboard::isLow(pos)){
-          magicLow |= 1ULL << (64 - 7 + (pos.getRank() - 2) - pos);
+      for (Square sq = basePos.safetyLeftDown(); sq.safetyLeftDown().isValid(); sq = sq.safetyLeftDown()) {
+        if (Bitboard::isLow(sq)){
+          magicLow |= 1ULL << (64 - 7 + (sq.getRank() - 2) - sq);
         } else {
-          magicHigh |= 1ULL << (64 - 7 + (pos.getRank() - 2) - (pos - Bitboard::LowBits));
+          magicHigh |= 1ULL << (64 - 7 + (sq.getRank() - 2) - (sq - Bitboard::LowBits));
         }
       }
       rightUp_[basePos].init(magicHigh, magicLow);
@@ -96,16 +96,16 @@ MagicNumberTable::MagicNumberTable() {
     uint64_t magicLow = 0ULL;
     uint64_t magicHigh = 0ULL;
     for (int file = 2; file <= 8; file++) {
-      Position pos(file, rank);
-      if (Bitboard::isLow(pos)) {
-        magicLow |= 1ULL << (64 - 7 + (8 - file) - pos);
+      Square sq(file, rank);
+      if (Bitboard::isLow(sq)) {
+        magicLow |= 1ULL << (64 - 7 + (8 - file) - sq);
       } else {
-        magicHigh |= 1ULL << (64 - 7 + (8 - file) - (pos - Bitboard::LowBits));
+        magicHigh |= 1ULL << (64 - 7 + (8 - file) - (sq - Bitboard::LowBits));
       }
     }
     for (int file = 1; file <= 9; file++) {
-      Position pos(file, rank);
-      rank_[pos].init(magicHigh, magicLow);
+      Square sq(file, rank);
+      rank_[sq].init(magicHigh, magicLow);
     }
   }
 }
@@ -114,53 +114,53 @@ MagicNumberTable::MagicNumberTable() {
  * MovePatternTable
  */
 MovePatternTable::MovePatternTable() {
-  POSITION_EACH(basePos) {
+  SQUARE_EACH(basePos) {
     for (unsigned b = 0; b < 0x80; b++) {
       // up
-      for (Position pos = basePos.safetyUp(); pos.isValid() && pos.getRank() >= 1; pos = pos.safetyUp()) {
-        up_[basePos][b].set(pos);
-        file_[basePos][b].set(pos);
-        if (b & (1 << (pos.getRank() - 2))) { break; }
+      for (Square sq = basePos.safetyUp(); sq.isValid() && sq.getRank() >= 1; sq = sq.safetyUp()) {
+        up_[basePos][b].set(sq);
+        file_[basePos][b].set(sq);
+        if (b & (1 << (sq.getRank() - 2))) { break; }
       }
       // down
-      for (Position pos = basePos.safetyDown(); pos.isValid() && pos.getRank() <= 9; pos = pos.safetyDown()) {
-        down_[basePos][b].set(pos);
-        file_[basePos][b].set(pos);
-        if (b & (1 << (pos.getRank() - 2))) { break; }
+      for (Square sq = basePos.safetyDown(); sq.isValid() && sq.getRank() <= 9; sq = sq.safetyDown()) {
+        down_[basePos][b].set(sq);
+        file_[basePos][b].set(sq);
+        if (b & (1 << (sq.getRank() - 2))) { break; }
       }
       // left
-      for (Position pos = basePos.safetyLeft(); pos.isValid() && pos.getFile() <= 9; pos = pos.safetyLeft()) {
-        rank_[basePos][b].set(pos);
-        left_[basePos][b].set(pos);
-        if (b & (1 << (8 - pos.getFile()))) { break; }
+      for (Square sq = basePos.safetyLeft(); sq.isValid() && sq.getFile() <= 9; sq = sq.safetyLeft()) {
+        rank_[basePos][b].set(sq);
+        left_[basePos][b].set(sq);
+        if (b & (1 << (8 - sq.getFile()))) { break; }
       }
       // right
-      for (Position pos = basePos.safetyRight(); pos.isValid() && pos.getFile() >= 1; pos = pos.safetyRight()) {
-        rank_[basePos][b].set(pos);
-        right_[basePos][b].set(pos);
-        if (b & (1 << (8 - pos.getFile()))) { break; }
+      for (Square sq = basePos.safetyRight(); sq.isValid() && sq.getFile() >= 1; sq = sq.safetyRight()) {
+        rank_[basePos][b].set(sq);
+        right_[basePos][b].set(sq);
+        if (b & (1 << (8 - sq.getFile()))) { break; }
       }
       // left-up
-      for (Position pos = basePos.safetyLeftUp(); pos.isValid() && pos.getFile() <= 9 && pos.getRank() >= 1; pos = pos.safetyLeftUp()) {
-        leftUpX_[basePos][b].set(pos);
-        leftUp_[basePos][b].set(pos);
-        if (b & (1 << (pos.getRank() - 2))) { break; }
+      for (Square sq = basePos.safetyLeftUp(); sq.isValid() && sq.getFile() <= 9 && sq.getRank() >= 1; sq = sq.safetyLeftUp()) {
+        leftUpX_[basePos][b].set(sq);
+        leftUp_[basePos][b].set(sq);
+        if (b & (1 << (sq.getRank() - 2))) { break; }
       }
-      for (Position pos = basePos.safetyRightDown(); pos.isValid() && pos.getFile() >= 1 && pos.getRank() <= 9; pos = pos.safetyRightDown()) {
-        leftUpX_[basePos][b].set(pos);
-        rightDown_[basePos][b].set(pos);
-        if (b & (1 << (pos.getRank() - 2))) { break; }
+      for (Square sq = basePos.safetyRightDown(); sq.isValid() && sq.getFile() >= 1 && sq.getRank() <= 9; sq = sq.safetyRightDown()) {
+        leftUpX_[basePos][b].set(sq);
+        rightDown_[basePos][b].set(sq);
+        if (b & (1 << (sq.getRank() - 2))) { break; }
       }
       // right-up
-      for (Position pos = basePos.safetyRightUp(); pos.isValid() && pos.getFile() >= 1 && pos.getRank() >= 1; pos = pos.safetyRightUp()) {
-        rightUpX_[basePos][b].set(pos);
-        rightUp_[basePos][b].set(pos);
-        if (b & (1 << (pos.getRank() - 2))) { break; }
+      for (Square sq = basePos.safetyRightUp(); sq.isValid() && sq.getFile() >= 1 && sq.getRank() >= 1; sq = sq.safetyRightUp()) {
+        rightUpX_[basePos][b].set(sq);
+        rightUp_[basePos][b].set(sq);
+        if (b & (1 << (sq.getRank() - 2))) { break; }
       }
-      for (Position pos = basePos.safetyLeftDown(); pos.isValid() && pos.getFile() <= 9 && pos.getRank() <= 9; pos = pos.safetyLeftDown()) {
-        rightUpX_[basePos][b].set(pos);
-        leftDown_[basePos][b].set(pos);
-        if (b & (1 << (pos.getRank() - 2))) { break; }
+      for (Square sq = basePos.safetyLeftDown(); sq.isValid() && sq.getFile() <= 9 && sq.getRank() <= 9; sq = sq.safetyLeftDown()) {
+        rightUpX_[basePos][b].set(sq);
+        leftDown_[basePos][b].set(sq);
+        if (b & (1 << (sq.getRank() - 2))) { break; }
       }
     }
   }
@@ -172,82 +172,82 @@ MovePatternTable::MovePatternTable() {
  */
 template <MoveTableType type>
 OneStepMoveTable<type>::OneStepMoveTable() {
-  POSITION_EACH(pos) {
+  SQUARE_EACH(sq) {
     Bitboard bb;
     bb.init();
     switch (type) {
     case MoveTableType::BPawn:
-      bb |= Bitboard::mask(pos.safetyUp());
+      bb |= Bitboard::mask(sq.safetyUp());
       break;
     case MoveTableType::BKnight:
-      bb |= Bitboard::mask(pos.safetyUp(2).safetyLeft());
-      bb |= Bitboard::mask(pos.safetyUp(2).safetyRight());
+      bb |= Bitboard::mask(sq.safetyUp(2).safetyLeft());
+      bb |= Bitboard::mask(sq.safetyUp(2).safetyRight());
       break;
     case MoveTableType::BSilver:
-      bb |= Bitboard::mask(pos.safetyUp().safetyLeft());
-      bb |= Bitboard::mask(pos.safetyUp());
-      bb |= Bitboard::mask(pos.safetyUp().safetyRight());
-      bb |= Bitboard::mask(pos.safetyDown().safetyLeft());
-      bb |= Bitboard::mask(pos.safetyDown().safetyRight());
+      bb |= Bitboard::mask(sq.safetyUp().safetyLeft());
+      bb |= Bitboard::mask(sq.safetyUp());
+      bb |= Bitboard::mask(sq.safetyUp().safetyRight());
+      bb |= Bitboard::mask(sq.safetyDown().safetyLeft());
+      bb |= Bitboard::mask(sq.safetyDown().safetyRight());
       break;
     case MoveTableType::BGold:
-      bb |= Bitboard::mask(pos.safetyUp().safetyLeft());
-      bb |= Bitboard::mask(pos.safetyUp());
-      bb |= Bitboard::mask(pos.safetyUp().safetyRight());
-      bb |= Bitboard::mask(pos.safetyLeft());
-      bb |= Bitboard::mask(pos.safetyRight());
-      bb |= Bitboard::mask(pos.safetyDown());
+      bb |= Bitboard::mask(sq.safetyUp().safetyLeft());
+      bb |= Bitboard::mask(sq.safetyUp());
+      bb |= Bitboard::mask(sq.safetyUp().safetyRight());
+      bb |= Bitboard::mask(sq.safetyLeft());
+      bb |= Bitboard::mask(sq.safetyRight());
+      bb |= Bitboard::mask(sq.safetyDown());
       break;
     case MoveTableType::WPawn:
-      bb |= Bitboard::mask(pos.safetyDown());
+      bb |= Bitboard::mask(sq.safetyDown());
       break;
     case MoveTableType::WKnight:
-      bb |= Bitboard::mask(pos.safetyDown(2).safetyLeft());
-      bb |= Bitboard::mask(pos.safetyDown(2).safetyRight());
+      bb |= Bitboard::mask(sq.safetyDown(2).safetyLeft());
+      bb |= Bitboard::mask(sq.safetyDown(2).safetyRight());
       break;
     case MoveTableType::WSilver:
-      bb |= Bitboard::mask(pos.safetyDown().safetyLeft());
-      bb |= Bitboard::mask(pos.safetyDown());
-      bb |= Bitboard::mask(pos.safetyDown().safetyRight());
-      bb |= Bitboard::mask(pos.safetyUp().safetyLeft());
-      bb |= Bitboard::mask(pos.safetyUp().safetyRight());
+      bb |= Bitboard::mask(sq.safetyDown().safetyLeft());
+      bb |= Bitboard::mask(sq.safetyDown());
+      bb |= Bitboard::mask(sq.safetyDown().safetyRight());
+      bb |= Bitboard::mask(sq.safetyUp().safetyLeft());
+      bb |= Bitboard::mask(sq.safetyUp().safetyRight());
       break;
     case MoveTableType::WGold:
-      bb |= Bitboard::mask(pos.safetyDown().safetyLeft());
-      bb |= Bitboard::mask(pos.safetyDown());
-      bb |= Bitboard::mask(pos.safetyDown().safetyRight());
-      bb |= Bitboard::mask(pos.safetyLeft());
-      bb |= Bitboard::mask(pos.safetyRight());
-      bb |= Bitboard::mask(pos.safetyUp());
+      bb |= Bitboard::mask(sq.safetyDown().safetyLeft());
+      bb |= Bitboard::mask(sq.safetyDown());
+      bb |= Bitboard::mask(sq.safetyDown().safetyRight());
+      bb |= Bitboard::mask(sq.safetyLeft());
+      bb |= Bitboard::mask(sq.safetyRight());
+      bb |= Bitboard::mask(sq.safetyUp());
       break;
     case MoveTableType::Bishop:
     case MoveTableType::Dragon:
-      bb |= Bitboard::mask(pos.safetyUp().safetyLeft());
-      bb |= Bitboard::mask(pos.safetyUp().safetyRight());
-      bb |= Bitboard::mask(pos.safetyDown().safetyLeft());
-      bb |= Bitboard::mask(pos.safetyDown().safetyRight());
+      bb |= Bitboard::mask(sq.safetyUp().safetyLeft());
+      bb |= Bitboard::mask(sq.safetyUp().safetyRight());
+      bb |= Bitboard::mask(sq.safetyDown().safetyLeft());
+      bb |= Bitboard::mask(sq.safetyDown().safetyRight());
       break;
     case MoveTableType::Rook:
     case MoveTableType::Horse:
-      bb |= Bitboard::mask(pos.safetyUp());
-      bb |= Bitboard::mask(pos.safetyLeft());
-      bb |= Bitboard::mask(pos.safetyRight());
-      bb |= Bitboard::mask(pos.safetyDown());
+      bb |= Bitboard::mask(sq.safetyUp());
+      bb |= Bitboard::mask(sq.safetyLeft());
+      bb |= Bitboard::mask(sq.safetyRight());
+      bb |= Bitboard::mask(sq.safetyDown());
       break;
     case MoveTableType::King:
-      bb |= Bitboard::mask(pos.safetyUp().safetyLeft());
-      bb |= Bitboard::mask(pos.safetyUp());
-      bb |= Bitboard::mask(pos.safetyUp().safetyRight());
-      bb |= Bitboard::mask(pos.safetyLeft());
-      bb |= Bitboard::mask(pos.safetyRight());
-      bb |= Bitboard::mask(pos.safetyDown().safetyLeft());
-      bb |= Bitboard::mask(pos.safetyDown());
-      bb |= Bitboard::mask(pos.safetyDown().safetyRight());
+      bb |= Bitboard::mask(sq.safetyUp().safetyLeft());
+      bb |= Bitboard::mask(sq.safetyUp());
+      bb |= Bitboard::mask(sq.safetyUp().safetyRight());
+      bb |= Bitboard::mask(sq.safetyLeft());
+      bb |= Bitboard::mask(sq.safetyRight());
+      bb |= Bitboard::mask(sq.safetyDown().safetyLeft());
+      bb |= Bitboard::mask(sq.safetyDown());
+      bb |= Bitboard::mask(sq.safetyDown().safetyRight());
       break;
     default:
       assert(false);
     }
-    table_[pos] = bb;
+    table_[sq] = bb;
   }
 }
 

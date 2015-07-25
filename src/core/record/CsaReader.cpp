@@ -89,8 +89,8 @@ bool CsaReader::readBoard_(std::istream& is, Board& board, RecordInfo* info/* = 
     }
   }
 
-  assert(board.getBKingPosition() != Position::Invalid);
-  assert(board.getWKingPosition() != Position::Invalid);
+  assert(board.getBKingSquare() != Square::Invalid);
+  assert(board.getWKingSquare() != Square::Invalid);
 
   return true;
 }
@@ -132,14 +132,14 @@ bool CsaReader::readBoard_(const char* line, Board& board, RecordInfo* info/* = 
  * 盤面の読み込み
  */
 bool CsaReader::readBoardPieces_(const char* line, Board& board) {
-  if (strlen(line) < 2 + 3 * Position::FileN) {
+  if (strlen(line) < 2 + 3 * Square::FileN) {
     Loggers::warning << "invalid format. " << __FILE__ << "(" << __LINE__ << ")";
     return false;
   }
   int rank = line[1] - '0';
-  for (int file = 1; file <= Position::FileN; file++) {
+  for (int file = 1; file <= Square::FileN; file++) {
     Piece piece = Piece::parseCsa(line + 2 + 3 * (9 - file));
-    board.setBoardPiece(Position(file, rank), piece);
+    board.setBoardPiece(Square(file, rank), piece);
   }
   return true;
 }
@@ -177,8 +177,8 @@ bool CsaReader::readHand_(const char* line, Board& board, bool black) {
     unsigned rank = line[i+1] - '0';
     Piece piece = Piece::parseCsa(&line[i+2]);
     if (piece != Piece::Empty) {
-      if (Position::isValidFile(file) && Position::isValidRank(rank)) {
-        board.setBoardPiece(Position(file, rank), black ? piece.black() : piece.white());
+      if (Square::isValidFile(file) && Square::isValidRank(rank)) {
+        board.setBoardPiece(Square(file, rank), black ? piece.black() : piece.white());
       } else if (file == 0 && rank == 0 && piece.isUnpromoted() && piece != Piece::King) {
         if (black) {
           board.incBlackHand(piece);
@@ -267,12 +267,12 @@ bool CsaReader::readMove(const char* line, const Board& board, Move& move) {
     return false;
   }
 
-  Position to = Position::parse(&line[3]);
+  Square to = Square::parse(&line[3]);
   Piece piece = Piece::parseCsa(&line[5]);
   if (line[1] == '0' && line[2] == '0') {
     move = Move(piece, to);
   } else {
-    Position from = Position::parse(&line[1]);
+    Square from = Square::parse(&line[1]);
     Piece pieceOrg = board.getBoardPiece(from).kindOnly();
     bool promote;
     if (piece == pieceOrg) {

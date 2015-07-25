@@ -40,10 +40,10 @@ const int Bitboard::bfirst_[256] = {
 };
 #endif
 
-const Bitboard& Bitboard::mask(int pos) {
+const Bitboard& Bitboard::mask(int sq) {
 #define BB(sq) Bitboard(sq)
   static Bitboard masks[] = {
-    Bitboard(0, 0), // Position::Invalid(=-1)
+    Bitboard(0, 0), // Square::Invalid(=-1)
     BB( 0), BB( 1), BB( 2), BB( 3), BB( 4), BB( 5), BB( 6), BB( 7), BB( 8),
     BB( 9), BB(10), BB(11), BB(12), BB(13), BB(14), BB(15), BB(16), BB(17),
     BB(18), BB(19), BB(20), BB(21), BB(22), BB(23), BB(24), BB(25), BB(26),
@@ -55,7 +55,7 @@ const Bitboard& Bitboard::mask(int pos) {
     BB(72), BB(73), BB(74), BB(75), BB(76), BB(77), BB(78), BB(79), BB(80),
   };
 #undef BB
-  return masks[pos+1];
+  return masks[sq+1];
 }
 
 const Bitboard Bitboard::Zero(0x00LL, 0x00LL);
@@ -111,9 +111,9 @@ const Bitboard Bitboard::WPromotable2 = Bitboard(0, 0)
 
 std::string Bitboard::toString2D() const {
   std::ostringstream oss;
-  POSITION_EACH_RD(pos) {
-    oss << (check(pos) ? '1' : '0');
-    if (pos.getFile() == 1) {
+  SQUARE_EACH_RD(sq) {
+    oss << (check(sq) ? '1' : '0');
+    if (sq.getFile() == 1) {
       oss << '\n';
     }
   }

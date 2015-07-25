@@ -14,7 +14,7 @@
 namespace sunfish {
 
 template<bool black, bool recursive>
-bool Mate::isProtected_(const Board& board, const Position& to, const Bitboard& occ, const Bitboard& occNoAttacker, const Position& king) {
+bool Mate::isProtected_(const Board& board, const Square& to, const Bitboard& occ, const Bitboard& occNoAttacker, const Square& king) {
   // pawn
   Bitboard bb = (black ? board.getBPawn() : board.getWPawn()) & occNoAttacker;
   if (bb.check(black ? to.safetyDown() : to.safetyUp())) {
@@ -84,19 +84,19 @@ bool Mate::isProtected_(const Board& board, const Position& to, const Bitboard& 
   // king
   if (king.isValid()) {
     if (MoveTables::king(king).check(to) &&
-        (!recursive || !isProtected_<!black>(board, to, occ, occNoAttacker, Position::Invalid))) {
+        (!recursive || !isProtected_<!black>(board, to, occ, occNoAttacker, Square::Invalid))) {
       return true;
     }
   }
 
   return false;
 }
-template bool Mate::isProtected_<true>(const Board&, const Position&, const Bitboard&, const Bitboard&, const Position&);
-template bool Mate::isProtected_<false>(const Board&, const Position&, const Bitboard&, const Bitboard&, const Position&);
+template bool Mate::isProtected_<true>(const Board&, const Square&, const Bitboard&, const Bitboard&, const Square&);
+template bool Mate::isProtected_<false>(const Board&, const Square&, const Bitboard&, const Bitboard&, const Square&);
 
 template<bool black>
 bool Mate::isProtected_(const Board& board, Bitboard& bb, const Bitboard& occ, const Bitboard& occNoAttacker) {
-  const auto& king = black ? board.getBKingPosition() : board.getWKingPosition();
+  const auto& king = black ? board.getBKingSquare() : board.getWKingSquare();
   bool hasHand = black
     ? (board.getBlackHand(Piece::Pawn) != 0 ||
        board.getBlackHand(Piece::Lance) != 0 ||
@@ -119,7 +119,7 @@ bool Mate::isProtected_(const Board& board, Bitboard& bb, const Bitboard& occ, c
     });
   } else {
     BB_EACH_OPE(to, bb, {
-        if (isProtected_<black>(board, to, occ, occNoAttacker, Position::Invalid)) { return true; }
+        if (isProtected_<black>(board, to, occ, occNoAttacker, Square::Invalid)) { return true; }
     });
   }
 
@@ -137,12 +137,12 @@ bool Mate::isMate_(const Board& board, const Move& move) {
     return false;
   }
 
-  const auto& king = black ? board.getWKingPosition() : board.getBKingPosition();
+  const auto& king = black ? board.getWKingSquare() : board.getBKingSquare();
   Bitboard occ = board.getBOccupy() | board.getWOccupy();
   if (!isHand) {
     occ &= ~Bitboard::mask(move.from());
   }
-  Position to = move.to();
+  Square to = move.to();
   occ |= Bitboard::mask(to);
   Bitboard occNoKing = occ & ~Bitboard::mask(king);
   Bitboard occNoAttacker = occ & ~Bitboard::mask(to);
@@ -227,8 +227,8 @@ bool Mate::isMate_(const Board& board, const Move& move) {
     assert(false);
   }
 
-  BB_EACH_OPE(pos, movable, {
-      if (!isProtected_<black>(board, pos, occ, occNoAttacker, Position::Invalid)) {
+  BB_EACH_OPE(sq, movable, {
+      if (!isProtected_<black>(board, sq, occ, occNoAttacker, Square::Invalid)) {
         return false;
       }
   });
@@ -243,7 +243,7 @@ bool Mate::mate1Ply_(const Board& board) {
   // TODO: 開き王手の生成
   const auto& occ = board.getBOccupy() | board.getWOccupy();
   Bitboard movable = ~(black ? board.getBOccupy() : board.getWOccupy());
-  const auto& king = black ? board.getWKingPosition() : board.getBKingPosition();
+  const auto& king = black ? board.getWKingSquare() : board.getBKingSquare();
 
   // 成金が王手できる位置
   Bitboard bbtGold = movable & (black ? MoveTables::wgold(king) : MoveTables::bgold(king));
@@ -310,8 +310,8 @@ bool Mate::mate1Ply_(const Board& board) {
   // knight
   {
     // drop
-    Position to1 = black ? king.safetyLeftDownKnight() : king.safetyLeftUpKnight();
-    Position to2 = black ? king.safetyRightDownKnight() : king.safetyRightUpKnight();
+    Square to1 = black ? king.safetyLeftDownKnight() : king.safetyLeftUpKnight();
+    Square to2 = black ? king.safetyRightDownKnight() : king.safetyRightUpKnight();
     int handCount = black ? board.getBlackHand(Piece::Knight) : board.getWhiteHand(Piece::Knight);
     if (handCount) {
       if (to1.isValid() && !occ.check(to1)) {
@@ -342,7 +342,7 @@ bool Mate::mate1Ply_(const Board& board) {
 
   // pawn
   {
-    Position to = black ? king.safetyDown() : king.safetyUp();
+    Square to = black ? king.safetyDown() : king.safetyUp();
     if (to.isValid()) {
       Bitboard bb = black ? board.getBPawn() : board.getWPawn();
       bb &= black ? AttackableTables::bpawn(king) : AttackableTables::wpawn(king);
@@ -371,7 +371,7 @@ bool Mate::mate1Ply_(const Board& board) {
     // drop
     int handCount = black ? board.getBlackHand(Piece::Lance) : board.getWhiteHand(Piece::Lance);
     if (handCount) {
-      Position to = black ? king.safetyDown() : king.safetyUp();
+      Square to = black ? king.safetyDown() : king.safetyUp();
       if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto mate1ply_lance_drop_end; }
       if (isMate_<black>(board, Move(Piece::Lance, to, false))) { return true; }
 
@@ -415,7 +415,7 @@ mate1ply_lance_drop_end:
     int handCount = black ? board.getBlackHand(Piece::Bishop) : board.getWhiteHand(Piece::Bishop);
     if (handCount) {
 #define GEN_CHECK_DROP_BISHOP(dir) { \
-Position to = black ? king.safety ## dir() : king.safety ## dir(); \
+Square to = black ? king.safety ## dir() : king.safety ## dir(); \
 if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto mate1ply_bishop_drop_end ## dir; } \
 if (isMate_<black>(board, Move(Piece::Bishop, to, false))) { return true; } \
 to = black ? to.safety ## dir() : to.safety ## dir(); \
@@ -459,7 +459,7 @@ mate1ply_bishop_drop_end ## dir: ; \
     int handCount = black ? board.getBlackHand(Piece::Rook) : board.getWhiteHand(Piece::Rook);
     if (handCount) {
 #define GEN_CHECK_DROP_ROOK(dir) { \
-Position to = black ? king.safety ## dir() : king.safety ## dir(); \
+Square to = black ? king.safety ## dir() : king.safety ## dir(); \
 if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto mate1ply_rook_drop_end ## dir; } \
 if (isMate_<black>(board, Move(Piece::Rook, to, false))) { return true; } \
 to = black ? to.safety ## dir() : to.safety ## dir(); \
@@ -537,7 +537,7 @@ bool Mate::isIneffectiveEvasion(const Board& board, const Move& move, const Move
   }
 
   bool black = board.isBlack();
-  Position king = black ? board.getBKingPosition() : board.getWKingPosition();
+  Square king = black ? board.getBKingSquare() : board.getWKingSquare();
   if (check.piece() == Piece::Lance &&
       move.to() == black ? king.safetyUp(2) : king.safetyDown(2)) {
     return false;
@@ -622,18 +622,18 @@ bool Mate::mate3Ply(Tree& tree) {
 
   for (const auto& move : moves) {
 #if 1 // ただで取られる手を除外
-    Position to = move.to();
+    Square to = move.to();
     Bitboard attacker = Bitboard::mask(to);
     Bitboard occWithAttacker = occ | attacker;
     Bitboard occNoAttacker = occ & ~attacker;
     if (black) {
-      if (!isProtected_<true, false>(board, to, occWithAttacker, occNoAttacker, board.getBKingPosition()) &&
-          isProtected_<false, false>(board, to, occWithAttacker, occNoAttacker, board.getWKingPosition())) {
+      if (!isProtected_<true, false>(board, to, occWithAttacker, occNoAttacker, board.getBKingSquare()) &&
+          isProtected_<false, false>(board, to, occWithAttacker, occNoAttacker, board.getWKingSquare())) {
         continue;
       }
     } else {
-      if (!isProtected_<false, false>(board, to, occWithAttacker, occNoAttacker, board.getWKingPosition()) &&
-          isProtected_<true, false>(board, to, occWithAttacker, occNoAttacker, board.getBKingPosition())) {
+      if (!isProtected_<false, false>(board, to, occWithAttacker, occNoAttacker, board.getWKingSquare()) &&
+          isProtected_<true, false>(board, to, occWithAttacker, occNoAttacker, board.getBKingSquare())) {
         continue;
       }
     }

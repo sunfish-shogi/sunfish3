@@ -209,7 +209,7 @@ void MoveGenerator::generateOnBoard_(const Board& board, Moves& moves, const Bit
 
   // king
   {
-    Position from = black ? board.getBKingPosition() : board.getWKingPosition();
+    Square from = black ? board.getBKingSquare() : board.getWKingSquare();
     Bitboard bb2 = MoveTables::king(from);
     if (genType == GenType::Evasion) {
       bb2 &= black ? ~board.getBOccupy() : ~board.getWOccupy();
@@ -378,7 +378,7 @@ template void MoveGenerator::generateDrop_<false>(const Board&, Moves&, const Bi
  */
 template <bool black>
 void MoveGenerator::generateEvasion_(const Board& board, Moves& moves) {
-  const auto& king = black ? board.getBKingPosition() : board.getWKingPosition();
+  const auto& king = black ? board.getBKingSquare() : board.getWKingSquare();
 
   bool shortAttack = false;
   int longAttack = 0;
@@ -525,7 +525,7 @@ template void MoveGenerator::generateEvasion_<false>(const Board& board, Moves& 
 template <bool black>
 void MoveGenerator::generateEvasionShort_(const Board& board, Moves& moves, const Bitboard& attacker) {
   Bitboard occ = board.getBOccupy() | board.getWOccupy();
-  Position to = attacker.getFirst();
+  Square to = attacker.getFirst();
 
   // pawn
   Bitboard bb = black ? board.getBPawn() : board.getWPawn();
@@ -604,7 +604,7 @@ void MoveGenerator::generateEvasionShort_(const Board& board, Moves& moves, cons
 
   // king
   {
-    Position from = black ? board.getBKingPosition() : board.getWKingPosition();
+    Square from = black ? board.getBKingSquare() : board.getWKingSquare();
     bb = MoveTables::king(from);
     bb &= black ? ~board.getBOccupy() : ~board.getWOccupy();
     BB_EACH_OPE(to, bb, {
@@ -661,7 +661,7 @@ void MoveGenerator::generateEvasionShort_(const Board& board, Moves& moves, cons
  */
 template <bool black>
 void MoveGenerator::generateKing_(const Board& board, Moves& moves) {
-  const auto& from = black ? board.getBKingPosition() : board.getWKingPosition();
+  const auto& from = black ? board.getBKingSquare() : board.getWKingSquare();
   Bitboard toMask = black ? ~board.getBOccupy() : ~board.getWOccupy();
 
   Bitboard bb = MoveTables::king(from) & toMask;
@@ -680,7 +680,7 @@ void MoveGenerator::generateCheck_(const Board& board, Moves& moves) {
   // TODO: 開き王手の生成
   const auto& occ = board.getBOccupy() | board.getWOccupy();
   Bitboard movable = ~(black ? board.getBOccupy() : board.getWOccupy());
-  const auto& king = black ? board.getWKingPosition() : board.getBKingPosition();
+  const auto& king = black ? board.getWKingSquare() : board.getBKingSquare();
 
   // 金が王手できる位置
   Bitboard bbtGold = black ? MoveTables::wgold(king) : MoveTables::bgold(king);
@@ -749,8 +749,8 @@ void MoveGenerator::generateCheck_(const Board& board, Moves& moves) {
   // knight
   {
     // drop
-    Position to1 = black ? king.safetyLeftDownKnight() : king.safetyLeftUpKnight();
-    Position to2 = black ? king.safetyRightDownKnight() : king.safetyRightUpKnight();
+    Square to1 = black ? king.safetyLeftDownKnight() : king.safetyLeftUpKnight();
+    Square to2 = black ? king.safetyRightDownKnight() : king.safetyRightUpKnight();
     int handCount = black ? board.getBlackHand(Piece::Knight) : board.getWhiteHand(Piece::Knight);
     if (handCount) {
       if (to1.isValid() && !occ.check(to1)) {
@@ -782,7 +782,7 @@ void MoveGenerator::generateCheck_(const Board& board, Moves& moves) {
   // pawn
   {
     // drop
-    Position to = black ? king.safetyDown() : king.safetyUp();
+    Square to = black ? king.safetyDown() : king.safetyUp();
     if (to.isValid()) {
       if (!occ.check(to)) {
         int handCount = black ? board.getBlackHand(Piece::Pawn) : board.getWhiteHand(Piece::Pawn);
@@ -829,7 +829,7 @@ void MoveGenerator::generateCheck_(const Board& board, Moves& moves) {
           moves.add(Move(Piece::Lance, to, false));
         );
       } else {
-        Position to = black ? king.safetyDown() : king.safetyUp();
+        Square to = black ? king.safetyDown() : king.safetyUp();
         if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto gencheck_lance_drop_end; }
         moves.add(Move(Piece::Lance, to, false));
 
@@ -880,7 +880,7 @@ gencheck_lance_drop_end:
         );
       } else {
 #define GEN_CHECK_DROP_BISHOP(dir) { \
-Position to = black ? king.safety ## dir() : king.safety ## dir(); \
+Square to = black ? king.safety ## dir() : king.safety ## dir(); \
 if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto gencheck_bishop_drop_end ## dir; } \
 moves.add(Move(Piece::Bishop, to, false)); \
 to = black ? to.safety ## dir() : to.safety ## dir(); \
@@ -931,7 +931,7 @@ gencheck_bishop_drop_end ## dir: ; \
         );
       } else {
 #define GEN_CHECK_DROP_ROOK(dir) { \
-Position to = black ? king.safety ## dir() : king.safety ## dir(); \
+Square to = black ? king.safety ## dir() : king.safety ## dir(); \
 if (!to.isValid() || !board.getBoardPiece(to).isEmpty()) { goto gencheck_rook_drop_end ## dir; } \
 moves.add(Move(Piece::Rook, to, false)); \
 to = black ? to.safety ## dir() : to.safety ## dir(); \

@@ -1,14 +1,14 @@
-/* Position.cpp
+/* Square.cpp
  *
  * Kubo Ryosuke
  */
 
-#include "Position.h"
+#include "Square.h"
 #include <sstream>
 
 namespace sunfish {
 
-const int32_t Position::DistanceTable[17][17] = {
+const int32_t Square::DistanceTable[17][17] = {
   { 8, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 8, },
   { 0, 7, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 7, 0, },
   { 0, 0, 6, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 6, 0, 0, },
@@ -41,7 +41,7 @@ const int32_t Position::DistanceTable[17][17] = {
 #define D10 Direction::LeftDownKnight
 #define D11 Direction::RightUpKnight
 #define D12 Direction::RightDownKnight
-const Direction Position::DirectionTable[17][17] = {
+const Direction Square::DirectionTable[17][17] = {
   { D05, D00, D00, D00, D00, D00, D00, D00, D01, D00, D00, D00, D00, D00, D00, D00, D07, },
   { D00, D05, D00, D00, D00, D00, D00, D00, D01, D00, D00, D00, D00, D00, D00, D07, D00, },
   { D00, D00, D05, D00, D00, D00, D00, D00, D01, D00, D00, D00, D00, D00, D07, D00, D00, },
@@ -82,7 +82,7 @@ const Direction Position::DirectionTable[17][17] = {
 #define E18 DirectionEx::LongLeftDown
 #define E19 DirectionEx::LongRightUp
 #define E20 DirectionEx::LongRightDown
-const DirectionEx Position::DirectionTableEx[17][17] = {
+const DirectionEx Square::DirectionTableEx[17][17] = {
   { E17, E00, E00, E00, E00, E00, E00, E00, E13, E00, E00, E00, E00, E00, E00, E00, E19, },
   { E00, E17, E00, E00, E00, E00, E00, E00, E13, E00, E00, E00, E00, E00, E00, E19, E00, },
   { E00, E00, E17, E00, E00, E00, E00, E00, E13, E00, E00, E00, E00, E00, E19, E00, E00, },
@@ -107,7 +107,7 @@ const DirectionEx Position::DirectionTableEx[17][17] = {
 #define BM1 HSideType::Bottom
 #define TP2 HSideType::Top2
 #define BM2 HSideType::Bottom2
-const HSideType Position::HSideTypeTable[81] = {
+const HSideType Square::HSideTypeTable[81] = {
   TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
   TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
   TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
@@ -124,7 +124,7 @@ const HSideType Position::HSideTypeTable[81] = {
 #define RT1 VSideType::Right
 #define LT2 VSideType::Left2
 #define RT2 VSideType::Right2
-const VSideType Position::VSideTypeTable[81] = {
+const VSideType Square::VSideTypeTable[81] = {
   LT1, LT1, LT1, LT1, LT1, LT1, LT1, LT1, LT1,
   LT2, LT2, LT2, LT2, LT2, LT2, LT2, LT2, LT2,
   VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN,
@@ -136,7 +136,7 @@ const VSideType Position::VSideTypeTable[81] = {
   RT1, RT1, RT1, RT1, RT1, RT1, RT1, RT1, RT1,
 };
 
-std::string Position::toString() const {
+std::string Square::toString() const {
   std::ostringstream oss;
 
   oss << getFile() << getRank();
@@ -144,11 +144,11 @@ std::string Position::toString() const {
   return oss.str();
 }
 
-Position Position::parse(const char* str) {
+Square Square::parse(const char* str) {
   if (str[0] >= '1' && str[0] <= '9' && str[1] >= '1' && str[1] <= '9') {
-    return Position(str[0] - '0', str[1] - '0');
+    return Square(str[0] - '0', str[1] - '0');
   }
-  return Position::Invalid;
+  return Square::Invalid;
 }
 
 } // namespace sunfish

@@ -31,7 +31,7 @@ struct Worker;
 class Gains {
 private:
 
-  uint16_t gains_[Piece::Num][Position::N];
+  uint16_t gains_[Piece::Num][Square::N];
 
 public:
 
@@ -42,7 +42,7 @@ public:
   void update(const Move& move, Value gain) {
     assert(move.piece() < Piece::Num);
     assert(move.to() >= 0);
-    assert(move.to() < Position::N);
+    assert(move.to() < Square::N);
     assert(gain.int32() < (1<<16));
     assert(gain.int32() > -(1<<16));
     uint16_t& ref = gains_[move.piece()][move.to()];
@@ -52,7 +52,7 @@ public:
   Value get(const Move& move) {
     assert(move.piece() < Piece::Num);
     assert(move.to() >= 0);
-    assert(move.to() < Position::N);
+    assert(move.to() < Square::N);
     Value g = gains_[move.piece()][move.to()];
     return g;
   }
@@ -96,7 +96,7 @@ private:
   /** history heuristic */
   History history_;
 
-  /** transposition table */
+  /** transsquare table */
   TT tt_;
 
   /** gains */

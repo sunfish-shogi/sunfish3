@@ -84,11 +84,11 @@ void Board::init() {
   BB_OPE_EACH;
 #undef BB_OPE
 
-  posBKing_ = Position::Invalid;
-  posWKing_ = Position::Invalid;
+  sqBKing_ = Square::Invalid;
+  sqWKing_ = Square::Invalid;
 
-  POSITION_EACH(pos) {
-    board_[pos] = Piece::Empty;
+  SQUARE_EACH(sq) {
+    board_[sq] = Piece::Empty;
   }
 
   refreshHash();
@@ -143,23 +143,23 @@ void Board::init(Handicap handicap) {
   board_[P83] = Piece::WPawn;
   board_[P93] = Piece::WPawn;
 
-  POSITION_EACH(pos) {
-    auto piece = board_[pos];
+  SQUARE_EACH(sq) {
+    auto piece = board_[sq];
     if (!piece.isEmpty()) {
       Bitboard& bb = getBB(piece);
       Bitboard& occ = piece.isBlack() ? bbBOccupy_ : bbWOccupy_;
-      bb.set(pos);
-      occ.set(pos);
+      bb.set(sq);
+      occ.set(sq);
     }
   }
 
-  posBKing_ = P59;
-  posWKing_ = P51;
+  sqBKing_ = P59;
+  sqWKing_ = P51;
 
   if (handicap == Handicap::TwoPieces) {
     black_ = false;
-    bbWBishop_.unset(Position(2, 2));
-    bbWRook_.unset(Position(8, 2));
+    bbWBishop_.unset(Square(2, 2));
+    bbWRook_.unset(Square(8, 2));
   }
 
   refreshHash();
@@ -176,7 +176,7 @@ void Board::init(const CompactBoard& cheapBoard) {
 
     uint16_t d = cheapBoard.buf[index];
     uint16_t c = (d & CompactBoard::PieceMask) >> CompactBoard::PieceShift;
-    uint16_t s = d & CompactBoard::PositionMask;
+    uint16_t s = d & CompactBoard::SquareMask;
 
     Piece piece = c;
     if (s == CompactBoard::Hand) {
@@ -184,18 +184,18 @@ void Board::init(const CompactBoard& cheapBoard) {
       hand.inc(piece.kindOnly());
 
     } else {
-      Position pos = s;
+      Square sq = s;
 
-      board_[pos] = piece;
+      board_[sq] = piece;
       Bitboard& bb = getBB(piece);
       Bitboard& occ = piece.isBlack() ? bbBOccupy_ : bbWOccupy_;
-      bb.set(pos);
-      occ.set(pos);
+      bb.set(sq);
+      occ.set(sq);
 
       if (piece == Piece::BKing) {
-        posBKing_ = pos;
+        sqBKing_ = sq;
       } else if (piece == Piece::WKing) {
-        posWKing_ = pos;
+        sqWKing_ = sq;
       }
     }
   }
@@ -206,10 +206,10 @@ void Board::refreshHash() {
   boardHash_ = 0ull;
   handHash_ = 0ull;
 
-  POSITION_EACH(pos) {
-    auto& piece = board_[pos];
+  SQUARE_EACH(sq) {
+    auto& piece = board_[sq];
     if (piece.exists()) {
-      boardHash_ ^= Zobrist::board(pos, piece);
+      boardHash_ ^= Zobrist::board(sq, piece);
     }
   }
 
@@ -242,11 +242,11 @@ CompactBoard Board::getCompactBoard() const {
 
   int index = 0;
 
-  POSITION_EACH(pos) {
-    Piece piece = board_[pos];
+  SQUARE_EACH(sq) {
+    Piece piece = board_[sq];
     if (!piece.isEmpty()) {
       uint16_t c = static_cast<uint16_t>(piece.operator uint8_t()) << CompactBoard::PieceShift;
-      uint16_t s = static_cast<uint16_t>(pos.operator int32_t());
+      uint16_t s = static_cast<uint16_t>(sq.operator int32_t());
       cb.buf[index++] = c | s;
     }
   }
@@ -281,32 +281,32 @@ enum class PinDir : int {
 
 class PinDirTable {
 private:
-  PinDir pinDir_[Position::N][Position::N];
+  PinDir pinDir_[Square::N][Square::N];
   PinDirTable() {
-    POSITION_EACH(pos1) {
-      POSITION_EACH(pos2) {
-        int file1 = pos1.getFile();
-        int rank1 = pos1.getRank();
-        int file2 = pos2.getFile();
-        int rank2 = pos2.getRank();
+    SQUARE_EACH(sq1) {
+      SQUARE_EACH(sq2) {
+        int file1 = sq1.getFile();
+        int rank1 = sq1.getRank();
+        int file2 = sq2.getFile();
+        int rank2 = sq2.getRank();
         if (file1 == file2) {
-          pinDir_[pos1][pos2] = rank1 < rank2 ? PinDir::Up : PinDir::Down;
+          pinDir_[sq1][sq2] = rank1 < rank2 ? PinDir::Up : PinDir::Down;
         } else if (rank1 == rank2) {
-          pinDir_[pos1][pos2] = PinDir::Hor;
+          pinDir_[sq1][sq2] = PinDir::Hor;
         } else if (rank1 - rank2 == file1 - file2) {
-          pinDir_[pos1][pos2] = PinDir::RightUp;
+          pinDir_[sq1][sq2] = PinDir::RightUp;
         } else if (rank1 - rank2 == file2 - file1) {
-          pinDir_[pos1][pos2] = PinDir::RightDown;
+          pinDir_[sq1][sq2] = PinDir::RightDown;
         } else {
-          pinDir_[pos1][pos2] = PinDir::None;
+          pinDir_[sq1][sq2] = PinDir::None;
         }
       }
     }
   }
   static const PinDirTable table;
 public:
-  static PinDir get(const Position& pos1, const Position& pos2) {
-    return table.pinDir_[pos1][pos2];
+  static PinDir get(const Square& sq1, const Square& sq2) {
+    return table.pinDir_[sq1][sq2];
   }
 };
 const PinDirTable PinDirTable::table;
@@ -315,33 +315,33 @@ const PinDirTable PinDirTable::table;
  * ピンチェック
  */
 template<bool black>
-bool Board::isPin_(const Position& pos, const Bitboard& occ) const {
+bool Board::isPin_(const Square& sq, const Bitboard& occ) const {
   if (black) {
 
-    switch (PinDirTable::get(pos, posBKing_)) {
+    switch (PinDirTable::get(sq, sqBKing_)) {
     case PinDir::Up: {
       // 上
-      Bitboard bb = MoveTables::vertical(pos, occ);
+      Bitboard bb = MoveTables::vertical(sq, occ);
       return bb & bbBKing_ && bb & (bbWLance_ | bbWRook_ | bbWDragon_);
     }
     case PinDir::Down: {
       // 下
-      Bitboard bb = MoveTables::vertical(pos, occ);
+      Bitboard bb = MoveTables::vertical(sq, occ);
       return bb & bbBKing_ && bb & (bbWRook_ | bbWDragon_);
     }
     case PinDir::Hor: {
       // 横
-      Bitboard bb = MoveTables::horizontal(pos, occ);
+      Bitboard bb = MoveTables::horizontal(sq, occ);
       return bb & bbBKing_ && bb & (bbWRook_ | bbWDragon_);
     }
     case PinDir::RightUp: {
       // 右上がり/左下がり
-      Bitboard bb = MoveTables::rightUpX(pos, occ);
+      Bitboard bb = MoveTables::rightUpX(sq, occ);
       return bb & bbBKing_ && bb & (bbWBishop_ | bbWHorse_);
     }
     case PinDir::RightDown: {
       // 右下がり/左上がり
-      Bitboard bb = MoveTables::rightDownX(pos, occ);
+      Bitboard bb = MoveTables::rightDownX(sq, occ);
       return bb & bbBKing_ && bb & (bbWBishop_ | bbWHorse_);
     }
     default:
@@ -350,30 +350,30 @@ bool Board::isPin_(const Position& pos, const Bitboard& occ) const {
 
   } else {
 
-    switch (PinDirTable::get(pos, posWKing_)) {
+    switch (PinDirTable::get(sq, sqWKing_)) {
     case PinDir::Up: {
       // 上
-      Bitboard bb = MoveTables::vertical(pos, occ);
+      Bitboard bb = MoveTables::vertical(sq, occ);
       return bb & bbWKing_ && bb & (bbBRook_ | bbBDragon_);
     }
     case PinDir::Down: {
       // 下
-      Bitboard bb = MoveTables::vertical(pos, occ);
+      Bitboard bb = MoveTables::vertical(sq, occ);
       return bb & bbWKing_ && bb & (bbBLance_ | bbBRook_ | bbBDragon_);
     }
     case PinDir::Hor: {
       // 横
-      Bitboard bb = MoveTables::horizontal(pos, occ);
+      Bitboard bb = MoveTables::horizontal(sq, occ);
       return bb & bbWKing_ && bb & (bbBRook_ | bbBDragon_);
     }
     case PinDir::RightUp: {
       // 右上がり/左下がり
-      Bitboard bb = MoveTables::rightUpX(pos, occ);
+      Bitboard bb = MoveTables::rightUpX(sq, occ);
       return bb & bbWKing_ && bb & (bbBBishop_ | bbBHorse_);
     }
     case PinDir::RightDown: {
       // 右下がり/左上がり
-      Bitboard bb = MoveTables::rightDownX(pos, occ);
+      Bitboard bb = MoveTables::rightDownX(sq, occ);
       return bb & bbWKing_ && bb & (bbBBishop_ | bbBHorse_);
     }
     default:
@@ -382,55 +382,55 @@ bool Board::isPin_(const Position& pos, const Bitboard& occ) const {
 
   }
 }
-template bool Board::isPin_<true>(const Position& pos, const Bitboard& occ) const;
-template bool Board::isPin_<false>(const Position& pos, const Bitboard& occ) const;
+template bool Board::isPin_<true>(const Square& sq, const Bitboard& occ) const;
+template bool Board::isPin_<false>(const Square& sq, const Bitboard& occ) const;
 
 /**
  * 盤面の駒をセットします。
  */
-void Board::setBoardPiece(const Position& pos, const Piece& piece) {
-  board_[pos] = piece;
-  if (posBKing_ == pos) {
-    posBKing_ = Position::Invalid;
+void Board::setBoardPiece(const Square& sq, const Piece& piece) {
+  board_[sq] = piece;
+  if (sqBKing_ == sq) {
+    sqBKing_ = Square::Invalid;
   }
-  if (posWKing_ == pos) {
-    posWKing_ = Position::Invalid;
+  if (sqWKing_ == sq) {
+    sqWKing_ = Square::Invalid;
   }
-#define BB_OPE ((*this).*P__).unset(pos);
+#define BB_OPE ((*this).*P__).unset(sq);
   BB_OPE_EACH;
 #undef BB_OPE
   if (piece.exists()) {
     switch (piece) {
-    case Piece::BPawn     : bbBPawn_.set(pos); break;
-    case Piece::BLance    : bbBLance_.set(pos); break;
-    case Piece::BKnight   : bbBKnight_.set(pos); break;
-    case Piece::BSilver   : bbBSilver_.set(pos); break;
-    case Piece::BGold     : bbBGold_.set(pos); break;
-    case Piece::BBishop   : bbBBishop_.set(pos); break;
-    case Piece::BRook     : bbBRook_.set(pos); break;
-    case Piece::BKing     : bbBKing_.set(pos); posBKing_ = pos; break;
-    case Piece::BTokin    : bbBTokin_.set(pos); break;
-    case Piece::BProLance : bbBProLance_.set(pos); break;
-    case Piece::BProKnight: bbBProKnight_.set(pos); break;
-    case Piece::BProSilver: bbBProSilver_.set(pos); break;
-    case Piece::BHorse    : bbBHorse_.set(pos); break;
-    case Piece::BDragon   : bbBDragon_.set(pos); break;
-    case Piece::WPawn     : bbWPawn_.set(pos); break;
-    case Piece::WLance    : bbWLance_.set(pos); break;
-    case Piece::WKnight   : bbWKnight_.set(pos); break;
-    case Piece::WSilver   : bbWSilver_.set(pos); break;
-    case Piece::WGold     : bbWGold_.set(pos); break;
-    case Piece::WBishop   : bbWBishop_.set(pos); break;
-    case Piece::WRook     : bbWRook_.set(pos); break;
-    case Piece::WKing     : bbWKing_.set(pos); posWKing_ = pos; break;
-    case Piece::WTokin    : bbWTokin_.set(pos); break;
-    case Piece::WProLance : bbWProLance_.set(pos); break;
-    case Piece::WProKnight: bbWProKnight_.set(pos); break;
-    case Piece::WProSilver: bbWProSilver_.set(pos); break;
-    case Piece::WHorse    : bbWHorse_.set(pos); break;
-    case Piece::WDragon   : bbWDragon_.set(pos); break;
+    case Piece::BPawn     : bbBPawn_.set(sq); break;
+    case Piece::BLance    : bbBLance_.set(sq); break;
+    case Piece::BKnight   : bbBKnight_.set(sq); break;
+    case Piece::BSilver   : bbBSilver_.set(sq); break;
+    case Piece::BGold     : bbBGold_.set(sq); break;
+    case Piece::BBishop   : bbBBishop_.set(sq); break;
+    case Piece::BRook     : bbBRook_.set(sq); break;
+    case Piece::BKing     : bbBKing_.set(sq); sqBKing_ = sq; break;
+    case Piece::BTokin    : bbBTokin_.set(sq); break;
+    case Piece::BProLance : bbBProLance_.set(sq); break;
+    case Piece::BProKnight: bbBProKnight_.set(sq); break;
+    case Piece::BProSilver: bbBProSilver_.set(sq); break;
+    case Piece::BHorse    : bbBHorse_.set(sq); break;
+    case Piece::BDragon   : bbBDragon_.set(sq); break;
+    case Piece::WPawn     : bbWPawn_.set(sq); break;
+    case Piece::WLance    : bbWLance_.set(sq); break;
+    case Piece::WKnight   : bbWKnight_.set(sq); break;
+    case Piece::WSilver   : bbWSilver_.set(sq); break;
+    case Piece::WGold     : bbWGold_.set(sq); break;
+    case Piece::WBishop   : bbWBishop_.set(sq); break;
+    case Piece::WRook     : bbWRook_.set(sq); break;
+    case Piece::WKing     : bbWKing_.set(sq); sqWKing_ = sq; break;
+    case Piece::WTokin    : bbWTokin_.set(sq); break;
+    case Piece::WProLance : bbWProLance_.set(sq); break;
+    case Piece::WProKnight: bbWProKnight_.set(sq); break;
+    case Piece::WProSilver: bbWProSilver_.set(sq); break;
+    case Piece::WHorse    : bbWHorse_.set(sq); break;
+    case Piece::WDragon   : bbWDragon_.set(sq); break;
     }
-    (piece.isBlack() ? bbBOccupy_ : bbWOccupy_).set(pos);
+    (piece.isBlack() ? bbBOccupy_ : bbWOccupy_).set(sq);
   }
 }
 
@@ -438,7 +438,7 @@ void Board::setBoardPiece(const Position& pos, const Piece& piece) {
  * 王手判定
  */
 template<bool black>
-bool Board::isChecking_(const Position& king, const Bitboard& occ) const {
+bool Board::isChecking_(const Square& king, const Bitboard& occ) const {
   if (black) {
     // 1マス移動
     if (MoveTables::bpawn(king) & bbWPawn_ ||
@@ -474,8 +474,8 @@ bool Board::isChecking_(const Position& king, const Bitboard& occ) const {
   }
   return false;
 }
-template bool Board::isChecking_<true>(const Position& king, const Bitboard& occ) const;
-template bool Board::isChecking_<false>(const Position& king, const Bitboard& occ) const;
+template bool Board::isChecking_<true>(const Square& king, const Bitboard& occ) const;
+template bool Board::isChecking_<false>(const Square& king, const Bitboard& occ) const;
 
 /**
  * 移動する駒による王手かどうかチェック
@@ -483,7 +483,7 @@ template bool Board::isChecking_<false>(const Position& king, const Bitboard& oc
 template<bool black, DirectionEx dir>
 bool Board::isDirectCheck_(const Move& move) const {
 
-#define SHORT_ATTACK_CHECK ((black ? posWKing_ : posBKing_) == \
+#define SHORT_ATTACK_CHECK ((black ? sqWKing_ : sqBKing_) == \
   (dir == DirectionEx::Up ? move.to().up() : \
   dir == DirectionEx::Down ? move.to().down() : \
   dir == DirectionEx::Left ? move.to().left() : \
@@ -495,8 +495,8 @@ bool Board::isDirectCheck_(const Move& move) const {
   dir == DirectionEx::LeftUpKnight ? move.to().leftUpKnight() : \
   dir == DirectionEx::LeftDownKnight ? move.to().leftDownKnight() : \
   dir == DirectionEx::RightUpKnight ? move.to().rightUpKnight() : move.to().rightDownKnight()))
-#define LONG_ATTACK_CHECK(PieceType) (MoveTables::PieceType(move.to(), getBOccupy() | getWOccupy()).check(black ? posWKing_ : posBKing_))
-#define LONG_ATTACK_CHECK_LANCE ((black ? MoveTables::blance(move.to(), getBOccupy() | getWOccupy()) : MoveTables::wlance(move.to(), getBOccupy() | getWOccupy())).check(black ? posWKing_ : posBKing_))
+#define LONG_ATTACK_CHECK(PieceType) (MoveTables::PieceType(move.to(), getBOccupy() | getWOccupy()).check(black ? sqWKing_ : sqBKing_))
+#define LONG_ATTACK_CHECK_LANCE ((black ? MoveTables::blance(move.to(), getBOccupy() | getWOccupy()) : MoveTables::wlance(move.to(), getBOccupy() | getWOccupy())).check(black ? sqWKing_ : sqBKing_))
 
   auto piece = move.promote() ? move.piece().promote() : move.piece();
 
@@ -589,7 +589,7 @@ bool Board::isDirectCheck_(const Move& move) const {
  * 開き王手かどうかチェック
  */
 template<bool black, Direction dir>
-bool Board::isDiscoveredCheck_(const Position& king, const Position& from) const {
+bool Board::isDiscoveredCheck_(const Square& king, const Square& from) const {
   auto occ = getBOccupy() | getWOccupy();
   occ.unset(from);
 
@@ -633,7 +633,7 @@ bool Board::isCheck_(const Move& move) const {
 
   // 1. 動かした駒による王手を調べる
   auto to = move.to();
-  auto king = black ? posWKing_ : posBKing_;
+  auto king = black ? sqWKing_ : sqBKing_;
 
   if (move.piece() != Piece::King) {
     switch (to.dirEx(king)) {
@@ -684,8 +684,8 @@ template bool Board::isCheck_<false>(const Move& move) const;
 template<bool black>
 bool Board::isPawnDropMate_() const {
   auto occ = bbBOccupy_ | bbWOccupy_;
-  auto king = !black ? posBKing_ : posWKing_;
-  auto pawn = !black ? posBKing_.up() : posWKing_.down();
+  auto king = !black ? sqBKing_ : sqWKing_;
+  auto pawn = !black ? sqBKing_.up() : sqWKing_.down();
 
   // king
   auto bb = MoveTables::king(king);
@@ -807,13 +807,13 @@ template bool Board::isPawnDropMate_<false>() const;
  * TODO: rename
  */
 template<bool black>
-inline bool Board::isValidMove_(const Piece& piece, const Position& to) const {
+inline bool Board::isValidMove_(const Piece& piece, const Square& to) const {
   // 打ち歩詰め判定
-  if (black && piece == Piece::Pawn && to.up() == posWKing_) {
+  if (black && piece == Piece::Pawn && to.up() == sqWKing_) {
     if (isPawnDropMate_<true>()) {
       return false;
     }
-  } else if (!black && piece == Piece::Pawn && to.down() == posBKing_) {
+  } else if (!black && piece == Piece::Pawn && to.down() == sqBKing_) {
     if (isPawnDropMate_<false>()) {
       return false;
     }
@@ -821,15 +821,15 @@ inline bool Board::isValidMove_(const Piece& piece, const Position& to) const {
 
   return true;
 }
-template bool Board::isValidMove_<true>(const Piece& piece, const Position& to) const;
-template bool Board::isValidMove_<false>(const Piece& piece, const Position& to) const;
+template bool Board::isValidMove_<true>(const Piece& piece, const Square& to) const;
+template bool Board::isValidMove_<false>(const Piece& piece, const Square& to) const;
 
 /**
  * 盤上の駒を移動させる手が合法手かどうかチェックします。
  * TODO: rename
  */
 template<bool black>
-inline bool Board::isValidMove_(const Piece& piece, const Position& from, const Position& to) const {
+inline bool Board::isValidMove_(const Piece& piece, const Square& from, const Square& to) const {
   if (piece == Piece::King) {
 
     // 王手放置判定
@@ -842,7 +842,7 @@ inline bool Board::isValidMove_(const Piece& piece, const Position& from, const 
   } else { // not (piece == Piece::King)
 
     // pin判定
-    auto king = black ? posBKing_ : posWKing_;
+    auto king = black ? sqBKing_ : sqWKing_;
     // 玉からの方向が変化している場合のみチェック
     if (PinDirTable::get(king, from) != PinDirTable::get(king, to)) {
       auto occ = bbBOccupy_ | bbWOccupy_;
@@ -856,8 +856,8 @@ inline bool Board::isValidMove_(const Piece& piece, const Position& from, const 
 
   return true;
 }
-template bool Board::isValidMove_<true>(const Piece& piece, const Position& from, const Position& to) const;
-template bool Board::isValidMove_<false>(const Piece& piece, const Position& from, const Position& to) const;
+template bool Board::isValidMove_<true>(const Piece& piece, const Square& from, const Square& to) const;
+template bool Board::isValidMove_<false>(const Piece& piece, const Square& from, const Square& to) const;
 
 /**
  * 指し手が合法手であるか厳密なチェックをします。
@@ -903,8 +903,8 @@ bool Board::isValidMoveStrict_(const Move& move) const {
     }
 
     if (piece == Piece::Pawn) {
-      for (int rank = 1; rank <= Position::RankN; rank++) {
-        auto piece0 = board_[Position(move.to().getFile(), rank)];
+      for (int rank = 1; rank <= Square::RankN; rank++) {
+        auto piece0 = board_[Square(move.to().getFile(), rank)];
         if (piece0 == (black ? Piece::BPawn : Piece::WPawn)) {
           return false;
         }
@@ -1195,7 +1195,7 @@ bool Board::makeMove_(Move& move) {
       case Piece::Gold     : bbBGold_.set(to); break;
       case Piece::Bishop   : bbBBishop_.set(to); break;
       case Piece::Rook     : bbBRook_.set(to); break;
-      case Piece::King     : bbBKing_.set(to); posBKing_ = to; break;
+      case Piece::King     : bbBKing_.set(to); sqBKing_ = to; break;
       case Piece::Tokin    : bbBTokin_.set(to); break;
       case Piece::ProLance : bbBProLance_.set(to); break;
       case Piece::ProKnight: bbBProKnight_.set(to); break;
@@ -1216,7 +1216,7 @@ bool Board::makeMove_(Move& move) {
       case Piece::Gold     : bbWGold_.set(to); break;
       case Piece::Bishop   : bbWBishop_.set(to); break;
       case Piece::Rook     : bbWRook_.set(to); break;
-      case Piece::King     : bbWKing_.set(to); posWKing_ = to; break;
+      case Piece::King     : bbWKing_.set(to); sqWKing_ = to; break;
       case Piece::Tokin    : bbWTokin_.set(to); break;
       case Piece::ProLance : bbWProLance_.set(to); break;
       case Piece::ProKnight: bbWProKnight_.set(to); break;
@@ -1342,7 +1342,7 @@ bool Board::unmakeMove_(const Move& move) {
       case Piece::Gold     : bbBGold_.set(from); break;
       case Piece::Bishop   : bbBBishop_.set(from); break;
       case Piece::Rook     : bbBRook_.set(from); break;
-      case Piece::King     : bbBKing_.set(from); posBKing_ = from; break;
+      case Piece::King     : bbBKing_.set(from); sqBKing_ = from; break;
       case Piece::Tokin    : bbBTokin_.set(from); break;
       case Piece::ProLance : bbBProLance_.set(from); break;
       case Piece::ProKnight: bbBProKnight_.set(from); break;
@@ -1365,7 +1365,7 @@ bool Board::unmakeMove_(const Move& move) {
       case Piece::Gold     : bbWGold_.set(from); break;
       case Piece::Bishop   : bbWBishop_.set(from); break;
       case Piece::Rook     : bbWRook_.set(from); break;
-      case Piece::King     : bbWKing_.set(from); posWKing_ = from; break;
+      case Piece::King     : bbWKing_.set(from); sqWKing_ = from; break;
       case Piece::Tokin    : bbWTokin_.set(from); break;
       case Piece::ProLance : bbWProLance_.set(from); break;
       case Piece::ProKnight: bbWProKnight_.set(from); break;
@@ -1544,36 +1544,36 @@ void Board::unmakeNullMove() {
 bool Board::validate() const {
   PIECE_EACH(piece) {
     const auto& bb = getBB(piece);
-    POSITION_EACH(pos) {
-      if (board_[pos] == piece) {
-        if (!bb.check(pos)) {
+    SQUARE_EACH(sq) {
+      if (board_[sq] == piece) {
+        if (!bb.check(sq)) {
           return false;
         }
 
         if (piece.isBlack()) {
-          if (!bbBOccupy_.check(pos)) {
+          if (!bbBOccupy_.check(sq)) {
             return false;
           }
-          if (bbWOccupy_.check(pos)) {
+          if (bbWOccupy_.check(sq)) {
             return false;
           }
         } else if (piece.isWhite()) {
-          if (bbBOccupy_.check(pos)) {
+          if (bbBOccupy_.check(sq)) {
             return false;
           }
-          if (!bbWOccupy_.check(pos)) {
+          if (!bbWOccupy_.check(sq)) {
             return false;
           }
         } else {
-          if (bbBOccupy_.check(pos)) {
+          if (bbBOccupy_.check(sq)) {
             return false;
           }
-          if (bbWOccupy_.check(pos)) {
+          if (bbWOccupy_.check(sq)) {
             return false;
           }
         }
       } else {
-        if (bb.check(pos)) {
+        if (bb.check(sq)) {
           return false;
         }
       }
@@ -1609,9 +1609,9 @@ std::string Board::toString(bool showNumbers) const {
     oss << " 9 8 7 6 5 4 3 2 1\n";
   }
 
-  POSITION_EACH_RD(pos) {
+  SQUARE_EACH_RD(sq) {
     // piece
-    Piece piece = getBoardPiece(pos);
+    Piece piece = getBoardPiece(sq);
     if (piece.exists()) {
       oss << piece.toString();
     } else {
@@ -1621,7 +1621,7 @@ std::string Board::toString(bool showNumbers) const {
     // new line
     if (++count % 9 == 0) {
       if (showNumbers) {
-        oss << pos.getRank();
+        oss << sq.getRank();
       }
       oss << '\n';
     }
@@ -1667,7 +1667,7 @@ std::string Board::toStringCsa() const {
   std::ostringstream oss;
   int count = 0;
 
-  POSITION_EACH_RD(pos) {
+  SQUARE_EACH_RD(sq) {
     if (count % 9 == 0) {
       if (count != 0) { oss << '\n'; }
       oss << 'P' << (count / 9 + 1);
@@ -1675,7 +1675,7 @@ std::string Board::toStringCsa() const {
     count++;
 
     // piece
-    Piece piece = getBoardPiece(pos);
+    Piece piece = getBoardPiece(sq);
     if (piece.exists()) {
       oss << piece.toStringCsa();
     } else {
