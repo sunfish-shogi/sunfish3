@@ -160,31 +160,31 @@ int sqInv(int table[], int in) {
  */
 int convertKppIndex4FvBin(int index) {
   struct BoardInfo {
+    int* table;
     int begin;
     int end;
     int offset;
-    int* table;
   };
 
   static const BoardInfo biList[] = {
-    { KPP_BBPAWN,   KPP_BWPAWN,   -9,  sqIndexBPawn },
-    { KPP_BWPAWN,   KPP_BBLANCE,  0,   sqIndexWPawn },
-    { KPP_BBLANCE,  KPP_BWLANCE,  -9,  sqIndexBPawn },
-    { KPP_BWLANCE,  KPP_BBKNIGHT, 0,   sqIndexWPawn },
-    { KPP_BBKNIGHT, KPP_BWKNIGHT, -18, sqIndexBKnight },
-    { KPP_BWKNIGHT, KPP_BBSILVER, 0,   sqIndexWKnight },
-    { KPP_BBSILVER, KPP_BWSILVER, 0,   nullptr },
-    { KPP_BWSILVER, KPP_BBGOLD,   0,   nullptr },
-    { KPP_BBGOLD,   KPP_BWGOLD,   0,   nullptr },
-    { KPP_BWGOLD,   KPP_BBBISHOP, 0,   nullptr },
-    { KPP_BBBISHOP, KPP_BWBISHOP, 0,   nullptr },
-    { KPP_BWBISHOP, KPP_BBHORSE,  0,   nullptr },
-    { KPP_BBHORSE,  KPP_BWHORSE,  0,   nullptr },
-    { KPP_BWHORSE,  KPP_BBROOK,   0,   nullptr },
-    { KPP_BBROOK,   KPP_BWROOK,   0,   nullptr },
-    { KPP_BWROOK,   KPP_BBDRAGON, 0,   nullptr },
-    { KPP_BBDRAGON, KPP_BWDRAGON, 0,   nullptr },
-    { KPP_BWDRAGON, KPP_MAX,      0,   nullptr },
+    { sqIndexBPawn,   KPP_BBPAWN,   KPP_BWPAWN,   -9  },
+    { sqIndexWPawn,   KPP_BWPAWN,   KPP_BBLANCE,  0   },
+    { sqIndexBPawn,   KPP_BBLANCE,  KPP_BWLANCE,  -9  },
+    { sqIndexWPawn,   KPP_BWLANCE,  KPP_BBKNIGHT, 0   },
+    { sqIndexBKnight, KPP_BBKNIGHT, KPP_BWKNIGHT, -18 },
+    { sqIndexWKnight, KPP_BWKNIGHT, KPP_BBSILVER, 0   },
+    { nullptr,        KPP_BBSILVER, KPP_BWSILVER, 0   },
+    { nullptr,        KPP_BWSILVER, KPP_BBGOLD,   0   },
+    { nullptr,        KPP_BBGOLD,   KPP_BWGOLD,   0   },
+    { nullptr,        KPP_BWGOLD,   KPP_BBBISHOP, 0   },
+    { nullptr,        KPP_BBBISHOP, KPP_BWBISHOP, 0   },
+    { nullptr,        KPP_BWBISHOP, KPP_BBHORSE,  0   },
+    { nullptr,        KPP_BBHORSE,  KPP_BWHORSE,  0   },
+    { nullptr,        KPP_BWHORSE,  KPP_BBROOK,   0   },
+    { nullptr,        KPP_BBROOK,   KPP_BWROOK,   0   },
+    { nullptr,        KPP_BWROOK,   KPP_BBDRAGON, 0   },
+    { nullptr,        KPP_BBDRAGON, KPP_BWDRAGON, 0   },
+    { nullptr,        KPP_BWDRAGON, KPP_MAX,      0   },
   };
 
   if (index < KPP_BBPAWN) {

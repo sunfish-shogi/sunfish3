@@ -31,11 +31,11 @@ void See::generateAttacker(const Board& board, const Square& to, const Bitboard&
              dir == Direction::RightUp ? MovableTable[piece].leftDown :
              MovableTable[piece].leftUp) {
           if (piece.isBlack()) {
-            b_[bnum_++] = { material::pieceExchange(piece), false, dependOn };
+            b_[bnum_++] = { dependOn, material::pieceExchange(piece), false };
             if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &b_[bnum_-1]); }
           } else {
             assert(piece.isWhite());
-            w_[wnum_++] = { material::pieceExchange(piece), false, dependOn };
+            w_[wnum_++] = { dependOn, material::pieceExchange(piece), false };
             if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &w_[wnum_-1]); }
           }
         }
@@ -58,11 +58,11 @@ void See::generateAttacker(const Board& board, const Square& to, const Bitboard&
              dir == Direction::RightUp ? LongMovableTable[piece].leftDown :
              LongMovableTable[piece].leftUp) {
           if (piece.isBlack()) {
-            b_[bnum_++] = { material::pieceExchange(piece), false, dependOn };
+            b_[bnum_++] = { dependOn, material::pieceExchange(piece), false };
             if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &b_[bnum_-1]); }
           } else {
             assert(piece.isWhite());
-            w_[wnum_++] = { material::pieceExchange(piece), false, dependOn };
+            w_[wnum_++] = { dependOn, material::pieceExchange(piece), false };
             if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &w_[wnum_-1]); }
           }
         }
@@ -86,11 +86,11 @@ void See::generateAttacker(const Board& board, const Square& to, const Bitboard&
              dir == Direction::Left ? MovableTable[piece].right :
              MovableTable[piece].left) {
           if (piece.isBlack()) {
-            b_[bnum_++] = { material::pieceExchange(piece), false, dependOn };
+            b_[bnum_++] = { dependOn, material::pieceExchange(piece), false };
             if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &b_[bnum_-1]); }
           } else {
             assert(piece.isWhite());
-            w_[wnum_++] = { material::pieceExchange(piece), false, dependOn };
+            w_[wnum_++] = { dependOn, material::pieceExchange(piece), false };
             if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &w_[wnum_-1]); }
           }
         }
@@ -113,11 +113,11 @@ void See::generateAttacker(const Board& board, const Square& to, const Bitboard&
              dir == Direction::Left ? LongMovableTable[piece].right :
              LongMovableTable[piece].left) {
           if (piece.isBlack()) {
-            b_[bnum_++] = { material::pieceExchange(piece), false, dependOn };
+            b_[bnum_++] = { dependOn, material::pieceExchange(piece), false };
             if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &b_[bnum_-1]); }
           } else {
             assert(piece.isWhite());
-            w_[wnum_++] = { material::pieceExchange(piece), false, dependOn };
+            w_[wnum_++] = { dependOn, material::pieceExchange(piece), false };
             if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &w_[wnum_-1]); }
           }
         }
@@ -134,7 +134,7 @@ void See::generateKnightAttacker(const Board& board, const Square& from) {
 
   auto piece = board.getBoardPiece(from);
   if ((black && piece == Piece::BKnight) || (!black && piece == Piece::WKnight)) {
-    list[num++] = { material::pieceExchange(piece), false, nullptr };
+    list[num++] = { nullptr, material::pieceExchange(piece), false };
     return;
   }
 }
@@ -259,7 +259,7 @@ void See::generateAttackers(const Board& board, const Move& move) {
   bref_[bnum_] = &dummyAttacker;
   for (int i = bnum_ - 1; i >= 0; i--) {
     AttackerRef tmp = bref_[i] = &b_[i];
-    Value value = tmp->value;
+    Value value = b_[i].value;
     int j = i + 1;
     for (; bref_[j]->value < value; j++) {
       bref_[j-1] = bref_[j];
@@ -270,7 +270,7 @@ void See::generateAttackers(const Board& board, const Move& move) {
   wref_[wnum_] = &dummyAttacker;
   for (int i = wnum_ - 1; i >= 0; i--) {
     AttackerRef tmp = wref_[i] = &w_[i];
-    Value value = tmp->value;
+    Value value = w_[i].value;
     int j = i + 1;
     for (; wref_[j]->value < value; j++) {
       wref_[j-1] = wref_[j];

@@ -52,12 +52,12 @@ public:
 private:
 
   struct Node {
+    Moves::iterator ite;
     Move move;
     Moves moves;
     Moves histMoves;
     GenPhase genPhase;
     ExpStat expStat;
-    Moves::iterator ite;
     int count;
     PV pv;
     ValuePair valuePair;

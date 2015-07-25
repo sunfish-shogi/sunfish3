@@ -17,9 +17,9 @@ namespace sunfish {
 template <class E> class HashTable {
 private:
 
+  E* table_;
   uint32_t size_;
   uint32_t mask_;
-  E* table_;
 
 protected:
 
@@ -43,7 +43,7 @@ public:
 
   static CONSTEXPR uint32_t DefaultBits = 18;
 
-  HashTable(uint32_t bits = DefaultBits) : size_(0), table_(nullptr) {
+  HashTable(uint32_t bits = DefaultBits) : table_(nullptr), size_(0) {
     init(bits);
   }
   HashTable(const HashTable&) = delete;

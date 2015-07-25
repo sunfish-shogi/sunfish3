@@ -15,9 +15,9 @@ class See {
 public:
 
   struct Attacker {
+    Attacker* dependOn;
     Value value;
     bool used;
-    Attacker* dependOn;
   };
 
   using AttackerRef = Attacker*;
