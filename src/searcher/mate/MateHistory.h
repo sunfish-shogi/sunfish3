@@ -31,7 +31,7 @@ public:
   }
 
   void clear() {
-    memset(hist_, 0, sizeof(hist_));
+    memset(hist_, 0, sizeof(uint64_t) * Square::N * Piece::Num * Square::N);
   }
 
   void update(const Square& king, const Move& move, bool mate) {
