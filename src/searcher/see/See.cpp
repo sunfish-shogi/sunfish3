@@ -145,15 +145,15 @@ void See::generateAttackers(const Board& board, const Move& move) {
   HSideType sideTypeH = to.sideTypeH();
   VSideType sideTypeV = to.sideTypeV();
   Bitboard occ = board.getBOccupy() | board.getWOccupy();
-  Square exceptPos;
+  Square exceptSq;
   Direction exceptDir;
 
   if (move.isHand()) {
-    exceptPos = Square::Invalid;
+    exceptSq = Square::Invalid;
     exceptDir = Direction::None;
   } else {
     auto from = move.from();
-    exceptPos = from;
+    exceptSq = from;
     exceptDir = to.dir(from);
     occ &= ~Bitboard::mask(from);
   }
@@ -166,7 +166,7 @@ void See::generateAttackers(const Board& board, const Move& move) {
     if (exceptDir != Direction::dirname) { \
       generateAttacker<shallow, Direction::dirname, true>(board, to, occ, nullptr, (shortOnly)); \
     } else { \
-      generateAttackerR<shallow, Direction::dirname>(board, exceptPos, occ, nullptr); \
+      generateAttackerR<shallow, Direction::dirname>(board, exceptSq, occ, nullptr); \
     } \
   }
 #define GEN_HV(sideTypeH, sideTypeV) \

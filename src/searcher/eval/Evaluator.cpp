@@ -577,8 +577,8 @@ void Evaluator::convertFromFvBin(Table* fvbin) {
 #endif
 
   // king-piece-piece
-  SQUARE_EACH(kingPos) {
-    int king = kingPos;
+  SQUARE_EACH(kingSq) {
+    int king = kingSq;
     int bona = sqS2B[king];
 
     for (int x = 0; x < KPP_MAX; x++) {
@@ -593,10 +593,10 @@ void Evaluator::convertFromFvBin(Table* fvbin) {
   }
 
   // king-king-piece
-  SQUARE_EACH(bkingPos) {
-    SQUARE_EACH(wkingPos) {
-      int bking = bkingPos;
-      int wking = wkingPos;
+  SQUARE_EACH(bkingSq) {
+    SQUARE_EACH(wkingSq) {
+      int bking = bkingSq;
+      int wking = wkingSq;
       int bbona = sqS2B[bking];
       int wbona = sqS2B[wking];
 
