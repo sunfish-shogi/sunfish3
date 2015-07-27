@@ -4,6 +4,7 @@
  */
 
 #include "sunfish.h"
+#include "config.h"
 #include "console/ConsoleManager.h"
 #include "program_options/ProgramOptions.h"
 #include "logger/Logger.h"
@@ -202,15 +203,15 @@ int main(int argc, char** argv, char** /*envp*/) {
 int play(const ConsoleManager::Config& config) {
 
   // init loggers
-  Loggers::error.addStream(std::cerr, "\x1b[31m", "\x1b[39m");
-  Loggers::warning.addStream(std::cerr, "\x1b[33m", "\x1b[39m");
+  Loggers::error.addStream(std::cerr, ESC_SEQ_COLOR_RED, ESC_SEQ_COLOR_RESET);
+  Loggers::warning.addStream(std::cerr, ESC_SEQ_COLOR_YELLOW, ESC_SEQ_COLOR_RESET);
   Loggers::message.addStream(std::cerr);
-  Loggers::send.addStream(std::cerr, true, true, "\x1b[34m", "\x1b[39m");
-  Loggers::receive.addStream(std::cerr, true, true, "\x1b[35m", "\x1b[39m");
+  Loggers::send.addStream(std::cerr, true, true, ESC_SEQ_COLOR_BLUE, ESC_SEQ_COLOR_RESET);
+  Loggers::receive.addStream(std::cerr, true, true, ESC_SEQ_COLOR_MAGENTA, ESC_SEQ_COLOR_RESET);
 #ifndef NDEBUG
-  Loggers::debug.addStream(std::cerr, "\x1b[36m", "\x1b[39m");
-  Loggers::test.addStream(std::cerr, "\x1b[32m", "\x1b[39m");
-  Loggers::develop.addStream(std::cerr, "\x1b[37m", "\x1b[39m");
+  Loggers::debug.addStream(std::cerr, ESC_SEQ_COLOR_CYAN, ESC_SEQ_COLOR_RESET);
+  Loggers::test.addStream(std::cerr, ESC_SEQ_COLOR_GREEN, ESC_SEQ_COLOR_RESET);
+  Loggers::develop.addStream(std::cerr, ESC_SEQ_COLOR_WHITE, ESC_SEQ_COLOR_RESET);
 #endif
 
   ConsoleManager console;
