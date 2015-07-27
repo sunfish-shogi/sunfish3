@@ -4,8 +4,8 @@
  * Kubo Ryosuke
  */
 
-#ifndef CONTROLLER_H_
-#define CONTROLLER_H_
+#ifndef CONSOLEMANAGER_H_
+#define CONSOLEMANAGER_H_
 
 #include "core/record/Record.h"
 #include "searcher/Searcher.h"
@@ -164,4 +164,4 @@ public:
 
 } // namespace sunfish
 
-#endif // CONTROLLER_H_
+#endif // CONSOLEMANAGER_H_

@@ -1,8 +1,6 @@
-/*
- * sunfish.h
+/* sunfish.h
  * 
- * Created on: 2014/01/18
- *     Author: Kubo Ryosuke
+ * Kubo Ryosuke
  */
 
 #ifndef SUNFISH_H_
