@@ -38,7 +38,7 @@ private:
 public:
 
   static uint64_t board(const Square& sq, const Piece& piece) {
-    return Board[sq][piece];
+    return Board[sq.index()][piece];
   }
 
 #define FUNC_HAND__(piece) \

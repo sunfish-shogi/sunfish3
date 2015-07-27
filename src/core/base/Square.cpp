@@ -8,7 +8,7 @@
 
 namespace sunfish {
 
-const int32_t Square::DistanceTable[17][17] = {
+const int8_t Square::DistanceTable[17][17] = {
   { 8, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 8, },
   { 0, 7, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 7, 0, },
   { 0, 0, 6, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 6, 0, 0, },
@@ -139,7 +139,7 @@ const VSideType Square::VSideTypeTable[81] = {
 std::string Square::toString() const {
   std::ostringstream oss;
 
-  oss << getFile() << getRank();
+  oss << (int)getFile() << (int)getRank();
 
   return oss.str();
 }

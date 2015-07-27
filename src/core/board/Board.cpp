@@ -88,7 +88,7 @@ void Board::init() {
   sqWKing_ = Square::Invalid;
 
   SQUARE_EACH(sq) {
-    board_[sq] = Piece::Empty;
+    board_[sq.index()] = Piece::Empty;
   }
 
   refreshHash();
@@ -144,7 +144,7 @@ void Board::init(Handicap handicap) {
   board_[P93] = Piece::WPawn;
 
   SQUARE_EACH(sq) {
-    auto piece = board_[sq];
+    auto piece = board_[sq.index()];
     if (!piece.isEmpty()) {
       Bitboard& bb = getBB(piece);
       Bitboard& occ = piece.isBlack() ? bbBOccupy_ : bbWOccupy_;
@@ -186,7 +186,7 @@ void Board::init(const CompactBoard& cheapBoard) {
     } else {
       Square sq = s;
 
-      board_[sq] = piece;
+      board_[sq.index()] = piece;
       Bitboard& bb = getBB(piece);
       Bitboard& occ = piece.isBlack() ? bbBOccupy_ : bbWOccupy_;
       bb.set(sq);
@@ -207,7 +207,7 @@ void Board::refreshHash() {
   handHash_ = 0ull;
 
   SQUARE_EACH(sq) {
-    auto& piece = board_[sq];
+    auto& piece = board_[sq.index()];
     if (piece.exists()) {
       boardHash_ ^= Zobrist::board(sq, piece);
     }
@@ -243,10 +243,10 @@ CompactBoard Board::getCompactBoard() const {
   int index = 0;
 
   SQUARE_EACH(sq) {
-    Piece piece = board_[sq];
+    Piece piece = board_[sq.index()];
     if (!piece.isEmpty()) {
       uint16_t c = static_cast<uint16_t>(piece.operator uint8_t()) << CompactBoard::PieceShift;
-      uint16_t s = static_cast<uint16_t>(sq.operator int32_t());
+      uint16_t s = static_cast<uint16_t>(sq.operator int8_t());
       cb.buf[index++] = c | s;
     }
   }
@@ -290,15 +290,15 @@ private:
         int file2 = sq2.getFile();
         int rank2 = sq2.getRank();
         if (file1 == file2) {
-          pinDir_[sq1][sq2] = rank1 < rank2 ? PinDir::Up : PinDir::Down;
+          pinDir_[sq1.index()][sq2.index()] = rank1 < rank2 ? PinDir::Up : PinDir::Down;
         } else if (rank1 == rank2) {
-          pinDir_[sq1][sq2] = PinDir::Hor;
+          pinDir_[sq1.index()][sq2.index()] = PinDir::Hor;
         } else if (rank1 - rank2 == file1 - file2) {
-          pinDir_[sq1][sq2] = PinDir::RightUp;
+          pinDir_[sq1.index()][sq2.index()] = PinDir::RightUp;
         } else if (rank1 - rank2 == file2 - file1) {
-          pinDir_[sq1][sq2] = PinDir::RightDown;
+          pinDir_[sq1.index()][sq2.index()] = PinDir::RightDown;
         } else {
-          pinDir_[sq1][sq2] = PinDir::None;
+          pinDir_[sq1.index()][sq2.index()] = PinDir::None;
         }
       }
     }
@@ -306,7 +306,7 @@ private:
   static const PinDirTable table;
 public:
   static PinDir get(const Square& sq1, const Square& sq2) {
-    return table.pinDir_[sq1][sq2];
+    return table.pinDir_[sq1.index()][sq2.index()];
   }
 };
 const PinDirTable PinDirTable::table;
@@ -389,7 +389,7 @@ template bool Board::isPin_<false>(const Square& sq, const Bitboard& occ) const;
  * 盤面の駒をセットします。
  */
 void Board::setBoardPiece(const Square& sq, const Piece& piece) {
-  board_[sq] = piece;
+  board_[sq.index()] = piece;
   if (sqBKing_ == sq) {
     sqBKing_ = Square::Invalid;
   }
@@ -904,7 +904,7 @@ bool Board::isValidMoveStrict_(const Move& move) const {
 
     if (piece == Piece::Pawn) {
       for (int rank = 1; rank <= Square::RankN; rank++) {
-        auto piece0 = board_[Square(move.to().getFile(), rank)];
+        auto piece0 = board_[Square(move.to().getFile(), rank).index()];
         if (piece0 == (black ? Piece::BPawn : Piece::WPawn)) {
           return false;
         }
@@ -920,7 +920,7 @@ bool Board::isValidMoveStrict_(const Move& move) const {
     auto from = move.from();
     bool promote = move.promote();
 
-    if (board_[from] != (black ? piece.black() : piece.white())) {
+    if (board_[from.index()] != (black ? piece.black() : piece.white())) {
       return false;
     }
 
@@ -1078,7 +1078,7 @@ bool Board::makeMove_(Move& move) {
     }
 
     if (black) {
-      assert(board_[from] == piece.black());
+      assert(board_[from.index()] == piece.black());
       bbBOccupy_.unset(from);
       switch (piece) {
       case Piece::Pawn     : bbBPawn_.unset(from); break;
@@ -1099,7 +1099,7 @@ bool Board::makeMove_(Move& move) {
         assert(false);
       }
     } else { // white
-      assert(board_[from] == piece.white());
+      assert(board_[from.index()] == piece.white());
       bbWOccupy_.unset(from);
       switch (piece) {
       case Piece::Pawn     : bbWPawn_.unset(from); break;
@@ -1120,11 +1120,11 @@ bool Board::makeMove_(Move& move) {
         assert(false);
       }
     }
-    board_[from] = Piece::Empty;
+    board_[from.index()] = Piece::Empty;
     boardHash_ ^= Zobrist::board(from, black ? piece : piece.white());
 
     // capturing
-    const auto& captured = board_[to];
+    const auto& captured = board_[to.index()];
     if (captured.exists()) {
       if (black) {
         assert(captured.isWhite());
@@ -1205,7 +1205,7 @@ bool Board::makeMove_(Move& move) {
       default:
         assert(false);
       }
-      board_[to] = piece;
+      board_[to.index()] = piece;
       boardHash_ ^= Zobrist::board(to, piece);
     } else {
       switch (piece) {
@@ -1227,7 +1227,7 @@ bool Board::makeMove_(Move& move) {
         assert(false);
       }
       Piece piece_w = piece.white();
-      board_[to] = piece_w;
+      board_[to.index()] = piece_w;
       boardHash_ ^= Zobrist::board(to, piece_w);
     }
   } else { // promote
@@ -1295,7 +1295,7 @@ bool Board::makeMove_(Move& move) {
         assert(false);
       }
     }
-    board_[to] = piece_p;
+    board_[to.index()] = piece_p;
     boardHash_ ^= Zobrist::board(to, piece_p);
   }
 
@@ -1324,15 +1324,15 @@ bool Board::unmakeMove_(const Move& move) {
     int num = hand.incUnsafe(piece) - 1;
     handHash_ ^= black ? Zobrist::handBlack(piece, num) : Zobrist::handWhite(piece, num);
 
-    board_[to] = Piece::Empty;
+    board_[to.index()] = Piece::Empty;
 
   } else { // !move.isHand()
 
     // from
     auto from = move.from();
-    assert(board_[from] == Piece::Empty);
+    assert(board_[from.index()] == Piece::Empty);
     if (black) {
-      assert(board_[to] == (promote ? piece.black().promote() : piece.black()));
+      assert(board_[to.index()] == (promote ? piece.black().promote() : piece.black()));
       bbBOccupy_.set(from);
       switch (piece) {
       case Piece::Pawn     : bbBPawn_.set(from); break;
@@ -1352,10 +1352,10 @@ bool Board::unmakeMove_(const Move& move) {
       default:
         assert(false);
       }
-      board_[from] = piece;
+      board_[from.index()] = piece;
       boardHash_ ^= Zobrist::board(from, piece);
     } else {
-      assert(board_[to] == (promote ? piece.white().promote() : piece.white()));
+      assert(board_[to.index()] == (promote ? piece.white().promote() : piece.white()));
       bbWOccupy_.set(from);
       switch (piece) {
       case Piece::Pawn     : bbWPawn_.set(from); break;
@@ -1376,7 +1376,7 @@ bool Board::unmakeMove_(const Move& move) {
         assert(false);
       }
       Piece piece_w = piece.white();
-      board_[from] = piece_w;
+      board_[from.index()] = piece_w;
       boardHash_ ^= Zobrist::board(from, piece_w);
     }
 
@@ -1404,7 +1404,7 @@ bool Board::unmakeMove_(const Move& move) {
           assert(false);
         }
         Piece captured_w = captured.white();
-        board_[to] = captured_w;
+        board_[to.index()] = captured_w;
         boardHash_ ^= Zobrist::board(to, captured_w);
       } else {
         bbBOccupy_.set(to);
@@ -1426,7 +1426,7 @@ bool Board::unmakeMove_(const Move& move) {
         default:
           assert(false);
         }
-        board_[to] = captured;
+        board_[to.index()] = captured;
         boardHash_ ^= Zobrist::board(to, captured);
       }
 
@@ -1436,7 +1436,7 @@ bool Board::unmakeMove_(const Move& move) {
       int num = hand.decUnsafe(captured_u);
       handHash_ ^= black ? Zobrist::handBlack(captured_u, num) : Zobrist::handWhite(captured_u, num);
     } else {
-      board_[to] = Piece::Empty;
+      board_[to.index()] = Piece::Empty;
     }
 
   }
@@ -1545,7 +1545,7 @@ bool Board::validate() const {
   PIECE_EACH(piece) {
     const auto& bb = getBB(piece);
     SQUARE_EACH(sq) {
-      if (board_[sq] == piece) {
+      if (board_[sq.index()] == piece) {
         if (!bb.check(sq)) {
           return false;
         }

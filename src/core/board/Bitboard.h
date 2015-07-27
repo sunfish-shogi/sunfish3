@@ -181,7 +181,7 @@ private:
     return *this;
   }
   Bitboard& init(const Square& sq) {
-    return init((int)sq);
+    return init(sq.index());
   }
 
 public:
@@ -212,7 +212,7 @@ public:
 
   static const Bitboard& mask(int sq);
   static const Bitboard& mask(const Square& sq) {
-    return mask((int)sq);
+    return mask(sq.index());
   }
   static const Bitboard& file(int file) {
     return file_[file-1];
@@ -400,20 +400,20 @@ public:
     return *this;
   }
   Bitboard& set(const Square& sq) {
-    return set((int)sq);
+    return set(sq.index());
   }
   Bitboard& unset(int sq) {
     *this &= ~mask(sq);
     return *this;
   }
   Bitboard& unset(const Square& sq) {
-    return unset((int)sq);
+    return unset(sq.index());
   }
   bool check(int sq) const {
     return *this & mask(sq);
   }
   bool check(const Square& sq) const {
-    return check((int)sq);
+    return check(sq.index());
   }
   uint64_t low() const {
     return low_;
@@ -436,7 +436,7 @@ public:
   }
 
   static bool isLow(const Square& sq) {
-    return sq < (int)LowBits;
+    return sq.index() < LowBits;
   }
   static bool isHigh(const Square& sq) {
     return !isLow(sq);
@@ -501,9 +501,9 @@ public:
     } else if (high_) {
       int b = getFirst_((uint32_t)high_);
       if (b) {
-        return b + (int)LowBits - 1;
+        return b + LowBits - 1;
       } else {
-        return getFirst_(high_ >> 32) + 32 + (int)LowBits - 1;
+        return getFirst_(high_ >> 32) + 32 + LowBits - 1;
       }
     }
     return Square::Invalid;
@@ -512,9 +512,9 @@ public:
     if (high_) {
       int b = getLast_(high_ >> 32);
       if (b) {
-        return b + 32 + (int)LowBits - 1;
+        return b + 32 + LowBits - 1;
       } else {
-        return getLast_((uint32_t)high_) + (int)LowBits - 1;
+        return getLast_((uint32_t)high_) + LowBits - 1;
       }
     } else if(low_) {
       int b = getLast_(low_ >> 32);
@@ -543,7 +543,7 @@ public:
       }
       b--;
       high_ &= ~(0x01LL << b);
-      b += (int)LowBits;
+      b += LowBits;
     } else {
       b = Square::Invalid;
     }
@@ -563,12 +563,12 @@ public:
   int pickHigh0First() {
     int b = getFirst_(high0_) - 1;
     high0_ &= ~(0x01 << b);
-    return b + (int)LowBits;
+    return b + LowBits;
   }
   int pickHigh1First() {
     int b = getFirst_(high1_) - 1;
     high1_ &= ~(0x01 << b);
-    return b + (int)LowBits + 32;
+    return b + LowBits + 32;
   }
 
   std::string toString() const {

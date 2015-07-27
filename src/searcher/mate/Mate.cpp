@@ -8,9 +8,6 @@
 #include "core/move/MoveGenerator.h"
 #include "core/util/Data.h"
 
-#include "logger/Logger.h"
-#include <iostream>
-
 namespace sunfish {
 
 template<bool black, bool recursive>
@@ -539,13 +536,13 @@ bool Mate::isIneffectiveEvasion(const Board& board, const Move& move, const Move
   bool black = board.isBlack();
   Square king = black ? board.getBKingSquare() : board.getWKingSquare();
   if (check.piece() == Piece::Lance &&
-      move.to() == black ? king.safetyUp(2) : king.safetyDown(2)) {
+      move.to() == (black ? king.safetyUp(2) : king.safetyDown(2))) {
     return false;
   }
 
   if (black ? isProtected_<true>(board, move.to(), occ, occ, king)
       : isProtected_<false>(board, move.to(), occ, occ, king)) {
-    return true;
+    return false;
   }
 
   return true;

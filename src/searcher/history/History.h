@@ -31,7 +31,7 @@ private:
       assert(result < From);
       return result;
     } else {
-      int result = move.from();
+      int result = move.from().index();
       assert(result >= 0);
       assert(result < Board);
       return result;
@@ -39,7 +39,7 @@ private:
   }
 
   static int to(const Move& move) {
-    int result = move.to();
+    int result = move.to().index();
     assert(result >= 0);
     assert(result < To);
     return result;

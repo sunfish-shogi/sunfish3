@@ -26,7 +26,7 @@ DirectionMaskTable<full>::DirectionMaskTable() {
 #define GEN_MASK(type, dir) \
 SQUARE_EACH(from) { \
 for (Square to = from.safety ## dir(); (full ? to : to.safety ## dir()).isValid(); to = to.safety ## dir()) { \
-  type ## _[from].set(to); \
+  type ## _[from.index()].set(to.index()); \
 } \
 }
   GEN_MASK(file, Up);
@@ -58,38 +58,38 @@ MagicNumberTable::MagicNumberTable() {
       uint64_t magicHigh = 0ULL;
       for (Square sq = baseSq.safetyLeftUp(); sq.safetyLeftUp().isValid(); sq = sq.safetyLeftUp()) {
         if (Bitboard::isLow(sq)) {
-          magicLow |= 1ULL << (64 - 7 + (sq.getRank() - 2) - sq);
+          magicLow |= 1ULL << (64 - 7 + (sq.getRank() - 2) - sq.index());
         } else {
-          magicHigh |= 1ULL << (64 - 7 + (sq.getRank() - 2) - (sq - Bitboard::LowBits));
+          magicHigh |= 1ULL << (64 - 7 + (sq.getRank() - 2) - (sq.index() - Bitboard::LowBits));
         }
       }
       for (Square sq = baseSq.safetyRightDown(); sq.safetyRightDown().isValid(); sq = sq.safetyRightDown()) {
         if (Bitboard::isLow(sq)) {
-          magicLow |= 1ULL << (64 - 7 + (sq.getRank() - 2) - sq);
+          magicLow |= 1ULL << (64 - 7 + (sq.getRank() - 2) - sq.index());
         } else {
-          magicHigh |= 1ULL << (64 - 7 + (sq.getRank() - 2) - (sq - Bitboard::LowBits));
+          magicHigh |= 1ULL << (64 - 7 + (sq.getRank() - 2) - (sq.index() - Bitboard::LowBits));
         }
       }
-      leftUp_[baseSq].init(magicHigh, magicLow);
+      leftUp_[baseSq.index()].init(magicHigh, magicLow);
     }
     {
       uint64_t magicLow = 0ULL;
       uint64_t magicHigh = 0ULL;
       for (Square sq = baseSq.safetyRightUp(); sq.safetyRightUp().isValid(); sq = sq.safetyRightUp()) {
         if (Bitboard::isLow(sq)) {
-          magicLow |= 1ULL << (64 - 7 + (sq.getRank() - 2) - sq);
+          magicLow |= 1ULL << (64 - 7 + (sq.getRank() - 2) - sq.index());
         } else {
-          magicHigh |= 1ULL << (64 - 7 + (sq.getRank() - 2) - (sq - Bitboard::LowBits));
+          magicHigh |= 1ULL << (64 - 7 + (sq.getRank() - 2) - (sq.index() - Bitboard::LowBits));
         }
       }
       for (Square sq = baseSq.safetyLeftDown(); sq.safetyLeftDown().isValid(); sq = sq.safetyLeftDown()) {
         if (Bitboard::isLow(sq)){
-          magicLow |= 1ULL << (64 - 7 + (sq.getRank() - 2) - sq);
+          magicLow |= 1ULL << (64 - 7 + (sq.getRank() - 2) - sq.index());
         } else {
-          magicHigh |= 1ULL << (64 - 7 + (sq.getRank() - 2) - (sq - Bitboard::LowBits));
+          magicHigh |= 1ULL << (64 - 7 + (sq.getRank() - 2) - (sq.index() - Bitboard::LowBits));
         }
       }
-      rightUp_[baseSq].init(magicHigh, magicLow);
+      rightUp_[baseSq.index()].init(magicHigh, magicLow);
     }
   }
   for (int rank = 1; rank <= 9; rank++) {
@@ -98,14 +98,14 @@ MagicNumberTable::MagicNumberTable() {
     for (int file = 2; file <= 8; file++) {
       Square sq(file, rank);
       if (Bitboard::isLow(sq)) {
-        magicLow |= 1ULL << (64 - 7 + (8 - file) - sq);
+        magicLow |= 1ULL << (64 - 7 + (8 - file) - sq.index());
       } else {
-        magicHigh |= 1ULL << (64 - 7 + (8 - file) - (sq - Bitboard::LowBits));
+        magicHigh |= 1ULL << (64 - 7 + (8 - file) - (sq.index() - Bitboard::LowBits));
       }
     }
     for (int file = 1; file <= 9; file++) {
       Square sq(file, rank);
-      rank_[sq].init(magicHigh, magicLow);
+      rank_[sq.index()].init(magicHigh, magicLow);
     }
   }
 }
@@ -118,48 +118,48 @@ MovePatternTable::MovePatternTable() {
     for (unsigned b = 0; b < 0x80; b++) {
       // up
       for (Square sq = baseSq.safetyUp(); sq.isValid() && sq.getRank() >= 1; sq = sq.safetyUp()) {
-        up_[baseSq][b].set(sq);
-        file_[baseSq][b].set(sq);
+        up_[baseSq.index()][b].set(sq);
+        file_[baseSq.index()][b].set(sq);
         if (b & (1 << (sq.getRank() - 2))) { break; }
       }
       // down
       for (Square sq = baseSq.safetyDown(); sq.isValid() && sq.getRank() <= 9; sq = sq.safetyDown()) {
-        down_[baseSq][b].set(sq);
-        file_[baseSq][b].set(sq);
+        down_[baseSq.index()][b].set(sq);
+        file_[baseSq.index()][b].set(sq);
         if (b & (1 << (sq.getRank() - 2))) { break; }
       }
       // left
       for (Square sq = baseSq.safetyLeft(); sq.isValid() && sq.getFile() <= 9; sq = sq.safetyLeft()) {
-        rank_[baseSq][b].set(sq);
-        left_[baseSq][b].set(sq);
+        rank_[baseSq.index()][b].set(sq);
+        left_[baseSq.index()][b].set(sq);
         if (b & (1 << (8 - sq.getFile()))) { break; }
       }
       // right
       for (Square sq = baseSq.safetyRight(); sq.isValid() && sq.getFile() >= 1; sq = sq.safetyRight()) {
-        rank_[baseSq][b].set(sq);
-        right_[baseSq][b].set(sq);
+        rank_[baseSq.index()][b].set(sq);
+        right_[baseSq.index()][b].set(sq);
         if (b & (1 << (8 - sq.getFile()))) { break; }
       }
       // left-up
       for (Square sq = baseSq.safetyLeftUp(); sq.isValid() && sq.getFile() <= 9 && sq.getRank() >= 1; sq = sq.safetyLeftUp()) {
-        leftUpX_[baseSq][b].set(sq);
-        leftUp_[baseSq][b].set(sq);
+        leftUpX_[baseSq.index()][b].set(sq);
+        leftUp_[baseSq.index()][b].set(sq);
         if (b & (1 << (sq.getRank() - 2))) { break; }
       }
       for (Square sq = baseSq.safetyRightDown(); sq.isValid() && sq.getFile() >= 1 && sq.getRank() <= 9; sq = sq.safetyRightDown()) {
-        leftUpX_[baseSq][b].set(sq);
-        rightDown_[baseSq][b].set(sq);
+        leftUpX_[baseSq.index()][b].set(sq);
+        rightDown_[baseSq.index()][b].set(sq);
         if (b & (1 << (sq.getRank() - 2))) { break; }
       }
       // right-up
       for (Square sq = baseSq.safetyRightUp(); sq.isValid() && sq.getFile() >= 1 && sq.getRank() >= 1; sq = sq.safetyRightUp()) {
-        rightUpX_[baseSq][b].set(sq);
-        rightUp_[baseSq][b].set(sq);
+        rightUpX_[baseSq.index()][b].set(sq);
+        rightUp_[baseSq.index()][b].set(sq);
         if (b & (1 << (sq.getRank() - 2))) { break; }
       }
       for (Square sq = baseSq.safetyLeftDown(); sq.isValid() && sq.getFile() <= 9 && sq.getRank() <= 9; sq = sq.safetyLeftDown()) {
-        rightUpX_[baseSq][b].set(sq);
-        leftDown_[baseSq][b].set(sq);
+        rightUpX_[baseSq.index()][b].set(sq);
+        leftDown_[baseSq.index()][b].set(sq);
         if (b & (1 << (sq.getRank() - 2))) { break; }
       }
     }
@@ -247,7 +247,7 @@ OneStepMoveTable<type>::OneStepMoveTable() {
     default:
       assert(false);
     }
-    table_[sq] = bb;
+    table_[sq.index()] = bb;
   }
 }
 

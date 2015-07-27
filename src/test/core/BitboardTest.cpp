@@ -47,22 +47,22 @@ TEST(BitboardTest, testIterate) {
   ASSERT_EQ(P95, bb.getFirst());
   ASSERT_EQ(P27, bb.getLast());
   sq = bb.pickFirst();
-  ASSERT_EQ(P95, sq);
+  ASSERT_EQ(P95, sq.index());
 
   ASSERT_EQ(P41, bb.getFirst());
   ASSERT_EQ(P27, bb.getLast());
   sq = bb.pickFirst();
-  ASSERT_EQ(P41, sq);
+  ASSERT_EQ(P41, sq.index());
 
   ASSERT_EQ(P48, bb.getFirst());
   ASSERT_EQ(P27, bb.getLast());
   sq = bb.pickFirst();
-  ASSERT_EQ(P48, sq);
+  ASSERT_EQ(P48, sq.index());
 
   ASSERT_EQ(P27, bb.getFirst());
   ASSERT_EQ(P27, bb.getLast());
   sq = bb.pickFirst();
-  ASSERT_EQ(P27, sq);
+  ASSERT_EQ(P27, sq.index());
 
   ASSERT_EQ(Square::Invalid, bb.getFirst());
   ASSERT_EQ(Square::Invalid, bb.getLast());

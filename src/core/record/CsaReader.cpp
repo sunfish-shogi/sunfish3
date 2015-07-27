@@ -77,11 +77,11 @@ bool CsaReader::readBoard_(std::istream& is, Board& board, RecordInfo* info/* = 
       break;
     }
     if (is.fail()) {
-      Loggers::warning << "file io error. " << __FILE__ << "(" << __LINE__ << ")";
+      Loggers::warning << "file io error: " << __FILE__ << "(" << __LINE__ << ")";
       return false;
     }
     if (!readBoard_(line, board, info)) {
-      Loggers::warning << "invalid board format. " << __FILE__ << "(" << __LINE__ << ")";
+      Loggers::warning << "invalid board format: " << __FILE__ << "(" << __LINE__ << ")";
       return false;
     }
     if (line[0] == '+' || line[0] == '-') {
@@ -133,7 +133,7 @@ bool CsaReader::readBoard_(const char* line, Board& board, RecordInfo* info/* = 
  */
 bool CsaReader::readBoardPieces_(const char* line, Board& board) {
   if (strlen(line) < 2 + 3 * Square::FileN) {
-    Loggers::warning << "invalid format. " << __FILE__ << "(" << __LINE__ << ")";
+    Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
     return false;
   }
   int rank = line[1] - '0';
@@ -186,11 +186,11 @@ bool CsaReader::readHand_(const char* line, Board& board, bool black) {
           board.incWhiteHand(piece);
         }
       } else {
-        Loggers::warning << "invalid format. " << __FILE__ << "(" << __LINE__ << ")";
+        Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
         return false;
       }
     } else {
-      Loggers::warning << "invalid format. " << __FILE__ << "(" << __LINE__ << ")";
+      Loggers::warning << "invalid format: " << __FILE__ << "(" << __LINE__ << ")";
       return false;
     }
   }
@@ -210,18 +210,22 @@ bool CsaReader::readMoves(std::istream& is, Record& record) {
       return true;
     }
     if (is.fail()) {
-      Loggers::warning << "file io error. " << __FILE__ << "(" << __LINE__ << ")";
+      Loggers::warning << "file io error: " << __FILE__ << "(" << __LINE__ << ")";
       return false;
     }
     if (readComment_(line) || readCommand_(line) || readTime_(line)) {
       continue;
     }
     if (!readMove(line, record.getBoard(), move)) {
-      Loggers::warning << "invalid move format. " << __FILE__ << "(" << __LINE__ << ")";
+      Loggers::warning << "invalid move format: " << __FILE__ << "(" << __LINE__ << ")";
       Loggers::warning << "> " << line;
       return false;
     }
-    record.makeMove(move);
+    if (!record.makeMove(move)) {
+      Loggers::warning << "invalid move: " << __FILE__ << "(" << __LINE__ << ")";
+      Loggers::warning << "> " << line;
+      return false;
+    }
   }
 }
 

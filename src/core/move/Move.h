@@ -88,9 +88,9 @@ private:
   void set_(const Piece& piece, const Square& from, const Square& to, bool promote) {
     assert(!piece.isEmpty());
     assert(piece.isUnpromoted() || !promote);
-    move_ = ((uint32_t)from + 1)
-          | ((uint32_t)to << TO_SHIFT)
-          | ((uint32_t)(safe ? piece.kindOnly() : piece) << PIECE_SHIFT);
+    move_ = (static_cast<uint32_t>(from.index()) + 1)
+          | (static_cast<uint32_t>(to.index()) << TO_SHIFT)
+          | (static_cast<uint32_t>(safe ? piece.kindOnly() : piece) << PIECE_SHIFT);
     if (promote) {
       move_ |= PROMOTE;
     }
@@ -111,8 +111,8 @@ private:
     assert(!piece.isWhite());
     assert(piece.isUnpromoted());
     const Piece& hand = (safe ? piece.hand() : piece);
-    move_ = ((uint32_t)to << TO_SHIFT)
-          | ((uint32_t)hand << PIECE_SHIFT);
+    move_ = (static_cast<uint32_t>(to.index()) << TO_SHIFT)
+          | (static_cast<uint32_t>(hand) << PIECE_SHIFT);
   }
 public:
   void set(const Piece& piece, const Square& to) {
@@ -131,10 +131,10 @@ public:
 
   // setters
   void setFrom(const Square& from) {
-    move_ = (move_ & ~FROM) | (from + 1);
+    move_ = (move_ & ~FROM) | (static_cast<uint32_t>(from.index()) + 1);
   }
   void setTo(const Square& to) {
-    move_ = (move_ & ~TO) | (to << TO_SHIFT);
+    move_ = (move_ & ~TO) | (static_cast<uint32_t>(to.index()) << TO_SHIFT);
   }
   void setPromote(bool enable = true) {
     if (enable) {
@@ -144,16 +144,16 @@ public:
     }
   }
   void setPiece(const Piece& piece) {
-    move_ = (move_ & (~PIECE)) | ((uint32_t)piece.kindOnly() << PIECE_SHIFT);
+    move_ = (move_ & (~PIECE)) | (static_cast<uint32_t>(piece.kindOnly()) << PIECE_SHIFT);
   }
   void setPieceUnsafe(const Piece& piece) {
-    move_ = (move_ & (~PIECE)) | ((uint32_t)piece << PIECE_SHIFT);
+    move_ = (move_ & (~PIECE)) | (static_cast<uint32_t>(piece) << PIECE_SHIFT);
   }
   void setCaptured(const Piece& captured) {
-    move_ = (move_ & (~CAP)) | ((uint32_t)(captured.kindOnly() + 1U) << CAP_SHIFT);
+    move_ = (move_ & (~CAP)) | (static_cast<uint32_t>(captured.kindOnly() + 1U) << CAP_SHIFT);
   }
   void setCapturedUnsafe(const Piece& captured) {
-    move_ = (move_ & (~CAP)) | ((uint32_t)(captured + 1U) << CAP_SHIFT);
+    move_ = (move_ & (~CAP)) | (static_cast<uint32_t>(captured + 1U) << CAP_SHIFT);
   }
   void unsetCaptured() {
     move_ = move_ & (~CAP);

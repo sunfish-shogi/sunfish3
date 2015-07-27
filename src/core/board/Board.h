@@ -144,7 +144,7 @@ public:
 
   /** 盤面の駒を取得します。 */
   Piece getBoardPiece(const Square& sq) const {
-    return board_[sq];
+    return board_[sq.index()];
   }
   /** 先手の持ち駒を取得します。 */
   const Hand& getBlackHand() const {

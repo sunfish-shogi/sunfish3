@@ -51,43 +51,43 @@ private:
 
 public:
   static const Bitboard& bpawn(const Square& king) {
-    return BPawn.table[(uint8_t)king];
+    return BPawn.table[king.index()];
   }
   static const Bitboard& blance(const Square& king) {
-    return BLance.table[(uint8_t)king];
+    return BLance.table[king.index()];
   }
   static const Bitboard& bknight(const Square& king) {
-    return BKnight.table[(uint8_t)king];
+    return BKnight.table[king.index()];
   }
   static const Bitboard& bsilver(const Square& king) {
-    return BSilver.table[(uint8_t)king];
+    return BSilver.table[king.index()];
   }
   static const Bitboard& bgold(const Square& king) {
-    return BGold.table[(uint8_t)king];
+    return BGold.table[king.index()];
   }
   static const Bitboard& bbishop(const Square& king) {
-    return BBishop.table[(uint8_t)king];
+    return BBishop.table[king.index()];
   }
   static const Bitboard& wpawn(const Square& king) {
-    return WPawn.table[(uint8_t)king];
+    return WPawn.table[king.index()];
   }
   static const Bitboard& wlance(const Square& king) {
-    return WLance.table[(uint8_t)king];
+    return WLance.table[king.index()];
   }
   static const Bitboard& wknight(const Square& king) {
-    return WKnight.table[(uint8_t)king];
+    return WKnight.table[king.index()];
   }
   static const Bitboard& wsilver(const Square& king) {
-    return WSilver.table[(uint8_t)king];
+    return WSilver.table[king.index()];
   }
   static const Bitboard& wgold(const Square& king) {
-    return WGold.table[(uint8_t)king];
+    return WGold.table[king.index()];
   }
   static const Bitboard& wbishop(const Square& king) {
-    return WBishop.table[(uint8_t)king];
+    return WBishop.table[king.index()];
   }
   static const Bitboard& horse(const Square& king) {
-    return Horse.table[(uint8_t)king];
+    return Horse.table[king.index()];
   }
 
 };

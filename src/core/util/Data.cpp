@@ -83,7 +83,7 @@ template <int PieceType>
 AtacckableTable<PieceType>::AtacckableTable() {
 
   SQUARE_EACH(king) {
-    Bitboard& bb = table[(uint8_t)king];
+    Bitboard& bb = table[king.index()];
     bb.init();
 
     if (PieceType == Piece::BPawn) {
@@ -281,14 +281,14 @@ SQ_BISHOP_EACH((king), RightUp, LeftUp, RightDown); \
         SET_BISHOP(king.safetyLeft());
         SET_BISHOP(king.safetyRight());
       }
-      if (king.safetyDown() != Square::Invalid && king.safetyUp().isPromotable<true>()) {
+      if (king.safetyDown() != Square::Invalid && king.safetyDown().isPromotable<true>()) {
         SET_BISHOP(king.safetyDown());
       }
     }
 
     if (PieceType == Piece::WBishop) {
       SET_BISHOP(king);
-      if (king.safetyDown() != Square::Invalid && king.safetyUp().isPromotable<false>()) {
+      if (king.safetyDown() != Square::Invalid && king.safetyDown().isPromotable<false>()) {
         SET_BISHOP(king.safetyDown());
       }
       if (king.isPromotable<false>()) {
