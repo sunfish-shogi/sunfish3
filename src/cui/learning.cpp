@@ -62,10 +62,10 @@ int analyzeEvalBin() {
   };
 
   for (int i = 0; i < KPP_ALL; i++) {
-    func(eval.t_->kpp[0][i], max, magnitude, nonZero);
+    func(((Evaluator::ValueType*)eval.t_->kpp)[i], max, magnitude, nonZero);
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    func(eval.t_->kkp[0][0][i], max, magnitude, nonZero);
+    func(((Evaluator::ValueType*)eval.t_->kkp)[i], max, magnitude, nonZero);
   }
 
   Loggers::message << "max=" << max

@@ -263,10 +263,16 @@ bool OnlineLearning::miniBatch() {
     maxU = std::max(maxU, std::abs(u));
   };
   for (int i = 0; i < KPP_ALL; i++) {
-    update1(g_.t_->kpp[0][i], w_.t_->kpp[0][i], u_.t_->kpp[0][i], maxW, magnitudeW, maxU);
+    update1(((FV::ValueType*)g_.t_->kpp)[i],
+            ((FV::ValueType*)w_.t_->kpp)[i],
+            ((FV::ValueType*)u_.t_->kpp)[i],
+            maxW, magnitudeW, maxU);
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    update1(g_.t_->kkp[0][0][i], w_.t_->kkp[0][0][i], u_.t_->kkp[0][0][i], maxW, magnitudeW, maxU);
+    update1(((FV::ValueType*)g_.t_->kkp)[i],
+            ((FV::ValueType*)w_.t_->kkp)[i],
+            ((FV::ValueType*)u_.t_->kkp)[i],
+            maxW, magnitudeW, maxU);
   }
 
   miniBatchCount_++;
@@ -280,10 +286,16 @@ bool OnlineLearning::miniBatch() {
     nonZero += e != 0 ? 1 : 0;
   };
   for (int i = 0; i < KPP_ALL; i++) {
-    average(w_.t_->kpp[0][i], u_.t_->kpp[0][i], eval_.t_->kpp[0][i], max, magnitude, nonZero);
+    average(((FV::ValueType*)w_.t_->kpp)[i],
+            ((FV::ValueType*)u_.t_->kpp)[i],
+            ((Evaluator::ValueType*)eval_.t_->kpp)[i],
+            max, magnitude, nonZero);
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    average(w_.t_->kkp[0][0][i], u_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i], max, magnitude, nonZero);
+    average(((FV::ValueType*)w_.t_->kkp)[i],
+            ((FV::ValueType*)u_.t_->kkp)[i],
+            ((Evaluator::ValueType*)eval_.t_->kkp)[i],
+            max, magnitude, nonZero);
   }
 
   // 保存
@@ -294,10 +306,12 @@ bool OnlineLearning::miniBatch() {
     e = std::round(w);
   };
   for (int i = 0; i < KPP_ALL; i++) {
-    update2(w_.t_->kpp[0][i], eval_.t_->kpp[0][i]);
+    update2(((FV::ValueType*)w_.t_->kpp)[i],
+            ((Evaluator::ValueType*)eval_.t_->kpp)[i]);
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    update2(w_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i]);
+    update2(((FV::ValueType*)w_.t_->kkp)[i],
+            ((Evaluator::ValueType*)eval_.t_->kkp)[i]);
   }
 
   float error = errorSum_ / errorCount_;

@@ -246,7 +246,7 @@ CompactBoard Board::getCompactBoard() const {
     Piece piece = board_[sq.index()];
     if (!piece.isEmpty()) {
       uint16_t c = static_cast<uint16_t>(piece.operator uint8_t()) << CompactBoard::PieceShift;
-      uint16_t s = static_cast<uint16_t>(sq.operator int8_t());
+      uint16_t s = static_cast<uint16_t>(sq.index());
       cb.buf[index++] = c | s;
     }
   }

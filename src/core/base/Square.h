@@ -25,7 +25,7 @@ enum {
   P11, P12, P13, P14, P15, P16, P17, P18, P19,
 };
 
-enum class Direction : int8_t {
+enum class Direction : int32_t {
   None,
   Up, Down, Left, Right,
   LeftUp, LeftDown,
@@ -34,7 +34,7 @@ enum class Direction : int8_t {
   RightUpKnight, RightDownKnight,
 };
 
-enum class DirectionEx : int8_t {
+enum class DirectionEx : int32_t {
   None,
   Up, Down, Left, Right,
   LeftUp, LeftDown,
@@ -46,7 +46,7 @@ enum class DirectionEx : int8_t {
   LongRightUp, LongRightDown,
 };
 
-enum class HSideType : int8_t {
+enum class HSideType : int32_t {
   None,
   Top,
   Bottom,
@@ -54,7 +54,7 @@ enum class HSideType : int8_t {
   Bottom2,
 };
 
-enum class VSideType : int8_t {
+enum class VSideType : int32_t {
   None,
   Left,
   Right,
@@ -84,29 +84,29 @@ class Square {
 private:
 
   static const int8_t DistanceTable[17][17];
-  static const Direction DirectionTable[17][17];
-  static const DirectionEx DirectionTableEx[17][17];
-  static const HSideType HSideTypeTable[81];
-  static const VSideType VSideTypeTable[81];
+  static const int8_t DirectionTable[17][17];
+  static const int8_t DirectionTableEx[17][17];
+  static const int8_t HSideTypeTable[81];
+  static const int8_t VSideTypeTable[81];
 
-  int8_t index_;
+  int32_t index_;
 
 public:
 
-  static CONSTEXPR int8_t Invalid = -1;
-  static CONSTEXPR int8_t N = 81;
-  static CONSTEXPR int8_t RankN = 9;
-  static CONSTEXPR int8_t FileN = 9;
-  static CONSTEXPR int8_t Begin = 0;
-  static CONSTEXPR int8_t End = Begin + N;
+  static CONSTEXPR int32_t Invalid = -1;
+  static CONSTEXPR int32_t N = 81;
+  static CONSTEXPR int32_t RankN = 9;
+  static CONSTEXPR int32_t FileN = 9;
+  static CONSTEXPR int32_t Begin = 0;
+  static CONSTEXPR int32_t End = Begin + N;
 
   Square() : index_(Invalid) {
   }
   Square(const Square&) = default;
   Square(Square&&) = default;
-  Square(int8_t index) : index_(index) {
+  Square(int32_t index) : index_(index) {
   }
-  explicit Square(int8_t file, int8_t rank) {
+  explicit Square(int32_t file, int32_t rank) {
     set(file, rank);
   }
 
@@ -120,35 +120,35 @@ public:
     return index_ != sq.index_;
   }
 
-  bool operator==(int8_t i) const {
+  bool operator==(int32_t i) const {
     return index_ == i;
   }
-  bool operator!=(int8_t i) const {
+  bool operator!=(int32_t i) const {
     return index_ != i;
   }
 
-  explicit operator int8_t() const {
+  explicit operator int32_t() const {
     return index_;
   }
-  int8_t index() const {
+  int32_t index() const {
     return index_;
   }
 
-  Square& set(int8_t i) {
+  Square& set(int32_t i) {
     index_ = i;
     return *this;
   }
-  Square& set(int8_t file, int8_t rank) {
+  Square& set(int32_t file, int32_t rank) {
     index_ = (9 - file) * RankN + rank - 1;
     return *this;
   }
 
-  int8_t getFile() const {
+  int32_t getFile() const {
     assert(index_ >= Begin);
     assert(index_ < End);
     return 9 - (index_ / RankN);
   }
-  int8_t getRank() const {
+  int32_t getRank() const {
     assert(index_ >= Begin);
     assert(index_ < End);
     return index_ % RankN + 1;
@@ -163,10 +163,10 @@ public:
   bool isStrictValid() const {
     return index_ >= 0 && index_ < End;
   }
-  static bool isValidFile(int8_t file) {
+  static bool isValidFile(int32_t file) {
     return file >= 1 && file <= 9;
   }
-  static bool isValidRank(int8_t rank) {
+  static bool isValidRank(int32_t rank) {
     return rank >= 1 && rank <= 9;
   }
   template<bool black>
@@ -223,45 +223,45 @@ public:
     assert(isValid());
     return N - 1 - index_;
   }
-  Square up(int8_t distance = 1) const {
+  Square up(int32_t distance = 1) const {
     assert(isValid());
     assert(getRank() != 1);
     return index_ - distance;
   }
-  Square down(int8_t distance = 1) const {
+  Square down(int32_t distance = 1) const {
     assert(isValid());
     assert(getRank() != 9);
     return index_ + distance;
   }
-  Square left(int8_t distance = 1) const {
+  Square left(int32_t distance = 1) const {
     assert(isValid());
     assert(getFile() != 9);
     return index_ - distance * RankN;
   }
-  Square right(int8_t distance = 1) const {
+  Square right(int32_t distance = 1) const {
     assert(isValid());
     assert(getFile() != 1);
     return index_ + distance * RankN;
   }
-  Square leftUp(int8_t distance = 1) const {
+  Square leftUp(int32_t distance = 1) const {
     assert(isValid());
     assert(getRank() != 1);
     assert(getFile() != 9);
     return (*this).left(distance).up(distance);
   }
-  Square leftDown(int8_t distance = 1) const {
+  Square leftDown(int32_t distance = 1) const {
     assert(isValid());
     assert(getRank() != 9);
     assert(getFile() != 9);
     return (*this).left(distance).down(distance);
   }
-  Square rightUp(int8_t distance = 1) const {
+  Square rightUp(int32_t distance = 1) const {
     assert(isValid());
     assert(getRank() != 1);
     assert(getFile() != 1);
     return (*this).right(distance).up(distance);
   }
-  Square rightDown(int8_t distance = 1) const {
+  Square rightDown(int32_t distance = 1) const {
     assert(isValid());
     assert(getRank() != 9);
     assert(getFile() != 1);
@@ -291,52 +291,52 @@ public:
     assert(getFile() != 1);
     return (*this).right().down(2);
   }
-  Square safetyUp(int8_t distance = 1) const {
+  Square safetyUp(int32_t distance = 1) const {
     if (isInvalid()) { return Square(Invalid); }
-    int8_t file = getFile();
-    int8_t rank = getRank() - distance;
+    int32_t file = getFile();
+    int32_t rank = getRank() - distance;
     assert(file >= 1);
     assert(file <= 9);
     assert(rank <= 9);
     return rank >= 1 ? Square(file, rank) : Square(Invalid);
   }
-  Square safetyDown(int8_t distance = 1) const {
+  Square safetyDown(int32_t distance = 1) const {
     if (isInvalid()) { return Square(Invalid); }
-    int8_t file = getFile();
-    int8_t rank = getRank() + distance;
+    int32_t file = getFile();
+    int32_t rank = getRank() + distance;
     assert(file >= 1);
     assert(file <= 9);
     assert(rank >= 1);
     return rank <= 9 ? Square(file, rank) : Square(Invalid);
   }
-  Square safetyLeft(int8_t distance = 1) const {
+  Square safetyLeft(int32_t distance = 1) const {
     if (isInvalid()) { return Square(Invalid); }
-    int8_t file = getFile() + distance;
-    int8_t rank = getRank();
+    int32_t file = getFile() + distance;
+    int32_t rank = getRank();
     assert(file >= 1);
     assert(rank >= 1);
     assert(rank <= 9);
     return file <= 9 ? Square(file, rank) : Square(Invalid);
   }
-  Square safetyRight(int8_t distance = 1) const {
+  Square safetyRight(int32_t distance = 1) const {
     if (isInvalid()) { return Square(Invalid); }
-    int8_t file = getFile() - distance;
-    int8_t rank = getRank();
+    int32_t file = getFile() - distance;
+    int32_t rank = getRank();
     assert(file <= 9);
     assert(rank >= 1);
     assert(rank <= 9);
     return file >= 1 ? Square(file, rank) : Square(Invalid);
   }
-  Square safetyLeftUp(int8_t distance = 1) const {
+  Square safetyLeftUp(int32_t distance = 1) const {
     return (*this).safetyLeft(distance).safetyUp(distance);
   }
-  Square safetyLeftDown(int8_t distance = 1) const {
+  Square safetyLeftDown(int32_t distance = 1) const {
     return (*this).safetyLeft(distance).safetyDown(distance);
   }
-  Square safetyRightUp(int8_t distance = 1) const {
+  Square safetyRightUp(int32_t distance = 1) const {
     return (*this).safetyRight(distance).safetyUp(distance);
   }
-  Square safetyRightDown(int8_t distance = 1) const {
+  Square safetyRightDown(int32_t distance = 1) const {
     return (*this).safetyRight(distance).safetyDown(distance);
   }
   Square safetyLeftUpKnight() const {
@@ -355,9 +355,9 @@ public:
     return index_ + 1;
   }
   Square nextRightDown() const {
-    int8_t file = index_ / RankN;
+    int32_t file = index_ / RankN;
     if (file == 8) {
-      int8_t rank = index_ % RankN;
+      int32_t rank = index_ % RankN;
       if (rank == RankN - 1) {
         return End;
       }
@@ -365,7 +365,7 @@ public:
     }
     return index_ + RankN;
   }
-  int8_t distance(const Square& to) const {
+  int32_t distance(const Square& to) const {
     int rank = (int)to.index_ % RankN - (int)index_ % RankN + 8;
     int file = (int)to.index_ / RankN - (int)index_ / RankN + 8;
     assert(rank >= 0);
@@ -381,7 +381,7 @@ public:
     assert(rank <= 16);
     assert(file >= 0);
     assert(file <= 16);
-    return DirectionTable[rank][file];
+    return static_cast<Direction>(DirectionTable[rank][file]);
   }
   DirectionEx dirEx(const Square& to) const {
     int rank = (int)to.index_ % RankN - (int)index_ % RankN + 8;
@@ -390,15 +390,15 @@ public:
     assert(rank <= 16);
     assert(file >= 0);
     assert(file <= 16);
-    return DirectionTableEx[rank][file];
+    return static_cast<DirectionEx>(DirectionTableEx[rank][file]);
   }
   HSideType sideTypeH() const {
     assert(index_ != Invalid);
-    return HSideTypeTable[index_];
+    return static_cast<HSideType>(HSideTypeTable[index_]);
   }
   VSideType sideTypeV() const {
     assert(index_ != Invalid);
-    return VSideTypeTable[index_];
+    return static_cast<VSideType>(VSideTypeTable[index_]);
   }
 
   std::string toString() const;

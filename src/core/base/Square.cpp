@@ -28,20 +28,20 @@ const int8_t Square::DistanceTable[17][17] = {
   { 8, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 8, },
 };
 
-#define D00 Direction::None
-#define D01 Direction::Up
-#define D02 Direction::Down
-#define D03 Direction::Left
-#define D04 Direction::Right
-#define D05 Direction::LeftUp
-#define D06 Direction::LeftDown
-#define D07 Direction::RightUp
-#define D08 Direction::RightDown
-#define D09 Direction::LeftUpKnight
-#define D10 Direction::LeftDownKnight
-#define D11 Direction::RightUpKnight
-#define D12 Direction::RightDownKnight
-const Direction Square::DirectionTable[17][17] = {
+#define D00 static_cast<int8_t>(Direction::None)
+#define D01 static_cast<int8_t>(Direction::Up)
+#define D02 static_cast<int8_t>(Direction::Down)
+#define D03 static_cast<int8_t>(Direction::Left)
+#define D04 static_cast<int8_t>(Direction::Right)
+#define D05 static_cast<int8_t>(Direction::LeftUp)
+#define D06 static_cast<int8_t>(Direction::LeftDown)
+#define D07 static_cast<int8_t>(Direction::RightUp)
+#define D08 static_cast<int8_t>(Direction::RightDown)
+#define D09 static_cast<int8_t>(Direction::LeftUpKnight)
+#define D10 static_cast<int8_t>(Direction::LeftDownKnight)
+#define D11 static_cast<int8_t>(Direction::RightUpKnight)
+#define D12 static_cast<int8_t>(Direction::RightDownKnight)
+const int8_t Square::DirectionTable[17][17] = {
   { D05, D00, D00, D00, D00, D00, D00, D00, D01, D00, D00, D00, D00, D00, D00, D00, D07, },
   { D00, D05, D00, D00, D00, D00, D00, D00, D01, D00, D00, D00, D00, D00, D00, D07, D00, },
   { D00, D00, D05, D00, D00, D00, D00, D00, D01, D00, D00, D00, D00, D00, D07, D00, D00, },
@@ -61,28 +61,28 @@ const Direction Square::DirectionTable[17][17] = {
   { D06, D00, D00, D00, D00, D00, D00, D00, D02, D00, D00, D00, D00, D00, D00, D00, D08, },
 };
 
-#define E00 DirectionEx::None
-#define E01 DirectionEx::Up
-#define E02 DirectionEx::Down
-#define E03 DirectionEx::Left
-#define E04 DirectionEx::Right
-#define E05 DirectionEx::LeftUp
-#define E06 DirectionEx::LeftDown
-#define E07 DirectionEx::RightUp
-#define E08 DirectionEx::RightDown
-#define E09 DirectionEx::LeftUpKnight
-#define E10 DirectionEx::LeftDownKnight
-#define E11 DirectionEx::RightUpKnight
-#define E12 DirectionEx::RightDownKnight
-#define E13 DirectionEx::LongUp
-#define E14 DirectionEx::LongDown
-#define E15 DirectionEx::LongLeft
-#define E16 DirectionEx::LongRight
-#define E17 DirectionEx::LongLeftUp
-#define E18 DirectionEx::LongLeftDown
-#define E19 DirectionEx::LongRightUp
-#define E20 DirectionEx::LongRightDown
-const DirectionEx Square::DirectionTableEx[17][17] = {
+#define E00 static_cast<int8_t>(DirectionEx::None)
+#define E01 static_cast<int8_t>(DirectionEx::Up)
+#define E02 static_cast<int8_t>(DirectionEx::Down)
+#define E03 static_cast<int8_t>(DirectionEx::Left)
+#define E04 static_cast<int8_t>(DirectionEx::Right)
+#define E05 static_cast<int8_t>(DirectionEx::LeftUp)
+#define E06 static_cast<int8_t>(DirectionEx::LeftDown)
+#define E07 static_cast<int8_t>(DirectionEx::RightUp)
+#define E08 static_cast<int8_t>(DirectionEx::RightDown)
+#define E09 static_cast<int8_t>(DirectionEx::LeftUpKnight)
+#define E10 static_cast<int8_t>(DirectionEx::LeftDownKnight)
+#define E11 static_cast<int8_t>(DirectionEx::RightUpKnight)
+#define E12 static_cast<int8_t>(DirectionEx::RightDownKnight)
+#define E13 static_cast<int8_t>(DirectionEx::LongUp)
+#define E14 static_cast<int8_t>(DirectionEx::LongDown)
+#define E15 static_cast<int8_t>(DirectionEx::LongLeft)
+#define E16 static_cast<int8_t>(DirectionEx::LongRight)
+#define E17 static_cast<int8_t>(DirectionEx::LongLeftUp)
+#define E18 static_cast<int8_t>(DirectionEx::LongLeftDown)
+#define E19 static_cast<int8_t>(DirectionEx::LongRightUp)
+#define E20 static_cast<int8_t>(DirectionEx::LongRightDown)
+const int8_t Square::DirectionTableEx[17][17] = {
   { E17, E00, E00, E00, E00, E00, E00, E00, E13, E00, E00, E00, E00, E00, E00, E00, E19, },
   { E00, E17, E00, E00, E00, E00, E00, E00, E13, E00, E00, E00, E00, E00, E00, E19, E00, },
   { E00, E00, E17, E00, E00, E00, E00, E00, E13, E00, E00, E00, E00, E00, E19, E00, E00, },
@@ -102,12 +102,12 @@ const DirectionEx Square::DirectionTableEx[17][17] = {
   { E18, E00, E00, E00, E00, E00, E00, E00, E14, E00, E00, E00, E00, E00, E00, E00, E20, },
 };
 
-#define HNN HSideType::None
-#define TP1 HSideType::Top
-#define BM1 HSideType::Bottom
-#define TP2 HSideType::Top2
-#define BM2 HSideType::Bottom2
-const HSideType Square::HSideTypeTable[81] = {
+#define HNN static_cast<int8_t>(HSideType::None)
+#define TP1 static_cast<int8_t>(HSideType::Top)
+#define BM1 static_cast<int8_t>(HSideType::Bottom)
+#define TP2 static_cast<int8_t>(HSideType::Top2)
+#define BM2 static_cast<int8_t>(HSideType::Bottom2)
+const int8_t Square::HSideTypeTable[81] = {
   TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
   TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
   TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
@@ -119,12 +119,12 @@ const HSideType Square::HSideTypeTable[81] = {
   TP1, TP2, HNN, HNN, HNN, HNN, HNN, BM2, BM1,
 };
 
-#define VNN VSideType::None
-#define LT1 VSideType::Left
-#define RT1 VSideType::Right
-#define LT2 VSideType::Left2
-#define RT2 VSideType::Right2
-const VSideType Square::VSideTypeTable[81] = {
+#define VNN static_cast<int8_t>(VSideType::None)
+#define LT1 static_cast<int8_t>(VSideType::Left)
+#define RT1 static_cast<int8_t>(VSideType::Right)
+#define LT2 static_cast<int8_t>(VSideType::Left2)
+#define RT2 static_cast<int8_t>(VSideType::Right2)
+const int8_t Square::VSideTypeTable[81] = {
   LT1, LT1, LT1, LT1, LT1, LT1, LT1, LT1, LT1,
   LT2, LT2, LT2, LT2, LT2, LT2, LT2, LT2, LT2,
   VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN, VNN,

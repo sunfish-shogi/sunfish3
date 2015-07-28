@@ -33,7 +33,7 @@ inline int kpp_index_safe(int x, int y) {
   return x >= y ? kpp_index(x, y) : kpp_index(y, x);
 }
 
-int sqIndexBPawn[] = {
+const int8_t sqIndexBPawn[] = {
   -1,  0,  1,  2,  3,  4,  5,  6,  7,
   -1,  8,  9, 10, 11, 12, 13, 14, 15,
   -1, 16, 17, 18, 19, 20, 21, 22, 23,
@@ -45,7 +45,7 @@ int sqIndexBPawn[] = {
   -1, 64, 65, 66, 67, 68, 69, 70, 71,
 };
 
-int sqIndexWPawn[] = {
+const int8_t sqIndexWPawn[] = {
    0,  1,  2,  3,  4,  5,  6,  7, -1,
    8,  9, 10, 11, 12, 13, 14, 15, -1,
   16, 17, 18, 19, 20, 21, 22, 23, -1,
@@ -57,7 +57,7 @@ int sqIndexWPawn[] = {
   64, 65, 66, 67, 68, 69, 70, 71, -1,
 };
 
-int sqIndexBKnight[] = {
+const int8_t sqIndexBKnight[] = {
   -1, -1,  0,  1,  2,  3,  4,  5,  6,
   -1, -1,  7,  8,  9, 10, 11, 12, 13,
   -1, -1, 14, 15, 16, 17, 18, 19, 20,
@@ -69,7 +69,7 @@ int sqIndexBKnight[] = {
   -1, -1, 56, 57, 58, 59, 60, 61, 62,
 };
 
-int sqIndexWKnight[] = {
+const int8_t sqIndexWKnight[] = {
    0,  1,  2,  3,  4,  5,  6, -1, -1,
    7,  8,  9, 10, 11, 12, 13, -1, -1,
   14, 15, 16, 17, 18, 19, 20, -1, -1,
@@ -82,7 +82,7 @@ int sqIndexWKnight[] = {
 };
 
 // sunfish to bonanza
-int sqS2B[] = {
+const int8_t sqS2B[] = {
    0,  9, 18, 27, 36, 45, 54, 63, 72,
    1, 10, 19, 28, 37, 46, 55, 64, 73,
    2, 11, 20, 29, 38, 47, 56, 65, 74,
@@ -96,10 +96,10 @@ int sqS2B[] = {
 
 } // namespace
 
-#define SQ_INDEX_BPAWN(sq)   (sqIndexBPawn[(sq).index()])
-#define SQ_INDEX_WPAWN(sq)   (sqIndexWPawn[(sq).index()])
-#define SQ_INDEX_BKNIGHT(sq) (sqIndexBKnight[(sq).index()])
-#define SQ_INDEX_WKNIGHT(sq) (sqIndexWKnight[(sq).index()])
+#define SQ_INDEX_BPAWN(sq)   (static_cast<int>(sqIndexBPawn[(sq).index()]))
+#define SQ_INDEX_WPAWN(sq)   (static_cast<int>(sqIndexWPawn[(sq).index()]))
+#define SQ_INDEX_BKNIGHT(sq) (static_cast<int>(sqIndexBKnight[(sq).index()]))
+#define SQ_INDEX_WKNIGHT(sq) (static_cast<int>(sqIndexWKnight[(sq).index()]))
 #define SQ_INDEX_BNORMAL(sq) (sq.index())
 #define SQ_INDEX_WNORMAL(sq) (sq.index())
 
@@ -146,9 +146,9 @@ bool Feature<T>::writeFile(const char* filename) const {
   return true;
 }
 
-int sqInv(int table[], int in) {
+int sqInv(const int8_t* table, int in) {
   SQUARE_EACH(sq) {
-    if (table[sq.index()] == in) {
+    if (static_cast<int>(table[sq.index()]) == in) {
       return sq.index();
     }
   }
@@ -160,7 +160,7 @@ int sqInv(int table[], int in) {
  */
 int convertKppIndex4FvBin(int index) {
   struct BoardInfo {
-    int* table;
+    const int8_t* table;
     int begin;
     int end;
     int offset;
@@ -220,7 +220,7 @@ int convertKkpIndex4FvBin(int index) {
     int begin;
     int end;
     int offset;
-    int* table;
+    const int8_t* table;
   };
 
   static const BoardInfo biList[] = {
@@ -265,9 +265,9 @@ int convertKkpIndex4FvBin(int index) {
  */
 int kkpBoardIndex(Piece piece, const Square& sq) {
   switch (piece) {
-    case Piece::BPawn:      case Piece::WPawn:      return KKP_BPAWN + sqIndexBPawn[sq.index()];
-    case Piece::BLance:     case Piece::WLance:     return KKP_BLANCE + sqIndexBPawn[sq.index()];
-    case Piece::BKnight:    case Piece::WKnight:    return KKP_BKNIGHT + sqIndexBKnight[sq.index()];
+    case Piece::BPawn:      case Piece::WPawn:      return KKP_BPAWN + SQ_INDEX_BPAWN(sq);
+    case Piece::BLance:     case Piece::WLance:     return KKP_BLANCE + SQ_INDEX_BPAWN(sq);
+    case Piece::BKnight:    case Piece::WKnight:    return KKP_BKNIGHT + SQ_INDEX_BKNIGHT(sq);
     case Piece::BSilver:    case Piece::WSilver:    return KKP_BSILVER + sq.index();
     case Piece::BGold:      case Piece::WGold:      return KKP_BGOLD + sq.index();
     case Piece::BBishop:    case Piece::WBishop:    return KKP_BBISHOP + sq.index();
@@ -316,9 +316,9 @@ int kkpHandIndex(Piece piece) {
 template <bool blackPiece>
 int kppBoardIndex(Piece piece, const Square& sq) {
   switch (piece) {
-    case Piece::BPawn:      case Piece::WPawn:      return (blackPiece ? KPP_BBPAWN   : KPP_BWPAWN) + (blackPiece ? sqIndexBPawn[sq.index()] : sqIndexWPawn[sq.index()]);
-    case Piece::BLance:     case Piece::WLance:     return (blackPiece ? KPP_BBLANCE  : KPP_BWLANCE) + (blackPiece ? sqIndexBPawn[sq.index()] : sqIndexWPawn[sq.index()]);
-    case Piece::BKnight:    case Piece::WKnight:    return (blackPiece ? KPP_BBKNIGHT : KPP_BWKNIGHT) + (blackPiece ? sqIndexBKnight[sq.index()] : sqIndexWKnight[sq.index()]);
+    case Piece::BPawn:      case Piece::WPawn:      return (blackPiece ? KPP_BBPAWN   : KPP_BWPAWN) + (blackPiece ? SQ_INDEX_BPAWN(sq) : SQ_INDEX_WPAWN(sq));
+    case Piece::BLance:     case Piece::WLance:     return (blackPiece ? KPP_BBLANCE  : KPP_BWLANCE) + (blackPiece ? SQ_INDEX_BPAWN(sq) : SQ_INDEX_WPAWN(sq));
+    case Piece::BKnight:    case Piece::WKnight:    return (blackPiece ? KPP_BBKNIGHT : KPP_BWKNIGHT) + (blackPiece ? SQ_INDEX_BKNIGHT(sq) : SQ_INDEX_WKNIGHT(sq));
     case Piece::BSilver:    case Piece::WSilver:    return (blackPiece ? KPP_BBSILVER : KPP_BWSILVER) + sq.index();
     case Piece::BGold:      case Piece::WGold:      return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + sq.index();
     case Piece::BBishop:    case Piece::WBishop:    return (blackPiece ? KPP_BBBISHOP : KPP_BWBISHOP) + sq.index();
@@ -506,10 +506,10 @@ void Evaluator::init() {
 void Evaluator::initRandom() {
   Random random;
   for (int i = 0; i < KPP_ALL; i++) {
-    t_->kpp[0][i] = (int16_t)(random.getInt32() % 21) - 10;
+    ((ValueType*)t_->kpp)[i] = (ValueType)(random.getInt32() % 21) - 10;
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    t_->kkp[0][0][i] = (int16_t)(random.getInt32() % 21) - 10;
+    ((ValueType*)t_->kkp)[i] = (ValueType)(random.getInt32() % 21) - 10;
   }
 }
 
@@ -517,14 +517,14 @@ void Evaluator::initRandom() {
  * ファイルからパラメータを読み込みます。
  */
 bool Evaluator::readFile() {
-  return Feature<int16_t>::readFile(DEFAULT_FV_FILENAME);
+  return Feature<ValueType>::readFile(DEFAULT_FV_FILENAME);
 }
 
 /**
  * ファイルにパラメータを書き出します。
  */
 bool Evaluator::writeFile() const {
-  return Feature<int16_t>::writeFile(DEFAULT_FV_FILENAME);
+  return Feature<ValueType>::writeFile(DEFAULT_FV_FILENAME);
 }
 
 /**
@@ -569,10 +569,10 @@ void Evaluator::convertFromFvBin(Table* fvbin) {
 
 #if CONV_ERROR_CHECK
   for (int i = 0; i < KPP_ALL; i++) {
-    t_->kpp[0][i] = (int16_t)0x7fff;
+    ((ValueType*)t_->kpp)[i] = (ValueType)0x7fff;
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    t_->kkp[0][0][i] = (int16_t)0x7fff;
+    ((ValueType*)t_->kkp)[i] = (ValueType)0x7fff;
   }
 #endif
 
@@ -609,12 +609,12 @@ void Evaluator::convertFromFvBin(Table* fvbin) {
 
 #if CONV_ERROR_CHECK
   for (int i = 0; i < KPP_ALL; i++) {
-    if (t_->kpp[0][i] == (int16_t)0x7fff) {
+    if (((ValueType*)(t_->kpp))[i] == (ValueType)0x7fff) {
       Loggers::error << "error kpp " << i;
     }
   }
   for (int i = 0; i < KKP_ALL; i++) {
-    if (t_->kkp[0][0][i] == (int16_t)0x7fff) {
+    if (((ValueType*)(t_->kkp))[i] == (ValueType)0x7fff) {
       Loggers::error << "error kkp " << i;
     }
   }

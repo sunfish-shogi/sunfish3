@@ -400,11 +400,15 @@ void BatchLearning::updateParameters() {
   magnitude_ = 0;
 
   for (int i = 0; i < KPP_ALL; i++) {
-    update(g_.t_->kpp[0][i], eval_.t_->kpp[0][i], max_, magnitude_);
+    update(((FV::ValueType*)g_.t_->kpp)[i],
+           ((Evaluator::ValueType*)eval_.t_->kpp)[i],
+           max_, magnitude_);
   }
 
   for (int i = 0; i < KKP_ALL; i++) {
-    update(g_.t_->kkp[0][0][i], eval_.t_->kkp[0][0][i], max_, magnitude_);
+    update(((FV::ValueType*)g_.t_->kkp)[i],
+           ((Evaluator::ValueType*)eval_.t_->kkp)[i],
+           max_, magnitude_);
   }
 }
 

@@ -7,76 +7,74 @@
 
 namespace sunfish {
 
-MovableFlags MovableTable[] = {
-  //   up,  down,  left, right,   l-u,   l-d,   r-u,   r-d
-  {  true, false, false, false, false, false, false, false }, // black pawn
-  {  true, false, false, false, false, false, false, false }, // black lance
-  { false, false, false, false, false, false, false, false }, // black knight
-  {  true, false, false, false,  true,  true,  true,  true }, // black silver
-  {  true,  true,  true,  true,  true, false,  true, false }, // black gold
-  { false, false, false, false,  true,  true,  true,  true }, // black bishop
-  {  true,  true,  true,  true, false, false, false, false }, // black rook
-  {  true,  true,  true,  true,  true,  true,  true,  true }, // black king
-  {  true,  true,  true,  true,  true, false,  true, false }, // black tokin
-  {  true,  true,  true,  true,  true, false,  true, false }, // black pro-lance
-  {  true,  true,  true,  true,  true, false,  true, false }, // black pro-knight
-  {  true,  true,  true,  true,  true, false,  true, false }, // black pro-silver
-  { false, false, false, false, false, false, false, false }, // n/a
-  {  true,  true,  true,  true,  true,  true,  true,  true }, // black horse
-  {  true,  true,  true,  true,  true,  true,  true,  true }, // black dragon
-  { false, false, false, false, false, false, false, false }, // n/a
-  { false,  true, false, false, false, false, false, false }, // white pawn
-  { false,  true, false, false, false, false, false, false }, // white lance
-  { false, false, false, false, false, false, false, false }, // white knight
-  { false,  true, false, false,  true,  true,  true,  true }, // white silver
-  {  true,  true,  true,  true, false,  true, false,  true }, // white gold
-  { false, false, false, false,  true,  true,  true,  true }, // white bishop
-  {  true,  true,  true,  true, false, false, false, false }, // white rook
-  {  true,  true,  true,  true,  true,  true,  true,  true }, // white king
-  {  true,  true,  true,  true, false,  true, false,  true }, // white tokin
-  {  true,  true,  true,  true, false,  true, false,  true }, // white pro-lance
-  {  true,  true,  true,  true, false,  true, false,  true }, // white pro-knight
-  {  true,  true,  true,  true, false,  true, false,  true }, // white pro-silver
-  { false, false, false, false, false, false, false, false }, // n/a
-  {  true,  true,  true,  true,  true,  true,  true,  true }, // white horse
-  {  true,  true,  true,  true,  true,  true,  true,  true }, // white dragon
-  { false, false, false, false, false, false, false, false }, // n/a
+const uint8_t MovableTable[] = {
+  0x80, // black pawn
+  0x80, // black lance
+  0x00, // black knight
+  0x8f, // black silver
+  0xfa, // black gold
+  0x0f, // black bishop
+  0xf0, // black rook
+  0xff, // black king
+  0xfa, // black tokin
+  0xfa, // black pro-lance
+  0xfa, // black pro-knight
+  0xfa, // black pro-silver
+  0x00, // n/a
+  0xff, // black horse
+  0xff, // black dragon
+  0x00, // n/a
+  0x40, // white pawn
+  0x40, // white lance
+  0x00, // white knight
+  0x4f, // white silver
+  0xf5, // white gold
+  0x0f, // white bishop
+  0xf0, // white rook
+  0xff, // white king
+  0xf5, // white tokin
+  0xf5, // white pro-lance
+  0xf5, // white pro-knight
+  0xf5, // white pro-silver
+  0x00, // n/a
+  0xff, // white horse
+  0xff, // white dragon
+  0x00, // n/a
 };
 
-MovableFlags LongMovableTable[] = {
-  //   up,  down,  left, right,   l-u,   l-d,   r-u,   r-d
-  { false, false, false, false, false, false, false, false }, // black pawn
-  {  true, false, false, false, false, false, false, false }, // black lance
-  { false, false, false, false, false, false, false, false }, // black knight
-  { false, false, false, false, false, false, false, false }, // black silver
-  { false, false, false, false, false, false, false, false }, // black gold
-  { false, false, false, false,  true,  true,  true,  true }, // black bishop
-  {  true,  true,  true,  true, false, false, false, false }, // black rook
-  { false, false, false, false, false, false, false, false }, // black king
-  { false, false, false, false, false, false, false, false }, // black tokin
-  { false, false, false, false, false, false, false, false }, // black pro-lance
-  { false, false, false, false, false, false, false, false }, // black pro-knight
-  { false, false, false, false, false, false, false, false }, // black pro-silver
-  { false, false, false, false, false, false, false, false }, // n/a
-  { false, false, false, false,  true,  true,  true,  true }, // black horse
-  {  true,  true,  true,  true, false, false, false, false }, // black dragon
-  { false, false, false, false, false, false, false, false }, // n/a
-  { false, false, false, false, false, false, false, false }, // white pawn
-  { false,  true, false, false, false, false, false, false }, // white lance
-  { false, false, false, false, false, false, false, false }, // white knight
-  { false, false, false, false, false, false, false, false }, // white silver
-  { false, false, false, false, false, false, false, false }, // white gold
-  { false, false, false, false,  true,  true,  true,  true }, // white bishop
-  {  true,  true,  true,  true, false, false, false, false }, // white rook
-  { false, false, false, false, false, false, false, false }, // white king
-  { false, false, false, false, false, false, false, false }, // white tokin
-  { false, false, false, false, false, false, false, false }, // white pro-lance
-  { false, false, false, false, false, false, false, false }, // white pro-knight
-  { false, false, false, false, false, false, false, false }, // white pro-silver
-  { false, false, false, false, false, false, false, false }, // n/a
-  { false, false, false, false,  true,  true,  true,  true }, // white horse
-  {  true,  true,  true,  true, false, false, false, false }, // white dragon
-  { false, false, false, false, false, false, false, false }, // n/a
+const uint8_t LongMovableTable[] = {
+  0x00, // black pawn
+  0x80, // black lance
+  0x00, // black knight
+  0x00, // black silver
+  0x00, // black gold
+  0x0f, // black bishop
+  0xf0, // black rook
+  0x00, // black king
+  0x00, // black tokin
+  0x00, // black pro-lance
+  0x00, // black pro-knight
+  0x00, // black pro-silver
+  0x00, // n/a
+  0x0f, // black horse
+  0xf0, // black dragon
+  0x00, // n/a
+  0x00, // white pawn
+  0x40, // white lance
+  0x00, // white knight
+  0x00, // white silver
+  0x00, // white gold
+  0x0f, // white bishop
+  0xf0, // white rook
+  0x00, // white king
+  0x00, // white tokin
+  0x00, // white pro-lance
+  0x00, // white pro-knight
+  0x00, // white pro-silver
+  0x00, // n/a
+  0x0f, // white horse
+  0xf0, // white dragon
+  0x00, // n/a
 };
 
 template <int PieceType>
@@ -315,18 +313,18 @@ SQ_BISHOP_EACH((king), RightUp, LeftUp, RightDown); \
 
 }
 
-AtacckableTable<Piece::BPawn> AttackableTables::BPawn;
-AtacckableTable<Piece::BLance> AttackableTables::BLance;
-AtacckableTable<Piece::BKnight> AttackableTables::BKnight;
-AtacckableTable<Piece::BSilver> AttackableTables::BSilver;
-AtacckableTable<Piece::BGold> AttackableTables::BGold;
-AtacckableTable<Piece::BBishop> AttackableTables::BBishop;
-AtacckableTable<Piece::WPawn> AttackableTables::WPawn;
-AtacckableTable<Piece::WLance> AttackableTables::WLance;
-AtacckableTable<Piece::WKnight> AttackableTables::WKnight;
-AtacckableTable<Piece::WSilver> AttackableTables::WSilver;
-AtacckableTable<Piece::WGold> AttackableTables::WGold;
-AtacckableTable<Piece::WBishop> AttackableTables::WBishop;
-AtacckableTable<Piece::Horse> AttackableTables::Horse;
+const AtacckableTable<Piece::BPawn> AttackableTables::BPawn;
+const AtacckableTable<Piece::BLance> AttackableTables::BLance;
+const AtacckableTable<Piece::BKnight> AttackableTables::BKnight;
+const AtacckableTable<Piece::BSilver> AttackableTables::BSilver;
+const AtacckableTable<Piece::BGold> AttackableTables::BGold;
+const AtacckableTable<Piece::BBishop> AttackableTables::BBishop;
+const AtacckableTable<Piece::WPawn> AttackableTables::WPawn;
+const AtacckableTable<Piece::WLance> AttackableTables::WLance;
+const AtacckableTable<Piece::WKnight> AttackableTables::WKnight;
+const AtacckableTable<Piece::WSilver> AttackableTables::WSilver;
+const AtacckableTable<Piece::WGold> AttackableTables::WGold;
+const AtacckableTable<Piece::WBishop> AttackableTables::WBishop;
+const AtacckableTable<Piece::Horse> AttackableTables::Horse;
 
 } // namespace sunfish

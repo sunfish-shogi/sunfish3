@@ -143,8 +143,8 @@ public:
   static const int HighBits = 9 * HighFiles;
 
 private:
-  static const int bfirst_[256];
-  static const int blast_[256];
+  static const int8_t bfirst_[256];
+  static const int8_t blast_[256];
   static const Bitboard file_[9];
   static const Bitboard notFile_[9];
 

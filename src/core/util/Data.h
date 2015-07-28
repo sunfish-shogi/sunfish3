@@ -11,18 +11,21 @@
 
 namespace sunfish {
 
-struct MovableFlags {
-  bool up;
-  bool down;
-  bool left;
-  bool right;
-  bool leftUp;
-  bool leftDown;
-  bool rightUp;
-  bool rightDown;
-};
-extern MovableFlags MovableTable[32];
-extern MovableFlags LongMovableTable[32];
+namespace MovableFlag_ {
+  enum Type : uint8_t {
+    UP         = 0x80,
+    DOWN       = 0x40,
+    LEFT       = 0x20,
+    RIGHT      = 0x10,
+    LEFT_UP    = 0x08,
+    LEFT_DOWN  = 0x04,
+    RIGHT_UP   = 0x02,
+    RIGHT_DOWN = 0x01,
+  };
+}
+typedef MovableFlag_::Type MovableFlag;
+extern const uint8_t MovableTable[32];
+extern const uint8_t LongMovableTable[32];
 
 template <int PieceType>
 class AtacckableTable {
@@ -35,19 +38,19 @@ class AttackableTables {
 private:
   AttackableTables();
 
-  static AtacckableTable<Piece::BPawn> BPawn;
-  static AtacckableTable<Piece::BLance> BLance;
-  static AtacckableTable<Piece::BKnight> BKnight;
-  static AtacckableTable<Piece::BSilver> BSilver;
-  static AtacckableTable<Piece::BGold> BGold;
-  static AtacckableTable<Piece::BBishop> BBishop;
-  static AtacckableTable<Piece::WPawn> WPawn;
-  static AtacckableTable<Piece::WLance> WLance;
-  static AtacckableTable<Piece::WKnight> WKnight;
-  static AtacckableTable<Piece::WSilver> WSilver;
-  static AtacckableTable<Piece::WGold> WGold;
-  static AtacckableTable<Piece::WBishop> WBishop;
-  static AtacckableTable<Piece::Horse> Horse;
+  static const AtacckableTable<Piece::BPawn> BPawn;
+  static const AtacckableTable<Piece::BLance> BLance;
+  static const AtacckableTable<Piece::BKnight> BKnight;
+  static const AtacckableTable<Piece::BSilver> BSilver;
+  static const AtacckableTable<Piece::BGold> BGold;
+  static const AtacckableTable<Piece::BBishop> BBishop;
+  static const AtacckableTable<Piece::WPawn> WPawn;
+  static const AtacckableTable<Piece::WLance> WLance;
+  static const AtacckableTable<Piece::WKnight> WKnight;
+  static const AtacckableTable<Piece::WSilver> WSilver;
+  static const AtacckableTable<Piece::WGold> WGold;
+  static const AtacckableTable<Piece::WBishop> WBishop;
+  static const AtacckableTable<Piece::Horse> Horse;
 
 public:
   static const Bitboard& bpawn(const Square& king) {
