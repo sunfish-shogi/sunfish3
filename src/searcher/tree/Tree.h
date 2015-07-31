@@ -35,19 +35,19 @@ enum class RepStatus : int {
 };
 
 using ExpStat = uint32_t;
-static CONSTEXPR uint32_t HashDone    = 0x01;
-static CONSTEXPR uint32_t Killer1Added = 0x02;
-static CONSTEXPR uint32_t Killer2Added = 0x04;
-static CONSTEXPR uint32_t Killer1Done = 0x08;
-static CONSTEXPR uint32_t Killer2Done = 0x10;
-static CONSTEXPR uint32_t Capture1Done = 0x20;
-static CONSTEXPR uint32_t Capture2Done = 0x40;
+static CONSTEXPR_CONST uint32_t HashDone    = 0x01;
+static CONSTEXPR_CONST uint32_t Killer1Added = 0x02;
+static CONSTEXPR_CONST uint32_t Killer2Added = 0x04;
+static CONSTEXPR_CONST uint32_t Killer1Done = 0x08;
+static CONSTEXPR_CONST uint32_t Killer2Done = 0x10;
+static CONSTEXPR_CONST uint32_t Capture1Done = 0x20;
+static CONSTEXPR_CONST uint32_t Capture2Done = 0x40;
 
 class Tree {
 public:
 
-  static CONSTEXPR int StackSize = 64;
-  static CONSTEXPR int InvalidId = -1;
+  static CONSTEXPR_CONST int StackSize = 64;
+  static CONSTEXPR_CONST int InvalidId = -1;
 
 private:
 

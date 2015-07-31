@@ -14,7 +14,7 @@
 namespace {
 
 inline float sigmoid(float x) {
-  CONSTEXPR float g = 4.0;
+  CONSTEXPR_CONST float g = 4.0;
   return 1.0 / (1.0 + std::exp((-g)*x));
 }
 
@@ -44,7 +44,7 @@ void TimeManager::addMove(Move move, Value value) {
 }
 
 bool TimeManager::isEasy(float limit, float elapsed) {
-  CONSTEXPR int easyDepth = 5;
+  CONSTEXPR_CONST int easyDepth = 5;
 
   if (depth_ <= easyDepth) {
     return false;

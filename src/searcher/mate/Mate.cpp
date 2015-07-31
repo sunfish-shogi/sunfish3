@@ -137,12 +137,12 @@ bool Mate::isMate_(const Board& board, const Move& move) {
   const auto& king = black ? board.getWKingSquare() : board.getBKingSquare();
   Bitboard occ = board.getBOccupy() | board.getWOccupy();
   if (!isHand) {
-    occ &= ~Bitboard::mask(move.from());
+    occ &= ~Bitboard(move.from());
   }
   Square to = move.to();
-  occ |= Bitboard::mask(to);
-  Bitboard occNoKing = occ & ~Bitboard::mask(king);
-  Bitboard occNoAttacker = occ & ~Bitboard::mask(to);
+  occ |= Bitboard(to);
+  Bitboard occNoKing = occ & ~Bitboard(king);
+  Bitboard occNoAttacker = occ & ~Bitboard(to);
 
   // 王手している駒を取れるか調べる
   if (isProtected_<!black>(board, to, occ, occNoAttacker, king)) {
@@ -271,7 +271,7 @@ bool Mate::mate1Ply_(const Board& board) {
     );
   }
 
-  bbtGold &= (black ? Bitboard::BPromotable : Bitboard::WPromotable);
+  bbtGold &= (black ? BPromotable : WPromotable);
 
   // silver
   {
@@ -322,7 +322,7 @@ bool Mate::mate1Ply_(const Board& board) {
     // board
     Bitboard bb = black ? board.getBKnight() : board.getWKnight();
     bb &= black ? AttackableTables::bknight(king) : AttackableTables::wknight(king);
-    Bitboard bbt = Bitboard::mask(to1) | Bitboard::mask(to2);
+    Bitboard bbt = Bitboard(to1) | Bitboard(to2);
     bbt &= movable;
     BB_EACH_OPE(from, bb,
       Bitboard bbe = black ? MoveTables::bknight(from) : MoveTables::wknight(from);
@@ -348,7 +348,7 @@ bool Mate::mate1Ply_(const Board& board) {
       } else {
         bb.cheapLeftShift(1);
       }
-      bb &= bbtGold | Bitboard::mask(to);
+      bb &= bbtGold | Bitboard(to);
       bb &= movable;
       BB_EACH_OPE(to, bb,
         if (to.isPromotable<black>()) {
@@ -401,7 +401,7 @@ mate1ply_lance_drop_end:
 
   // 馬、竜が王手できる位置
   Bitboard bbtKing = movable & MoveTables::king(king);
-  bbtKing &= (black ? Bitboard::BPromotable : Bitboard::WPromotable);
+  bbtKing &= (black ? BPromotable : WPromotable);
 
   // bishop
   {
@@ -620,7 +620,7 @@ bool Mate::mate3Ply(Tree& tree) {
   for (const auto& move : moves) {
 #if 1 // ただで取られる手を除外
     Square to = move.to();
-    Bitboard attacker = Bitboard::mask(to);
+    Bitboard attacker = Bitboard(to);
     Bitboard occWithAttacker = occ | attacker;
     Bitboard occNoAttacker = occ & ~attacker;
     if (black) {

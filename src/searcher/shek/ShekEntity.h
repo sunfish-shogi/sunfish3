@@ -88,7 +88,7 @@ public:
 class ShekEntities {
 private:
 
-  static CONSTEXPR uint32_t Size = 4;
+  static CONSTEXPR_CONST uint32_t Size = 4;
 
   uint32_t invalidKey_;
   ShekEntity entities_[Size];

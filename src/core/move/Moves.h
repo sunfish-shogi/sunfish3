@@ -12,11 +12,11 @@
 
 namespace sunfish {
 
-template <int maxSize>
+template <int capacity>
 class TempMoves {
 private:
 
-  Move moves_[maxSize];
+  Move moves_[capacity];
   int size_;
 
 public:

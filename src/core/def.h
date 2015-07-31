@@ -25,13 +25,31 @@
 
 #if defined(WIN32)
 # define NOMINMAX
-# define CONSTEXPR const
+# define CONSTEXPR
+# define CONSTEXPR_CONST const
 # define NOEXCEPT
 # define ALIGNAS(a) __declspec(align(a))
 #else
 # define CONSTEXPR constexpr
+# define CONSTEXPR_CONST constexpr
 # define NOEXCEPT noexcept
 # define ALIGNAS(a) alignas(a)
+#endif
+
+#if !defined(BYTE_ORDER)
+# define BIG_ENDIAN 1
+# define LITTLE_ENDIAN 2
+# if defined(WIN32)
+#  define BYTE_ORDER LITTLE_ENDIAN
+# else
+#  if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#   define BYTE_ORDER BIG_ENDIAN
+#  elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#   define BYTE_ORDER LITTLE_ENDIAN
+#  else
+#   error "byte order is undefined"
+#  endif
+# endif
 #endif
 
 #define ARRAY_SIZE(arr) ((int)(sizeof(arr) / sizeof((arr)[0])))

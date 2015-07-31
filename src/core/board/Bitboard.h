@@ -11,7 +11,7 @@
 #include "../util/StringUtil.h"
 #include <cstdint>
 
-#if SSE2__
+#if __SSE2__
 # define USE_SSE2 1
 #endif
 
@@ -137,94 +137,103 @@ namespace sunfish {
 
 class Bitboard {
 public:
-  static const int LowFiles = 5;
-  static const int HighFiles = 4;
-  static const int LowBits = 9 * LowFiles;
-  static const int HighBits = 9 * HighFiles;
+  static CONSTEXPR_CONST int LowFiles = 5;
+  static CONSTEXPR_CONST int HighFiles = 4;
+  static CONSTEXPR_CONST int LowBits = 9 * LowFiles;
+  static CONSTEXPR_CONST int HighBits = 9 * HighFiles;
 
 private:
-  static const int8_t bfirst_[256];
-  static const int8_t blast_[256];
-  static const Bitboard file_[9];
-  static const Bitboard notFile_[9];
-
   // sse2
-  union {
+  union u128 {
     uint32_t i32[4];
     uint64_t i64[2];
+#if BYTE_ORDER == BIG_ENDIAN
+    CONSTEXPR u128(uint32_t i0, uint32_t i1, uint32_t i2, uint32_t i3) : i32{i0, i1, i2, i3} {}
+    CONSTEXPR u128(uint64_t high, uint64_t low) : i64{high, low} {}
+#elif BYTE_ORDER == LITTLE_ENDIAN
+    CONSTEXPR u128(uint32_t i0, uint32_t i1, uint32_t i2, uint32_t i3) : i32{i3, i2, i1, i0} {}
+    CONSTEXPR u128(uint64_t high, uint64_t low) : i64{low, high} {}
+#endif
 #if USE_SSE2
     __m128i m;
+    CONSTEXPR u128(const __m128i& m) : m(m) {}
 #endif
-  } bb_;
+    u128() {}
+  };
+  u128 bb_;
+#if BYTE_ORDER == BIG_ENDIAN
+# define low_ bb_.i64[1]
+# define high_ bb_.i64[0]
+# define low0_ bb_.i32[3]
+# define low1_ bb_.i32[2]
+# define high0_ bb_.i32[1]
+# define high1_ bb_.i32[0]
+#elif BYTE_ORDER == LITTLE_ENDIAN
 # define low_ bb_.i64[0]
 # define high_ bb_.i64[1]
 # define low0_ bb_.i32[0]
 # define low1_ bb_.i32[1]
 # define high0_ bb_.i32[2]
 # define high1_ bb_.i32[3]
-
-  explicit Bitboard(int sq) {
-    init(sq);
-  }
-  explicit Bitboard(const Square& sq) {
-    init(sq);
-  }
-
-  Bitboard& init(int sq) {
-    if (sq < LowBits) {
-      high_ = 0x00LL;
-      low_ |= 0x01LL << (sq);
-    } else {
-      high_ |= 0x01LL << (sq-LowBits);
-      low_ = 0x00LL;
-    }
-    return *this;
-  }
-  Bitboard& init(const Square& sq) {
-    return init(sq.index());
-  }
+#endif
 
 public:
-
-  static const Bitboard Zero;
-  static const Bitboard BPawnMovable;
-  static const Bitboard& BLanceMovable;
-  static const Bitboard BKnightMovable;
-  static const Bitboard WPawnMovable;
-  static const Bitboard& WLanceMovable;
-  static const Bitboard WKnightMovable;
-  static const Bitboard BPromotable;
-  static const Bitboard WPromotable;
-  static const Bitboard BPromotable2;
-  static const Bitboard WPromotable2;
 
   Bitboard() {
   }
 #if USE_SSE2
-  explicit Bitboard(__m128i m) {
-    bb_.m = m;
+  explicit CONSTEXPR Bitboard(__m128i m) : bb_(m) {
   }
 #endif
-  explicit Bitboard(uint64_t high, uint64_t low) {
-    high_ = high;
-    low_ = low;
+  explicit CONSTEXPR Bitboard(uint64_t high, uint64_t low) : bb_(high, low) {
   }
 
-  static const Bitboard& mask(int sq);
-  static const Bitboard& mask(const Square& sq) {
-    return mask(sq.index());
+  explicit CONSTEXPR Bitboard(int sq) :
+    bb_(sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x00LL         : 0x01LL << (sq-LowBits),
+        sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x01LL << (sq) : 0x00LL) {
   }
-  static const Bitboard& file(int file) {
-    return file_[file-1];
+  explicit CONSTEXPR Bitboard(const Square& sq) :
+    bb_(sq.index() == Square::Invalid ? 0x00LL : isLow(sq) ? 0x00LL                 : 0x01LL << (sq.index()-LowBits),
+        sq.index() == Square::Invalid ? 0x00LL : isLow(sq) ? 0x01LL << (sq.index()) : 0x00LL) {
   }
-  static const Bitboard& notFile(int file) {
-    return notFile_[file-1];
+
+  static CONSTEXPR Bitboard Zero() {
+    return Bitboard(0x00LL, 0x00LL);
+  }
+
+  static Bitboard file(int fileIndex) {
+    static CONSTEXPR_CONST Bitboard t[9] = {
+      Bitboard{ 0x0000000ff8000000, 0x0000000000000000 },
+      Bitboard{ 0x0000000007fc0000, 0x0000000000000000 },
+      Bitboard{ 0x000000000003fe00, 0x0000000000000000 },
+      Bitboard{ 0x00000000000001ff, 0x0000000000000000 },
+      Bitboard{ 0x0000000000000000, 0x00001ff000000000 },
+      Bitboard{ 0x0000000000000000, 0x0000000ff8000000 },
+      Bitboard{ 0x0000000000000000, 0x0000000007fc0000 },
+      Bitboard{ 0x0000000000000000, 0x000000000003fe00 },
+      Bitboard{ 0x0000000000000000, 0x00000000000001ff },
+    };
+    return t[fileIndex-1];
+  }
+  static Bitboard notFile(int fileIndex) {
+    static CONSTEXPR_CONST Bitboard t[9] = {
+      Bitboard{ 0x0000000007ffffff, 0x00001fffffffffff },
+      Bitboard{ 0x0000000ff803ffff, 0x00001fffffffffff },
+      Bitboard{ 0x0000000ffffc01ff, 0x00001fffffffffff },
+      Bitboard{ 0x0000000ffffffe00, 0x00001fffffffffff },
+      Bitboard{ 0x0000000fffffffff, 0x0000000fffffffff },
+      Bitboard{ 0x0000000fffffffff, 0x00001ff007ffffff },
+      Bitboard{ 0x0000000fffffffff, 0x00001ffff803ffff },
+      Bitboard{ 0x0000000fffffffff, 0x00001ffffffc01ff },
+      Bitboard{ 0x0000000fffffffff, 0x00001ffffffffe00 },
+    };
+    return t[fileIndex-1];
   }
 
   // initialization
 #if USE_SSE2
   void init() {
-    bb_.m = Zero.bb_.m;
+    bb_.m = Zero().bb_.m;
   }
   void init(const Bitboard& src) {
     bb_.m = src.bb_.m;
@@ -324,11 +333,11 @@ public:
     return *this;
   }
 #endif
-  const Bitboard& operator<<=(int n){
+  const Bitboard& operator<<=(int n) {
     leftShift(n);
     return *this;
   }
-  const Bitboard& operator>>=(int n){
+  const Bitboard& operator>>=(int n) {
     rightShift(n);
     return *this;
   }
@@ -351,19 +360,19 @@ public:
     return Bitboard(_mm_andnot_si128(bb_.m, bb.bb_.m));
   }
 #else
-  Bitboard operator|(const Bitboard& bb) const {
+  CONSTEXPR Bitboard operator|(const Bitboard& bb) const {
     return Bitboard(high_ | bb.high_, low_ | bb.low_);
   }
-  Bitboard operator&(const Bitboard& bb) const {
+  CONSTEXPR Bitboard operator&(const Bitboard& bb) const {
     return Bitboard(high_ & bb.high_, low_ & bb.low_);
   }
-  Bitboard operator^(const Bitboard& bb) const {
+  CONSTEXPR Bitboard operator^(const Bitboard& bb) const {
     return Bitboard(high_ ^ bb.high_, low_ ^ bb.low_);
   }
-  Bitboard operator~() const{
+  CONSTEXPR Bitboard operator~() const{
     return Bitboard(high_ ^ HIGH_RANGE__, low_ ^ LOW_RANGE__);
   }
-  Bitboard andNot(const Bitboard& bb) const{
+  CONSTEXPR Bitboard andNot(const Bitboard& bb) const{
     return Bitboard((~high_) & bb.high_, (~low_) & bb.low_);
   }
 #endif
@@ -375,10 +384,10 @@ public:
   }
 
   // comparation operators
-  bool operator==(const Bitboard& bb) const {
+  CONSTEXPR bool operator==(const Bitboard& bb) const {
     return (high_ == bb.high_) && (low_ == bb.low_);
   }
-  operator bool() const {
+  CONSTEXPR operator bool() const {
     return (high_ || low_);
   }
 
@@ -396,49 +405,86 @@ public:
   }
 
   Bitboard& set(int sq) {
-    *this |= mask(sq);
+    if (Square(sq).isValid()) {
+      if (isLow(sq)) {
+        low_ |= 0x01LL << (sq);
+      } else {
+        high_ |= 0x01LL << (sq-LowBits);
+      }
+    }
     return *this;
   }
   Bitboard& set(const Square& sq) {
     return set(sq.index());
   }
   Bitboard& unset(int sq) {
-    *this &= ~mask(sq);
+    if (Square(sq).isValid()) {
+      if (isLow(sq)) {
+        low_ &= ~(0x01LL << (sq));
+      } else {
+        high_ &= ~(0x01LL << (sq-LowBits));
+      }
+    }
     return *this;
   }
   Bitboard& unset(const Square& sq) {
     return unset(sq.index());
   }
   bool check(int sq) const {
-    return *this & mask(sq);
+    if (Square(sq).isValid()) {
+      if (isLow(sq)) {
+        return low_ & (0x01LL << (sq));
+      } else {
+        return high_ & (0x01LL << (sq-LowBits));
+      }
+    }
+    return false;
   }
   bool check(const Square& sq) const {
     return check(sq.index());
   }
-  uint64_t low() const {
+
+  CONSTEXPR Bitboard copyWithSet(int sq) const {
+    return Bitboard(
+        high_ | (sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x00LL         : 0x01LL << (sq-LowBits)),
+        low_  | (sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x01LL << (sq) : 0x00LL));
+  }
+  CONSTEXPR Bitboard copyWithSet(const Square& sq) const {
+    return copyWithSet(sq.index());
+  }
+  CONSTEXPR Bitboard copyWithUnset(int sq) const {
+    return Bitboard(
+        high_ & ~(sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x00LL         : 0x01LL << (sq-LowBits)),
+        low_  & ~(sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x01LL << (sq) : 0x00LL));
+  }
+  CONSTEXPR Bitboard copyWithUnset(const Square& sq) const {
+    return copyWithUnset(sq.index());
+  }
+
+  CONSTEXPR uint64_t low() const {
     return low_;
   }
-  uint64_t high() const {
+  CONSTEXPR uint64_t high() const {
     return high_;
   }
 
-  uint32_t low0() const {
+  CONSTEXPR uint32_t low0() const {
     return low0_;
   }
-  uint32_t low1() const {
+  CONSTEXPR uint32_t low1() const {
     return low1_;
   }
-  uint32_t high0() const {
+  CONSTEXPR uint32_t high0() const {
     return high0_;
   }
-  uint32_t high1() const {
+  CONSTEXPR uint32_t high1() const {
     return high1_;
   }
 
-  static bool isLow(const Square& sq) {
+  static CONSTEXPR bool isLow(const Square& sq) {
     return sq.index() < LowBits;
   }
-  static bool isHigh(const Square& sq) {
+  static CONSTEXPR bool isHigh(const Square& sq) {
     return !isLow(sq);
   }
 
@@ -460,6 +506,21 @@ private:
 #elif defined(UNIX)
     return bits == 0x00 ? 0 : __builtin_ffs(bits);
 #else
+    static const int8_t bfirst_[256] = {
+       0, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1,
+       3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 6, 1, 2, 1, 3, 1, 2, 1,
+       4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1,
+       3, 1, 2, 1, 7, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1,
+       5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 6, 1, 2, 1,
+       3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1, 3, 1, 2, 1,
+       4, 1, 2, 1, 3, 1, 2, 1, 8, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1,
+       3, 1, 2, 1, 5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1,
+       6, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1,
+       3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 7, 1, 2, 1, 3, 1, 2, 1,
+       4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1,
+       3, 1, 2, 1, 6, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1,
+       5, 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1,
+    };
     int b;
     if (bits == 0x00) { return 0; }
     if ((b = bfirst_[ bits     &0xff]) != 0) { return b; }
@@ -475,6 +536,21 @@ private:
 #elif defined(UNIX)
     return bits == 0x00 ? 0 : (32 - __builtin_clz(bits));
 #else
+    static const int8_t blast_[256] = {
+       0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
+       5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6,
+       6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+       6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+       7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+       7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+       7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+       8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+       8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+       8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+       8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+       8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+       8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+    };
     int b;
     if (bits == 0x00){ return 0; }
     if ((b = blast_[(bits>>24)     ]) != 0){ return b + 24; }
@@ -581,6 +657,29 @@ public:
 # undef high_
 # undef low_
 #endif
+
+CONSTEXPR_CONST Bitboard BPawnMovable(
+  HIGH_RANGE__ - 0x0000000008040201LL,
+  LOW_RANGE__  - 0x0000001008040201LL
+);
+CONSTEXPR_CONST Bitboard BLanceMovable = BPawnMovable;
+CONSTEXPR_CONST Bitboard BKnightMovable(
+  HIGH_RANGE__ - 0x00000000180c0603LL,
+  LOW_RANGE__  - 0x00000030180c0603LL
+);
+CONSTEXPR_CONST Bitboard WPawnMovable(
+  HIGH_RANGE__ - 0x0000000804020100LL,
+  LOW_RANGE__  - 0x0000100804020100LL
+);
+CONSTEXPR_CONST Bitboard WLanceMovable = WPawnMovable;
+CONSTEXPR_CONST Bitboard WKnightMovable(
+  HIGH_RANGE__ - 0x0000000c06030180LL,
+  LOW_RANGE__  - 0x0000180c06030180LL
+);
+CONSTEXPR_CONST Bitboard BPromotable(0x00000000381c0e07LL, 0x00000070381c0e07LL);
+CONSTEXPR_CONST Bitboard WPromotable(0x0000000e070381c0LL, 0x00001c0e070381c0LL);
+CONSTEXPR_CONST Bitboard BPromotable2(0x00000000180c0603LL, 0x00000030180c0603LL);
+CONSTEXPR_CONST Bitboard WPromotable2(0x0000000c06030180LL, 0x0000180c06030180LL);
 
 } // namespace sunfish
 

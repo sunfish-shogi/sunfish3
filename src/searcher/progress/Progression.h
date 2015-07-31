@@ -18,7 +18,7 @@ private:
 
 public:
 
-  static CONSTEXPR int Scale = 100;
+  static CONSTEXPR_CONST int Scale = 100;
 
   static int evaluate(const Board& board);
 

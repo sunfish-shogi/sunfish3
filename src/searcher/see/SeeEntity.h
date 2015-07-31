@@ -15,16 +15,16 @@ namespace sunfish {
 template <int KeyLength>
 class SeeEntity {
 private:
-  static CONSTEXPR uint64_t ValueTypeShift = KeyLength - 2;
-  static CONSTEXPR uint64_t ValueMask = (1ULL << ValueTypeShift) - 1ULL;
-  static CONSTEXPR uint64_t ValueTypeMask = 3ULL << ValueTypeShift;
-  static CONSTEXPR uint64_t HashMask = ~(ValueMask | ValueTypeMask);
+  static CONSTEXPR_CONST uint64_t ValueTypeShift = KeyLength - 2;
+  static CONSTEXPR_CONST uint64_t ValueMask = (1ULL << ValueTypeShift) - 1ULL;
+  static CONSTEXPR_CONST uint64_t ValueTypeMask = 3ULL << ValueTypeShift;
+  static CONSTEXPR_CONST uint64_t HashMask = ~(ValueMask | ValueTypeMask);
 
-  static CONSTEXPR int ValueInf = 1U << (ValueTypeShift - 1);
+  static CONSTEXPR_CONST int ValueInf = 1U << (ValueTypeShift - 1);
 
-  static CONSTEXPR uint64_t Exact = 0ULL << ValueTypeShift;
-  static CONSTEXPR uint64_t Upper = 1ULL << ValueTypeShift;
-  static CONSTEXPR uint64_t Lower = 2ULL << ValueTypeShift;
+  static CONSTEXPR_CONST uint64_t Exact = 0ULL << ValueTypeShift;
+  static CONSTEXPR_CONST uint64_t Upper = 1ULL << ValueTypeShift;
+  static CONSTEXPR_CONST uint64_t Lower = 2ULL << ValueTypeShift;
 
   static_assert((ValueTypeMask & ValueMask) == 0, "invalid");
   static_assert((ValueTypeMask & HashMask) == 0, "invalid");

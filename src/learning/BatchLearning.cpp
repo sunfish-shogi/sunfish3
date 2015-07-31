@@ -149,7 +149,7 @@ void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
 
   for (auto& move : moves) {
     // 探索
-    CONSTEXPR int reduction = 1;
+    CONSTEXPR_CONST int reduction = 1;
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
     setSearcherDepth(*searchers_[wn], config_.getInt(LCONF_DEPTH) - reduction);

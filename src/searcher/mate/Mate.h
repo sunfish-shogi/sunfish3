@@ -15,8 +15,8 @@ namespace sunfish {
 
 class MateEntity {
 private:
-  static CONSTEXPR uint64_t KeyMask = 0xfffffffffffffffellu;
-  static CONSTEXPR uint64_t MateMask = 0x0000000000000001llu;
+  static CONSTEXPR_CONST uint64_t KeyMask = 0xfffffffffffffffellu;
+  static CONSTEXPR_CONST uint64_t MateMask = 0x0000000000000001llu;
 
   uint64_t data_;
 

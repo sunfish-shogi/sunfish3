@@ -20,21 +20,21 @@ class Board;
 class Move {
 public:
 
-  static CONSTEXPR uint16_t S16_HAND   = 0x8000;
-  static CONSTEXPR uint16_t S16_EMPTY  = 0xffff;
-  static CONSTEXPR uint32_t S16_HAND_SHIFT = 7;
+  static CONSTEXPR_CONST uint16_t S16_HAND   = 0x8000;
+  static CONSTEXPR_CONST uint16_t S16_EMPTY  = 0xffff;
+  static CONSTEXPR_CONST uint32_t S16_HAND_SHIFT = 7;
 
-  static CONSTEXPR uint32_t FROM       = 0x0000007f;
-  static CONSTEXPR uint32_t TO         = 0x00003f80;
-  static CONSTEXPR uint32_t PROMOTE    = 0x00004000;
-  static CONSTEXPR uint32_t PIECE      = 0x00078000;
-  static CONSTEXPR uint32_t CAP        = 0x00f80000;
-  static CONSTEXPR uint32_t UNUSED     = 0xff000000;
-  static CONSTEXPR uint32_t EMPTY      = 0xffffffff;
+  static CONSTEXPR_CONST uint32_t FROM       = 0x0000007f;
+  static CONSTEXPR_CONST uint32_t TO         = 0x00003f80;
+  static CONSTEXPR_CONST uint32_t PROMOTE    = 0x00004000;
+  static CONSTEXPR_CONST uint32_t PIECE      = 0x00078000;
+  static CONSTEXPR_CONST uint32_t CAP        = 0x00f80000;
+  static CONSTEXPR_CONST uint32_t UNUSED     = 0xff000000;
+  static CONSTEXPR_CONST uint32_t EMPTY      = 0xffffffff;
 
-  static CONSTEXPR uint32_t TO_SHIFT = 7;
-  static CONSTEXPR uint32_t PIECE_SHIFT = 15;
-  static CONSTEXPR uint32_t CAP_SHIFT = 19;
+  static CONSTEXPR_CONST uint32_t TO_SHIFT = 7;
+  static CONSTEXPR_CONST uint32_t PIECE_SHIFT = 15;
+  static CONSTEXPR_CONST uint32_t CAP_SHIFT = 19;
 
 private:
 

@@ -155,7 +155,7 @@ void See::generateAttackers(const Board& board, const Move& move) {
     auto from = move.from();
     exceptSq = from;
     exceptDir = to.dir(from);
-    occ &= ~Bitboard::mask(from);
+    occ &= ~Bitboard(from);
   }
 
   bnum_ = 0;

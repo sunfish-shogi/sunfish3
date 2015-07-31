@@ -177,72 +177,72 @@ OneStepMoveTable<type>::OneStepMoveTable() {
     bb.init();
     switch (type) {
     case MoveTableType::BPawn:
-      bb |= Bitboard::mask(sq.safetyUp());
+      bb |= Bitboard(sq.safetyUp());
       break;
     case MoveTableType::BKnight:
-      bb |= Bitboard::mask(sq.safetyUp(2).safetyLeft());
-      bb |= Bitboard::mask(sq.safetyUp(2).safetyRight());
+      bb |= Bitboard(sq.safetyUp(2).safetyLeft());
+      bb |= Bitboard(sq.safetyUp(2).safetyRight());
       break;
     case MoveTableType::BSilver:
-      bb |= Bitboard::mask(sq.safetyUp().safetyLeft());
-      bb |= Bitboard::mask(sq.safetyUp());
-      bb |= Bitboard::mask(sq.safetyUp().safetyRight());
-      bb |= Bitboard::mask(sq.safetyDown().safetyLeft());
-      bb |= Bitboard::mask(sq.safetyDown().safetyRight());
+      bb |= Bitboard(sq.safetyUp().safetyLeft());
+      bb |= Bitboard(sq.safetyUp());
+      bb |= Bitboard(sq.safetyUp().safetyRight());
+      bb |= Bitboard(sq.safetyDown().safetyLeft());
+      bb |= Bitboard(sq.safetyDown().safetyRight());
       break;
     case MoveTableType::BGold:
-      bb |= Bitboard::mask(sq.safetyUp().safetyLeft());
-      bb |= Bitboard::mask(sq.safetyUp());
-      bb |= Bitboard::mask(sq.safetyUp().safetyRight());
-      bb |= Bitboard::mask(sq.safetyLeft());
-      bb |= Bitboard::mask(sq.safetyRight());
-      bb |= Bitboard::mask(sq.safetyDown());
+      bb |= Bitboard(sq.safetyUp().safetyLeft());
+      bb |= Bitboard(sq.safetyUp());
+      bb |= Bitboard(sq.safetyUp().safetyRight());
+      bb |= Bitboard(sq.safetyLeft());
+      bb |= Bitboard(sq.safetyRight());
+      bb |= Bitboard(sq.safetyDown());
       break;
     case MoveTableType::WPawn:
-      bb |= Bitboard::mask(sq.safetyDown());
+      bb |= Bitboard(sq.safetyDown());
       break;
     case MoveTableType::WKnight:
-      bb |= Bitboard::mask(sq.safetyDown(2).safetyLeft());
-      bb |= Bitboard::mask(sq.safetyDown(2).safetyRight());
+      bb |= Bitboard(sq.safetyDown(2).safetyLeft());
+      bb |= Bitboard(sq.safetyDown(2).safetyRight());
       break;
     case MoveTableType::WSilver:
-      bb |= Bitboard::mask(sq.safetyDown().safetyLeft());
-      bb |= Bitboard::mask(sq.safetyDown());
-      bb |= Bitboard::mask(sq.safetyDown().safetyRight());
-      bb |= Bitboard::mask(sq.safetyUp().safetyLeft());
-      bb |= Bitboard::mask(sq.safetyUp().safetyRight());
+      bb |= Bitboard(sq.safetyDown().safetyLeft());
+      bb |= Bitboard(sq.safetyDown());
+      bb |= Bitboard(sq.safetyDown().safetyRight());
+      bb |= Bitboard(sq.safetyUp().safetyLeft());
+      bb |= Bitboard(sq.safetyUp().safetyRight());
       break;
     case MoveTableType::WGold:
-      bb |= Bitboard::mask(sq.safetyDown().safetyLeft());
-      bb |= Bitboard::mask(sq.safetyDown());
-      bb |= Bitboard::mask(sq.safetyDown().safetyRight());
-      bb |= Bitboard::mask(sq.safetyLeft());
-      bb |= Bitboard::mask(sq.safetyRight());
-      bb |= Bitboard::mask(sq.safetyUp());
+      bb |= Bitboard(sq.safetyDown().safetyLeft());
+      bb |= Bitboard(sq.safetyDown());
+      bb |= Bitboard(sq.safetyDown().safetyRight());
+      bb |= Bitboard(sq.safetyLeft());
+      bb |= Bitboard(sq.safetyRight());
+      bb |= Bitboard(sq.safetyUp());
       break;
     case MoveTableType::Bishop:
     case MoveTableType::Dragon:
-      bb |= Bitboard::mask(sq.safetyUp().safetyLeft());
-      bb |= Bitboard::mask(sq.safetyUp().safetyRight());
-      bb |= Bitboard::mask(sq.safetyDown().safetyLeft());
-      bb |= Bitboard::mask(sq.safetyDown().safetyRight());
+      bb |= Bitboard(sq.safetyUp().safetyLeft());
+      bb |= Bitboard(sq.safetyUp().safetyRight());
+      bb |= Bitboard(sq.safetyDown().safetyLeft());
+      bb |= Bitboard(sq.safetyDown().safetyRight());
       break;
     case MoveTableType::Rook:
     case MoveTableType::Horse:
-      bb |= Bitboard::mask(sq.safetyUp());
-      bb |= Bitboard::mask(sq.safetyLeft());
-      bb |= Bitboard::mask(sq.safetyRight());
-      bb |= Bitboard::mask(sq.safetyDown());
+      bb |= Bitboard(sq.safetyUp());
+      bb |= Bitboard(sq.safetyLeft());
+      bb |= Bitboard(sq.safetyRight());
+      bb |= Bitboard(sq.safetyDown());
       break;
     case MoveTableType::King:
-      bb |= Bitboard::mask(sq.safetyUp().safetyLeft());
-      bb |= Bitboard::mask(sq.safetyUp());
-      bb |= Bitboard::mask(sq.safetyUp().safetyRight());
-      bb |= Bitboard::mask(sq.safetyLeft());
-      bb |= Bitboard::mask(sq.safetyRight());
-      bb |= Bitboard::mask(sq.safetyDown().safetyLeft());
-      bb |= Bitboard::mask(sq.safetyDown());
-      bb |= Bitboard::mask(sq.safetyDown().safetyRight());
+      bb |= Bitboard(sq.safetyUp().safetyLeft());
+      bb |= Bitboard(sq.safetyUp());
+      bb |= Bitboard(sq.safetyUp().safetyRight());
+      bb |= Bitboard(sq.safetyLeft());
+      bb |= Bitboard(sq.safetyRight());
+      bb |= Bitboard(sq.safetyDown().safetyLeft());
+      bb |= Bitboard(sq.safetyDown());
+      bb |= Bitboard(sq.safetyDown().safetyRight());
       break;
     default:
       assert(false);

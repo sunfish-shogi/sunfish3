@@ -22,8 +22,8 @@ void MoveGenerator::generateOnBoard_(const Board& board, Moves& moves, const Bit
   const bool tactical = (genType == GenType::Capture);
   const auto movable = ~(black ? board.getBOccupy() : board.getWOccupy());
   const auto occ = board.getBOccupy() | board.getWOccupy();
-  const auto promotable = (black ? Bitboard::BPromotable : Bitboard::WPromotable) & movable;
-  const auto promotable2 = (black ? Bitboard::BPromotable2 : Bitboard::WPromotable2) & movable;
+  const auto promotable = (black ? BPromotable : WPromotable) & movable;
+  const auto promotable2 = (black ? BPromotable2 : WPromotable2) & movable;
   const Bitboard& toMask = (genType == GenType::Capture ? (black ? board.getWOccupy() : board.getBOccupy()) :
                             genType == GenType::NoCapture ? (~(board.getBOccupy() | board.getWOccupy())) :
                             *costumToMask);
@@ -296,7 +296,7 @@ void MoveGenerator::generateDrop_(const Board& board, Moves& moves, const Bitboa
   // pawn
   int pawnCount = black ? board.getBlackHand(Piece::Pawn) : board.getWhiteHand(Piece::Pawn);
   if (pawnCount) {
-    Bitboard bb = toMask & (black ? Bitboard::BPawnMovable : Bitboard::WPawnMovable);
+    Bitboard bb = toMask & (black ? BPawnMovable : WPawnMovable);
     const Bitboard& bbPawn = black ? board.getBPawn() : board.getWPawn();
     if (bbPawn & Bitboard::file(1)) { bb &= Bitboard::notFile(1); }
     if (bbPawn & Bitboard::file(2)) { bb &= Bitboard::notFile(2); }
@@ -315,7 +315,7 @@ void MoveGenerator::generateDrop_(const Board& board, Moves& moves, const Bitboa
   // lance
   int lanceCount = black ? board.getBlackHand(Piece::Lance) : board.getWhiteHand(Piece::Lance);
   if (lanceCount) {
-    Bitboard bb = toMask & (black ? Bitboard::BLanceMovable : Bitboard::WLanceMovable);
+    Bitboard bb = toMask & (black ? BLanceMovable : WLanceMovable);
     BB_EACH_OPE(to, bb,
       moves.add(Move(Piece::Lance, to, false));
     );
@@ -324,7 +324,7 @@ void MoveGenerator::generateDrop_(const Board& board, Moves& moves, const Bitboa
   // knight
   int knightCount = black ? board.getBlackHand(Piece::Knight) : board.getWhiteHand(Piece::Knight);
   if (knightCount) {
-    Bitboard bb = toMask & (black ? Bitboard::BKnightMovable : Bitboard::WKnightMovable);
+    Bitboard bb = toMask & (black ? BKnightMovable : WKnightMovable);
     BB_EACH_OPE(to, bb,
       moves.add(Move(Piece::Knight, to, false));
     );
@@ -713,7 +713,7 @@ void MoveGenerator::generateCheck_(const Board& board, Moves& moves) {
     );
   }
 
-  bbtGold &= (black ? Bitboard::BPromotable : Bitboard::WPromotable);
+  bbtGold &= (black ? BPromotable : WPromotable);
 
   // silver
   {
@@ -764,7 +764,7 @@ void MoveGenerator::generateCheck_(const Board& board, Moves& moves) {
     // board
     Bitboard bb = black ? board.getBKnight() : board.getWKnight();
     bb &= black ? AttackableTables::bknight(king) : AttackableTables::wknight(king);
-    Bitboard bbt = Bitboard::mask(to1) | Bitboard::mask(to2);
+    Bitboard bbt = Bitboard(to1) | Bitboard(to2);
     bbt &= movable;
     BB_EACH_OPE(from, bb,
       Bitboard bbe = black ? MoveTables::bknight(from) : MoveTables::wknight(from);
@@ -803,7 +803,7 @@ void MoveGenerator::generateCheck_(const Board& board, Moves& moves) {
       } else {
         bb.cheapLeftShift(1);
       }
-      bb &= bbtGold | Bitboard::mask(to);
+      bb &= bbtGold | Bitboard(to);
       bb &= movable;
       BB_EACH_OPE(to, bb,
         if (to.isPromotable<black>()) {
@@ -863,7 +863,7 @@ gencheck_lance_drop_end:
 
   // 馬、竜が王手できる位置
   Bitboard bbtKing = movable & MoveTables::king(king);
-  bbtKing &= (black ? Bitboard::BPromotable : Bitboard::WPromotable);
+  bbtKing &= (black ? BPromotable : WPromotable);
 
   // bishop
   {

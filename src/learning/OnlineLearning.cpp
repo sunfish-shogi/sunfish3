@@ -65,7 +65,7 @@ inline float error(float x) {
 }
 
 inline float norm(float x) {
-  CONSTEXPR float n = NORM * ValuePair::PositionalScale;
+  CONSTEXPR_CONST float n = NORM * ValuePair::PositionalScale;
   if (x > 0.0f) {
     return -n;
   } else if (x < 0.0f) {
@@ -135,7 +135,7 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
     }
 
     // 探索
-    CONSTEXPR int reduction = 1;
+    CONSTEXPR_CONST int reduction = 1;
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
     setSearcherDepth(*searchers_[wn], config_.getInt(LCONF_DEPTH) - reduction);

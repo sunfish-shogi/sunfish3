@@ -64,8 +64,8 @@ enum class TTStatus : int {
 
 class TTE {
 public:
-  static CONSTEXPR uint32_t InvalidAge = 0x00;
-  static CONSTEXPR uint32_t AgeMax = 0x01 << TT_AGE_WIDTH;
+  static CONSTEXPR_CONST uint32_t InvalidAge = 0x00;
+  static CONSTEXPR_CONST uint32_t AgeMax = 0x01 << TT_AGE_WIDTH;
 
   enum ValueType : int {
     Exact = 0,
@@ -180,7 +180,7 @@ public:
 class TTEs {
 private:
 
-  static CONSTEXPR uint32_t Size = 4;
+  static CONSTEXPR_CONST uint32_t Size = 4;
   TTE slots_[Size];
   volatile uint32_t lastAccess_;
 

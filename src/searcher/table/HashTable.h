@@ -41,7 +41,7 @@ protected:
 
 public:
 
-  static CONSTEXPR uint32_t DefaultBits = 18;
+  static CONSTEXPR_CONST uint32_t DefaultBits = 18;
 
   HashTable(uint32_t bits = DefaultBits) : table_(nullptr), size_(0) {
     init(bits);

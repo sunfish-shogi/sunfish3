@@ -6,6 +6,7 @@
 #ifndef SUNFISH_PIECE__
 #define SUNFISH_PIECE__
 
+#include "../def.h"
 #include <cstdint>
 
 namespace sunfish {
@@ -76,82 +77,96 @@ public:
   static const uint8_t KindBegin = Pawn;
   static const uint8_t KindEnd = Dragon + 1;
 
-  static const char* names[0x21];
-  static const char* namesCsa[0x21];
-  static const char* namesCsaKindOnly[0x21];
-
 private:
 
   uint8_t index_;
 
 public:
 
-  Piece() : index_(Empty) {
+  CONSTEXPR Piece() : index_(Empty) {
   }
 
-  Piece(uint8_t index) : index_(index) {
+  CONSTEXPR Piece(uint8_t index) : index_(index) {
   }
 
-  operator uint8_t() const {
+  CONSTEXPR operator uint8_t() const {
     return index_;
   }
 
-  bool exists() const {
+  CONSTEXPR bool exists() const {
     return index_ != Empty;
   }
-  bool isEmpty() const {
+  CONSTEXPR bool isEmpty() const {
     return index_ == Empty;
   }
 
-  Piece hand() const {
+  CONSTEXPR Piece hand() const {
     return Piece(index_ & HandMask);
   }
-  Piece promote() const {
+  CONSTEXPR Piece promote() const {
     return Piece(index_ | Promotion);
   }
-  Piece unpromote() const {
+  CONSTEXPR Piece unpromote() const {
     return Piece(index_ & ~Promotion);
   }
-  Piece kindOnly() const {
+  CONSTEXPR Piece kindOnly() const {
     return Piece(index_ & KindMask);
   }
-  Piece black() const {
+  CONSTEXPR Piece black() const {
     return Piece(index_ & ~White);
   }
-  Piece white() const {
+  CONSTEXPR Piece white() const {
     return Piece(index_ | White);
   }
 
-  bool isUnpromoted() const {
+  CONSTEXPR bool isUnpromoted() const {
     return !isPromoted();
   }
-  bool isPromoted() const {
+  CONSTEXPR bool isPromoted() const {
     return index_ & Promotion;
   }
-  bool isBlack() const {
+  CONSTEXPR bool isBlack() const {
     return !(index_ & (Empty | White));
   }
-  bool isWhite() const {
+  CONSTEXPR bool isWhite() const {
     return index_ & White;
   }
 
-  Piece next() const {
-    uint8_t nextIndex = index_ + 1U;
-    if ((nextIndex == (Promotion | BGold)) ||
-        (nextIndex == (Promotion | WGold)) ||
-        (nextIndex == (Promotion | BKing))) {
-      nextIndex++;
-    }
-    return Piece(nextIndex);
+  CONSTEXPR Piece next() const {
+    return ((index_ == (Promotion | BGold) - 1U) ||
+            (index_ == (Promotion | WGold) - 1U) ||
+            (index_ == (Promotion | BKing) - 1U)) ?
+           index_ + 2U : index_ + 1U;
   }
-  Piece nextUnsafe() const {
+  CONSTEXPR Piece nextUnsafe() const {
     return Piece(index_ + 1U);
   }
 
   const char* toString() const {
+    static const char* names[] = {
+      "fu", "ky", "ke", "gi", "ki", "ka", "hi", "ou",
+      "to", "ny", "nk", "ng", "  ", "um", "ry", "  ",
+      "Fu", "Ky", "Ke", "Gi", "Ki", "Ka", "Hi", "Ou",
+      "To", "Ny", "Nk", "Ng", "  ", "Um", "Ry", "  ",
+      "  "
+    };
     return names[index_];
   }
   const char* toStringCsa(bool kind_only = false) const {
+    static const char* namesCsa[] = {
+      "+FU", "+KY", "+KE", "+GI", "+KI", "+KA", "+HI", "+OU",
+      "+TO", "+NY", "+NK", "+NG", "   ", "+UM", "+RY", "   ",
+      "-FU", "-KY", "-KE", "-GI", "-KI", "-KA", "-HI", "-OU",
+      "-TO", "-NY", "-NK", "-NG", "   ", "-UM", "-RY", "   ",
+      "   "
+    };
+    static const char* namesCsaKindOnly[] = {
+      "FU", "KY", "KE", "GI", "KI", "KA", "HI", "OU",
+      "TO", "NY", "NK", "NG", "  ", "UM", "RY", "  ",
+      "FU", "KY", "KE", "GI", "KI", "KA", "HI", "OU",
+      "TO", "NY", "NK", "NG", "  ", "UM", "RY", "  ",
+      "  "
+    };
     return kind_only ? namesCsaKindOnly[kindOnly().index_] : namesCsa[index_];
   }
   static Piece parse(const char* str);

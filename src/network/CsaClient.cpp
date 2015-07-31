@@ -386,7 +386,7 @@ void CsaClient::buildSearchConfig(Searcher::Config& searchConfig) {
     float usableTime = myTime.usable();
 
     // マージン
-    CONSTEXPR float marginTime = 1.0f;
+    CONSTEXPR_CONST float marginTime = 1.0f;
 
     // 最大思考時間を確定
     usableTime = std::min(usableTime - marginTime, std::max(usableTime / 5.0f, myTime.getReadoff() * 3.0f));

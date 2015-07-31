@@ -25,11 +25,11 @@ private:
 
 public:
 
-  static CONSTEXPR int32_t Zero = 0;
-  static CONSTEXPR int32_t Inf = 20000;
-  static CONSTEXPR int32_t Mate = 15000;
-  static CONSTEXPR int32_t PieceInf = 5000;
-  static CONSTEXPR int32_t PieceInfEx = 10000;
+  static CONSTEXPR_CONST int32_t Zero = 0;
+  static CONSTEXPR_CONST int32_t Inf = 20000;
+  static CONSTEXPR_CONST int32_t Mate = 15000;
+  static CONSTEXPR_CONST int32_t PieceInf = 5000;
+  static CONSTEXPR_CONST int32_t PieceInfEx = 10000;
 
   Value() {
   }

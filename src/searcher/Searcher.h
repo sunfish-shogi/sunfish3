@@ -62,7 +62,7 @@ public:
 class Searcher {
 public:
 
-  static CONSTEXPR int Depth1Ply = 8;
+  static CONSTEXPR_CONST int Depth1Ply = 8;
 
   /** 探索設定 */
   struct Config {

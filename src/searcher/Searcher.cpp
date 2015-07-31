@@ -110,17 +110,17 @@ PruningCounter mate_hist_n;
 namespace search_param {
 
 #if ENABLE_SMOOTH_FUT
-  CONSTEXPR int FUT_DEPTH = Searcher::Depth1Ply * 9;
+  CONSTEXPR_CONST int FUT_DEPTH = Searcher::Depth1Ply * 9;
 #else
-  CONSTEXPR int FUT_DEPTH = Searcher::Depth1Ply * 3;
+  CONSTEXPR_CONST int FUT_DEPTH = Searcher::Depth1Ply * 3;
 #endif
-  CONSTEXPR int EXT_CHECK = Searcher::Depth1Ply;
-  CONSTEXPR int EXT_ONEREP = Searcher::Depth1Ply * 1 / 2;
-  CONSTEXPR int EXT_RECAP = Searcher::Depth1Ply * 1 / 4;
-  CONSTEXPR int EXT_RECAP2 = Searcher::Depth1Ply * 1 / 2;
-  CONSTEXPR int REC_THRESHOLD = Searcher::Depth1Ply * 3;
-  CONSTEXPR int RAZOR_DEPTH = Searcher::Depth1Ply * 4;
-  CONSTEXPR int QUIES_RELIEVE_PLY = 7;
+  CONSTEXPR_CONST int EXT_CHECK = Searcher::Depth1Ply;
+  CONSTEXPR_CONST int EXT_ONEREP = Searcher::Depth1Ply * 1 / 2;
+  CONSTEXPR_CONST int EXT_RECAP = Searcher::Depth1Ply * 1 / 4;
+  CONSTEXPR_CONST int EXT_RECAP2 = Searcher::Depth1Ply * 1 / 2;
+  CONSTEXPR_CONST int REC_THRESHOLD = Searcher::Depth1Ply * 3;
+  CONSTEXPR_CONST int RAZOR_DEPTH = Searcher::Depth1Ply * 4;
+  CONSTEXPR_CONST int QUIES_RELIEVE_PLY = 7;
 
 }
 
@@ -158,7 +158,7 @@ namespace search_func {
   }
 
   inline uint64_t excludedHash(const Move& move) {
-    CONSTEXPR uint64_t key = 0xc7ebffd8801628a7llu;
+    CONSTEXPR_CONST uint64_t key = 0xc7ebffd8801628a7llu;
     uint32_t m = Move::serialize(move);
     return key ^ m;
   }
@@ -799,7 +799,7 @@ void Searcher::sortHistory(Tree& tree) {
  */
 void Searcher::updateHistory(Tree& tree, int depth, const Move& move) {
 
-  CONSTEXPR int HistPerDepth = 8;
+  CONSTEXPR_CONST int HistPerDepth = 8;
   int value = std::max(depth * HistPerDepth / Depth1Ply, 1);
   const auto& moves = tree.getCurrentNode().histMoves;
   for (auto ite = moves.begin(); ite != moves.end(); ite++) {
@@ -2340,7 +2340,7 @@ bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta,
   baseVal = Value::max(baseVal, baseAlpha);
   baseVal = Value::min(baseVal, baseBeta);
 
-  CONSTEXPR int wmax = 3;
+  CONSTEXPR_CONST int wmax = 3;
   const Value alphas[wmax] = { baseVal-198, baseVal-793, -Value::Mate };
   const Value betas[wmax] = { baseVal+198, baseVal+793, Value::Mate };
 

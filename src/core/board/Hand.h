@@ -7,6 +7,7 @@
 #define SUNFISH_HAND__
 
 #include "../base/Piece.h"
+#include "../def.h"
 #include <cstdint>
 #include <cstring>
 #include <cassert>
@@ -20,8 +21,7 @@ private:
 
 public:
 
-  Hand() {
-    init();
+  CONSTEXPR Hand() : counts_{} {
   }
 
   void init() {
@@ -50,10 +50,10 @@ public:
     return --counts_[piece];
   }
 
-  int get(const Piece& piece) const {
+  CONSTEXPR int get(const Piece& piece) const {
     return counts_[piece.kindOnly().unpromote()];
   }
-  int getUnsafe(const Piece& piece) const {
+  CONSTEXPR int getUnsafe(const Piece& piece) const {
     return counts_[piece];
   }
   void set(const Piece& piece, int count) {

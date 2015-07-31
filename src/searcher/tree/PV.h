@@ -17,7 +17,7 @@ namespace sunfish {
 
   class PV {
   public:
-    static CONSTEXPR int MaxDepth = 64;
+    static CONSTEXPR_CONST int MaxDepth = 64;
 
     struct PVMove {
       Move move;

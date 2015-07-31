@@ -10,20 +10,18 @@
 #include "Hand.h"
 #include "Zobrist.h"
 #include "../move/Move.h"
+#include "../def.h"
 
 namespace sunfish {
 
 struct CompactBoard {
   enum {
     SquareMask = 0x007f,
-    PieceMask    = 0x0f80,
-
-    Black        = 0x4000,
-    End          = 0x8000,
-
-    PieceShift   = 7,
-
-    Hand         = 0x007f,
+    PieceMask  = 0x0f80,
+    Black      = 0x4000,
+    End        = 0x8000,
+    PieceShift = 7,
+    Hand       = 0x007f,
   };
 
   uint16_t buf[41];
@@ -116,9 +114,7 @@ public:
   void init(const CompactBoard& compactBoard);
   void refreshHash();
 
-  /**
-   * 冗長性の低い表現に変換します。
-   */
+  /** 冗長性の低い表現に変換します。 */
   CompactBoard getCompactBoard() const;
 
   /** 局面のハッシュ値を返します。 */
