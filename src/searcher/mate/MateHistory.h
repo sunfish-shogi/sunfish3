@@ -38,18 +38,18 @@ public:
     uint64_t v = mate ? 0x100000001llu : 0x100000000llu;
     Piece piece = move.piece();
     Square to = move.to();
-    uint64_t h = hist_[king.index()][piece][to.index()];
+    uint64_t h = hist_[king.index()][piece.index()][to.index()];
     h += v;
     if (h >= Max) {
       h = (h >> 1) & ~0x80000000ull;
     }
-    hist_[king.index()][piece][to.index()] = h;
+    hist_[king.index()][piece.index()][to.index()] = h;
   }
 
   uint64_t getData(const Square& king, const Move& move) const {
     Piece piece = move.piece();
     Square to = move.to();
-    uint64_t data = hist_[king.index()][piece][to.index()];
+    uint64_t data = hist_[king.index()][piece.index()][to.index()];
     return data;
   }
 

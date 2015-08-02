@@ -40,20 +40,20 @@ public:
   }
 
   void update(const Move& move, Value gain) {
-    assert(move.piece() < Piece::Num);
+    assert(move.piece().index() < Piece::Num);
     assert(move.to().index() >= 0);
     assert(move.to().index() < Square::N);
     assert(gain.int32() < (1<<16));
     assert(gain.int32() > -(1<<16));
-    uint16_t& ref = gains_[move.piece()][move.to().index()];
+    uint16_t& ref = gains_[move.piece().index()][move.to().index()];
     ref = std::max(ref - 1, gain.int32());
   }
 
   Value get(const Move& move) {
-    assert(move.piece() < Piece::Num);
+    assert(move.piece().index() < Piece::Num);
     assert(move.to().index() >= 0);
     assert(move.to().index() < Square::N);
-    Value g = gains_[move.piece()][move.to().index()];
+    Value g = gains_[move.piece().index()][move.to().index()];
     return g;
   }
 

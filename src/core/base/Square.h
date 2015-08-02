@@ -449,4 +449,17 @@ public:
 // scanning right-down
 #define SQUARE_EACH_RD(sq) for (sunfish::Square (sq) = P91; (sq) != sunfish::Square::End; (sq) = (sq).nextRightDown())
 
+inline bool operator==(uint8_t index, const sunfish::Square& square) {
+  return index == square.index();
+}
+
+inline bool operator!=(uint8_t index, const sunfish::Square& square) {
+  return index != square.index();
+}
+
+inline std::ostream& operator<<(std::ostream& os, const sunfish::Square& square) {
+  os << square.index();
+  return os;
+}
+
 #endif //SUNFISH_SQUARE__

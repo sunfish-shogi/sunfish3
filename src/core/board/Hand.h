@@ -34,10 +34,10 @@ public:
   int incUnsafe(const Piece& piece) {
     assert(!piece.isPromoted());
     assert(!piece.isWhite());
-    assert(counts_[piece] < 18);
-    assert(piece == Piece::Pawn || counts_[piece.unpromote()] < 4);
-    assert(piece <= Piece::Gold || counts_[piece.unpromote()] < 2);
-    return ++counts_[piece];
+    assert(counts_[piece.index()] < 18);
+    assert(piece.index() == Piece::Pawn || counts_[piece.unpromote().index()] < 4);
+    assert(piece.index() <= Piece::Gold || counts_[piece.unpromote().index()] < 2);
+    return ++counts_[piece.index()];
   }
 
   int dec(const Piece& piece) {
@@ -46,18 +46,18 @@ public:
   int decUnsafe(const Piece& piece) {
     assert(!piece.isPromoted());
     assert(!piece.isWhite());
-    assert(counts_[piece] > 0);
-    return --counts_[piece];
+    assert(counts_[piece.index()] > 0);
+    return --counts_[piece.index()];
   }
 
   CONSTEXPR int get(const Piece& piece) const {
-    return counts_[piece.kindOnly().unpromote()];
+    return counts_[piece.kindOnly().unpromote().index()];
   }
   CONSTEXPR int getUnsafe(const Piece& piece) const {
-    return counts_[piece];
+    return counts_[piece.index()];
   }
   void set(const Piece& piece, int count) {
-    counts_[piece.kindOnly().unpromote()] = (int8_t)count;
+    counts_[piece.kindOnly().unpromote().index()] = (int8_t)count;
   }
 };
 

@@ -158,7 +158,7 @@ bool Mate::isMate_(const Board& board, const Move& move) {
     piece = piece.promote();
   }
 
-  switch (piece) {
+  switch (piece.index()) {
   case Piece::Pawn: // fall-through
   case Piece::Knight: {
     // do nothing
@@ -579,7 +579,7 @@ bool Mate::evade(Tree& tree, const Move& check) {
       tree.setSortValue(ite, 4);
     } else if (piece == Piece::Bishop) {
       tree.setSortValue(ite, 3);
-    } else if (piece.hand()) {
+    } else if (move.isHand()) {
       tree.setSortValue(ite, 2);
     } else if (piece != Piece::King) {
       tree.setSortValue(ite, 1);

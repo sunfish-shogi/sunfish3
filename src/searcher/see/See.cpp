@@ -26,10 +26,10 @@ void See::generateAttacker(const Board& board, const Square& to, const Bitboard&
                    to.rightDown());
       auto piece = board.getBoardPiece(from);
       if (!piece.isEmpty()) {
-        if (dir == Direction::LeftUp ? (MovableTable[piece] & MovableFlag::RIGHT_DOWN) :
-             dir == Direction::LeftDown ? (MovableTable[piece] & MovableFlag::RIGHT_UP) :
-             dir == Direction::RightUp ? (MovableTable[piece] & MovableFlag::LEFT_DOWN) :
-             (MovableTable[piece] & MovableFlag::LEFT_UP)) {
+        if (dir == Direction::LeftUp   ? (MovableTable[piece.index()] & MovableFlag::RIGHT_DOWN) :
+            dir == Direction::LeftDown ? (MovableTable[piece.index()] & MovableFlag::RIGHT_UP) :
+            dir == Direction::RightUp  ? (MovableTable[piece.index()] & MovableFlag::LEFT_DOWN) :
+                                         (MovableTable[piece.index()] & MovableFlag::LEFT_UP)) {
           if (piece.isBlack()) {
             b_[bnum_++] = { dependOn, material::pieceExchange(piece), false };
             if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &b_[bnum_-1]); }
@@ -53,10 +53,10 @@ void See::generateAttacker(const Board& board, const Square& to, const Bitboard&
       auto from = bb.pickFirst();
       if (from != Square::Invalid) {
         auto piece = board.getBoardPiece(from);
-        if (dir == Direction::LeftUp ? (LongMovableTable[piece] & MovableFlag::RIGHT_DOWN) :
-             dir == Direction::LeftDown ? (LongMovableTable[piece] & MovableFlag::RIGHT_UP) :
-             dir == Direction::RightUp ? (LongMovableTable[piece] & MovableFlag::LEFT_DOWN) :
-             (LongMovableTable[piece] & MovableFlag::LEFT_UP)) {
+        if (dir == Direction::LeftUp   ? (LongMovableTable[piece.index()] & MovableFlag::RIGHT_DOWN) :
+            dir == Direction::LeftDown ? (LongMovableTable[piece.index()] & MovableFlag::RIGHT_UP) :
+            dir == Direction::RightUp  ? (LongMovableTable[piece.index()] & MovableFlag::LEFT_DOWN) :
+                                         (LongMovableTable[piece.index()] & MovableFlag::LEFT_UP)) {
           if (piece.isBlack()) {
             b_[bnum_++] = { dependOn, material::pieceExchange(piece), false };
             if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &b_[bnum_-1]); }
@@ -81,10 +81,10 @@ void See::generateAttacker(const Board& board, const Square& to, const Bitboard&
                    to.right());
       auto piece = board.getBoardPiece(from);
       if (!piece.isEmpty()) {
-        if (dir == Direction::Up ? (MovableTable[piece] & MovableFlag::DOWN) :
-             dir == Direction::Down ? (MovableTable[piece] & MovableFlag::UP) :
-             dir == Direction::Left ? (MovableTable[piece] & MovableFlag::RIGHT) :
-             (MovableTable[piece] & MovableFlag::LEFT)) {
+        if (dir == Direction::Up   ? (MovableTable[piece.index()] & MovableFlag::DOWN) :
+            dir == Direction::Down ? (MovableTable[piece.index()] & MovableFlag::UP) :
+            dir == Direction::Left ? (MovableTable[piece.index()] & MovableFlag::RIGHT) :
+                                     (MovableTable[piece.index()] & MovableFlag::LEFT)) {
           if (piece.isBlack()) {
             b_[bnum_++] = { dependOn, material::pieceExchange(piece), false };
             if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &b_[bnum_-1]); }
@@ -108,10 +108,10 @@ void See::generateAttacker(const Board& board, const Square& to, const Bitboard&
       auto from = bb.pickFirst();
       if (from != Square::Invalid) {
         auto piece = board.getBoardPiece(from);
-        if (dir == Direction::Up ? (LongMovableTable[piece] & MovableFlag::DOWN) :
-             dir == Direction::Down ? (LongMovableTable[piece] & MovableFlag::UP) :
-             dir == Direction::Left ? (LongMovableTable[piece] & MovableFlag::RIGHT) :
-             (LongMovableTable[piece] & MovableFlag::LEFT)) {
+        if (dir == Direction::Up   ? (LongMovableTable[piece.index()] & MovableFlag::DOWN) :
+            dir == Direction::Down ? (LongMovableTable[piece.index()] & MovableFlag::UP) :
+            dir == Direction::Left ? (LongMovableTable[piece.index()] & MovableFlag::RIGHT) :
+                                     (LongMovableTable[piece.index()] & MovableFlag::LEFT)) {
           if (piece.isBlack()) {
             b_[bnum_++] = { dependOn, material::pieceExchange(piece), false };
             if (!shallow && !shortOnly) { generateAttackerR<false, dir>(board, from, occ, &b_[bnum_-1]); }

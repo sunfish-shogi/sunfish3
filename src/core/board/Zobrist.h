@@ -38,7 +38,7 @@ private:
 public:
 
   static uint64_t board(const Square& sq, const Piece& piece) {
-    return Board[sq.index()][piece];
+    return Board[sq.index()][piece.index()];
   }
 
 #define FUNC_HAND__(piece) \
@@ -60,7 +60,7 @@ public:
 #undef FUNC_HAND__
 
   static uint64_t handBlack(const Piece piece, int num) {
-    switch (piece) {
+    switch (piece.index()) {
     case Piece::Pawn: return HandBPawn[num];
     case Piece::Lance: return HandBLance[num];
     case Piece::Knight: return HandBKnight[num];
@@ -74,7 +74,7 @@ public:
   }
 
   static uint64_t handWhite(const Piece piece, int num) {
-    switch (piece) {
+    switch (piece.index()) {
     case Piece::Pawn: return HandWPawn[num];
     case Piece::Lance: return HandWLance[num];
     case Piece::Knight: return HandWKnight[num];

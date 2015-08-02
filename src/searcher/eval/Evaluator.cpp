@@ -264,7 +264,7 @@ int convertKkpIndex4FvBin(int index) {
  * 盤上の駒の種類から KKP のインデクスを取得します。
  */
 int kkpBoardIndex(Piece piece, const Square& sq) {
-  switch (piece) {
+  switch (piece.index()) {
     case Piece::BPawn:      case Piece::WPawn:      return KKP_BPAWN + SQ_INDEX_BPAWN(sq);
     case Piece::BLance:     case Piece::WLance:     return KKP_BLANCE + SQ_INDEX_BPAWN(sq);
     case Piece::BKnight:    case Piece::WKnight:    return KKP_BKNIGHT + SQ_INDEX_BKNIGHT(sq);
@@ -289,7 +289,7 @@ int kkpBoardIndex(Piece piece, const Square& sq) {
  * 持ち駒の種類から KKP のインデクスを取得します。
  */
 int kkpHandIndex(Piece piece) {
-  switch (piece) {
+  switch (piece.index()) {
     case Piece::BPawn:      case Piece::WPawn:      return KKP_HPAWN;
     case Piece::BLance:     case Piece::WLance:     return KKP_HLANCE;
     case Piece::BKnight:    case Piece::WKnight:    return KKP_HKNIGHT;
@@ -315,7 +315,7 @@ int kkpHandIndex(Piece piece) {
  */
 template <bool blackPiece>
 int kppBoardIndex(Piece piece, const Square& sq) {
-  switch (piece) {
+  switch (piece.index()) {
     case Piece::BPawn:      case Piece::WPawn:      return (blackPiece ? KPP_BBPAWN   : KPP_BWPAWN) + (blackPiece ? SQ_INDEX_BPAWN(sq) : SQ_INDEX_WPAWN(sq));
     case Piece::BLance:     case Piece::WLance:     return (blackPiece ? KPP_BBLANCE  : KPP_BWLANCE) + (blackPiece ? SQ_INDEX_BPAWN(sq) : SQ_INDEX_WPAWN(sq));
     case Piece::BKnight:    case Piece::WKnight:    return (blackPiece ? KPP_BBKNIGHT : KPP_BWKNIGHT) + (blackPiece ? SQ_INDEX_BKNIGHT(sq) : SQ_INDEX_WKNIGHT(sq));
@@ -340,7 +340,7 @@ int kppBoardIndex(Piece piece, const Square& sq) {
  */
 template <bool blackPiece>
 int kppHandIndex(Piece piece) {
-  switch (piece) {
+  switch (piece.index()) {
     case Piece::BPawn:      case Piece::WPawn:      return blackPiece ? KPP_HBPAWN   : KPP_HWPAWN;
     case Piece::BLance:     case Piece::WLance:     return blackPiece ? KPP_HBLANCE  : KPP_HWLANCE;
     case Piece::BKnight:    case Piece::WKnight:    return blackPiece ? KPP_HBKNIGHT : KPP_HWKNIGHT;
@@ -777,15 +777,15 @@ ValuePair Evaluator::evaluateDiff_(const Board& board, const ValuePair& prevValu
       int kkpIndex = kkpHandIndex(piece) + num;
       positional += t_->kkp[bking.index()][wking.index()][kkpIndex];
       positional -= t_->kkp[bking.index()][wking.index()][kkpIndex+1];
-      kppIndexFromB = kppHandIndex<true>(piece) + num;
-      kppIndexFromW = kppHandIndex<false>(piece) + num;
+      kppIndexFromB = kppHandIndex<true>(piece.index()) + num;
+      kppIndexFromW = kppHandIndex<false>(piece.index()) + num;
     } else {
       int num = board.getWhiteHand(piece);
       int kkpIndex = kkpHandIndex(piece) + num;
       positional -= t_->kkp[wkingR.index()][bkingR.index()][kkpIndex];
       positional += t_->kkp[wkingR.index()][bkingR.index()][kkpIndex+1];
-      kppIndexFromB = kppHandIndex<false>(piece) + num;
-      kppIndexFromW = kppHandIndex<true>(piece) + num;
+      kppIndexFromB = kppHandIndex<false>(piece.index()) + num;
+      kppIndexFromW = kppHandIndex<true>(piece.index()) + num;
     }
   } else {
     // 盤上の駒を動かした場合

@@ -39,7 +39,7 @@ Board::Board(const CompactBoard& cheapBoard) {
 }
 
 const Bitboard& Board::getBB_(const Piece& piece) const {
-  switch(piece) {
+  switch(piece.index()) {
   case Piece::BPawn     : return bbBPawn_;
   case Piece::BLance    : return bbBLance_;
   case Piece::BKnight   : return bbBKnight_;
@@ -253,7 +253,7 @@ CompactBoard Board::getCompactBoard() const {
 
   HAND_EACH(piece) {
     int num = blackHand_.get(piece);
-    uint16_t c = piece.black() << CompactBoard::PieceShift;
+    uint16_t c = static_cast<uint16_t>(piece.black().index()) << CompactBoard::PieceShift;
     for (int n = 0; n < num; n++) {
       cb.buf[index++] = c | CompactBoard::Hand;
     }
@@ -261,7 +261,7 @@ CompactBoard Board::getCompactBoard() const {
 
   HAND_EACH(piece) {
     int num = whiteHand_.get(piece);
-    uint16_t c = piece.white() << CompactBoard::PieceShift;
+    uint16_t c = static_cast<uint16_t>(piece.white().index()) << CompactBoard::PieceShift;
     for (int n = 0; n < num; n++) {
       cb.buf[index++] = c | CompactBoard::Hand;
     }
@@ -400,7 +400,7 @@ void Board::setBoardPiece(const Square& sq, const Piece& piece) {
   BB_OPE_EACH;
 #undef BB_OPE
   if (piece.exists()) {
-    switch (piece) {
+    switch (piece.index()) {
     case Piece::BPawn     : bbBPawn_.set(sq); break;
     case Piece::BLance    : bbBLance_.set(sq); break;
     case Piece::BKnight   : bbBKnight_.set(sq); break;
@@ -500,7 +500,7 @@ bool Board::isDirectCheck_(const Move& move) const {
 
   auto piece = move.promote() ? move.piece().promote() : move.piece();
 
-  switch(piece) {
+  switch(piece.index()) {
   case Piece::Pawn: {
     if ((black && dir == DirectionEx::Up) || (!black && dir == DirectionEx::Down)) {
       return SHORT_ATTACK_CHECK;
@@ -871,7 +871,7 @@ bool Board::isValidMoveStrict_(const Move& move) const {
   auto to = move.to();
 
   if (move.isHand() || !move.promote()) {
-    switch(piece) {
+    switch(piece.index()) {
     case Piece::Pawn:
       if (!to.isPawnMovable<black>()) {
         return false;
@@ -941,7 +941,7 @@ bool Board::isValidMoveStrict_(const Move& move) const {
     }
 
     Bitboard bb;
-    switch(piece) {
+    switch(piece.index()) {
     case Piece::Pawn:
       if (black ? to != from.up() : to != from.down()) {
         return false;
@@ -1080,7 +1080,7 @@ bool Board::makeMove_(Move& move) {
     if (black) {
       assert(board_[from.index()] == piece.black());
       bbBOccupy_.unset(from);
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::Pawn     : bbBPawn_.unset(from); break;
       case Piece::Lance    : bbBLance_.unset(from); break;
       case Piece::Knight   : bbBKnight_.unset(from); break;
@@ -1101,7 +1101,7 @@ bool Board::makeMove_(Move& move) {
     } else { // white
       assert(board_[from.index()] == piece.white());
       bbWOccupy_.unset(from);
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::Pawn     : bbWPawn_.unset(from); break;
       case Piece::Lance    : bbWLance_.unset(from); break;
       case Piece::Knight   : bbWKnight_.unset(from); break;
@@ -1129,7 +1129,7 @@ bool Board::makeMove_(Move& move) {
       if (black) {
         assert(captured.isWhite());
         bbWOccupy_.unset(to);
-        switch (captured) {
+        switch (captured.index()) {
         case Piece::WPawn     : bbWPawn_.unset(to); move.setCaptured(Piece::Pawn); break;
         case Piece::WLance    : bbWLance_.unset(to); move.setCaptured(Piece::Lance); break;
         case Piece::WKnight   : bbWKnight_.unset(to); move.setCaptured(Piece::Knight); break;
@@ -1150,7 +1150,7 @@ bool Board::makeMove_(Move& move) {
       } else { // white
         assert(captured.isBlack());
         bbBOccupy_.unset(to);
-        switch (captured) {
+        switch (captured.index()) {
         case Piece::BPawn     : bbBPawn_.unset(to); move.setCaptured(Piece::Pawn); break;
         case Piece::BLance    : bbBLance_.unset(to); move.setCaptured(Piece::Lance); break;
         case Piece::BKnight   : bbBKnight_.unset(to); move.setCaptured(Piece::Knight); break;
@@ -1187,7 +1187,7 @@ bool Board::makeMove_(Move& move) {
   }
   if (!promote) {
     if (black) {
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::Pawn     : bbBPawn_.set(to); assert(to.getRank() >= 2); break;
       case Piece::Lance    : bbBLance_.set(to); assert(to.getRank() >= 2); break;
       case Piece::Knight   : bbBKnight_.set(to); assert(to.getRank() >= 3); break;
@@ -1208,7 +1208,7 @@ bool Board::makeMove_(Move& move) {
       board_[to.index()] = piece;
       boardHash_ ^= Zobrist::board(to, piece);
     } else {
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::Pawn     : bbWPawn_.set(to); assert(to.getRank() <= 8); break;
       case Piece::Lance    : bbWLance_.set(to); assert(to.getRank() <= 8); break;
       case Piece::Knight   : bbWKnight_.set(to); assert(to.getRank() <= 7); break;
@@ -1235,7 +1235,7 @@ bool Board::makeMove_(Move& move) {
     if (black) { // black
       assert(!move.isHand());
       assert(to.getRank() <= 3 || move.from().getRank() <= 3);
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::Pawn:
         bbBTokin_.set(to);
         piece_p = Piece::BTokin;
@@ -1266,7 +1266,7 @@ bool Board::makeMove_(Move& move) {
     } else { // white
       assert(!move.isHand());
       assert(to.getRank() >= 7 || move.from().getRank() >= 7);
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::Pawn:
         bbWTokin_.set(to);
         piece_p = Piece::WTokin;
@@ -1334,7 +1334,7 @@ bool Board::unmakeMove_(const Move& move) {
     if (black) {
       assert(board_[to.index()] == (promote ? piece.black().promote() : piece.black()));
       bbBOccupy_.set(from);
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::Pawn     : bbBPawn_.set(from); break;
       case Piece::Lance    : bbBLance_.set(from); break;
       case Piece::Knight   : bbBKnight_.set(from); break;
@@ -1357,7 +1357,7 @@ bool Board::unmakeMove_(const Move& move) {
     } else {
       assert(board_[to.index()] == (promote ? piece.white().promote() : piece.white()));
       bbWOccupy_.set(from);
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::Pawn     : bbWPawn_.set(from); break;
       case Piece::Lance    : bbWLance_.set(from); break;
       case Piece::Knight   : bbWKnight_.set(from); break;
@@ -1385,7 +1385,7 @@ bool Board::unmakeMove_(const Move& move) {
       auto captured = move.captured();
       if (black) {
         bbWOccupy_.set(to);
-        switch (captured) {
+        switch (captured.index()) {
         case Piece::Pawn     : bbWPawn_.set(to); assert(to.getRank() <= 8); break;
         case Piece::Lance    : bbWLance_.set(to); assert(to.getRank() <= 8); break;
         case Piece::Knight   : bbWKnight_.set(to); assert(to.getRank() <= 7); break;
@@ -1408,7 +1408,7 @@ bool Board::unmakeMove_(const Move& move) {
         boardHash_ ^= Zobrist::board(to, captured_w);
       } else {
         bbBOccupy_.set(to);
-        switch (captured) {
+        switch (captured.index()) {
         case Piece::Pawn     : bbBPawn_.set(to); assert(to.getRank() >= 2); break;
         case Piece::Lance    : bbBLance_.set(to); assert(to.getRank() >= 2); break;
         case Piece::Knight   : bbBKnight_.set(to); assert(to.getRank() >= 3); break;
@@ -1449,7 +1449,7 @@ bool Board::unmakeMove_(const Move& move) {
   }
   if (!promote) {
     if (black) {
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::Pawn     : bbBPawn_.unset(to); break;
       case Piece::Lance    : bbBLance_.unset(to); break;
       case Piece::Knight   : bbBKnight_.unset(to); break;
@@ -1468,7 +1468,7 @@ bool Board::unmakeMove_(const Move& move) {
         assert(false);
       }
     } else {
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::Pawn     : bbWPawn_.unset(to); break;
       case Piece::Lance    : bbWLance_.unset(to); break;
       case Piece::Knight   : bbWKnight_.unset(to); break;
@@ -1490,7 +1490,7 @@ bool Board::unmakeMove_(const Move& move) {
     boardHash_ ^= Zobrist::board(to, black ? piece : piece.white());
   } else {
     if (black) {
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::Pawn: bbBTokin_.unset(to); break;
       case Piece::Lance: bbBProLance_.unset(to); break;
       case Piece::Knight: bbBProKnight_.unset(to); break;
@@ -1501,7 +1501,7 @@ bool Board::unmakeMove_(const Move& move) {
         assert(false);
       }
     } else {
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::Pawn: bbWTokin_.unset(to); break;
       case Piece::Lance: bbWProLance_.unset(to); break;
       case Piece::Knight: bbWProKnight_.unset(to); break;

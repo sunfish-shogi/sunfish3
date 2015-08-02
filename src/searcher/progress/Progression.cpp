@@ -22,7 +22,7 @@ int Progression::evaluate(const Board& board) {
     for (int rank = 1; rank <= 3; rank++) {
       Square sq(file, rank);
       Piece piece = board.getBoardPiece(sq);
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::BPawn:
         invader0++;
       case Piece::BLance: case Piece::BKnight: case Piece::BSilver: case Piece::BGold:
@@ -39,7 +39,7 @@ int Progression::evaluate(const Board& board) {
     for (int rank = 7; rank <= 9; rank++) {
       Square sq(file, rank);
       Piece piece = board.getBoardPiece(sq);
-      switch (piece) {
+      switch (piece.index()) {
       case Piece::WPawn:
         invader0++;
       case Piece::WLance: case Piece::WKnight: case Piece::WSilver: case Piece::WGold:

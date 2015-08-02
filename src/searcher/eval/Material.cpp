@@ -13,7 +13,7 @@ namespace material {
  * 駒割を取得します。
  */
 Value piece(const Piece& piece) {
-  switch(piece) {
+  switch(piece.index()) {
     case Piece::BPawn: case Piece::WPawn:
       return material::Pawn;
     case Piece::BLance: case Piece::WLance:
@@ -51,7 +51,7 @@ Value piece(const Piece& piece) {
  * 駒を取った時の変化値を取得します。
  */
 Value pieceExchange(const Piece& piece) {
-  switch(piece) {
+  switch(piece.index()) {
     case Piece::BPawn: case Piece::WPawn:
       return material::PawnEx;
     case Piece::BLance: case Piece::WLance:
@@ -89,7 +89,7 @@ Value pieceExchange(const Piece& piece) {
  * 駒が成った時の変化値を取得します。
  */
 Value piecePromote(const Piece& piece) {
-  switch(piece) {
+  switch(piece.index()) {
     case Piece::BPawn: case Piece::WPawn:
       return material::Tokin - material::Pawn;
     case Piece::BLance: case Piece::WLance:

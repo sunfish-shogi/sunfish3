@@ -7,6 +7,7 @@
 #define SUNFISH_PIECE__
 
 #include "../def.h"
+#include <iostream>
 #include <cstdint>
 
 namespace sunfish {
@@ -89,8 +90,18 @@ public:
   CONSTEXPR Piece(uint8_t index) : index_(index) {
   }
 
-  CONSTEXPR operator uint8_t() const {
+  explicit CONSTEXPR operator uint8_t() const {
     return index_;
+  }
+  CONSTEXPR uint8_t index() const {
+    return index_;
+  }
+
+  bool operator==(const Piece& piece) const {
+    return index_ == piece.index_;
+  }
+  bool operator!=(const Piece& piece) const {
+    return index_ != piece.index_;
   }
 
   CONSTEXPR bool exists() const {
@@ -180,5 +191,18 @@ public:
 #define PIECE_EACH_UNSAFE(piece) for (sunfish::Piece (piece) = sunfish::Piece::Begin; (piece) != sunfish::Piece::End; (piece) = (piece).nextUnsafe())
 #define PIECE_KIND_EACH(piece)   for (sunfish::Piece (piece) = sunfish::Piece::KindBegin; (piece) != sunfish::Piece::KindEnd; (piece) = (piece).nextUnsafe())
 #define HAND_EACH(piece)         for (sunfish::Piece (piece) = sunfish::Piece::HandBegin; (piece) != sunfish::Piece::HandEnd; (piece) = (piece).nextUnsafe())
+
+inline bool operator==(uint8_t index, const sunfish::Piece& piece) {
+  return index == piece.index();
+}
+
+inline bool operator!=(uint8_t index, const sunfish::Piece& piece) {
+  return index != piece.index();
+}
+
+inline std::ostream& operator<<(std::ostream& os, const sunfish::Piece& piece) {
+  os << piece.index();
+  return os;
+}
 
 #endif //SUNFISH_PIECE__
