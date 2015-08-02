@@ -409,6 +409,12 @@ void BatchLearning::updateParameters() {
            ((Evaluator::ValueType*)eval_.t_->kkp)[i],
            max_, magnitude_);
   }
+
+  // ハッシュ表を初期化
+  eval_.clearCache();
+  for (uint32_t wn = 0; wn < nt_; wn++) {
+    searchers_[wn]->clearTT();
+  }
 }
 
 /**
