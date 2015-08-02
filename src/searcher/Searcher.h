@@ -10,7 +10,6 @@
 #include "mate/MateHistory.h"
 #include "SearchInfo.h"
 #include "eval/EvaluateTable.h"
-#include "see/SeeTable.h"
 #include "tree/Tree.h"
 #include "history/History.h"
 #include "tt/TT.h"
@@ -107,8 +106,6 @@ private:
 
   /** mate history */
   MateHistory mateHistory_;
-
-  SeeTable<18> seeCache_;
 
   /** values of child node of root node */
   int rootValues_[1024];
@@ -398,10 +395,6 @@ public:
    */
   void clearTT() {
     tt_.init();
-  }
-
-  void clearSeeCache() {
-    seeCache_.init();
   }
 
   /**

@@ -330,7 +330,6 @@ bool OnlineLearning::miniBatch() {
   eval_.clearCache();
   for (uint32_t wn = 0; wn < nt_; wn++) {
     searchers_[wn]->clearTT();
-    searchers_[wn]->clearSeeCache(); // 駒割りを学習しないなら関係ない
   }
 
   return true;

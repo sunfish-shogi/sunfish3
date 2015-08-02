@@ -576,24 +576,8 @@ void Searcher::forceInterrupt() {
  */
 template <bool shallow>
 Value Searcher::searchSee(const Board& board, const Move& move, Value alpha, Value beta) {
-  Value value;
-  uint64_t hash;
-
-  if (!shallow) {
-    hash = board.getHash() ^ (uint64_t)Move::serialize(move);
-    if (seeCache_.get(hash, value, alpha, beta)) {
-      return value;
-    }
-  }
-
   See see;
-  value = see.search<shallow>(board, move, alpha, beta);
-
-  if (!shallow) {
-    seeCache_.set(hash, value, alpha, beta);
-  }
-
-  return value;
+  return see.search<shallow>(board, move, alpha, beta);
 }
 
 /**
