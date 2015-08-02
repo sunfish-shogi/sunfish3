@@ -135,10 +135,9 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
     }
 
     // 探索
-    CONSTEXPR_CONST int reduction = 1;
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
-    setSearcherDepth(*searchers_[wn], config_.getInt(LCONF_DEPTH) - reduction);
+    setSearcherDepth(*searchers_[wn], config_.getInt(LCONF_DEPTH));
     searchers_[wn]->idsearch(board, tmpMove, -beta, -alpha);
     board.unmakeMove(move);
 
