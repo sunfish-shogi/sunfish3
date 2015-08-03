@@ -17,6 +17,7 @@ help:
 	@echo '  make release'
 	@echo '  make release-pgo'
 	@echo '  make debug'
+	@echo '  make test'
 	@echo '  make profile'
 	@echo '  make profile1'
 	@echo '  make learn'
@@ -50,6 +51,10 @@ debug:
 	$(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 
+test:
+	$(MAKE) debug
+	$(SHELL) -c './$(SUNFISH) --test'
+
 release-prof:
 	$(TEST) -f $(EVAL_BIN)
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
@@ -61,13 +66,13 @@ release-prof:
 profile:
 	$(MAKE) release-prof
 	$(MAKE) run-prof
-	@$(SHELL) -c '$(PROF) ./$(SUNFISH) > $(PROFOUT)'
+	$(SHELL) -c '$(PROF) ./$(SUNFISH) > $(PROFOUT)'
 	@echo "Look $(PROFOUT)."
 
 profile1:
 	$(MAKE) release-prof
 	$(MAKE) run-prof1
-	@$(SHELL) -c '$(PROF) ./$(SUNFISH) > $(PROFOUT)'
+	$(SHELL) -c '$(PROF) ./$(SUNFISH) > $(PROFOUT)'
 	@echo "Look $(PROFOUT)."
 
 learn:
