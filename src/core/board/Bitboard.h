@@ -162,19 +162,19 @@ private:
   };
   u128 bb_;
 #if BYTE_ORDER == BIG_ENDIAN
-# define low_ bb_.i64[1]
-# define high_ bb_.i64[0]
-# define low0_ bb_.i32[3]
-# define low1_ bb_.i32[2]
-# define high0_ bb_.i32[1]
-# define high1_ bb_.i32[0]
+# define BB_LOW_ bb_.i64[1]
+# define BB_HIGH_ bb_.i64[0]
+# define BB_LOW0_ bb_.i32[3]
+# define BB_LOW1_ bb_.i32[2]
+# define BB_HIGH0_ bb_.i32[1]
+# define BB_HIGH1_ bb_.i32[0]
 #elif BYTE_ORDER == LITTLE_ENDIAN
-# define low_ bb_.i64[0]
-# define high_ bb_.i64[1]
-# define low0_ bb_.i32[0]
-# define low1_ bb_.i32[1]
-# define high0_ bb_.i32[2]
-# define high1_ bb_.i32[3]
+# define BB_LOW_ bb_.i64[0]
+# define BB_HIGH_ bb_.i64[1]
+# define BB_LOW0_ bb_.i32[0]
+# define BB_LOW1_ bb_.i32[1]
+# define BB_HIGH0_ bb_.i32[2]
+# define BB_HIGH1_ bb_.i32[3]
 #endif
 
 public:
@@ -240,17 +240,17 @@ public:
   }
 #else
   void init() {
-    high_ = 0x00LL;
-    low_ = 0x00LL;
+    BB_HIGH_ = 0x00LL;
+    BB_LOW_ = 0x00LL;
   }
   void init(const Bitboard& src) {
-    high_ = src.high_;
-    low_ = src.low_;
+    BB_HIGH_ = src.BB_HIGH_;
+    BB_LOW_ = src.BB_LOW_;
   }
 #endif
   void init(uint64_t high, uint64_t low) {
-    high_ = high;
-    low_ = low;
+    BB_HIGH_ = high;
+    BB_LOW_ = low;
   }
 
   // shift operation
@@ -263,33 +263,33 @@ public:
   }
 #else
   void cheapLeftShift(int n) {
-    high_ <<= n;
-    low_ <<= n;
+    BB_HIGH_ <<= n;
+    BB_LOW_ <<= n;
   }
   void cheapRightShift(int n) {
-    high_ >>= n;
-    low_ >>= n;
+    BB_HIGH_ >>= n;
+    BB_LOW_ >>= n;
   }
 #endif
   void leftShift(int n) {
     if (n < LowBits) {
-      high_ <<= n;
-      high_ = (high_ | (low_ >> (LowBits - n))) & HIGH_RANGE__;
-      low_ <<= n;
-      low_ = low_ & LOW_RANGE__;
+      BB_HIGH_ <<= n;
+      BB_HIGH_ = (BB_HIGH_ | (BB_LOW_ >> (LowBits - n))) & HIGH_RANGE__;
+      BB_LOW_ <<= n;
+      BB_LOW_ = BB_LOW_ & LOW_RANGE__;
     } else {
-      high_ = (low_ << (n - LowBits)) & HIGH_RANGE__;
-      low_ = 0x00LL;
+      BB_HIGH_ = (BB_LOW_ << (n - LowBits)) & HIGH_RANGE__;
+      BB_LOW_ = 0x00LL;
     }
   }
   void rightShift(int n) {
     if (n < LowBits) {
-      low_ >>= n;
-      low_ = (low_ | high_ << (LowBits - n)) & LOW_RANGE__;
-      high_ >>= n;
+      BB_LOW_ >>= n;
+      BB_LOW_ = (BB_LOW_ | BB_HIGH_ << (LowBits - n)) & LOW_RANGE__;
+      BB_HIGH_ >>= n;
     } else {
-      low_ = (low_ | high_ >> (n - LowBits)) & LOW_RANGE__;
-      high_ = 0x00;
+      BB_LOW_ = (BB_LOW_ | BB_HIGH_ >> (n - LowBits)) & LOW_RANGE__;
+      BB_HIGH_ = 0x00;
     }
   }
 
@@ -313,23 +313,23 @@ public:
   }
 #else
   const Bitboard& operator=(const Bitboard& bb) {
-    high_ = bb.high_;
-    low_ = bb.low_;
+    BB_HIGH_ = bb.BB_HIGH_;
+    BB_LOW_ = bb.BB_LOW_;
     return *this;
   }
   const Bitboard& operator|=(const Bitboard& bb) {
-    high_ |= bb.high_;
-    low_ |= bb.low_;
+    BB_HIGH_ |= bb.BB_HIGH_;
+    BB_LOW_ |= bb.BB_LOW_;
     return *this;
   }
   const Bitboard& operator&=(const Bitboard& bb) {
-    high_ &= bb.high_;
-    low_ &= bb.low_;
+    BB_HIGH_ &= bb.BB_HIGH_;
+    BB_LOW_ &= bb.BB_LOW_;
     return *this;
   }
   const Bitboard& operator^=(const Bitboard& bb) {
-    high_ ^= bb.high_;
-    low_ ^= bb.low_;
+    BB_HIGH_ ^= bb.BB_HIGH_;
+    BB_LOW_ ^= bb.BB_LOW_;
     return *this;
   }
 #endif
@@ -361,19 +361,19 @@ public:
   }
 #else
   CONSTEXPR Bitboard operator|(const Bitboard& bb) const {
-    return Bitboard(high_ | bb.high_, low_ | bb.low_);
+    return Bitboard(BB_HIGH_ | bb.BB_HIGH_, BB_LOW_ | bb.BB_LOW_);
   }
   CONSTEXPR Bitboard operator&(const Bitboard& bb) const {
-    return Bitboard(high_ & bb.high_, low_ & bb.low_);
+    return Bitboard(BB_HIGH_ & bb.BB_HIGH_, BB_LOW_ & bb.BB_LOW_);
   }
   CONSTEXPR Bitboard operator^(const Bitboard& bb) const {
-    return Bitboard(high_ ^ bb.high_, low_ ^ bb.low_);
+    return Bitboard(BB_HIGH_ ^ bb.BB_HIGH_, BB_LOW_ ^ bb.BB_LOW_);
   }
   CONSTEXPR Bitboard operator~() const{
-    return Bitboard(high_ ^ HIGH_RANGE__, low_ ^ LOW_RANGE__);
+    return Bitboard(BB_HIGH_ ^ HIGH_RANGE__, BB_LOW_ ^ LOW_RANGE__);
   }
   CONSTEXPR Bitboard andNot(const Bitboard& bb) const{
-    return Bitboard((~high_) & bb.high_, (~low_) & bb.low_);
+    return Bitboard((~BB_HIGH_) & bb.BB_HIGH_, (~BB_LOW_) & bb.BB_LOW_);
   }
 #endif
   Bitboard operator<<(int n) const {
@@ -385,10 +385,10 @@ public:
 
   // comparation operators
   CONSTEXPR bool operator==(const Bitboard& bb) const {
-    return (high_ == bb.high_) && (low_ == bb.low_);
+    return (BB_HIGH_ == bb.BB_HIGH_) && (BB_LOW_ == bb.BB_LOW_);
   }
   CONSTEXPR operator bool() const {
-    return (high_ || low_);
+    return (BB_HIGH_ || BB_LOW_);
   }
 
   Bitboard up(int distance = 1) const {
@@ -407,9 +407,9 @@ public:
   Bitboard& set(int sq) {
     if (Square(sq).isValid()) {
       if (isLow(sq)) {
-        low_ |= 0x01LL << (sq);
+        BB_LOW_ |= 0x01LL << (sq);
       } else {
-        high_ |= 0x01LL << (sq-LowBits);
+        BB_HIGH_ |= 0x01LL << (sq-LowBits);
       }
     }
     return *this;
@@ -420,9 +420,9 @@ public:
   Bitboard& unset(int sq) {
     if (Square(sq).isValid()) {
       if (isLow(sq)) {
-        low_ &= ~(0x01LL << (sq));
+        BB_LOW_ &= ~(0x01LL << (sq));
       } else {
-        high_ &= ~(0x01LL << (sq-LowBits));
+        BB_HIGH_ &= ~(0x01LL << (sq-LowBits));
       }
     }
     return *this;
@@ -433,9 +433,9 @@ public:
   bool check(int sq) const {
     if (Square(sq).isValid()) {
       if (isLow(sq)) {
-        return low_ & (0x01LL << (sq));
+        return BB_LOW_ & (0x01LL << (sq));
       } else {
-        return high_ & (0x01LL << (sq-LowBits));
+        return BB_HIGH_ & (0x01LL << (sq-LowBits));
       }
     }
     return false;
@@ -446,39 +446,39 @@ public:
 
   CONSTEXPR Bitboard copyWithSet(int sq) const {
     return Bitboard(
-        high_ | (sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x00LL         : 0x01LL << (sq-LowBits)),
-        low_  | (sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x01LL << (sq) : 0x00LL));
+        BB_HIGH_ | (sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x00LL         : 0x01LL << (sq-LowBits)),
+        BB_LOW_  | (sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x01LL << (sq) : 0x00LL));
   }
   CONSTEXPR Bitboard copyWithSet(const Square& sq) const {
     return copyWithSet(sq.index());
   }
   CONSTEXPR Bitboard copyWithUnset(int sq) const {
     return Bitboard(
-        high_ & ~(sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x00LL         : 0x01LL << (sq-LowBits)),
-        low_  & ~(sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x01LL << (sq) : 0x00LL));
+        BB_HIGH_ & ~(sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x00LL         : 0x01LL << (sq-LowBits)),
+        BB_LOW_  & ~(sq == Square::Invalid ? 0x00LL : isLow(sq) ? 0x01LL << (sq) : 0x00LL));
   }
   CONSTEXPR Bitboard copyWithUnset(const Square& sq) const {
     return copyWithUnset(sq.index());
   }
 
   CONSTEXPR uint64_t low() const {
-    return low_;
+    return BB_LOW_;
   }
   CONSTEXPR uint64_t high() const {
-    return high_;
+    return BB_HIGH_;
   }
 
   CONSTEXPR uint32_t low0() const {
-    return low0_;
+    return BB_LOW0_;
   }
   CONSTEXPR uint32_t low1() const {
-    return low1_;
+    return BB_LOW1_;
   }
   CONSTEXPR uint32_t high0() const {
-    return high0_;
+    return BB_HIGH0_;
   }
   CONSTEXPR uint32_t high1() const {
-    return high1_;
+    return BB_HIGH1_;
   }
 
   static CONSTEXPR bool isLow(const Square& sq) {
@@ -563,41 +563,41 @@ private:
 public:
 
   int count() const {
-    return count_(high_) + count_(low_);
+    return count_(BB_HIGH_) + count_(BB_LOW_);
   }
 
   int getFirst() const {
-    if (low_) {
-      int b = getFirst_((uint32_t)low_);
+    if (BB_LOW_) {
+      int b = getFirst_((uint32_t)BB_LOW_);
       if (b) {
         return b - 1;
       } else {
-        return getFirst_(low_ >> 32) + 32 - 1;
+        return getFirst_(BB_LOW_ >> 32) + 32 - 1;
       }
-    } else if (high_) {
-      int b = getFirst_((uint32_t)high_);
+    } else if (BB_HIGH_) {
+      int b = getFirst_((uint32_t)BB_HIGH_);
       if (b) {
         return b + LowBits - 1;
       } else {
-        return getFirst_(high_ >> 32) + 32 + LowBits - 1;
+        return getFirst_(BB_HIGH_ >> 32) + 32 + LowBits - 1;
       }
     }
     return Square::Invalid;
   }
   int getLast() const {
-    if (high_) {
-      int b = getLast_(high_ >> 32);
+    if (BB_HIGH_) {
+      int b = getLast_(BB_HIGH_ >> 32);
       if (b) {
         return b + 32 + LowBits - 1;
       } else {
-        return getLast_((uint32_t)high_) + LowBits - 1;
+        return getLast_((uint32_t)BB_HIGH_) + LowBits - 1;
       }
-    } else if(low_) {
-      int b = getLast_(low_ >> 32);
+    } else if(BB_LOW_) {
+      int b = getLast_(BB_LOW_ >> 32);
       if (b) {
         return b + 32 - 1;
       } else {
-        return getLast_((uint32_t)low_) - 1;
+        return getLast_((uint32_t)BB_LOW_) - 1;
       }
     }
     return Square::Invalid;
@@ -605,20 +605,20 @@ public:
 
   int pickFirst() {
     int b;
-    if (low_) {
-      b = getFirst_((uint32_t)low_);
+    if (BB_LOW_) {
+      b = getFirst_((uint32_t)BB_LOW_);
       if (!b) {
-        b = getFirst_((low_ >> 32)) + 32;
+        b = getFirst_((BB_LOW_ >> 32)) + 32;
       }
       b--;
-      low_ &= ~(0x01LL << b);
-    } else if (high_) {
-      b = getFirst_((uint32_t)high_);
+      BB_LOW_ &= ~(0x01LL << b);
+    } else if (BB_HIGH_) {
+      b = getFirst_((uint32_t)BB_HIGH_);
       if (!b) {
-        b = getFirst_((high_ >> 32)) + 32;
+        b = getFirst_((BB_HIGH_ >> 32)) + 32;
       }
       b--;
-      high_ &= ~(0x01LL << b);
+      BB_HIGH_ &= ~(0x01LL << b);
       b += LowBits;
     } else {
       b = Square::Invalid;
@@ -627,35 +627,39 @@ public:
   }
 
   int pickLow0First() {
-    int b = getFirst_(low0_) - 1;
-    low0_ &= ~(0x01 << b);
+    int b = getFirst_(BB_LOW0_) - 1;
+    BB_LOW0_ &= ~(0x01 << b);
     return b;
   }
   int pickLow1First() {
-    int b = getFirst_(low1_) - 1;
-    low1_ &= ~(0x01 << b);
+    int b = getFirst_(BB_LOW1_) - 1;
+    BB_LOW1_ &= ~(0x01 << b);
     return b + 32;
   }
   int pickHigh0First() {
-    int b = getFirst_(high0_) - 1;
-    high0_ &= ~(0x01 << b);
+    int b = getFirst_(BB_HIGH0_) - 1;
+    BB_HIGH0_ &= ~(0x01 << b);
     return b + LowBits;
   }
   int pickHigh1First() {
-    int b = getFirst_(high1_) - 1;
-    high1_ &= ~(0x01 << b);
+    int b = getFirst_(BB_HIGH1_) - 1;
+    BB_HIGH1_ &= ~(0x01 << b);
     return b + LowBits + 32;
   }
 
   std::string toString() const {
-    return StringUtil::stringify(high_) + StringUtil::stringify(low_);
+    return StringUtil::stringify(BB_HIGH_) + StringUtil::stringify(BB_LOW_);
   }
   std::string toString2D() const;
 };
 
 #if USE_SSE2
-# undef high_
-# undef low_
+# undef BB_LOW_
+# undef BB_HIGH_
+# undef BB_LOW0_
+# undef BB_LOW1_
+# undef BB_HIGH0_
+# undef BB_HIGH1_
 #endif
 
 CONSTEXPR_CONST Bitboard BPawnMovable(
