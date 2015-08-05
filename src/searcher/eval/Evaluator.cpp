@@ -1046,13 +1046,6 @@ Value Evaluator::estimate_(const Board& board, const Move& move) {
 
   Value value;
 
-#if ENABLE_HASHTABLE
-  uint64_t hash = board.getHash() ^ (uint64_t)Move::serialize(move);
-  if (estimateCache_.get(hash, value)) {
-    return value;
-  }
-#endif
-
   Value material = 0;
   Value positional = 0;
   auto piece = move.piece();
@@ -1203,10 +1196,6 @@ Value Evaluator::estimate_(const Board& board, const Move& move) {
 
   auto valuePair = ValuePair(material, positional);
   value = black ? valuePair.value() : -valuePair.value();
-
-#if ENABLE_HASHTABLE
-  estimateCache_.set(hash, value);
-#endif
 
   return value;
 }

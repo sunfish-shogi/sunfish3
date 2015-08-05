@@ -191,8 +191,6 @@ private:
 
   EvaluateTable<18> evaluateCache_;
 
-  EvaluateTable<18> estimateCache_;
-
   std::shared_ptr<Table> readFvBin();
 
   void convertFromFvBin(Table* fvbin);
@@ -318,7 +316,6 @@ public:
 
   void clearCache() {
     evaluateCache_.init();
-    estimateCache_.init();
   }
 
 };
