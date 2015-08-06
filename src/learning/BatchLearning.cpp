@@ -29,13 +29,17 @@ void setSearcherDepth(Searcher& searcher, int depth) {
   searcher.setConfig(searchConfig);
 }
 
+inline float gain() {
+  return -7.0f / SEARCH_WINDOW;
+}
+
 inline float sigmoid(float x) {
-  return 1.0 / (1.0 + std::exp(x * (-5.0f / SEARCH_WINDOW)));
+  return 1.0 / (1.0 + std::exp(x * gain()));
 }
 
 inline float dsigmoid(float x) {
   float s = sigmoid(x);
-  return s - s * s;
+  return (s - s * s) * gain();
 }
 
 inline float loss(float x) {
