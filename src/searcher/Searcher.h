@@ -73,6 +73,9 @@ public:
     bool enableTimeManagement;
     bool ponder;
     bool logging;
+#if !defined(NLEARN)
+    bool learning;
+#endif
   };
 
   static const int DefaultMaxDepth = 7;
@@ -95,7 +98,7 @@ private:
   /** history heuristic */
   History history_;
 
-  /** transsquare table */
+  /** transposition table */
   TT tt_;
 
   /** gains */
@@ -140,6 +143,9 @@ private:
     config_.enableTimeManagement = true;
     config_.ponder = false;
     config_.logging = true;
+#if !defined(NLEARN)
+    config_.learning = false;
+#endif
   }
 
   /**

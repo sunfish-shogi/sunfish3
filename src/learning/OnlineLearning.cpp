@@ -30,12 +30,6 @@ namespace sunfish {
 
 namespace {
 
-void setSearcherDepth(Searcher& searcher, int depth) {
-  auto searchConfig = searcher.getConfig();
-  searchConfig.maxDepth = depth;
-  searcher.setConfig(searchConfig);
-}
-
 Board getPVLeaf(const Board& root, const Move& rmove, const PV& pv) {
   Board board = root;
   board.makeMoveIrr(rmove);
@@ -106,8 +100,7 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
   {
     // 探索
     board.makeMove(move0);
-    setSearcherDepth(*searchers_[wn], config_.getInt(LCONF_DEPTH));
-    searchers_[wn]->idsearch(board, tmpMove);
+    searchers_[wn]->search(board, tmpMove);
     board.unmakeMove(move0);
 
     // PV と評価値
@@ -137,8 +130,7 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
     // 探索
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
-    setSearcherDepth(*searchers_[wn], config_.getInt(LCONF_DEPTH));
-    searchers_[wn]->idsearch(board, tmpMove, -beta, -alpha);
+    searchers_[wn]->search(board, tmpMove, -beta, -alpha);
     board.unmakeMove(move);
 
     count++;
@@ -402,12 +394,14 @@ bool OnlineLearning::run() {
     searchers_.emplace_back(new Searcher(eval_));
 
     auto searchConfig = searchers_.back()->getConfig();
+    searchConfig.maxDepth = config_.getInt(LCONF_DEPTH);
     searchConfig.workerSize = 1;
     searchConfig.treeSize = Searcher::standardTreeSize(searchConfig.workerSize);
     searchConfig.enableLimit = false;
     searchConfig.enableTimeManagement = false;
     searchConfig.ponder = false;
     searchConfig.logging = false;
+    searchConfig.learning = true;
     searchers_.back()->setConfig(searchConfig);
   }
 

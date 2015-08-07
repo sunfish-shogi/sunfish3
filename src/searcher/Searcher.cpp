@@ -369,7 +369,7 @@ void Searcher::before(const Board& initialBoard) {
   // timer 初期化
   timer_.set();
 
-  // transsquare table
+  // transposition table
   tt_.evolve(); // 世代更新
 
   // hisotory heuristic
@@ -1255,7 +1255,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
     }
     std::cout << tree.debug__getFrontMove().toString() << std::endl;
   }
-#endif
+#endif // DEBUG_TREE
 
 #if DEBUG_NODE
   bool debug = false;
@@ -1267,52 +1267,56 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
     debug = true;
   }
 #endif
-#endif
-
-#if ENABLE_SHEK
+#endif // DEBUG_NODE
 
   auto& worker = getWorker(tree);
 
-  // SHEK
-  ShekStat shekStat = tree.checkShek();
-  worker.info.shekProbed++;
-  switch (shekStat) {
-    case ShekStat::Superior:
-      // 過去の局面に対して優位な局面
-      tree.getCurrentNode().isHistorical = true;
-      worker.info.shekSuperior++;
-      return Value::Inf - tree.getPly();
-
-    case ShekStat::Inferior:
-      // 過去の局面に対して劣る局面
-      tree.getCurrentNode().isHistorical = true;
-      worker.info.shekInferior++;
-      return -Value::Inf + tree.getPly();
-
-    case ShekStat::Equal:
-      //  過去の局面に等しい局面
-      worker.info.shekEqual++;
-      switch(tree.getCheckRepStatus()) {
-      case RepStatus::Win:
+#if ENABLE_SHEK
+#if !defined(NLEARN)
+  if (!config_.learning)
+#endif
+  {
+    // SHEK
+    ShekStat shekStat = tree.checkShek();
+    worker.info.shekProbed++;
+    switch (shekStat) {
+      case ShekStat::Superior:
+        // 過去の局面に対して優位な局面
         tree.getCurrentNode().isHistorical = true;
+        worker.info.shekSuperior++;
         return Value::Inf - tree.getPly();
 
-      case RepStatus::Lose:
+      case ShekStat::Inferior:
+        // 過去の局面に対して劣る局面
         tree.getCurrentNode().isHistorical = true;
+        worker.info.shekInferior++;
         return -Value::Inf + tree.getPly();
 
-      case RepStatus::None:
-        assert(false);
+      case ShekStat::Equal:
+        //  過去の局面に等しい局面
+        worker.info.shekEqual++;
+        switch(tree.getCheckRepStatus()) {
+        case RepStatus::Win:
+          tree.getCurrentNode().isHistorical = true;
+          return Value::Inf - tree.getPly();
+
+        case RepStatus::Lose:
+          tree.getCurrentNode().isHistorical = true;
+          return -Value::Inf + tree.getPly();
+
+        case RepStatus::None:
+          assert(false);
+
+        default:
+          tree.getCurrentNode().isHistorical = true;
+          return Value::Zero;
+        }
 
       default:
-        tree.getCurrentNode().isHistorical = true;
-        return Value::Zero;
-      }
-
-    default:
-      break;
+        break;
+    }
   }
-#endif
+#endif // ENABLE_SHEK
 
   // スタックサイズの限界
   if (tree.isStackFull()) {
@@ -1352,11 +1356,14 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
     hash ^= search_func::excludedHash(tree.getExcluded());
   }
 
-  // transsquare table
+  // transposition table
   Move hashMove = Move::empty();
   Value hashValue;
   uint32_t hashValueType;
   int hashDepth;
+#if !defined(NLEARN)
+  if (!config_.learning)
+#endif
   {
     TTE tte;
     worker.info.hashProbed++;
@@ -1858,7 +1865,11 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
   }
 
 hash_store:
-  if (!tree.getCurrentNode().isHistorical) {
+  if (
+#if !defined(NLEARN)
+      !config_.learning &&
+#endif
+      !tree.getCurrentNode().isHistorical) {
     TTStatus status = tt_.entry(hash, oldAlpha, beta, alpha, depth, tree.getPly(), Move::serialize16(best), stat);
     switch (status) {
       case TTStatus::New: worker.info.hashNew++; break;
