@@ -2169,6 +2169,7 @@ void Searcher::searchTlp(Tree& tree) {
 
         // beta-cut
         if (currval >= parent.getTlp().beta) {
+          parent.getCurrentNode().isHistorical = tree.getChildNode().isHistorical;
           worker.info.failHigh++;
           if (move == parent.getHash()) {
             worker.info.failHighIsHash++;
