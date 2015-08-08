@@ -24,11 +24,11 @@ namespace sunfish {
 namespace {
 
 inline float gain() {
-  return -7.0f / SEARCH_WINDOW;
+  return 7.0f / SEARCH_WINDOW;
 }
 
 inline float sigmoid(float x) {
-  return 1.0 / (1.0 + std::exp(x * gain()));
+  return 1.0 / (1.0 + std::exp(x * -gain()));
 }
 
 inline float dsigmoid(float x) {
