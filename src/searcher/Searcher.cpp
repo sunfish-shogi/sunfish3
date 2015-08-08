@@ -2486,6 +2486,41 @@ void Searcher::generateMovesOnRoot() {
 }
 
 /**
+ * 指定した局面に対して探索を実行します。
+ * @return {負けたか中断された場合にfalseを返します。}
+ */
+bool Searcher::search(const Board& initialBoard, Move& best, Value alpha, Value beta) {
+  // 前処理
+  before(initialBoard);
+
+  auto& tree0 = trees_[0];
+
+  int depth = config_.maxDepth;
+
+  generateMovesOnRoot();
+
+  Value value = searchRoot(tree0, Depth1Ply, -Value::Inf, Value::Inf, best, true);
+  tree0.setSortValues(rootValues_);
+  tree0.sortAll();
+
+  bool result = searchAsp(depth * Depth1Ply + Depth1Ply / 2, best, alpha, beta, &value);
+
+  if (value >= beta) {
+    result = true;
+  }
+
+  if (value <= alpha) {
+    result = false;
+  }
+
+  // 後処理
+  after();
+
+  return result;
+
+}
+
+/**
  * iterative deepening search from root node
  * @return {負けたか深さ1で中断された場合にfalseを返します。}
  */
@@ -2532,29 +2567,6 @@ bool Searcher::idsearch(Move& best, Value alpha, Value beta) {
 
     timeManager_.nextDepth();
   }
-
-  return result;
-
-}
-
-/**
- * 指定した局面に対して探索を実行します。
- * @return {負けたか中断された場合にfalseを返します。}
- */
-bool Searcher::search(const Board& initialBoard, Move& best, Value alpha, Value beta) {
-
-  // 前処理
-  before(initialBoard);
-
-  // 最大深さ
-  int depth = config_.maxDepth * Depth1Ply;
-
-  generateMovesOnRoot();
-
-  bool result = searchAsp(depth, best, alpha, beta);
-
-  // 後処理
-  after();
 
   return result;
 

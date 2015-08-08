@@ -121,7 +121,7 @@ void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
   {
     // 探索
     board.makeMove(move0);
-    searchers_[wn]->search(board, tmpMove);
+    searchers_[wn]->idsearch(board, tmpMove);
     board.unmakeMove(move0);
 
     // PV と評価値
@@ -148,7 +148,7 @@ void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
     // 探索
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
-    searchers_[wn]->search(board, tmpMove, -beta, -alpha);
+    searchers_[wn]->idsearch(board, tmpMove, -beta, -alpha);
     board.unmakeMove(move);
 
     // PV と評価値
