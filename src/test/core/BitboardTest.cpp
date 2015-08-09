@@ -20,50 +20,50 @@ TEST(BitboardTest, test) {
   {
     Bitboard bb;
     bb.init();
-    bb.set(P55);
-    ASSERT_EQ(Bitboard(P55), bb);
-    ASSERT(bb.check(P55));
+    bb.set(S55);
+    ASSERT_EQ(Bitboard(S55), bb);
+    ASSERT(bb.check(S55));
   }
 
   {
     Bitboard bb;
     bb.init();
-    bb.set(P91);
-    ASSERT_EQ(Bitboard(P91), bb);
-    ASSERT(bb.check(P91));
+    bb.set(S91);
+    ASSERT_EQ(Bitboard(S91), bb);
+    ASSERT(bb.check(S91));
   }
 
   {
     Bitboard bb;
     bb.init();
-    bb.set(P19);
-    ASSERT_EQ(Bitboard(P19), bb);
-    ASSERT(bb.check(P19));
+    bb.set(S19);
+    ASSERT_EQ(Bitboard(S19), bb);
+    ASSERT(bb.check(S19));
   }
 
   {
     Bitboard bb;
     bb.init();
-    bb.set(P38);
-    ASSERT_EQ(Bitboard(P38), bb);
-    ASSERT(bb.check(P38));
+    bb.set(S38);
+    ASSERT_EQ(Bitboard(S38), bb);
+    ASSERT(bb.check(S38));
   }
 
   {
     Bitboard bb;
     bb.init();
-    bb.set(P84);
-    ASSERT_EQ(Bitboard(P84), bb);
-    ASSERT(bb.check(P84));
+    bb.set(S84);
+    ASSERT_EQ(Bitboard(S84), bb);
+    ASSERT(bb.check(S84));
   }
 
   {
     Bitboard bb;
     bb.init();
-    ASSERT_EQ(Bitboard(P97), bb.copyWithSet(P97));
-    ASSERT_EQ(Bitboard(P77), bb.copyWithSet(P77));
-    ASSERT_EQ(Bitboard(P48), bb.copyWithSet(P48));
-    ASSERT_EQ(Bitboard(P12), bb.copyWithSet(P12));
+    ASSERT_EQ(Bitboard(S97), bb.copyWithSet(S97));
+    ASSERT_EQ(Bitboard(S77), bb.copyWithSet(S77));
+    ASSERT_EQ(Bitboard(S48), bb.copyWithSet(S48));
+    ASSERT_EQ(Bitboard(S12), bb.copyWithSet(S12));
   }
 
   {
@@ -354,50 +354,50 @@ TEST(BitboardTest, test) {
 }
 
 TEST(BitboardTest, testShift) {
-  ASSERT_EQ(Bitboard(P54), Bitboard(P55).up());
-  ASSERT_EQ(Bitboard(P56), Bitboard(P55).down());
-  ASSERT_EQ(Bitboard(P65), Bitboard(P55).left());
-  ASSERT_EQ(Bitboard(P45), Bitboard(P55).right());
-  ASSERT_EQ(Bitboard(P45), Bitboard(P35).left());
+  ASSERT_EQ(Bitboard(S54), Bitboard(S55).up());
+  ASSERT_EQ(Bitboard(S56), Bitboard(S55).down());
+  ASSERT_EQ(Bitboard(S65), Bitboard(S55).left());
+  ASSERT_EQ(Bitboard(S45), Bitboard(S55).right());
+  ASSERT_EQ(Bitboard(S45), Bitboard(S35).left());
 
-  ASSERT_EQ(Bitboard(P53), Bitboard(P55).up(2));
-  ASSERT_EQ(Bitboard(P57), Bitboard(P55).down(2));
-  ASSERT_EQ(Bitboard(P75), Bitboard(P55).left(2));
-  ASSERT_EQ(Bitboard(P35), Bitboard(P55).right(2));
-  ASSERT_EQ(Bitboard(P55), Bitboard(P35).left(2));
+  ASSERT_EQ(Bitboard(S53), Bitboard(S55).up(2));
+  ASSERT_EQ(Bitboard(S57), Bitboard(S55).down(2));
+  ASSERT_EQ(Bitboard(S75), Bitboard(S55).left(2));
+  ASSERT_EQ(Bitboard(S35), Bitboard(S55).right(2));
+  ASSERT_EQ(Bitboard(S55), Bitboard(S35).left(2));
 
-  ASSERT_EQ(Bitboard(P25), Bitboard(P85).right(6));
-  ASSERT_EQ(Bitboard(P85), Bitboard(P25).left(6));
+  ASSERT_EQ(Bitboard(S25), Bitboard(S85).right(6));
+  ASSERT_EQ(Bitboard(S85), Bitboard(S25).left(6));
 }
 
 TEST(BitboardTest, testIterate) {
   Bitboard bb;
   Square sq;
   bb.init();
-  bb.set(P95);
-  bb.set(P41);
-  bb.set(P48);
-  bb.set(P27);
+  bb.set(S95);
+  bb.set(S41);
+  bb.set(S48);
+  bb.set(S27);
 
-  ASSERT_EQ(P95, bb.getFirst());
-  ASSERT_EQ(P27, bb.getLast());
+  ASSERT_EQ(S95, bb.getFirst());
+  ASSERT_EQ(S27, bb.getLast());
   sq = bb.pickFirst();
-  ASSERT_EQ(P95, sq.index());
+  ASSERT_EQ(S95, sq.index());
 
-  ASSERT_EQ(P41, bb.getFirst());
-  ASSERT_EQ(P27, bb.getLast());
+  ASSERT_EQ(S41, bb.getFirst());
+  ASSERT_EQ(S27, bb.getLast());
   sq = bb.pickFirst();
-  ASSERT_EQ(P41, sq.index());
+  ASSERT_EQ(S41, sq.index());
 
-  ASSERT_EQ(P48, bb.getFirst());
-  ASSERT_EQ(P27, bb.getLast());
+  ASSERT_EQ(S48, bb.getFirst());
+  ASSERT_EQ(S27, bb.getLast());
   sq = bb.pickFirst();
-  ASSERT_EQ(P48, sq.index());
+  ASSERT_EQ(S48, sq.index());
 
-  ASSERT_EQ(P27, bb.getFirst());
-  ASSERT_EQ(P27, bb.getLast());
+  ASSERT_EQ(S27, bb.getFirst());
+  ASSERT_EQ(S27, bb.getLast());
   sq = bb.pickFirst();
-  ASSERT_EQ(P27, sq.index());
+  ASSERT_EQ(S27, sq.index());
 
   ASSERT_EQ(Square::Invalid, bb.getFirst());
   ASSERT_EQ(Square::Invalid, bb.getLast());

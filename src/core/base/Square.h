@@ -14,15 +14,15 @@
 namespace sunfish {
 
 enum {
-  P91 = 0, P92, P93, P94, P95, P96, P97, P98, P99,
-  P81, P82, P83, P84, P85, P86, P87, P88, P89,
-  P71, P72, P73, P74, P75, P76, P77, P78, P79,
-  P61, P62, P63, P64, P65, P66, P67, P68, P69,
-  P51, P52, P53, P54, P55, P56, P57, P58, P59,
-  P41, P42, P43, P44, P45, P46, P47, P48, P49,
-  P31, P32, P33, P34, P35, P36, P37, P38, P39,
-  P21, P22, P23, P24, P25, P26, P27, P28, P29,
-  P11, P12, P13, P14, P15, P16, P17, P18, P19,
+  S91 = 0, S92, S93, S94, S95, S96, S97, S98, S99,
+  S81, S82, S83, S84, S85, S86, S87, S88, S89,
+  S71, S72, S73, S74, S75, S76, S77, S78, S79,
+  S61, S62, S63, S64, S65, S66, S67, S68, S69,
+  S51, S52, S53, S54, S55, S56, S57, S58, S59,
+  S41, S42, S43, S44, S45, S46, S47, S48, S49,
+  S31, S32, S33, S34, S35, S36, S37, S38, S39,
+  S21, S22, S23, S24, S25, S26, S27, S28, S29,
+  S11, S12, S13, S14, S15, S16, S17, S18, S19,
 };
 
 enum class Direction : int32_t {
@@ -450,7 +450,7 @@ public:
 #define SQUARE_EACH(sq)    for (sunfish::Square (sq) = sunfish::Square::Begin; (sq) != sunfish::Square::End; (sq) = (sq).next())
 
 // scanning right-down
-#define SQUARE_EACH_RD(sq) for (sunfish::Square (sq) = P91; (sq) != sunfish::Square::End; (sq) = (sq).nextRightDown())
+#define SQUARE_EACH_RD(sq) for (sunfish::Square (sq) = S91; (sq) != sunfish::Square::End; (sq) = (sq).nextRightDown())
 
 inline bool operator==(uint8_t index, const sunfish::Square& square) {
   return index == square.index();

@@ -13,10 +13,10 @@ using namespace sunfish;
 TEST(MovesTest, test) {
   {
     Moves moves;
-    moves.add(Move(Piece::BPawn, P57, P56, false));
-    moves.add(Move(Piece::BRook, P28, P24, false));
-    moves.add(Move(Piece::BBishop, P77, P22, false));
-    moves.add(Move(Piece::BLance, P19, P18, false));
+    moves.add(Move(Piece::BPawn, S57, S56, false));
+    moves.add(Move(Piece::BRook, S28, S24, false));
+    moves.add(Move(Piece::BBishop, S77, S22, false));
+    moves.add(Move(Piece::BLance, S19, S18, false));
 
     ASSERT_EQ(4, moves.size());
     ASSERT_EQ(Piece::BPawn, moves[0].piece());
@@ -27,10 +27,10 @@ TEST(MovesTest, test) {
 
   {
     Moves moves;
-    moves.add(Move(Piece::BPawn, P57, P56, false));
-    moves.add(Move(Piece::BRook, P28, P24, false));
-    moves.add(Move(Piece::BBishop, P77, P22, false));
-    moves.add(Move(Piece::BLance, P19, P18, false));
+    moves.add(Move(Piece::BPawn, S57, S56, false));
+    moves.add(Move(Piece::BRook, S28, S24, false));
+    moves.add(Move(Piece::BBishop, S77, S22, false));
+    moves.add(Move(Piece::BLance, S19, S18, false));
 
     moves.remove(1);
 
@@ -42,10 +42,10 @@ TEST(MovesTest, test) {
 
   {
     Moves moves;
-    moves.add(Move(Piece::BPawn, P57, P56, false));
-    moves.add(Move(Piece::BRook, P28, P24, false));
-    moves.add(Move(Piece::BBishop, P77, P22, false));
-    moves.add(Move(Piece::BLance, P19, P18, false));
+    moves.add(Move(Piece::BPawn, S57, S56, false));
+    moves.add(Move(Piece::BRook, S28, S24, false));
+    moves.add(Move(Piece::BBishop, S77, S22, false));
+    moves.add(Move(Piece::BLance, S19, S18, false));
 
     moves.remove(moves.end()-1);
 
@@ -57,10 +57,10 @@ TEST(MovesTest, test) {
 
   {
     Moves moves;
-    moves.add(Move(Piece::BPawn, P57, P56, false));
-    moves.add(Move(Piece::BRook, P28, P24, false));
-    moves.add(Move(Piece::BBishop, P77, P22, false));
-    moves.add(Move(Piece::BLance, P19, P18, false));
+    moves.add(Move(Piece::BPawn, S57, S56, false));
+    moves.add(Move(Piece::BRook, S28, S24, false));
+    moves.add(Move(Piece::BBishop, S77, S22, false));
+    moves.add(Move(Piece::BLance, S19, S18, false));
 
     moves.removeAfter(2);
 
@@ -71,10 +71,10 @@ TEST(MovesTest, test) {
 
   {
     Moves moves;
-    moves.add(Move(Piece::BPawn, P57, P56, false));
-    moves.add(Move(Piece::BRook, P28, P24, false));
-    moves.add(Move(Piece::BBishop, P77, P22, false));
-    moves.add(Move(Piece::BLance, P19, P18, false));
+    moves.add(Move(Piece::BPawn, S57, S56, false));
+    moves.add(Move(Piece::BRook, S28, S24, false));
+    moves.add(Move(Piece::BBishop, S77, S22, false));
+    moves.add(Move(Piece::BLance, S19, S18, false));
 
     moves.removeAfter(moves.begin()+1);
 
@@ -84,10 +84,10 @@ TEST(MovesTest, test) {
 
   {
     Moves moves;
-    moves.add(Move(Piece::BPawn, P57, P56, false));
-    moves.add(Move(Piece::BRook, P28, P24, false));
-    moves.add(Move(Piece::BBishop, P77, P22, false));
-    moves.add(Move(Piece::BLance, P19, P18, false));
+    moves.add(Move(Piece::BPawn, S57, S56, false));
+    moves.add(Move(Piece::BRook, S28, S24, false));
+    moves.add(Move(Piece::BBishop, S77, S22, false));
+    moves.add(Move(Piece::BLance, S19, S18, false));
 
     moves.removeStable(1);
 
@@ -99,10 +99,10 @@ TEST(MovesTest, test) {
 
   {
     Moves moves;
-    moves.add(Move(Piece::BPawn, P57, P56, false));
-    moves.add(Move(Piece::BRook, P28, P24, false));
-    moves.add(Move(Piece::BBishop, P77, P22, false));
-    moves.add(Move(Piece::BLance, P19, P18, false));
+    moves.add(Move(Piece::BPawn, S57, S56, false));
+    moves.add(Move(Piece::BRook, S28, S24, false));
+    moves.add(Move(Piece::BBishop, S77, S22, false));
+    moves.add(Move(Piece::BLance, S19, S18, false));
 
     moves.removeStable(moves.begin()+1);
 

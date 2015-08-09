@@ -97,51 +97,51 @@ void Board::init() {
 void Board::init(Handicap handicap) {
   init();
 
-  board_[P19] = Piece::BLance;
-  board_[P29] = Piece::BKnight;
-  board_[P39] = Piece::BSilver;
-  board_[P49] = Piece::BGold;
-  board_[P59] = Piece::BKing;
-  board_[P69] = Piece::BGold;
-  board_[P79] = Piece::BSilver;
-  board_[P89] = Piece::BKnight;
-  board_[P99] = Piece::BLance;
+  board_[S19] = Piece::BLance;
+  board_[S29] = Piece::BKnight;
+  board_[S39] = Piece::BSilver;
+  board_[S49] = Piece::BGold;
+  board_[S59] = Piece::BKing;
+  board_[S69] = Piece::BGold;
+  board_[S79] = Piece::BSilver;
+  board_[S89] = Piece::BKnight;
+  board_[S99] = Piece::BLance;
 
-  board_[P28] = Piece::BRook;
-  board_[P88] = Piece::BBishop;
+  board_[S28] = Piece::BRook;
+  board_[S88] = Piece::BBishop;
 
-  board_[P17] = Piece::BPawn;
-  board_[P27] = Piece::BPawn;
-  board_[P37] = Piece::BPawn;
-  board_[P47] = Piece::BPawn;
-  board_[P57] = Piece::BPawn;
-  board_[P67] = Piece::BPawn;
-  board_[P77] = Piece::BPawn;
-  board_[P87] = Piece::BPawn;
-  board_[P97] = Piece::BPawn;
+  board_[S17] = Piece::BPawn;
+  board_[S27] = Piece::BPawn;
+  board_[S37] = Piece::BPawn;
+  board_[S47] = Piece::BPawn;
+  board_[S57] = Piece::BPawn;
+  board_[S67] = Piece::BPawn;
+  board_[S77] = Piece::BPawn;
+  board_[S87] = Piece::BPawn;
+  board_[S97] = Piece::BPawn;
 
-  board_[P11] = Piece::WLance;
-  board_[P21] = Piece::WKnight;
-  board_[P31] = Piece::WSilver;
-  board_[P41] = Piece::WGold;
-  board_[P51] = Piece::WKing;
-  board_[P61] = Piece::WGold;
-  board_[P71] = Piece::WSilver;
-  board_[P81] = Piece::WKnight;
-  board_[P91] = Piece::WLance;
+  board_[S11] = Piece::WLance;
+  board_[S21] = Piece::WKnight;
+  board_[S31] = Piece::WSilver;
+  board_[S41] = Piece::WGold;
+  board_[S51] = Piece::WKing;
+  board_[S61] = Piece::WGold;
+  board_[S71] = Piece::WSilver;
+  board_[S81] = Piece::WKnight;
+  board_[S91] = Piece::WLance;
 
-  board_[P22] = Piece::WBishop;
-  board_[P82] = Piece::WRook;
+  board_[S22] = Piece::WBishop;
+  board_[S82] = Piece::WRook;
 
-  board_[P13] = Piece::WPawn;
-  board_[P23] = Piece::WPawn;
-  board_[P33] = Piece::WPawn;
-  board_[P43] = Piece::WPawn;
-  board_[P53] = Piece::WPawn;
-  board_[P63] = Piece::WPawn;
-  board_[P73] = Piece::WPawn;
-  board_[P83] = Piece::WPawn;
-  board_[P93] = Piece::WPawn;
+  board_[S13] = Piece::WPawn;
+  board_[S23] = Piece::WPawn;
+  board_[S33] = Piece::WPawn;
+  board_[S43] = Piece::WPawn;
+  board_[S53] = Piece::WPawn;
+  board_[S63] = Piece::WPawn;
+  board_[S73] = Piece::WPawn;
+  board_[S83] = Piece::WPawn;
+  board_[S93] = Piece::WPawn;
 
   SQUARE_EACH(sq) {
     auto piece = board_[sq.index()];
@@ -153,8 +153,8 @@ void Board::init(Handicap handicap) {
     }
   }
 
-  sqBKing_ = P59;
-  sqWKing_ = P51;
+  sqBKing_ = S59;
+  sqWKing_ = S51;
 
   if (handicap == Handicap::TwoPieces) {
     black_ = false;

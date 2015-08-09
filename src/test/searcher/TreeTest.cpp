@@ -20,20 +20,20 @@ TEST(TreeTest, testSortByValue) {
   tree.initGenPhase();
 
   auto& moves = tree.getMoves();
-  moves.add(Move(Piece::Rook, P28, P58)); values[0] = 7;
-  moves.add(Move(Piece::Silver, P39, P48)); values[1] = -48;
-  moves.add(Move(Piece::Pawn, P77, P76)); values[2] = 50;
-  moves.add(Move(Piece::Rook, P28, P68)); values[3] = -21;
-  moves.add(Move(Piece::Pawn, P27, P26)); values[4] = 39;
+  moves.add(Move(Piece::Rook, S28, S58)); values[0] = 7;
+  moves.add(Move(Piece::Silver, S39, S48)); values[1] = -48;
+  moves.add(Move(Piece::Pawn, S77, S76)); values[2] = 50;
+  moves.add(Move(Piece::Rook, S28, S68)); values[3] = -21;
+  moves.add(Move(Piece::Pawn, S27, S26)); values[4] = 39;
   tree.setSortValues(values);
 
   tree.sortAfterCurrent();
 
-  ASSERT_EQ(Move(Piece::Pawn, P77, P76), tree.getMoves()[0]);
-  ASSERT_EQ(Move(Piece::Pawn, P27, P26), tree.getMoves()[1]);
-  ASSERT_EQ(Move(Piece::Rook, P28, P58), tree.getMoves()[2]);
-  ASSERT_EQ(Move(Piece::Rook, P28, P68), tree.getMoves()[3]);
-  ASSERT_EQ(Move(Piece::Silver, P39, P48), tree.getMoves()[4]);
+  ASSERT_EQ(Move(Piece::Pawn, S77, S76), tree.getMoves()[0]);
+  ASSERT_EQ(Move(Piece::Pawn, S27, S26), tree.getMoves()[1]);
+  ASSERT_EQ(Move(Piece::Rook, S28, S58), tree.getMoves()[2]);
+  ASSERT_EQ(Move(Piece::Rook, S28, S68), tree.getMoves()[3]);
+  ASSERT_EQ(Move(Piece::Silver, S39, S48), tree.getMoves()[4]);
 
   ASSERT_EQ(50, tree.getSortValue(tree.getBegin()+0));
   ASSERT_EQ(39, tree.getSortValue(tree.getBegin()+1));
@@ -46,8 +46,8 @@ TEST(TreeTest, testSortByValue) {
 TEST(TreeTest, testAddMove) {
 
   Tree tree;
-  Move move1(Piece::Pawn, P77, P76, false);
-  Move move2(Piece::Rook, P28, P58, false);
+  Move move1(Piece::Pawn, S77, S76, false);
+  Move move2(Piece::Rook, S28, S58, false);
 
   auto ite = tree.addMove(move1);
   ASSERT_EQ(*ite, move1);
@@ -82,14 +82,14 @@ P-00FU00FU00FU\n\
     CsaReader::readBoard(iss, board);
 
     std::vector<Move> moves;
-    moves.push_back(Move(Piece::King, P26, P17, false));
-    moves.push_back(Move(Piece::Silver, P37, P28, false));
-    moves.push_back(Move(Piece::King, P17, P26, false));
+    moves.push_back(Move(Piece::King, S26, S17, false));
+    moves.push_back(Move(Piece::Silver, S37, S28, false));
+    moves.push_back(Move(Piece::King, S17, S26, false));
 
     tree.init(0, board, eval, moves);
     ASSERT_EQ((int)RepStatus::None, (int)tree.getCheckRepStatus());
     tree.initGenPhase();
-    tree.addMove(Move(Piece::Silver, P28, P37, false));
+    tree.addMove(Move(Piece::Silver, S28, S37, false));
     tree.selectNextMove();
     tree.makeMove(eval);
     ASSERT_EQ((int)RepStatus::Win, (int)tree.getCheckRepStatus());
@@ -118,19 +118,19 @@ P-00FU00FU00FU\n\
     CsaReader::readBoard(iss, board);
 
     std::vector<Move> moves;
-    moves.push_back(Move(Piece::Silver, P37, P28, false));
-    moves.push_back(Move(Piece::King, P17, P26, false));
+    moves.push_back(Move(Piece::Silver, S37, S28, false));
+    moves.push_back(Move(Piece::King, S17, S26, false));
 
     tree.init(0, board, eval, moves);
     ASSERT_EQ((int)RepStatus::None, (int)tree.getCheckRepStatus());
     tree.initGenPhase();
-    tree.addMove(Move(Piece::Silver, P28, P37, false));
+    tree.addMove(Move(Piece::Silver, S28, S37, false));
     tree.selectNextMove();
     tree.makeMove(eval);
     ASSERT_EQ((int)RepStatus::None, (int)tree.getCheckRepStatus());
     {
       tree.initGenPhase();
-      tree.addMove(Move(Piece::King, P26, P17, false));
+      tree.addMove(Move(Piece::King, S26, S17, false));
       tree.selectNextMove();
       tree.makeMove(eval);
       ASSERT_EQ((int)RepStatus::Lose, (int)tree.getCheckRepStatus());

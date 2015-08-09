@@ -33,7 +33,7 @@ P-\n\
     std::istringstream iss(src);
     Board board;
     CsaReader::readBoard(iss, board);
-    Move move(Piece::Gold, P45, P55, false);
+    Move move(Piece::Gold, S45, S55, false);
 
     see.generateAttackers(board, move);
 
@@ -61,7 +61,7 @@ P-\n\
     std::istringstream iss(src);
     Board board;
     CsaReader::readBoard(iss, board);
-    Move move(Piece::Gold, P45, P55, false);
+    Move move(Piece::Gold, S45, S55, false);
 
     see.generateAttackers(board, move);
 
@@ -89,7 +89,7 @@ P-\n\
     std::istringstream iss(src);
     Board board;
     CsaReader::readBoard(iss, board);
-    Move move(Piece::Knight, P47, P55, false);
+    Move move(Piece::Knight, S47, S55, false);
 
     see.generateAttackers(board, move);
 
@@ -118,7 +118,7 @@ P-\n\
     std::istringstream iss(src);
     Board board;
     CsaReader::readBoard(iss, board);
-    Move move(Piece::Silver, P46, P55, false);
+    Move move(Piece::Silver, S46, S55, false);
 
     see.generateAttackers(board, move);
 
@@ -147,7 +147,7 @@ P-\n\
     std::istringstream iss(src);
     Board board;
     CsaReader::readBoard(iss, board);
-    Move move(Piece::Silver, P66, P55, false);
+    Move move(Piece::Silver, S66, S55, false);
 
     see.generateAttackers(board, move);
 
@@ -177,7 +177,7 @@ P-\n\
     std::istringstream iss(src);
     Board board;
     CsaReader::readBoard(iss, board);
-    Move move(Piece::Silver, P46, P55, false);
+    Move move(Piece::Silver, S46, S55, false);
 
     see.generateAttackers(board, move);
 
@@ -205,7 +205,7 @@ P-\n\
     std::istringstream iss(src);
     Board board;
     CsaReader::readBoard(iss, board);
-    Move move(Piece::Silver, P46, P55, false);
+    Move move(Piece::Silver, S46, S55, false);
 
     see.generateAttackers(board, move);
 
@@ -233,7 +233,7 @@ P-\n\
     std::istringstream iss(src);
     Board board;
     CsaReader::readBoard(iss, board);
-    Move move(Piece::Silver, P72, P81, false);
+    Move move(Piece::Silver, S72, S81, false);
 
     see.generateAttackers(board, move);
 
@@ -260,7 +260,7 @@ P-\n\
     std::istringstream iss(src);
     Board board;
     CsaReader::readBoard(iss, board);
-    Move move(Piece::Rook, P47, P45, false);
+    Move move(Piece::Rook, S47, S45, false);
 
     see.generateAttackers(board, move);
 
@@ -291,7 +291,7 @@ P-\n\
     std::istringstream iss(src);
     Board board;
     CsaReader::readBoard(iss, board);
-    Move move(Piece::Pawn, P64, P63, true);
+    Move move(Piece::Pawn, S64, S63, true);
 
     see.generateAttackers(board, move);
 
@@ -334,7 +334,7 @@ P-\n\
     std::istringstream iss(src);
     Board board;
     CsaReader::readBoard(iss, board);
-    Move move(Piece::Lance, P45, P44, false);
+    Move move(Piece::Lance, S45, S44, false);
 
     see.generateAttackers(board, move);
 
@@ -372,7 +372,7 @@ P-\n\
     CsaReader::readBoard(iss, board);
 
     // 飛車で歩を取った場合
-    Move capByRook(Piece::Rook, P47, P45, false);
+    Move capByRook(Piece::Rook, S47, S45, false);
     Value exact = see.search(board, capByRook, -Value::PieceInf, Value::PieceInf);
     Value correct = (+ material::PawnEx
                      - material::RookEx
@@ -381,7 +381,7 @@ P-\n\
     ASSERT_EQ(correct.int32(), exact.int32());
 
     // 桂馬で歩を取った場合
-    Move capByKnight(Piece::Knight, P37, P45, false);
+    Move capByKnight(Piece::Knight, S37, S45, false);
     exact = see.search(board, capByKnight, -Value::PieceInf, Value::PieceInf);
     correct = (+ material::PawnEx
                - material::KnightEx);
@@ -407,7 +407,7 @@ P-\n\
     Board board;
     CsaReader::readBoard(iss, board);
 
-    Move move(Piece::Lance, P45, P44, false);
+    Move move(Piece::Lance, S45, S44, false);
     Value exact = see.search(board, move, -Value::PieceInf, Value::PieceInf);
     Value correct = (+ material::PawnEx
                      - material::LanceEx

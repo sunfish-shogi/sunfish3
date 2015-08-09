@@ -31,8 +31,8 @@ P-\n\
     Board board, board2;
     CsaReader::readBoard(iss, board);
 
-    Move move1(Piece::Pawn, P77, P76, false);
-    Move move2(Piece::Pawn, P33, P34, false);
+    Move move1(Piece::Pawn, S77, S76, false);
+    Move move2(Piece::Pawn, S33, S34, false);
 
     // make move
     board.makeMove(move1);
@@ -87,10 +87,10 @@ P-\n\
     Board board, board2;
     CsaReader::readBoard(iss, board);
 
-    Move move1(Piece::Bishop, P88, P22, true);
-    Move move2(Piece::Silver, P31, P22, false);
-    Move move3(Piece::Bishop, P45);
-    Move move4(Piece::Bishop, P85);
+    Move move1(Piece::Bishop, S88, S22, true);
+    Move move2(Piece::Silver, S31, S22, false);
+    Move move3(Piece::Bishop, S45);
+    Move move4(Piece::Bishop, S85);
 
     // make move
     board.makeMove(move1);

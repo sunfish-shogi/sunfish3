@@ -33,10 +33,10 @@ TEST(ShekTest, test) {
     ShekTable table;
 
     Move moves[] = {
-      { Piece::Pawn, P24 },
-      { Piece::Pawn, P23, P24, false },
-      { Piece::Rook, P28, P24, false },
-      { Piece::Pawn, P23 },
+      { Piece::Pawn, S24 },
+      { Piece::Pawn, S23, S24, false },
+      { Piece::Rook, S28, S24, false },
+      { Piece::Pawn, S23 },
     };
 
     for (auto& move : moves) {
@@ -48,17 +48,17 @@ TEST(ShekTest, test) {
     }
 
     table.set(board);
-    Move move = { Piece::Rook, P24, P28, false };
+    Move move = { Piece::Rook, S24, S28, false };
     bool ok = board.makeMove(move);
     ASSERT(ok);
     ShekStat stat = table.check(board);
     ASSERT_EQ((int)ShekStat::Superior, (int)stat);
 
     Move moves2[] = {
-      { Piece::Pawn, P86 },
-      { Piece::Pawn, P87, P86, false },
-      { Piece::Rook, P82, P86, false },
-      { Piece::Pawn, P87 },
+      { Piece::Pawn, S86 },
+      { Piece::Pawn, S87, S86, false },
+      { Piece::Rook, S82, S86, false },
+      { Piece::Pawn, S87 },
     };
 
     for (auto& move : moves2) {
@@ -70,7 +70,7 @@ TEST(ShekTest, test) {
     }
 
     table.set(board);
-    move = { Piece::Rook, P86, P82, false };
+    move = { Piece::Rook, S86, S82, false };
     ok = board.makeMove(move);
     ASSERT(ok);
     stat = table.check(board);
@@ -96,9 +96,9 @@ TEST(ShekTest, test) {
     CsaReader::readBoard(iss, board);
 
     Move moves[] = {
-      { Piece::Pawn, P26, P27, true },
-      { Piece::Rook, P28, P27, false },
-      { Piece::Pawn, P26 },
+      { Piece::Pawn, S26, S27, true },
+      { Piece::Rook, S28, S27, false },
+      { Piece::Pawn, S26 },
     };
 
     ShekTable table;
@@ -111,14 +111,14 @@ TEST(ShekTest, test) {
     }
 
     table.set(board);
-    Move move = { Piece::Rook, P27, P28, false };
+    Move move = { Piece::Rook, S27, S28, false };
     bool ok = board.makeMove(move);
     ASSERT(ok);
     ShekStat stat = table.check(board);
     ASSERT_EQ((int)ShekStat::Inferior, (int)stat);
 
     table.set(board);
-    move = { Piece::Pawn, P26, P27, true };
+    move = { Piece::Pawn, S26, S27, true };
     ok = board.makeMove(move);
     ASSERT(ok);
     stat = table.check(board);

@@ -13,35 +13,35 @@ using namespace sunfish;
 
 TEST(MoveTest, test) {
   {
-    Move move(Piece::BPawn, P57, P56, false);
-    ASSERT_EQ(P57, move.from().index());
-    ASSERT_EQ(P56, move.to().index());
+    Move move(Piece::BPawn, S57, S56, false);
+    ASSERT_EQ(S57, move.from().index());
+    ASSERT_EQ(S56, move.to().index());
     ASSERT_EQ(false, move.promote());
     ASSERT_EQ(Piece::Pawn, move.piece());
     ASSERT_EQ(false, move.isHand());
   }
 
   {
-    Move move(Piece::WPawn, P53, P54, false);
-    ASSERT_EQ(P53, move.from().index());
-    ASSERT_EQ(P54, move.to().index());
+    Move move(Piece::WPawn, S53, S54, false);
+    ASSERT_EQ(S53, move.from().index());
+    ASSERT_EQ(S54, move.to().index());
     ASSERT_EQ(false, move.promote());
     ASSERT_EQ(Piece::Pawn, move.piece());
     ASSERT_EQ(false, move.isHand());
   }
 
   {
-    Move move(Piece::BPawn, P54, P53, true);
-    ASSERT_EQ(P54, move.from().index());
-    ASSERT_EQ(P53, move.to().index());
+    Move move(Piece::BPawn, S54, S53, true);
+    ASSERT_EQ(S54, move.from().index());
+    ASSERT_EQ(S53, move.to().index());
     ASSERT_EQ(true, move.promote());
     ASSERT_EQ(Piece::Pawn, move.piece());
     ASSERT_EQ(false, move.isHand());
   }
 
   {
-    Move move(Piece::BPawn, P55);
-    ASSERT_EQ(P55, move.to().index());
+    Move move(Piece::BPawn, S55);
+    ASSERT_EQ(S55, move.to().index());
     ASSERT_EQ(false, move.promote());
     ASSERT_EQ(Piece::Pawn, move.piece());
     ASSERT_EQ(true, move.isHand());
@@ -50,28 +50,28 @@ TEST(MoveTest, test) {
 
 TEST(MoveTest, testSerialization) {
   {
-    Move in(Piece::Pawn, P77, P76, false);
+    Move in(Piece::Pawn, S77, S76, false);
     uint32_t data = Move::serialize(in);
     Move out = Move::deserialize(data);
     ASSERT_EQ(in, out);
   }
 
   {
-    Move in(Piece::Knight, P33, P41, true);
+    Move in(Piece::Knight, S33, S41, true);
     uint32_t data = Move::serialize(in);
     Move out = Move::deserialize(data);
     ASSERT_EQ(in, out);
   }
 
   {
-    Move in(Piece::Rook, P45, P75, false, Piece::Pawn);
+    Move in(Piece::Rook, S45, S75, false, Piece::Pawn);
     uint32_t data = Move::serialize(in);
     Move out = Move::deserialize(data);
     ASSERT_EQ(in, out);
   }
 
   {
-    Move in(Piece::Pawn, P54);
+    Move in(Piece::Pawn, S54);
     uint32_t data = Move::serialize(in);
     Move out = Move::deserialize(data);
     ASSERT_EQ(in, out);
@@ -98,28 +98,28 @@ P-\n\
   CsaReader::readBoard(iss, board);
 
   {
-    Move in(Piece::Pawn, P77, P76, false);
+    Move in(Piece::Pawn, S77, S76, false);
     uint16_t data = Move::serialize16(in);
     Move out = Move::deserialize16(data, board);
     ASSERT_EQ(in, out);
   }
 
   {
-    Move in(Piece::Knight, P33, P41, true);
+    Move in(Piece::Knight, S33, S41, true);
     uint16_t data = Move::serialize16(in);
     Move out = Move::deserialize16(data, board);
     ASSERT_EQ(in, out);
   }
 
   {
-    Move in(Piece::Rook, P45, P75, false, Piece::Pawn);
+    Move in(Piece::Rook, S45, S75, false, Piece::Pawn);
     uint16_t data = Move::serialize16(in);
     Move out = Move::deserialize16(data, board);
     ASSERT_EQ(in, out);
   }
 
   {
-    Move in(Piece::Pawn, P54);
+    Move in(Piece::Pawn, S54);
     uint16_t data = Move::serialize16(in);
     Move out = Move::deserialize16(data, board);
     ASSERT_EQ(in, out);
