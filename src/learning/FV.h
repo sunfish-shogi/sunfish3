@@ -6,7 +6,6 @@
 #ifndef SUNFISH_FV__
 #define SUNFISH_FV__
 
-
 #include "searcher/eval/Evaluator.h"
 
 namespace sunfish {

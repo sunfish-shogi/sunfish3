@@ -29,6 +29,12 @@ TEST(SquareTest, test) {
   }
 
   {
+    Square sq34(3, 4);
+    ASSERT_EQ(P76, sq34.reverse());
+    ASSERT_EQ(P74, sq34.sym());
+  }
+
+  {
     Square sq55(5, 5);
     ASSERT_EQ(P56, sq55.next());
 

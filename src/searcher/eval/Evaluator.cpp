@@ -20,19 +20,6 @@ namespace {
 
 using namespace sunfish;
 
-inline int kpp_index(int x, int y) {
-  assert(x >= y);
-  return x*(x+1)/2+y;
-}
-
-inline int kpp_index(int x) {
-  return x*(x+1)/2+x;
-}
-
-inline int kpp_index_safe(int x, int y) {
-  return x >= y ? kpp_index(x, y) : kpp_index(y, x);
-}
-
 const int8_t sqIndexBPawn[] = {
   -1,  0,  1,  2,  3,  4,  5,  6,  7,
   -1,  8,  9, 10, 11, 12, 13, 14, 15,
@@ -94,6 +81,55 @@ const int8_t sqS2B[] = {
    8, 17, 26, 35, 44, 53, 62, 71, 80,
 };
 
+struct TableInfo {
+  const int8_t* table;
+  int begin;
+  int end;
+  int bonaOffset;
+};
+
+const TableInfo kppTableInfo[] = {
+  { sqIndexBPawn,   KPP_BBPAWN,   KPP_BWPAWN,   -9  },
+  { sqIndexWPawn,   KPP_BWPAWN,   KPP_BBLANCE,  0   },
+  { sqIndexBPawn,   KPP_BBLANCE,  KPP_BWLANCE,  -9  },
+  { sqIndexWPawn,   KPP_BWLANCE,  KPP_BBKNIGHT, 0   },
+  { sqIndexBKnight, KPP_BBKNIGHT, KPP_BWKNIGHT, -18 },
+  { sqIndexWKnight, KPP_BWKNIGHT, KPP_BBSILVER, 0   },
+  { nullptr,        KPP_BBSILVER, KPP_BWSILVER, 0   },
+  { nullptr,        KPP_BWSILVER, KPP_BBGOLD,   0   },
+  { nullptr,        KPP_BBGOLD,   KPP_BWGOLD,   0   },
+  { nullptr,        KPP_BWGOLD,   KPP_BBBISHOP, 0   },
+  { nullptr,        KPP_BBBISHOP, KPP_BWBISHOP, 0   },
+  { nullptr,        KPP_BWBISHOP, KPP_BBHORSE,  0   },
+  { nullptr,        KPP_BBHORSE,  KPP_BWHORSE,  0   },
+  { nullptr,        KPP_BWHORSE,  KPP_BBROOK,   0   },
+  { nullptr,        KPP_BBROOK,   KPP_BWROOK,   0   },
+  { nullptr,        KPP_BWROOK,   KPP_BBDRAGON, 0   },
+  { nullptr,        KPP_BBDRAGON, KPP_BWDRAGON, 0   },
+  { nullptr,        KPP_BWDRAGON, KPP_MAX,      0   },
+};
+
+const TableInfo kkpTableInfo[] = {
+  { sqIndexBPawn  , KKP_BPAWN,   KKP_BLANCE,   -9 },
+  { sqIndexBPawn  , KKP_BLANCE,  KKP_BKNIGHT,  -9 },
+  { sqIndexBKnight, KKP_BKNIGHT, KKP_BSILVER, -18 },
+  { nullptr       , KKP_BSILVER, KKP_BGOLD,     0 },
+  { nullptr       , KKP_BGOLD,   KKP_BBISHOP,   0 },
+  { nullptr       , KKP_BBISHOP, KKP_BHORSE,    0 },
+  { nullptr       , KKP_BHORSE,  KKP_BROOK,     0 },
+  { nullptr       , KKP_BROOK,   KKP_BDRAGON,   0 },
+  { nullptr       , KKP_BDRAGON, KKP_MAX,       0 },
+};
+
+int sqInv(const int8_t* table, int in) {
+  SQUARE_EACH(sq) {
+    if (static_cast<int>(table[sq.index()]) == in) {
+      return sq.index();
+    }
+  }
+  return -1;
+}
+
 } // namespace
 
 #define SQ_INDEX_BPAWN(sq)   (static_cast<int>(sqIndexBPawn[(sq).index()]))
@@ -146,65 +182,102 @@ bool Feature<T>::writeFile(const char* filename) const {
   return true;
 }
 
-int sqInv(const int8_t* table, int in) {
-  SQUARE_EACH(sq) {
-    if (static_cast<int>(table[sq.index()]) == in) {
-      return sq.index();
+/**
+ * KPP のインデクスを左右反転します。
+ */
+int symmetrizeKppIndex(int index) {
+  if (index < KPP_BBPAWN) {
+    return index;
+  }
+
+  for (unsigned i = 0; i < sizeof(kppTableInfo)/sizeof(kppTableInfo[0]); i++) {
+    const auto& ti = kppTableInfo[i];
+    if (ti.begin <= index && index < ti.end) {
+      int sq = index - ti.begin;
+      assert(sq >= 0);
+      assert(sq < 81);
+      if (ti.table != nullptr) {
+        sq = sqInv(ti.table, sq);
+        assert(sq >= 0);
+        assert(sq < 81);
+      }
+      sq = Square(sq).sym().index();
+      assert(sq >= 0);
+      assert(sq < 81);
+      if (ti.table != nullptr) {
+        sq = ti.table[sq];
+        assert(sq >= 0);
+        assert(sq < 81);
+      }
+      int result = ti.begin + sq;
+      assert(ti.begin <= result);
+      assert(result < ti.end);
+      return result;
     }
   }
-  return -1;
+  assert(false);
+  return 0;
+}
+
+/**
+ * KKP のインデクスを左右反転します。
+ */
+int symmetrizeKkpIndex(int index) {
+  if (index < KKP_BPAWN) {
+    return index;
+  }
+
+  for (unsigned i = 0; i < sizeof(kkpTableInfo)/sizeof(kkpTableInfo[0]); i++) {
+    const auto& ti = kkpTableInfo[i];
+    if (ti.begin <= index && index < ti.end) {
+      int sq = index - ti.begin;
+      assert(sq >= 0);
+      assert(sq < 81);
+      if (ti.table != nullptr) {
+        sq = sqInv(ti.table, sq);
+        assert(sq >= 0);
+        assert(sq < 81);
+      }
+      sq = Square(sq).sym().index();
+      assert(sq >= 0);
+      assert(sq < 81);
+      if (ti.table != nullptr) {
+        sq = ti.table[sq];
+        assert(sq >= 0);
+        assert(sq < 81);
+      }
+      int result = ti.begin + sq;
+      assert(ti.begin <= result);
+      assert(result < ti.end);
+      return result;
+    }
+  }
+  assert(false);
+  return 0;
 }
 
 /**
  * KPP のインデクスを Bonanza の並びに変換します。
  */
 int convertKppIndex4FvBin(int index) {
-  struct BoardInfo {
-    const int8_t* table;
-    int begin;
-    int end;
-    int offset;
-  };
-
-  static const BoardInfo biList[] = {
-    { sqIndexBPawn,   KPP_BBPAWN,   KPP_BWPAWN,   -9  },
-    { sqIndexWPawn,   KPP_BWPAWN,   KPP_BBLANCE,  0   },
-    { sqIndexBPawn,   KPP_BBLANCE,  KPP_BWLANCE,  -9  },
-    { sqIndexWPawn,   KPP_BWLANCE,  KPP_BBKNIGHT, 0   },
-    { sqIndexBKnight, KPP_BBKNIGHT, KPP_BWKNIGHT, -18 },
-    { sqIndexWKnight, KPP_BWKNIGHT, KPP_BBSILVER, 0   },
-    { nullptr,        KPP_BBSILVER, KPP_BWSILVER, 0   },
-    { nullptr,        KPP_BWSILVER, KPP_BBGOLD,   0   },
-    { nullptr,        KPP_BBGOLD,   KPP_BWGOLD,   0   },
-    { nullptr,        KPP_BWGOLD,   KPP_BBBISHOP, 0   },
-    { nullptr,        KPP_BBBISHOP, KPP_BWBISHOP, 0   },
-    { nullptr,        KPP_BWBISHOP, KPP_BBHORSE,  0   },
-    { nullptr,        KPP_BBHORSE,  KPP_BWHORSE,  0   },
-    { nullptr,        KPP_BWHORSE,  KPP_BBROOK,   0   },
-    { nullptr,        KPP_BBROOK,   KPP_BWROOK,   0   },
-    { nullptr,        KPP_BWROOK,   KPP_BBDRAGON, 0   },
-    { nullptr,        KPP_BBDRAGON, KPP_BWDRAGON, 0   },
-    { nullptr,        KPP_BWDRAGON, KPP_MAX,      0   },
-  };
-
   if (index < KPP_BBPAWN) {
     return index;
   }
 
-  for (unsigned i = 0; i < sizeof(biList)/sizeof(biList[0]); i++) {
-    const auto& bi = biList[i];
-    if (bi.begin <= index && index < bi.end) {
-      int sq = index - bi.begin;
+  for (unsigned i = 0; i < sizeof(kppTableInfo)/sizeof(kppTableInfo[0]); i++) {
+    const auto& ti = kppTableInfo[i];
+    if (ti.begin <= index && index < ti.end) {
+      int sq = index - ti.begin;
       assert(sq >= 0);
       assert(sq < 81);
-      if (bi.table != nullptr) {
-        sq = sqInv(bi.table, sq);
+      if (ti.table != nullptr) {
+        sq = sqInv(ti.table, sq);
         assert(sq >= 0);
         assert(sq < 81);
       }
-      int result = bi.begin + sqS2B[sq] + bi.offset;
-      assert(bi.begin <= result);
-      assert(result < bi.end);
+      int result = ti.begin + sqS2B[sq] + ti.bonaOffset;
+      assert(ti.begin <= result);
+      assert(result < ti.end);
       return result;
     }
   }
@@ -216,43 +289,24 @@ int convertKppIndex4FvBin(int index) {
  * KKP のインデクスを Bonanza の並びに変換します。
  */
 int convertKkpIndex4FvBin(int index) {
-  struct BoardInfo {
-    int begin;
-    int end;
-    int offset;
-    const int8_t* table;
-  };
-
-  static const BoardInfo biList[] = {
-    { KKP_BPAWN,   KKP_BLANCE,   -9,  sqIndexBPawn },
-    { KKP_BLANCE,  KKP_BKNIGHT,  -9,  sqIndexBPawn },
-    { KKP_BKNIGHT, KKP_BSILVER, -18, sqIndexBKnight },
-    { KKP_BSILVER, KKP_BGOLD,     0,   nullptr },
-    { KKP_BGOLD,   KKP_BBISHOP,   0,   nullptr },
-    { KKP_BBISHOP, KKP_BHORSE,    0,   nullptr },
-    { KKP_BHORSE,  KKP_BROOK,     0,   nullptr },
-    { KKP_BROOK,   KKP_BDRAGON,   0,   nullptr },
-    { KKP_BDRAGON, KKP_MAX,       0,   nullptr },
-  };
-
   if (index < KKP_BPAWN) {
     return index;
   }
 
-  for (unsigned i = 0; i < sizeof(biList)/sizeof(biList[0]); i++) {
-    const auto& bi = biList[i];
-    if (bi.begin <= index && index < bi.end) {
-      int sq = index - bi.begin;
+  for (unsigned i = 0; i < sizeof(kkpTableInfo)/sizeof(kkpTableInfo[0]); i++) {
+    const auto& ti = kkpTableInfo[i];
+    if (ti.begin <= index && index < ti.end) {
+      int sq = index - ti.begin;
       assert(sq >= 0);
       assert(sq < 81);
-      if (bi.table != nullptr) {
-        sq = sqInv(bi.table, sq);
+      if (ti.table != nullptr) {
+        sq = sqInv(ti.table, sq);
       }
       assert(sq >= 0);
       assert(sq < 81);
-      int result = bi.begin + sqS2B[sq] + bi.offset;
-      assert(bi.begin <= result);
-      assert(result < bi.end);
+      int result = ti.begin + sqS2B[sq] + ti.bonaOffset;
+      assert(ti.begin <= result);
+      assert(result < ti.end);
       return result;
     }
   }
@@ -334,9 +388,11 @@ int kppBoardIndex(Piece piece, const Square& sq) {
   assert(false);
   return 0;
 }
+template int kppBoardIndex<true>(Piece piece, const Square& sq);
+template int kppBoardIndex<false>(Piece piece, const Square& sq);
 
 /**
- * 先手の持ち駒の種類から KPP のインデクスを取得します。
+ * 持ち駒の種類から KPP のインデクスを取得します。
  */
 template <bool blackPiece>
 int kppHandIndex(Piece piece) {
@@ -360,6 +416,8 @@ int kppHandIndex(Piece piece) {
   return 0;
 
 }
+template int kppHandIndex<true>(Piece piece);
+template int kppHandIndex<false>(Piece piece);
 
 template <class T>
 template <class U, bool update>

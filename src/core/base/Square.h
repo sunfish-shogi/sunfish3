@@ -246,6 +246,9 @@ public:
   CONSTEXPR Square reverse() const {
     return N - 1 - index_;
   }
+  CONSTEXPR Square sym() const {
+    return Square(FileN + 1 - getFile(), getRank());
+  }
   CONSTEXPR Square up(int32_t distance = 1) const {
     return index_ - distance;
   }

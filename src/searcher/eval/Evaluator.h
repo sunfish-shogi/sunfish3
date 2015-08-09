@@ -104,6 +104,61 @@ enum {
   KKP_ALL     = 81 * 81 * KKP_MAX,
 };
 
+inline int kpp_index(int x, int y) {
+  assert(x >= y);
+  return x*(x+1)/2+y;
+}
+
+inline int kpp_index(int x) {
+  return x*(x+1)/2+x;
+}
+
+inline int kpp_index_safe(int x, int y) {
+  return x >= y ? kpp_index(x, y) : kpp_index(y, x);
+}
+
+/**
+ * KPP のインデクスを左右反転します。
+ */
+int symmetrizeKppIndex(int index);
+
+/**
+ * KKP のインデクスを左右反転します。
+ */
+int symmetrizeKkpIndex(int index);
+
+/**
+ * KPP のインデクスを Bonanza の並びに変換します。
+ */
+int convertKppIndex4FvBin(int index);
+
+/**
+ * KKP のインデクスを Bonanza の並びに変換します。
+ */
+int convertKkpIndex4FvBin(int index);
+
+/**
+ * 盤上の駒の種類から KKP のインデクスを取得します。
+ */
+int kkpBoardIndex(Piece piece, const Square& sq);
+
+/**
+ * 持ち駒の種類から KKP のインデクスを取得します。
+ */
+int kkpHandIndex(Piece piece);
+
+/**
+ * 盤上の先手の駒の種類から KPP のインデクスを取得します。
+ */
+template <bool blackPiece>
+int kppBoardIndex(Piece piece, const Square& sq);
+
+/**
+ * 持ち駒の種類から KPP のインデクスを取得します。
+ */
+template <bool blackPiece>
+int kppHandIndex(Piece piece);
+
 template <class T>
 class Feature {
 public:

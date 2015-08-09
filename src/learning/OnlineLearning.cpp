@@ -72,7 +72,7 @@ inline float norm(float x) {
 } // namespace
 
 /**
- * $B8{G[$r7W;;$7$^$9!#(B
+ * 勾配を計算します。
  */
 void OnlineLearning::genGradient(int wn, const Job& job) {
   Board board(job.board);
@@ -83,7 +83,7 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
 
   bool black = board.isBlack();
 
-  // $B9gK!<j@8@.(B
+  // 合法手生成
   Moves moves;
   MoveGenerator::generate(board, moves);
 
@@ -91,35 +91,35 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
     return;
   }
 
-  // $B%7%c%C%U%k(B
+  // シャッフル
   std::shuffle(moves.begin(), moves.end(), rgens_[wn]);
 
   searchers_[wn]->clearHistory();
 
-  // $B4}Ih$N<j(B
+  // 棋譜の手
   {
-    // $BC5:w(B
+    // 探索
     board.makeMove(move0);
     searchers_[wn]->idsearch(board, tmpMove);
     board.unmakeMove(move0);
 
-    // PV $B$HI>2ACM(B
+    // PV と評価値
     const auto& info = searchers_[wn]->getInfo();
     const auto& pv = info.pv;
     val0 = -info.eval;
     pv0.copy(pv);
 
-    // $B5M$_$O=|30(B
+    // 詰みは除外
     if (val0 <= -Value::Mate || val0 >= Value::Mate) {
       return;
     }
   }
 
-  // $B4}Ih$N<j$NI>2ACM$+$i(B window $B$r7hDj(B
+  // 棋譜の手の評価値から window を決定
   Value alpha = val0 - hingeMargin(board);
   Value beta = val0 + MAX_HINGE_MARGIN;
 
-  // $B$=$NB>$N<j(B
+  // その他の手
   int count = 0;
   float gsum = 0.0f;
   for (auto& move : moves) {
@@ -127,7 +127,7 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
       break;
     }
 
-    // $BC5:w(B
+    // 探索
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
     searchers_[wn]->idsearch(board, tmpMove, -beta, -alpha);
@@ -135,24 +135,24 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
 
     count++;
 
-    // PV $B$HI>2ACM(B
+    // PV と評価値
     const auto& info = searchers_[wn]->getInfo();
     const auto& pv = info.pv;
     Value val = -info.eval;
 
-    // $BIT0lCWEY$N7WB,(B
+    // 不一致度の計測
     errorCount_++;
     errorSum_ += error(std::min(std::max(val.int32(), alpha.int32()), beta.int32()) - alpha.int32());
 
-    // window $B$r30$l$?>l9g$O=|30(B
+    // window を外れた場合は除外
     if (val <= alpha || val >= beta) {
       continue;
     }
 
-    // leaf $B6ILL(B
+    // leaf 局面
     Board leaf = getPVLeaf(board, move, pv);
 
-    // $BFCD'Cj=P(B
+    // 特徴抽出
     float g = gradient() * (black ? 1 : -1);
     {
       std::lock_guard<std::mutex> lock(mutex_);
@@ -164,10 +164,10 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
   {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    // leaf $B6ILL(B
+    // leaf 局面
     Board leaf = getPVLeaf(board, move0, pv0);
 
-    // $BFCD'Cj=P(B
+    // 特徴抽出
     g_.extract<float, true>(leaf, gsum);
 
     miniBatchScale_ += NUMBER_OF_SIBLING_NODES;
@@ -175,7 +175,7 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
 }
 
 /**
- * $B%8%g%V$r=&$$$^$9!#(B
+ * ジョブを拾います。
  */
 void OnlineLearning::work(int wn) {
   while (!shutdown_) {
@@ -201,7 +201,7 @@ void OnlineLearning::work(int wn) {
 }
 
 /**
- * $B%_%K%P%C%A$r<B9T$7$^$9!#(B
+ * ミニバッチを実行します。
  */
 bool OnlineLearning::miniBatch() {
 
@@ -224,7 +224,7 @@ bool OnlineLearning::miniBatch() {
     }
   }
 
-  // $B%-%e!<$,6u$K$J$k$N$rBT$D(B
+  // キューが空になるのを待つ
   while (true) {
     {
       std::lock_guard<std::mutex> lock(mutex_);
@@ -242,7 +242,7 @@ bool OnlineLearning::miniBatch() {
   double magnitudeW = 0.0f;
   FV::ValueType maxU = 0.0f;
 
-  // $B8{G[$K=>$C$FCM$r99?7$9$k(B
+  // 勾配に従って値を更新する
   auto update1 = [this](FV::ValueType& g, FV::ValueType& w, FV::ValueType& u,
       FV::ValueType& maxW, double& magnitudeW, FV::ValueType& maxU) {
     FV::ValueType f = g / miniBatchScale_ + norm(w);
@@ -268,7 +268,7 @@ bool OnlineLearning::miniBatch() {
 
   miniBatchCount_++;
 
-  // $BJ?6Q2=(B
+  // 平均化
   auto average = [this](const FV::ValueType& w, const FV::ValueType& u, Evaluator::ValueType& e,
       Evaluator::ValueType& max, int64_t& magnitude, int32_t& nonZero) {
     e = std::round(w - u / miniBatchCount_);
@@ -289,10 +289,10 @@ bool OnlineLearning::miniBatch() {
             max, magnitude, nonZero);
   }
 
-  // $BJ]B8(B
+  // 保存
   eval_.writeFile();
 
-  // $B:G8e$N(Bw$B$NCM$G99?7$9$k(B
+  // 最後のwの値で更新する
   auto update2 = [this](FV::ValueType& w, Evaluator::ValueType& e) {
     e = std::round(w);
   };
@@ -318,17 +318,18 @@ bool OnlineLearning::miniBatch() {
     << "\tmax_u=" << maxU
     << "\telapsed: " << elapsed;
 
-  // $B%O%C%7%eI=$r=i4|2=(B
+  // ハッシュ表を初期化
   eval_.clearCache();
-  for (uint32_t wn = 0; wn < nt_; wn++) {
-    searchers_[wn]->clearTT();
-  }
+  // transposition table は SearchConfig::learning で無効にしている
+  //for (uint32_t wn = 0; wn < nt_; wn++) {
+  //  searchers_[wn]->clearTT();
+  //}
 
   return true;
 }
 
 /**
- * $B4}Ih%U%!%$%k$rFI$_9~$s$G3X=,$7$^$9!#(B
+ * 棋譜ファイルを読み込んで学習します。
  */
 bool OnlineLearning::readCsa(size_t count, size_t total, const char* path) {
   Loggers::message << "loading (" << count << "/" << total << "): [" << path << "]";
@@ -339,12 +340,12 @@ bool OnlineLearning::readCsa(size_t count, size_t total, const char* path) {
     return false;
   }
 
-  // $B4}Ih$N@hF,$X(B
+  // 棋譜の先頭へ
   while (record.unmakeMove())
     ;
 
   while (true) {
-    // $B<!$N(B1$B<j$r<hF@(B
+    // 次の1手を取得
     Move move = record.getNextMove();
     if (move.isEmpty()) {
       break;
@@ -352,7 +353,7 @@ bool OnlineLearning::readCsa(size_t count, size_t total, const char* path) {
 
     jobs_.push_back({ record.getBoard().getCompactBoard(), move });
 
-    // 1$B<j?J$a$k(B
+    // 1手進める
     if (!record.makeMove()) {
       break;
     }
@@ -362,29 +363,29 @@ bool OnlineLearning::readCsa(size_t count, size_t total, const char* path) {
 }
 
 /**
- * $B5!3#3X=,$r<B9T$7$^$9!#(B
+ * 機械学習を実行します。
  */
 bool OnlineLearning::run() {
   Loggers::message << "begin learning";
 
   timer_.set();
 
-  // csa $B%U%!%$%k$rNs5s(B
+  // csa ファイルを列挙
   FileList fileList;
   std::string dir = config_.getString(LCONF_KIFU);
   fileList.enumerate(dir.c_str(), "csa");
 
-  // $B=i4|2=(B
+  // 初期化
   eval_.init();
   miniBatchCount_ = 1;
   g_.init();
   w_.init();
   u_.init();
 
-  // $B3X=,%9%l%C%I?t(B
+  // 学習スレッド数
   nt_ = config_.getInt(LCONF_THREADS);
 
-  // Searcher$B@8@.(B
+  // Searcher生成
   uint32_t seed = static_cast<uint32_t>(time(NULL));
   rgens_.clear();
   searchers_.clear();
@@ -405,25 +406,25 @@ bool OnlineLearning::run() {
     searchers_.back()->setConfig(searchConfig);
   }
 
-  // $B4}Ih$N<h$j9~$_(B
+  // 棋譜の取り込み
   size_t count = 0;
   for (const auto& filename : fileList) {
     readCsa(++count, fileList.size(), filename.c_str());
   }
 
-  // $B71N}%G!<%?$N%7%c%C%U%k(B
+  // 訓練データのシャッフル
   std::shuffle(jobs_.begin(), jobs_.end(), rgens_[0]);
 
   activeCount_ = 0;
 
-  // $B%o!<%+!<%9%l%C%I@8@.(B
+  // ワーカースレッド生成
   shutdown_ = false;
   threads_.clear();
   for (uint32_t wn = 0; wn < nt_; wn++) {
     threads_.emplace_back(std::bind(std::mem_fn(&OnlineLearning::work), this, wn));
   }
 
-  // $B3X=,=hM}$N<B9T(B
+  // 学習処理の実行
   while (true) {
     bool ok = miniBatch();
     if (!ok) {
@@ -431,7 +432,7 @@ bool OnlineLearning::run() {
     }
   }
 
-  // $B%o!<%+!<%9%l%C%IDd;_(B
+  // ワーカースレッド停止
   shutdown_ = true;
   for (uint32_t wn = 0; wn < nt_; wn++) {
     threads_[wn].join();

@@ -6,7 +6,8 @@
 #ifndef NLEARN
 
 #include "BatchLearning.h"
-#include "./LearningConfig.h"
+#include "LearningConfig.h"
+#include "LearningTemplates.h"
 #include "config/Config.h"
 #include "core/move/MoveGenerator.h"
 #include "core/record/CsaReader.h"
@@ -73,7 +74,7 @@ void BatchLearning::closeTrainingData() {
 }
 
 /**
- * $B%W%m%0%l%9%P!<$NI=<($r99?7$7$^$9!#(B
+ * プログレスバーの表示を更新します。
  */
 void BatchLearning::updateProgress() {
   int cmax = 50;
@@ -92,7 +93,7 @@ void BatchLearning::updateProgress() {
 }
 
 /**
- * $B%W%m%0%l%9%P!<$NI=<($r=*N;$7$^$9!#(B
+ * プログレスバーの表示を終了します。
  */
 void BatchLearning::closeProgress() {
   std::cout << "\n";
@@ -100,10 +101,10 @@ void BatchLearning::closeProgress() {
 }
 
 /**
- * $B71N}%G!<%?$r@8@.$7$^$9!#(B
+ * 訓練データを生成します。
  */
 void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
-  // $B9gK!<j@8@.(B
+  // 合法手生成
   Moves moves;
   MoveGenerator::generate(board, moves);
 
@@ -115,21 +116,21 @@ void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
   Move tmpMove;
   std::list<PV> list;
 
-  // $B%R%9%H%j$N%/%j%"(B
+  // ヒストリのクリア
   searchers_[wn]->clearHistory();
 
   {
-    // $BC5:w(B
+    // 探索
     board.makeMove(move0);
     searchers_[wn]->idsearch(board, tmpMove);
     board.unmakeMove(move0);
 
-    // PV $B$HI>2ACM(B
+    // PV と評価値
     const auto& info = searchers_[wn]->getInfo();
     const auto& pv = info.pv;
     val0 = -info.eval;
 
-    // $B5M$_$O=|30(B
+    // 詰みは除外
     if (val0 <= -Value::Mate || val0 >= Value::Mate) {
       return;
     }
@@ -140,18 +141,18 @@ void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
 
   totalMoves_++;
 
-  // $B4}Ih$N<j$NI>2ACM$+$i(B window $B$r7hDj(B
+  // 棋譜の手の評価値から window を決定
   Value alpha = val0 - SEARCH_WINDOW;
   Value beta = val0 + SEARCH_WINDOW;
 
   for (auto& move : moves) {
-    // $BC5:w(B
+    // 探索
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
     searchers_[wn]->idsearch(board, tmpMove, -beta, -alpha);
     board.unmakeMove(move);
 
-    // PV $B$HI>2ACM(B
+    // PV と評価値
     const auto& info = searchers_[wn]->getInfo();
     const auto& pv = info.pv;
     Value val = -info.eval;
@@ -169,34 +170,34 @@ void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
     list.back().set(move, 0, pv);
   }
 
-  // $B=q$-=P$7(B
+  // 書き出し
   if (!list.empty()) {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    // $B%k!<%H6ILL(B
+    // ルート局面
     CompactBoard cb = board.getCompactBoard();
     trainingData_->write(reinterpret_cast<char*>(&cb), sizeof(cb));
 
     for (const auto& pv : list) {
-      // $B<j=g$ND9$5(B
+      // 手順の長さ
       uint8_t length = static_cast<uint8_t>(pv.size()) + 1;
       trainingData_->write(reinterpret_cast<char*>(&length), sizeof(length));
 
-      // $B<j=g(B
+      // 手順
       for (size_t i = 0; i < pv.size(); i++) {
         uint16_t m = Move::serialize16(pv.get(i).move);
         trainingData_->write(reinterpret_cast<char*>(&m), sizeof(m));
       }
     }
 
-    // $B=*C<(B
+    // 終端
     uint8_t n = 0;
     trainingData_->write(reinterpret_cast<char*>(&n), sizeof(n));
   }
 }
 
 /**
- * $B71N}%G!<%?$r@8@.$7$^$9!#(B
+ * 訓練データを生成します。
  */
 void BatchLearning::generateTraningData(int wn, const Job& job) {
   Record record;
@@ -205,12 +206,12 @@ void BatchLearning::generateTraningData(int wn, const Job& job) {
     exit(1);
   }
 
-  // $B4}Ih$N@hF,$X(B
+  // 棋譜の先頭へ
   while (record.unmakeMove())
     ;
 
   while (true) {
-    // $B<!$N(B1$B<j$r<hF@(B
+    // 次の1手を取得
     Move move = record.getNextMove();
     if (move.isEmpty()) {
       break;
@@ -218,7 +219,7 @@ void BatchLearning::generateTraningData(int wn, const Job& job) {
 
     generateTraningData(wn, record.getBoard(), move);
 
-    // 1$B<j?J$a$k(B
+    // 1手進める
     if (!record.makeMove()) {
       break;
     }
@@ -226,7 +227,7 @@ void BatchLearning::generateTraningData(int wn, const Job& job) {
 }
 
 /**
- * $B%8%g%V$r=&$$$^$9!#(B
+ * ジョブを拾います。
  */
 void BatchLearning::work(int wn) {
   while (!shutdown_) {
@@ -258,7 +259,7 @@ void BatchLearning::work(int wn) {
 }
 
 /**
- * $B%8%g%V$r:n@.$7$^$9!#(B
+ * ジョブを作成します。
  */
 bool BatchLearning::generateJobs() {
   FileList fileList;
@@ -284,7 +285,7 @@ bool BatchLearning::generateJobs() {
 }
 
 /**
- * $B%o!<%+!<$,%8%g%V$r=*$($k$^$GBT5!$7$^$9!#(B
+ * ワーカーがジョブを終えるまで待機します。
  */
 void BatchLearning::waitForWorkers() {
   while (true) {
@@ -299,7 +300,7 @@ void BatchLearning::waitForWorkers() {
 }
 
 /**
- * $B8{G[%Y%/%H%k$r@8@.$7$^$9!#(B
+ * 勾配ベクトルを生成します。
  */
 bool BatchLearning::generateGradient() {
   std::ifstream trainingData;
@@ -313,7 +314,7 @@ bool BatchLearning::generateGradient() {
   g_.init();
 
   while (true) {
-    // $B%k!<%H6ILL(B
+    // ルート局面
     CompactBoard cb;
     trainingData.read(reinterpret_cast<char*>(&cb), sizeof(cb));
 
@@ -325,7 +326,7 @@ bool BatchLearning::generateGradient() {
     const bool black = root.isBlack();
 
     auto readPV = [&trainingData](Board& board) {
-      // $B<j=g$ND9$5(B
+      // 手順の長さ
       uint8_t length;
       trainingData.read(reinterpret_cast<char*>(&length), sizeof(length));
       if (length == 0) {
@@ -333,7 +334,7 @@ bool BatchLearning::generateGradient() {
       }
       length--;
 
-      // $B<j=g(B
+      // 手順
       bool ok = true;
       for (uint8_t i = 0; i < length; i++) {
         uint16_t m;
@@ -375,9 +376,13 @@ bool BatchLearning::generateGradient() {
 }
 
 /**
- * $B%Q%i%a!<%?$r99?7$7$^$9!#(B
+ * パラメータを更新します。
  */
 void BatchLearning::updateParameters() {
+  LearningTemplates::symmetrize(g_, [](float& a, float& b) {
+      a = b = a + b;
+  });
+
   auto update = [this](FV::ValueType& g, Evaluator::ValueType& e,
       Evaluator::ValueType& max, uint64_t& magnitude) {
     g += norm(e);
@@ -406,15 +411,20 @@ void BatchLearning::updateParameters() {
            max_, magnitude_);
   }
 
-  // $B%O%C%7%eI=$r=i4|2=(B
+  LearningTemplates::symmetrize(eval_, [](Evaluator::ValueType& a, Evaluator::ValueType& b) {
+      a = b;
+  });
+
+  // ハッシュ表を初期化
   eval_.clearCache();
-  for (uint32_t wn = 0; wn < nt_; wn++) {
-    searchers_[wn]->clearTT();
-  }
+  // transposition table は SearchConfig::learning で無効にしている
+  //for (uint32_t wn = 0; wn < nt_; wn++) {
+  //  searchers_[wn]->clearTT();
+  //}
 }
 
 /**
- * $B%P%C%A3X=,$NH?I|=hM}$r<B9T$7$^$9!#(B
+ * バッチ学習の反復処理を実行します。
  */
 bool BatchLearning::iterate() {
   const int iterateCount = config_.getInt(LCONF_ITERATION);
@@ -461,10 +471,10 @@ bool BatchLearning::iterate() {
         << "\tmagnitude=" << magnitude_;
     }
 
-    // $BJ]B8(B
+    // 保存
     eval_.writeFile();
 
-    // $B%-%c%C%7%e%/%j%"(B
+    // キャッシュクリア
     eval_.clearCache();
   }
 
@@ -472,20 +482,20 @@ bool BatchLearning::iterate() {
 }
 
 /**
- * $B3X=,$r<B9T$7$^$9!#(B
+ * 学習を実行します。
  */
 bool BatchLearning::run() {
   Loggers::message << "begin learning";
 
   timer_.set();
 
-  // $B=i4|2=(B
+  // 初期化
   eval_.init();
 
-  // $B3X=,%9%l%C%I?t(B
+  // 学習スレッド数
   nt_ = config_.getInt(LCONF_THREADS);
 
-  // Searcher$B@8@.(B
+  // Searcher生成
   searchers_.clear();
   for (uint32_t wn = 0; wn < nt_; wn++) {
     searchers_.emplace_back(new Searcher(eval_));
@@ -504,7 +514,7 @@ bool BatchLearning::run() {
 
   activeCount_ = 0;
 
-  // $B%o!<%+!<%9%l%C%I@8@.(B
+  // ワーカースレッド生成
   shutdown_ = false;
   threads_.clear();
   for (uint32_t wn = 0; wn < nt_; wn++) {
@@ -513,7 +523,7 @@ bool BatchLearning::run() {
 
   bool ok = iterate();
 
-  // $B%o!<%+!<%9%l%C%IDd;_(B
+  // ワーカースレッド停止
   shutdown_ = true;
   for (uint32_t wn = 0; wn < nt_; wn++) {
     threads_[wn].join();
