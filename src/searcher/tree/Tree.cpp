@@ -58,7 +58,7 @@ void Tree::release(const std::vector<Move>& record) {
   }
 
 #ifndef NDEBUG
-  // SHEK $B$N%F!<%V%k$,85$KLa$C$F$$$k$+%A%'%C%/$9$k!#(B
+  // SHEK のテーブルが元に戻っているかチェックする。
   if (!shekTable_.isAllCleared()) {
     Loggers::warning << "SHEK table has some pending record.";
   }

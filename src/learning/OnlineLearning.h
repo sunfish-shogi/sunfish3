@@ -82,14 +82,14 @@ private:
   bool miniBatch();
 
   /**
-   * $B4}Ih%U%!%$%k$rFI$_9~$s$G3X=,$7$^$9!#(B
+   * 棋譜ファイルを読み込んで学習します。
    */
   bool readCsa(size_t count, size_t total, const char* path);
 
 public:
 
   /**
-   * $B%3%s%9%H%i%/%?(B
+   * コンストラクタ
    */
   OnlineLearning(const Config& config)
     : config_(config),
@@ -97,7 +97,7 @@ public:
   }
 
   /**
-   * $B5!3#3X=,$r<B9T$7$^$9!#(B
+   * 機械学習を実行します。
    */
   bool run();
 

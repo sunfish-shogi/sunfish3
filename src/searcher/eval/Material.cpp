@@ -10,7 +10,7 @@ namespace sunfish {
 namespace material {
 
 /**
- * $B6p3d$r<hF@$7$^$9!#(B
+ * 駒割を取得します。
  */
 Value piece(const Piece& piece) {
   switch(piece.index()) {
@@ -48,7 +48,7 @@ Value piece(const Piece& piece) {
 }
 
 /**
- * $B6p$r<h$C$?;~$NJQ2=CM$r<hF@$7$^$9!#(B
+ * 駒を取った時の変化値を取得します。
  */
 Value pieceExchange(const Piece& piece) {
   switch(piece.index()) {
@@ -86,7 +86,7 @@ Value pieceExchange(const Piece& piece) {
 }
 
 /**
- * $B6p$,@.$C$?;~$NJQ2=CM$r<hF@$7$^$9!#(B
+ * 駒が成った時の変化値を取得します。
  */
 Value piecePromote(const Piece& piece) {
   switch(piece.index()) {

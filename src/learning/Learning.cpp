@@ -24,7 +24,7 @@ bool Learning::run() {
   config.addDef(LCONF_THREADS, "1");
   config.addDef(LCONF_ITERATION, "10");
 
-  // $B@_DjFI$_9~$_(B
+  // 設定読み込み
   if (!config.read(CONFPATH)) {
     return false;
   }
