@@ -70,6 +70,7 @@ bool BatchLearning::openTrainingData() {
 }
 
 void BatchLearning::closeTrainingData() {
+  Loggers::message << "training_data_size=" << trainingData_->tellp();
   trainingData_->close();
 }
 
@@ -444,8 +445,8 @@ bool BatchLearning::iterate() {
 
     waitForWorkers();
 
-    closeTrainingData();
     closeProgress();
+    closeTrainingData();
 
     updateCount = std::max(updateCount / 2, 16);
 
