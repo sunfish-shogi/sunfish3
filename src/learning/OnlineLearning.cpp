@@ -26,9 +26,15 @@
 #define NORM                    1.0e-6f
 #define GRADIENT                4.0f
 
-namespace sunfish {
-
 namespace {
+
+using namespace sunfish;
+
+void setSearcherDepth(Searcher& searcher, int depth) {
+  auto searchConfig = searcher.getConfig();
+  searchConfig.maxDepth = depth;
+  searcher.setConfig(searchConfig);
+}
 
 Board getPVLeaf(const Board& root, const Move& rmove, const PV& pv) {
   Board board = root;
@@ -71,6 +77,8 @@ inline float norm(float x) {
 
 } // namespace
 
+namespace sunfish {
+
 /**
  * 勾配を計算します。
  */
@@ -82,6 +90,7 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
   Move tmpMove;
 
   bool black = board.isBlack();
+  int depth = config_.getInt(LCONF_DEPTH);
 
   // 合法手生成
   Moves moves;
@@ -98,8 +107,14 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
 
   // 棋譜の手
   {
+    int newDepth = depth;
+    if (board.isCheck(move0)) {
+      newDepth += 1;
+    }
+
     // 探索
     board.makeMove(move0);
+    setSearcherDepth(*searchers_[wn], newDepth);
     searchers_[wn]->idsearch(board, tmpMove);
     board.unmakeMove(move0);
 
@@ -123,13 +138,23 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
   int count = 0;
   float gsum = 0.0f;
   for (auto& move : moves) {
+    if (move == move0) {
+      continue;
+    }
+
     if (count >= NUMBER_OF_SIBLING_NODES) {
       break;
+    }
+
+    int newDepth = depth;
+    if (board.isCheck(move)) {
+      newDepth += 1;
     }
 
     // 探索
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
+    setSearcherDepth(*searchers_[wn], newDepth);
     searchers_[wn]->idsearch(board, tmpMove, -beta, -alpha);
     board.unmakeMove(move);
 

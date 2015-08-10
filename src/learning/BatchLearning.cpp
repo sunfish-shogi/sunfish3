@@ -20,9 +20,15 @@
 #define SEARCH_WINDOW 256
 #define NORM          1.0e-2f
 
-namespace sunfish {
-
 namespace {
+
+using namespace sunfish;
+
+void setSearcherDepth(Searcher& searcher, int depth) {
+  auto searchConfig = searcher.getConfig();
+  searchConfig.maxDepth = depth;
+  searcher.setConfig(searchConfig);
+}
 
 inline float gain() {
   return 7.0f / SEARCH_WINDOW;
@@ -56,6 +62,8 @@ inline float norm(float x) {
 }
 
 } // namespace
+
+namespace sunfish {
 
 bool BatchLearning::openTrainingData() {
   trainingData_.reset(new std::ofstream);
@@ -105,6 +113,8 @@ void BatchLearning::closeProgress() {
  * 訓練データを生成します。
  */
 void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
+  int depth = config_.getInt(LCONF_DEPTH);
+
   // 合法手生成
   Moves moves;
   MoveGenerator::generate(board, moves);
@@ -121,8 +131,14 @@ void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
   searchers_[wn]->clearHistory();
 
   {
+    int newDepth = depth;
+    if (board.isCheck(move0)) {
+      newDepth += 1;
+    }
+
     // 探索
     board.makeMove(move0);
+    setSearcherDepth(*searchers_[wn], newDepth);
     searchers_[wn]->idsearch(board, tmpMove);
     board.unmakeMove(move0);
 
@@ -147,9 +163,19 @@ void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
   Value beta = val0 + SEARCH_WINDOW;
 
   for (auto& move : moves) {
+    if (move == move0) {
+      continue;
+    }
+
+    int newDepth = depth;
+    if (board.isCheck(move)) {
+      newDepth += 1;
+    }
+
     // 探索
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
+    setSearcherDepth(*searchers_[wn], newDepth);
     searchers_[wn]->idsearch(board, tmpMove, -beta, -alpha);
     board.unmakeMove(move);
 
@@ -502,7 +528,6 @@ bool BatchLearning::run() {
     searchers_.emplace_back(new Searcher(eval_));
 
     auto searchConfig = searchers_.back()->getConfig();
-    searchConfig.maxDepth = config_.getInt(LCONF_DEPTH);
     searchConfig.workerSize = 1;
     searchConfig.treeSize = Searcher::standardTreeSize(searchConfig.workerSize);
     searchConfig.enableLimit = false;
