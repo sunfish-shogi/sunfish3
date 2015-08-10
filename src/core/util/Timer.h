@@ -30,9 +30,8 @@ public:
   float get() const {
     auto now = std::chrono::system_clock::now();
     auto elapsed = now - base_;
-    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(elapsed);
-    auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed);
-    return seconds.count() + nanoseconds.count() * 1.0e-9f;
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
+    return (milliseconds.count() + static_cast<std::chrono::milliseconds::rep>(1)) * 1.0e-3f;
   }
 
 };
