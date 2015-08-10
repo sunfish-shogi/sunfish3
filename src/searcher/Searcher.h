@@ -188,7 +188,7 @@ private:
   /**
    * 前処理
    */
-  void before(const Board& initialBoard);
+  void before(const Board& initialBoard, bool fastStart);
 
   /**
    * 後処理
@@ -282,13 +282,14 @@ private:
   /**
    * search on root node
    */
-  Value searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move& best, bool forceFullWindow = false);
+  Value searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move& best,
+      bool breakOnFailLow = false, bool forceFullWindow = false);
 
   /**
    * aspiration search
    * @return {負けたか中断された場合にfalseを返します。}
    */
-  bool searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta, Value* pval = nullptr);
+  bool searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta, Value& valueRef);
 
   void showPV(int depth, const PV& pv, const Value& value);
 
@@ -381,13 +382,17 @@ public:
    * 指定した局面に対して探索を実行します。
    * @return {負けたいか中断された場合にfalseを返します。}
    */
-  bool search(const Board& initialBoard, Move& best, Value alpha = -Value::Mate, Value beta = Value::Mate);
+  bool search(const Board& initialBoard, Move& best,
+      Value alpha = -Value::Mate, Value beta = Value::Mate,
+      bool fastStart = false);
 
   /**
    * 指定した局面に対して反復深化探索を実行します。
    * @return {負けたか深さ1で中断された場合にfalseを返します。}
    */
-  bool idsearch(const Board& initialBoard, Move& best, Value alpha = -Value::Mate, Value beta = Value::Mate);
+  bool idsearch(const Board& initialBoard, Move& best,
+      Value alpha = -Value::Mate, Value beta = Value::Mate,
+      bool fastStart = false);
 
   /**
    * Evaluator を取得します。

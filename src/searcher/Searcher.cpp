@@ -314,7 +314,7 @@ void Searcher::mergeInfo() {
 /**
  * 前処理
  */
-void Searcher::before(const Board& initialBoard) {
+void Searcher::before(const Board& initialBoard, bool fastStart) {
 
 #if ENABLE_MOVE_COUNT_EXPT
   expt::move_count_based_pruning.clear();
@@ -369,6 +369,15 @@ void Searcher::before(const Board& initialBoard) {
   // timer 初期化
   timer_.set();
 
+  forceInterrupt_.store(false);
+  isRunning_.store(true);
+
+  timeManager_.init();
+
+  if (fastStart) {
+    return;
+  }
+
   // transposition table
   tt_.evolve(); // 世代更新
 
@@ -384,11 +393,6 @@ void Searcher::before(const Board& initialBoard) {
 
   // gains
   gains_.clear();
-
-  forceInterrupt_.store(false);
-  isRunning_.store(true);
-
-  timeManager_.init();
 }
 
 /**
@@ -2215,7 +2219,7 @@ void Searcher::shutdownSiblings(Tree& parent) {
  * search on root node
  */
 Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move& best,
-    bool forceFullWindow /* = false */) {
+    bool breakOnFailLow /*= false*/, bool forceFullWindow /*= false*/) {
   const auto& board = tree.getBoard();
   bool black = board.isBlack();
   bool isFirst = true;
@@ -2287,7 +2291,7 @@ Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move&
       return alpha;
     }
 
-    if (isFirst && currval <= alpha && currval > -Value::Mate) {
+    if (breakOnFailLow && isFirst && currval <= alpha && currval > -Value::Mate) {
       return currval;
     }
 
@@ -2311,6 +2315,7 @@ Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move&
       if (depth >= Depth1Ply * ITERATE_INFO_THRESHOLD || currval >= Value::Mate) {
         showPV(depth / Depth1Ply, tree.getPV(), black ? currval : -currval);
       }
+      info_.lastDepth = depth / Depth1Ply;
 
       // beta-cut or update best move
       if (alpha >= beta) {
@@ -2328,20 +2333,18 @@ Value Searcher::searchRoot(Tree& tree, int depth, Value alpha, Value beta, Move&
  * aspiration search
  * @return {負けたか中断された場合にfalseを返します。}
  */
-bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta, Value* pval /* = nullptr */) {
+bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta, Value& valueRef) {
   auto& tree0 = trees_[0];
 
-  bool hasPrevVal = pval != nullptr && (*pval != -Value::Inf);
-  Value baseVal = hasPrevVal ? *pval : Value::ave(baseAlpha, baseBeta);
+  Value baseVal = valueRef;
   baseVal = Value::max(baseVal, baseAlpha);
   baseVal = Value::min(baseVal, baseBeta);
 
   CONSTEXPR_CONST int wmax = 3;
+  int lower = 0;
+  int upper = 0;
   const Value alphas[wmax] = { baseVal-198, baseVal-793, -Value::Mate };
   const Value betas[wmax] = { baseVal+198, baseVal+793, Value::Mate };
-
-  int lower = hasPrevVal ? 0 : wmax - 1;
-  int upper = hasPrevVal ? 0 : wmax - 1;
 
   Value value = alphas[lower];
 
@@ -2352,7 +2355,7 @@ bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta,
     const Value alpha = Value::max(alphas[lower], baseAlpha);
     const Value beta = Value::min(betas[upper], baseBeta);
 
-    value = searchRoot(tree0, depth, alpha, beta, best);
+    value = searchRoot(tree0, depth, alpha, beta, best, true);
 
     // 中断判定
     if (isInterrupted(tree0)) {
@@ -2393,14 +2396,13 @@ bool Searcher::searchAsp(int depth, Move& best, Value baseAlpha, Value baseBeta,
       value >= Value::Mate || value <= -Value::Mate) {
     showEndOfIterate(depth / Depth1Ply);
   }
+  info_.lastDepth = depth / Depth1Ply;
 
   tree0.setSortValues(rootValues_);
   tree0.sortAll();
 
   info_.eval = value;
-  if (pval != nullptr) {
-    *pval = value;
-  }
+  valueRef = value;
 
   if (value <= -Value::Mate) {
     return false;
@@ -2431,7 +2433,6 @@ void Searcher::showPV(int depth, const PV& pv, const Value& value) {
     oss << "    ";
   } else {
     oss << std::setw(2) << depth << ": ";
-    info_.lastDepth = depth;
   }
   oss << std::setw(10) << node << ": ";
   oss << pv.toString() << ": ";
@@ -2454,7 +2455,6 @@ void Searcher::showEndOfIterate(int depth) {
     oss << "    ";
   } else {
     oss << std::setw(2) << depth << ": ";
-    info_.lastDepth = depth;
   }
   oss << std::setw(10) << node;
   oss << ": " << seconds << "sec";
@@ -2489,27 +2489,25 @@ void Searcher::generateMovesOnRoot() {
  * 指定した局面に対して探索を実行します。
  * @return {負けたか中断された場合にfalseを返します。}
  */
-bool Searcher::search(const Board& initialBoard, Move& best, Value alpha, Value beta) {
+bool Searcher::search(const Board& initialBoard, Move& best,
+                      Value alpha, Value beta, bool fastStart) {
   // 前処理
-  before(initialBoard);
+  before(initialBoard, fastStart);
 
   auto& tree0 = trees_[0];
-
   int depth = config_.maxDepth;
 
   generateMovesOnRoot();
 
-  Value value = searchRoot(tree0, Depth1Ply, -Value::Inf, Value::Inf, best, true);
-  tree0.setSortValues(rootValues_);
-  tree0.sortAll();
+  Value value = searchRoot(tree0, depth * Depth1Ply + Depth1Ply / 2, alpha, beta, best);
 
-  bool result = searchAsp(depth * Depth1Ply + Depth1Ply / 2, best, alpha, beta, &value);
+  info_.lastDepth = depth;
+  info_.eval = value;
 
-  if (value >= beta) {
-    result = true;
-  }
+  bool result = value > alpha;
 
-  if (value <= alpha) {
+  // 中断判定
+  if (isInterrupted(tree0)) {
     result = false;
   }
 
@@ -2530,12 +2528,12 @@ bool Searcher::idsearch(Move& best, Value alpha, Value beta) {
 
   generateMovesOnRoot();
 
-  Value value = searchRoot(tree0, Depth1Ply, -Value::Inf, Value::Inf, best, true);
+  Value value = searchRoot(tree0, Depth1Ply, -Value::Inf, Value::Inf, best, false, true);
   tree0.setSortValues(rootValues_);
   tree0.sortAll();
 
   for (int depth = 1; depth <= config_.maxDepth; depth++) {
-    bool cont = searchAsp(depth * Depth1Ply + Depth1Ply / 2, best, alpha, beta, &value);
+    bool cont = searchAsp(depth * Depth1Ply + Depth1Ply / 2, best, alpha, beta, value);
 
 #if DEBUG_ROOT_MOVES
     std::ostringstream oss;
@@ -2576,10 +2574,11 @@ bool Searcher::idsearch(Move& best, Value alpha, Value beta) {
  * 指定した局面に対して反復深化探索を実行します。
  * @return {負けたか深さ1で中断された場合にfalseを返します。}
  */
-bool Searcher::idsearch(const Board& initialBoard, Move& best, Value alpha, Value beta) {
+bool Searcher::idsearch(const Board& initialBoard, Move& best,
+                        Value alpha, Value beta, bool fastStart) {
 
   // 前処理
-  before(initialBoard);
+  before(initialBoard, fastStart);
 
   bool result = idsearch(best, alpha, beta);
 

@@ -115,7 +115,7 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
     // 探索
     board.makeMove(move0);
     setSearcherDepth(*searchers_[wn], newDepth);
-    searchers_[wn]->idsearch(board, tmpMove);
+    searchers_[wn]->search(board, tmpMove);
     board.unmakeMove(move0);
 
     // PV と評価値
@@ -155,7 +155,7 @@ void OnlineLearning::genGradient(int wn, const Job& job) {
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
     setSearcherDepth(*searchers_[wn], newDepth);
-    searchers_[wn]->idsearch(board, tmpMove, -beta, -alpha);
+    searchers_[wn]->search(board, tmpMove, -beta, -alpha, true);
     board.unmakeMove(move);
 
     count++;
