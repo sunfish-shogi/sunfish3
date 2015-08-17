@@ -5,6 +5,12 @@ Sunfish is computer Shogi program.
 
 This program participated in World Computer Shogi Championship(WCSC) 2015.
 
+Requirement
+-----------
+
+CMake
+C++ Compiler(GCC4.9/Clang/MSVC2013)
+
 Build
 -----
 
@@ -18,6 +24,12 @@ make release -j
 
 # clean
 make clean
+
+# unit test
+make test
+
+# profiling
+make profile
 ```
 
 ### Xcode
@@ -50,9 +62,6 @@ Usage
 
 # network (CSA protocol)
 ./sunfish -n
-
-# unit test
-./sunfish --test
 ```
 
 ### Import fv.bin
