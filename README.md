@@ -8,8 +8,8 @@ This program participated in World Computer Shogi Championship(WCSC) 2015.
 Requirement
 -----------
 
-CMake
-C++ Compiler(GCC4.9/Clang/MSVC2013)
+- CMake
+- C++ Compiler(GCC4.9/Clang/MSVC2013)
 
 Build
 -----
