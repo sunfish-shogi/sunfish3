@@ -40,6 +40,8 @@ private:
 
   Evaluator eval_;
 
+  FVM gm_;
+
   FV g_;
 
   std::queue<Job> jobQueue_;
@@ -88,6 +90,7 @@ private:
   void waitForWorkers();
   bool generateGradient();
   void updateParameters();
+  void updateMaterial();
   bool iterate();
 
 public:

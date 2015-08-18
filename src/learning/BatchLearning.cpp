@@ -12,7 +12,9 @@
 #include "core/move/MoveGenerator.h"
 #include "core/record/CsaReader.h"
 #include "core/util/FileList.h"
+#include "searcher/eval/Material.h"
 #include <list>
+#include <algorithm>
 #include <cstdlib>
 
 #define TRAINING_DAT  "training.dat"
@@ -338,6 +340,7 @@ bool BatchLearning::generateGradient() {
     return false;
   }
 
+  gm_.init();
   g_.init();
 
   while (true) {
@@ -393,6 +396,8 @@ bool BatchLearning::generateGradient() {
 
       float g = gradient(diff);
       g = black ? g : -g;
+      gm_.extract(board0, g);
+      gm_.extract(board, -g);
       g_.extract<float, true>(board0, g);
       g_.extract<float, true>(board, -g);
     }
@@ -426,6 +431,8 @@ void BatchLearning::updateParameters() {
   max_ = 0;
   magnitude_ = 0;
 
+  updateMaterial();
+
   for (int i = 0; i < KPP_ALL; i++) {
     update(((FV::ValueType*)g_.t_->kpp)[i],
            ((Evaluator::ValueType*)eval_.t_->kpp)[i],
@@ -448,6 +455,61 @@ void BatchLearning::updateParameters() {
   //for (uint32_t wn = 0; wn < nt_; wn++) {
   //  searchers_[wn]->clearTT();
   //}
+}
+
+/**
+ * 駒割りを更新します。
+ */
+void BatchLearning::updateMaterial() {
+  float* p[13];
+
+  p[0]  = &gm_.pawn;
+  p[1]  = &gm_.lance;
+  p[2]  = &gm_.knight;
+  p[3]  = &gm_.silver;
+  p[4]  = &gm_.gold;
+  p[5]  = &gm_.bishop;
+  p[6]  = &gm_.rook;
+  p[7]  = &gm_.tokin;
+  p[8]  = &gm_.pro_lance;
+  p[9]  = &gm_.pro_knight;
+  p[10] = &gm_.pro_silver;
+  p[11] = &gm_.horse;
+  p[12] = &gm_.dragon;
+
+  // 昇順でソート
+  std::sort(p, p + 13, [](float* a, float* b) {
+    return (*a) < (*b);
+  });
+
+  // シャッフル
+  rand_.shuffle(p, p + 6);
+  rand_.shuffle(p + 6, p + 13);
+
+  // 更新値を決定
+  *p[0]  = *p[1]  = -2.0f;
+  *p[2]  = *p[3]  = *p[4]  = -1.0f;
+  *p[5]  = *p[6]  = *p[7]  = 0.0f;
+  *p[8]  = *p[9]  = *p[10] = 1.0f;
+  *p[11] = *p[12] = 2.0f;
+
+  // 値を更新
+  material::Pawn       += gm_.pawn;
+  material::Lance      += gm_.lance;
+  material::Knight     += gm_.knight;
+  material::Silver     += gm_.silver;
+  material::Gold       += gm_.gold;
+  material::Bishop     += gm_.bishop;
+  material::Rook       += gm_.rook;
+  material::Tokin      += gm_.tokin;
+  material::Pro_lance  += gm_.pro_lance;
+  material::Pro_knight += gm_.pro_knight;
+  material::Pro_silver += gm_.pro_silver;
+  material::Horse      += gm_.horse;
+  material::Dragon     += gm_.dragon;
+
+  // 交換値を更新
+  material::updateEx();
 }
 
 /**
@@ -499,6 +561,7 @@ bool BatchLearning::iterate() {
     }
 
     // 保存
+    material::writeFile();
     eval_.writeFile();
 
     // キャッシュクリア
