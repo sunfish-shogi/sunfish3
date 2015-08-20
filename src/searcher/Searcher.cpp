@@ -439,17 +439,18 @@ void Searcher::after() {
     tree.release(record_);
   }
 
+  // 探索情報集計
+  mergeInfo();
+
   // 探索情報収集
   auto& tree0 = trees_[0];
   info_.time = timer_.get();
   info_.nps = (info_.node + info_.qnode) / info_.time;
   info_.move = tree0.getPV().get(0).move;
   info_.pv.copy(tree0.getPV());
-  mergeInfo();
 
   isRunning_.store(false);
   forceInterrupt_.store(false);
-
 }
 
 std::string Searcher::getInfoString() const {
@@ -2424,6 +2425,7 @@ void Searcher::showPV(int depth, const PV& pv, const Value& value) {
     return;
   }
 
+  // 探索情報集計
   mergeInfo();
 
   uint64_t node = info_.node + info_.qnode;
@@ -2445,6 +2447,7 @@ void Searcher::showEndOfIterate(int depth) {
     return;
   }
 
+  // 探索情報集計
   mergeInfo();
 
   uint64_t node = info_.node + info_.qnode;
