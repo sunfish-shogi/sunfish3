@@ -36,6 +36,8 @@
 #define ENABLE_PROBCUT_EXPT           0
 #define ENABLE_MATE_HIST_EXPT         0
 
+#define ENABLE_ROOT_MOVES__SHUFFLE    1
+
 // debugging flags
 #define DEBUG_ROOT_MOVES              0
 #define DEBUG_TREE                    0
@@ -2484,8 +2486,10 @@ void Searcher::generateMovesOnRoot() {
     }
   }
 
+#if ENABLE_ROOT_MOVES__SHUFFLE
   // シャッフル
   random_.shuffle(moves.begin(), moves.end());
+#endif
 }
 
 /**
