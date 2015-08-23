@@ -17,7 +17,6 @@ namespace sunfish {
 
 void MoveGeneratorExpr::testSpeed() {
   Record record;
-  MoveGenerator gen;
   Moves moves;
 
   std::string csa = "\
@@ -42,7 +41,7 @@ P-00FU00FU00FU00FU00FU00KE00GI00KI\n\
   Loggers::debug << record.getBoard().toString();
 
   moves.clear();
-  gen.generate(record.getBoard(), moves);
+  MoveGenerator::generate(record.getBoard(), moves);
   for (auto ite = moves.begin(); ite != moves.end(); ite++) {
     oss << (*ite).toString() << ", ";
   }
@@ -55,7 +54,7 @@ P-00FU00FU00FU00FU00FU00KE00GI00KI\n\
   int count = 10 * 1000 * 1000;
   for (int i = 0; i < count; i++) {
     moves.clear();
-    gen.generate(record.getBoard(), moves);
+    MoveGenerator::generate(record.getBoard(), moves);
   }
 
   float elapsed = timer.get();
