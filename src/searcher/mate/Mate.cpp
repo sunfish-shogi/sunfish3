@@ -11,7 +11,7 @@
 namespace sunfish {
 
 template<bool black, bool recursive>
-bool Mate::isProtected_(const Board& board, const Square& to, const Bitboard& occ, const Bitboard& occNoAttacker, const Square& king) {
+bool Mate::isProtected_(const Board& board, const Square to, const Bitboard& occ, const Bitboard& occNoAttacker, const Square king) {
   // pawn
   Bitboard bb = (black ? board.getBPawn() : board.getWPawn()) & occNoAttacker;
   if (bb.check(black ? to.safetyDown() : to.safetyUp())) {
@@ -88,8 +88,8 @@ bool Mate::isProtected_(const Board& board, const Square& to, const Bitboard& oc
 
   return false;
 }
-template bool Mate::isProtected_<true>(const Board&, const Square&, const Bitboard&, const Bitboard&, const Square&);
-template bool Mate::isProtected_<false>(const Board&, const Square&, const Bitboard&, const Bitboard&, const Square&);
+template bool Mate::isProtected_<true>(const Board&, const Square, const Bitboard&, const Bitboard&, const Square);
+template bool Mate::isProtected_<false>(const Board&, const Square, const Bitboard&, const Bitboard&, const Square);
 
 template<bool black>
 bool Mate::isProtected_(const Board& board, Bitboard& bb, const Bitboard& occ, const Bitboard& occNoAttacker) {
@@ -126,7 +126,7 @@ template bool Mate::isProtected_<true>(const Board&, Bitboard&, const Bitboard&,
 template bool Mate::isProtected_<false>(const Board&, Bitboard&, const Bitboard&, const Bitboard&);
 
 template<bool black>
-bool Mate::isMate_(const Board& board, const Move& move) {
+bool Mate::isMate_(const Board& board, const Move move) {
 
   bool isHand = move.isHand();
   // 王手放置を除外
@@ -232,8 +232,8 @@ bool Mate::isMate_(const Board& board, const Move& move) {
 
   return true;
 }
-template bool Mate::isMate_<true>(const Board&, const Move&);
-template bool Mate::isMate_<false>(const Board&, const Move&);
+template bool Mate::isMate_<true>(const Board&, const Move);
+template bool Mate::isMate_<false>(const Board&, const Move);
 
 template<bool black>
 bool Mate::mate1Ply_(const Board& board) {
@@ -344,9 +344,9 @@ bool Mate::mate1Ply_(const Board& board) {
       Bitboard bb = black ? board.getBPawn() : board.getWPawn();
       bb &= black ? AttackableTables::bpawn(king) : AttackableTables::wpawn(king);
       if (black) {
-        bb.cheapRightShift(1);
+        bb.rightShift64(1);
       } else {
-        bb.cheapLeftShift(1);
+        bb.leftShift64(1);
       }
       bb &= bbtGold | Bitboard(to);
       bb &= movable;
@@ -526,7 +526,7 @@ template bool Mate::mate1Ply_<true>(const Board&);
 template bool Mate::mate1Ply_<false>(const Board&);
 
 inline
-bool Mate::isIneffectiveEvasion(const Board& board, const Move& move, const Move& check, const Bitboard& occ) {
+bool Mate::isIneffectiveEvasion(const Board& board, const Move move, const Move check, const Bitboard& occ) {
   assert(board.getBoardPiece(move.to()).isEmpty());
 
   if (move.piece() == Piece::King) {
@@ -548,7 +548,7 @@ bool Mate::isIneffectiveEvasion(const Board& board, const Move& move, const Move
   return true;
 }
 
-bool Mate::evade(Tree& tree, const Move& check) {
+bool Mate::evade(Tree& tree, const Move check) {
   const Board& board = tree.getBoard();
   Moves& moves = tree.getMoves();
   Bitboard occ = board.getBOccupy() | board.getWOccupy();

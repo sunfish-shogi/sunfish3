@@ -31,9 +31,9 @@ void MoveGenerator::generateOnBoard_(const Board& board, Moves& moves, const Bit
   // pawn
   Bitboard bb = black ? board.getBPawn() : board.getWPawn();
   if (black) {
-    bb.cheapRightShift(1);
+    bb.rightShift64(1);
   } else {
-    bb.cheapLeftShift(1);
+    bb.leftShift64(1);
   }
   if (tactical) {
     bb &= toMask | promotable;
@@ -799,9 +799,9 @@ void MoveGenerator::generateCheck_(const Board& board, Moves& moves) {
       Bitboard bb = black ? board.getBPawn() : board.getWPawn();
       bb &= black ? AttackableTables::bpawn(king) : AttackableTables::wpawn(king);
       if (black) {
-        bb.cheapRightShift(1);
+        bb.rightShift64(1);
       } else {
-        bb.cheapLeftShift(1);
+        bb.leftShift64(1);
       }
       bb &= bbtGold | Bitboard(to);
       bb &= movable;

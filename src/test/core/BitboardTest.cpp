@@ -58,15 +58,6 @@ TEST(BitboardTest, test) {
   }
 
   {
-    Bitboard bb;
-    bb.init();
-    ASSERT_EQ(Bitboard(S97), bb.copyWithSet(S97));
-    ASSERT_EQ(Bitboard(S77), bb.copyWithSet(S77));
-    ASSERT_EQ(Bitboard(S48), bb.copyWithSet(S48));
-    ASSERT_EQ(Bitboard(S12), bb.copyWithSet(S12));
-  }
-
-  {
     ASSERT_EQ(Bitboard::file(1).toString2D(),
       "000000001\n"
       "000000001\n"
@@ -356,18 +347,44 @@ TEST(BitboardTest, test) {
 TEST(BitboardTest, testShift) {
   ASSERT_EQ(Bitboard(S54), Bitboard(S55).up());
   ASSERT_EQ(Bitboard(S56), Bitboard(S55).down());
-  ASSERT_EQ(Bitboard(S65), Bitboard(S55).left());
-  ASSERT_EQ(Bitboard(S45), Bitboard(S55).right());
-  ASSERT_EQ(Bitboard(S45), Bitboard(S35).left());
 
   ASSERT_EQ(Bitboard(S53), Bitboard(S55).up(2));
   ASSERT_EQ(Bitboard(S57), Bitboard(S55).down(2));
-  ASSERT_EQ(Bitboard(S75), Bitboard(S55).left(2));
-  ASSERT_EQ(Bitboard(S35), Bitboard(S55).right(2));
-  ASSERT_EQ(Bitboard(S55), Bitboard(S35).left(2));
+}
 
-  ASSERT_EQ(Bitboard(S25), Bitboard(S85).right(6));
-  ASSERT_EQ(Bitboard(S85), Bitboard(S25).left(6));
+TEST(BitboardTest, testCount) {
+  {
+    Bitboard bb;
+    bb.init();
+    ASSERT_EQ(0, bb.count());
+  }
+
+  {
+    Bitboard bb;
+    bb.init();
+    bb.set(S33);
+    bb.set(S48);
+    bb.set(S82);
+    bb.set(S99);
+    ASSERT_EQ(4, bb.count());
+  }
+
+  {
+    Bitboard bb;
+    bb.init();
+    bb.set(S15);
+    bb.set(S24);
+    bb.set(S28);
+    bb.set(S49);
+    bb.set(S57);
+    bb.set(S61);
+    bb.set(S69);
+    bb.set(S74);
+    bb.set(S85);
+    bb.set(S94);
+    bb.set(S97);
+    ASSERT_EQ(11, bb.count());
+  }
 }
 
 TEST(BitboardTest, testIterate) {
@@ -375,6 +392,8 @@ TEST(BitboardTest, testIterate) {
   Square sq;
   bb.init();
   bb.set(S95);
+  bb.set(S62);
+  bb.set(S55);
   bb.set(S41);
   bb.set(S48);
   bb.set(S27);
@@ -383,6 +402,16 @@ TEST(BitboardTest, testIterate) {
   ASSERT_EQ(S27, bb.getLast());
   sq = bb.pickFirst();
   ASSERT_EQ(S95, sq.index());
+
+  ASSERT_EQ(S62, bb.getFirst());
+  ASSERT_EQ(S27, bb.getLast());
+  sq = bb.pickFirst();
+  ASSERT_EQ(S62, sq.index());
+
+  ASSERT_EQ(S55, bb.getFirst());
+  ASSERT_EQ(S27, bb.getLast());
+  sq = bb.pickFirst();
+  ASSERT_EQ(S55, sq.index());
 
   ASSERT_EQ(S41, bb.getFirst());
   ASSERT_EQ(S27, bb.getLast());

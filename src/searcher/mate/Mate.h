@@ -71,20 +71,20 @@ private:
   Mate();
 
   template<bool black, bool recursive = true>
-  static bool isProtected_(const Board& board, const Square& to, const Bitboard& occ, const Bitboard& occNoAttacker, const Square& king);
+  static bool isProtected_(const Board& board, const Square to, const Bitboard& occ, const Bitboard& occNoAttacker, const Square king);
 
   template<bool black>
   static bool isProtected_(const Board& board, Bitboard& bb, const Bitboard& occ, const Bitboard& occNoAttacker);
 
   template<bool black>
-  static bool isMate_(const Board& board, const Move& move);
+  static bool isMate_(const Board& board, const Move move);
 
   template<bool black>
   static bool mate1Ply_(const Board& board);
 
-  static bool isIneffectiveEvasion(const Board& board, const Move& move, const Move& check, const Bitboard& occ);
+  static bool isIneffectiveEvasion(const Board& board, const Move move, const Move check, const Bitboard& occ);
 
-  static bool evade(Tree& tree, const Move& check);
+  static bool evade(Tree& tree, const Move check);
 
 public:
 
