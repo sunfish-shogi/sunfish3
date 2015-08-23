@@ -12,7 +12,7 @@
 #include <cstdint>
 
 #if __SSE2__
-# define USE_SSE2 1
+# define USE_SSE2 0
 #endif
 
 #if USE_SSE2
