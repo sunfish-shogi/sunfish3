@@ -27,6 +27,8 @@ public:
 
 private:
 
+  MoveGenerator();
+
   template <bool black, GenType genType>
   static void generateOnBoard_(const Board& board, Moves& moves, const Bitboard* costumToMask);
   template <bool black>
@@ -41,10 +43,6 @@ private:
   static void generateCheck_(const Board& board, Moves& moves);
 
 public:
-
-  MoveGenerator() {}
-  MoveGenerator(const MoveGenerator&) = delete;
-  MoveGenerator(MoveGenerator&&) = delete;
 
   /**
    * 全ての合法手を生成します。
