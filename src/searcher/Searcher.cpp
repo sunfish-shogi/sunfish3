@@ -1336,6 +1336,17 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
     return qsearch(tree, black, 0, alpha, beta);
   }
 
+  // hash
+  uint64_t hash = tree.getBoard().getHash();
+  if (!tree.getExcluded().isEmpty()) {
+    hash ^= search_func::excludedHash(tree.getExcluded());
+  }
+
+#if ENABLE_PREFETCH
+  // prefetch
+  tt_.prefetch(hash);
+#endif // ENABLE_PREFETCH
+
   Value oldAlpha = alpha;
 
   // distance pruning
@@ -1356,12 +1367,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
 
   worker.info.node++;
 
-  uint64_t hash = tree.getBoard().getHash();
   bool isNullWindow = (beta == alpha + 1);
-
-  if (!tree.getExcluded().isEmpty()) {
-    hash ^= search_func::excludedHash(tree.getExcluded());
-  }
 
   // transposition table
   Move hashMove = Move::empty();

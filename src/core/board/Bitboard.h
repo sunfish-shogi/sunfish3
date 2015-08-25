@@ -157,6 +157,7 @@ private:
 #endif
     u128() {}
   };
+  static_assert(sizeof(u128) == 16, "invalid size");
   u128 bb_;
 #if BYTE_ORDER == BIG_ENDIAN
 # define BB_LOW_ bb_.i64[1]

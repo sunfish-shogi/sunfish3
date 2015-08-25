@@ -10,6 +10,7 @@
 #include "NodeStat.h"
 #include "../eval/Evaluator.h"
 #include "../shek/ShekTable.h"
+#include "../tt/TT.h"
 #include "core/move/Moves.h"
 #include "core/def.h"
 #include <atomic>
@@ -17,6 +18,10 @@
 #include <vector>
 #include <cstdint>
 #include <cassert>
+
+#ifndef ENABLE_PREFETCH
+# define ENABLE_PREFETCH      1
+#endif
 
 namespace sunfish {
 
@@ -357,6 +362,12 @@ public:
       checkHistCount_--;
       return false;
     }
+#if ENABLE_PREFETCH
+    // prefetch
+    eval.prefetch(board_.getNoTurnHash());
+    shekTable_.prefetch(board_.getBoardHash());
+#endif // ENABLE_PREFETCH
+    // ply
     ply_++;
     // current node
     auto& curr = stack_[ply_];
@@ -364,7 +375,6 @@ public:
     curr.checking = checking;
     assert(checking == board_.isChecking());
     curr.pv.init();
-    curr.valuePair = eval.evaluateDiff(board_, front.valuePair, move);
     // child node
     auto& child = stack_[ply_+1];
     child.killer1 = Move::empty();
@@ -373,6 +383,8 @@ public:
     child.nocap2 = Move::empty();
     child.excluded = Move::empty();
     child.isHistorical = false;
+    // evaluation
+    curr.valuePair = eval.evaluateDiff(board_, front.valuePair, move);
     return true;
   }
 
@@ -392,6 +404,11 @@ public:
     checkHistCount_++;
     // make move
     board_.makeNullMove();
+#if ENABLE_PREFETCH
+    // prefetch
+    shekTable_.prefetch(board_.getBoardHash());
+#endif // ENABLE_PREFETCH
+    // ply
     ply_++;
     // current node
     auto& curr = stack_[ply_];

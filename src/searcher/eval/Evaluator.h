@@ -373,6 +373,10 @@ public:
     evaluateCache_.init();
   }
 
+  void prefetch(uint64_t hash) const {
+    evaluateCache_.prefetch(hash);
+  }
+
 };
 
 } // namespace sunfish

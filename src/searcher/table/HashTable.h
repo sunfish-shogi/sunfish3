@@ -7,6 +7,7 @@
 #define SUNFISH_HASHTABLE__
 
 #include "core/def.h"
+#include "core/util/Memory.h"
 #include <cstdint>
 
 namespace sunfish {
@@ -71,6 +72,12 @@ public:
 
   uint32_t getSize() const {
     return size_;
+  }
+
+  void prefetch(uint64_t hash) const {
+    const E* p = &table_[hash&mask_];
+    const char* addr = reinterpret_cast<const char*>(p);
+    memory::prefetch<sizeof(E)>(addr);
   }
 };
 

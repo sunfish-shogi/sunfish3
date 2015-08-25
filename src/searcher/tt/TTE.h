@@ -200,6 +200,9 @@ public:
 
 };
 
+static_assert(sizeof(TTE) == 16, "invalid struct size");
+static_assert(sizeof(TTEs) == 72, "invalid struct size");
+
 } // namespace sunfish
 
 #endif // SUNFISH_TTE__
