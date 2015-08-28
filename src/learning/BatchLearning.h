@@ -19,6 +19,8 @@
 #include <string>
 #include <atomic>
 #include <mutex>
+#include <functional>
+#include <utility>
 #include <cstdint>
 
 namespace sunfish {
@@ -30,8 +32,18 @@ class Move;
 class BatchLearning {
 private:
 
+  enum class JobType {
+    GenerateTrainingData,
+    GenerateGradient,
+    UpdateParam,
+  };
+
+  static CONSTEXPR_CONST uint32_t InvalidWorkerNumber = -1;
+
   struct Job {
-    std::string path;
+    JobType type;
+    std::function<void(int)> method;
+    uint32_t wn;
   };
 
   Timer timer_;
@@ -60,9 +72,14 @@ private:
 
   uint64_t magnitude_;
 
-  std::vector<std::unique_ptr<Searcher>> searchers_;
+  struct ThreadObject {
+    std::thread thread;
+    std::unique_ptr<Searcher> searcher;
+    std::unique_ptr<Random> rand;
+    std::unique_ptr<std::ofstream> outTrainingData;
+  };
 
-  std::vector<std::thread> threads_;
+  std::vector<ThreadObject> threadObjects_;
 
   uint32_t nt_;
 
@@ -72,23 +89,19 @@ private:
 
   std::mutex mutex_;
 
-  std::unique_ptr<std::ofstream> trainingData_;
-
-  Random rand_;
-
-  bool openTrainingData();
-  void closeTrainingData();
-
   void updateProgress();
   void closeProgress();
 
-  void generateTraningData(int wn, Board board, Move move0);
-  void generateTraningData(int wn, const Job& job);
-  void work(int wn);
-
-  bool generateJobs();
+  void work(uint32_t wn);
   void waitForWorkers();
+
+  void generateTrainingData(uint32_t wn, Board board, Move move0);
+  void generateTrainingDataOnWorker(uint32_t wn, const std::string& path);
+  bool generateTrainingData();
+  bool generateGradient(uint32_t wn);
   bool generateGradient();
+  void updateParameter(uint32_t wn, FV::ValueType& g, Evaluator::ValueType& e,
+      Evaluator::ValueType& max, uint64_t& magnitude);
   void updateParameters();
   void updateMaterial();
   bool iterate();

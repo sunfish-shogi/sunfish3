@@ -17,14 +17,18 @@
 #include <algorithm>
 #include <cstdlib>
 
-#define TRAINING_DAT  "training.dat"
-
 #define SEARCH_WINDOW 256
 #define NORM          1.0e-2f
 
 namespace {
 
 using namespace sunfish;
+
+std::string trainingDataFileName(uint32_t wn) {
+  std::ostringstream oss;
+  oss << "training" << wn << ".dat";
+  return oss.str();
+}
 
 void setSearcherDepth(Searcher& searcher, int depth) {
   auto searchConfig = searcher.getConfig();
@@ -67,23 +71,6 @@ inline float norm(float x) {
 
 namespace sunfish {
 
-bool BatchLearning::openTrainingData() {
-  trainingData_.reset(new std::ofstream);
-  trainingData_->open(TRAINING_DAT, std::ios::binary | std::ios::out);
-
-  if (!trainingData_) {
-    Loggers::error << "open error!! [" << TRAINING_DAT << "]";
-    return false;
-  }
-
-  return true;
-}
-
-void BatchLearning::closeTrainingData() {
-  Loggers::message << "training_data_size=" << trainingData_->tellp();
-  trainingData_->close();
-}
-
 /**
  * プログレスバーの表示を更新します。
  */
@@ -112,9 +99,60 @@ void BatchLearning::closeProgress() {
 }
 
 /**
+ * ジョブを拾います。
+ */
+void BatchLearning::work(uint32_t wn) {
+  while (!shutdown_) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    Job job;
+
+    // dequeue
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (jobQueue_.empty()) {
+        continue;
+      }
+      job = jobQueue_.front();
+      // worker number の制約がある場合は一致するものだけを拾う
+      if (job.wn != InvalidWorkerNumber && job.wn != wn) {
+        continue;
+      }
+      jobQueue_.pop();
+      activeCount_++;
+    }
+
+    job.method(wn);
+
+    completedJobs_++;
+    activeCount_--;
+
+    if (job.type == JobType::GenerateTrainingData) {
+      std::lock_guard<std::mutex> lock(mutex_);
+      updateProgress();
+    }
+  }
+}
+
+/**
+ * ワーカーがジョブを終えるまで待機します。
+ */
+void BatchLearning::waitForWorkers() {
+  while (true) {
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (jobQueue_.empty() && activeCount_ == 0) {
+        return;
+      }
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+}
+
+/**
  * 訓練データを生成します。
  */
-void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
+void BatchLearning::generateTrainingData(uint32_t wn, Board board, Move move0) {
   int depth = config_.getInt(LCONF_DEPTH);
 
   // 合法手生成
@@ -129,8 +167,12 @@ void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
   Move tmpMove;
   std::list<PV> list;
 
+  auto& to = threadObjects_[wn];
+  auto& searcher = *(to.searcher);
+  auto& outTrainingData = to.outTrainingData;
+
   // ヒストリのクリア
-  searchers_[wn]->clearHistory();
+  searcher.clearHistory();
 
   {
     int newDepth = depth;
@@ -140,12 +182,12 @@ void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
 
     // 探索
     board.makeMove(move0);
-    setSearcherDepth(*searchers_[wn], newDepth);
-    searchers_[wn]->search(board, tmpMove);
+    setSearcherDepth(searcher, newDepth);
+    searcher.search(board, tmpMove);
     board.unmakeMove(move0);
 
     // PV と評価値
-    const auto& info = searchers_[wn]->getInfo();
+    const auto& info = searcher.getInfo();
     const auto& pv = info.pv;
     val0 = -info.eval;
 
@@ -177,12 +219,12 @@ void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
     // 探索
     bool valid = board.makeMove(move);
     if (!valid) { continue; }
-    setSearcherDepth(*searchers_[wn], newDepth);
-    searchers_[wn]->search(board, tmpMove, -beta, -alpha, true);
+    setSearcherDepth(searcher, newDepth);
+    searcher.search(board, tmpMove, -beta, -alpha, true);
     board.unmakeMove(move);
 
     // PV と評価値
-    const auto& info = searchers_[wn]->getInfo();
+    const auto& info = searcher.getInfo();
     const auto& pv = info.pv;
     Value val = -info.eval;
 
@@ -205,33 +247,33 @@ void BatchLearning::generateTraningData(int wn, Board board, Move move0) {
 
     // ルート局面
     CompactBoard cb = board.getCompactBoard();
-    trainingData_->write(reinterpret_cast<char*>(&cb), sizeof(cb));
+    outTrainingData->write(reinterpret_cast<char*>(&cb), sizeof(cb));
 
     for (const auto& pv : list) {
       // 手順の長さ
       uint8_t length = static_cast<uint8_t>(pv.size()) + 1;
-      trainingData_->write(reinterpret_cast<char*>(&length), sizeof(length));
+      outTrainingData->write(reinterpret_cast<char*>(&length), sizeof(length));
 
       // 手順
-      for (size_t i = 0; i < pv.size(); i++) {
+      for (int i = 0; i < pv.size(); i++) {
         uint16_t m = Move::serialize16(pv.get(i).move);
-        trainingData_->write(reinterpret_cast<char*>(&m), sizeof(m));
+        outTrainingData->write(reinterpret_cast<char*>(&m), sizeof(m));
       }
     }
 
     // 終端
     uint8_t n = 0;
-    trainingData_->write(reinterpret_cast<char*>(&n), sizeof(n));
+    outTrainingData->write(reinterpret_cast<char*>(&n), sizeof(n));
   }
 }
 
 /**
  * 訓練データを生成します。
  */
-void BatchLearning::generateTraningData(int wn, const Job& job) {
+void BatchLearning::generateTrainingDataOnWorker(uint32_t wn, const std::string& path) {
   Record record;
-  if (!CsaReader::read(job.path, record)) {
-    Loggers::error << "Could not read csa file. [" << job.path << "]";
+  if (!CsaReader::read(path, record)) {
+    Loggers::error << "Could not read csa file. [" << path << "]";
     exit(1);
   }
 
@@ -246,7 +288,7 @@ void BatchLearning::generateTraningData(int wn, const Job& job) {
       break;
     }
 
-    generateTraningData(wn, record.getBoard(), move);
+    generateTrainingData(wn, record.getBoard(), move);
 
     // 1手進める
     if (!record.makeMove()) {
@@ -256,41 +298,25 @@ void BatchLearning::generateTraningData(int wn, const Job& job) {
 }
 
 /**
- * ジョブを拾います。
+ * 訓練データ作成を開始します。
  */
-void BatchLearning::work(int wn) {
-  while (!shutdown_) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+bool BatchLearning::generateTrainingData() {
+  // open training data files
+  for (uint32_t wn = 0; wn < nt_; wn++) {
+    auto& to = threadObjects_[wn];
+    auto& outTrainingData = to.outTrainingData;
+    std::string fname = trainingDataFileName(wn);
 
-    Job job;
+    outTrainingData.reset(new std::ofstream);
+    outTrainingData->open(fname, std::ios::binary | std::ios::out);
 
-    // dequeue
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
-      if (jobQueue_.empty()) {
-        continue;
-      }
-      job = jobQueue_.front();
-      jobQueue_.pop();
-      activeCount_++;
-    }
-
-    generateTraningData(wn, job);
- 
-    completedJobs_++;
-    activeCount_--;
-
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
-      updateProgress();
+    if (!*outTrainingData) {
+      Loggers::error << "open error!! [" << fname << "]";
+      return false;
     }
   }
-}
 
-/**
- * ジョブを作成します。
- */
-bool BatchLearning::generateJobs() {
+  // enumerate .csa files
   FileList fileList;
   std::string dir = config_.getString(LCONF_KIFU);
   fileList.enumerate(dir.c_str(), "csa");
@@ -304,61 +330,62 @@ bool BatchLearning::generateJobs() {
   totalJobs_ = fileList.size();
 
   {
+    // push jobs
     std::lock_guard<std::mutex> lock(mutex_);
     for (const auto& path : fileList) {
-      jobQueue_.push({ path });
+      using namespace std::placeholders;
+      jobQueue_.push({
+        JobType::GenerateTrainingData,
+        std::bind(std::mem_fn(&BatchLearning::generateTrainingDataOnWorker), this, _1, path),
+        InvalidWorkerNumber
+      });
     }
   }
+
+  waitForWorkers();
+
+  // close progress bar
+  closeProgress();
+
+  // close training data files
+  size_t size = 0;
+  for (uint32_t wn = 0; wn < nt_; wn++) {
+    auto& to = threadObjects_[wn];
+    auto& outTrainingData = to.outTrainingData;
+    size += outTrainingData->tellp();
+    outTrainingData->close();
+  }
+  Loggers::message << "training_data_size=" << size;
 
   return true;
 }
 
 /**
- * ワーカーがジョブを終えるまで待機します。
- */
-void BatchLearning::waitForWorkers() {
-  while (true) {
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
-      if (jobQueue_.empty() && activeCount_ == 0) {
-        return;
-      }
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  }
-}
-
-/**
  * 勾配ベクトルを生成します。
  */
-bool BatchLearning::generateGradient() {
-  std::ifstream trainingData;
-
-  trainingData.open(TRAINING_DAT);
-  if (!trainingData) {
-    Loggers::error << "open error!! [" << TRAINING_DAT << "]";
+bool BatchLearning::generateGradient(uint32_t wn) {
+  std::string fname = trainingDataFileName(wn);
+  std::ifstream inTrainingData(fname);
+  if (!inTrainingData) {
+    Loggers::error << "open error!! [" << fname << "]";
     return false;
   }
-
-  gm_.init();
-  g_.init();
 
   while (true) {
     // ルート局面
     CompactBoard cb;
-    trainingData.read(reinterpret_cast<char*>(&cb), sizeof(cb));
-
-    if (trainingData.eof()) {
+    inTrainingData.read(reinterpret_cast<char*>(&cb), sizeof(cb));
+    if (inTrainingData.eof()) {
       break;
     }
 
     const Board root(cb);
     const bool black = root.isBlack();
 
-    auto readPV = [&trainingData](Board& board) {
+    auto readPV = [&inTrainingData](Board& board) {
       // 手順の長さ
       uint8_t length;
-      trainingData.read(reinterpret_cast<char*>(&length), sizeof(length));
+      inTrainingData.read(reinterpret_cast<char*>(&length), sizeof(length));
       if (length == 0) {
         return false;
       }
@@ -368,7 +395,7 @@ bool BatchLearning::generateGradient() {
       bool ok = true;
       for (uint8_t i = 0; i < length; i++) {
         uint16_t m;
-        trainingData.read(reinterpret_cast<char*>(&m), sizeof(m));
+        inTrainingData.read(reinterpret_cast<char*>(&m), sizeof(m));
         Move move = Move::deserialize16(m, board);
         if (!ok || move.isEmpty() || !board.makeMove(move)) {
           ok = false;
@@ -392,20 +419,69 @@ bool BatchLearning::generateGradient() {
       float diff = val.int32() - val0.int32();
       diff = black ? diff : -diff;
 
-      loss_ += loss(diff);
-
       float g = gradient(diff);
       g = black ? g : -g;
-      gm_.extract(board0, g);
-      gm_.extract(board, -g);
-      g_.extract<float, true>(board0, g);
-      g_.extract<float, true>(board, -g);
+
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+        loss_ += loss(diff);
+        gm_.extract(board0, g);
+        gm_.extract(board, -g);
+        g_.extract<float, true>(board0, g);
+        g_.extract<float, true>(board, -g);
+      }
     }
   }
 
-  trainingData.close();
+  inTrainingData.close();
+
   return true;
 }
+
+/**
+ * 勾配ベクトルを生成します。
+ */
+bool BatchLearning::generateGradient() {
+  std::atomic<bool> ok(true);
+
+  gm_.init();
+  g_.init();
+
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (uint32_t wn = 0; wn < nt_; wn++) {
+      jobQueue_.push({
+        JobType::GenerateGradient,
+        [this, &ok](uint32_t wn) {
+          ok = generateGradient(wn) && ok;
+        },
+        wn
+      });
+    }
+  }
+
+  waitForWorkers();
+
+  return ok;
+}
+
+void BatchLearning::updateParameter(uint32_t wn,
+    FV::ValueType& g, Evaluator::ValueType& e,
+    Evaluator::ValueType& max, uint64_t& magnitude) {
+  auto& to = threadObjects_[wn];
+  auto& r = *(to.rand);
+
+  g += norm(e);
+  if (g > 0.0f) {
+    e += r.getBit() + r.getBit();
+  } else if (g < 0.0f) {
+    e -= r.getBit() + r.getBit();
+  }
+
+  Evaluator::ValueType abs = std::abs(e);
+  max = std::max(max, abs);
+  magnitude = magnitude + abs;
+};
 
 /**
  * パラメータを更新します。
@@ -415,35 +491,55 @@ void BatchLearning::updateParameters() {
       a = b = a + b;
   });
 
-  auto update = [this](FV::ValueType& g, Evaluator::ValueType& e,
-      Evaluator::ValueType& max, uint64_t& magnitude) {
-    g += norm(e);
-    if (g > 0.0f) {
-      e += rand_.getBit() + rand_.getBit();
-    } else if (g < 0.0f) {
-      e -= rand_.getBit() + rand_.getBit();
-    }
-    Evaluator::ValueType abs = std::abs(e);
-    max = std::max(max, abs);
-    magnitude = magnitude + abs;
-  };
-
   max_ = 0;
   magnitude_ = 0;
 
   updateMaterial();
 
-  for (int i = 0; i < KPP_ALL; i++) {
-    update(((FV::ValueType*)g_.t_->kpp)[i],
-           ((Evaluator::ValueType*)eval_.t_->kpp)[i],
-           max_, magnitude_);
+  {
+    using namespace std::placeholders;
+
+    CONSTEXPR_CONST int kppWidth = KPP_ALL / 100;
+    CONSTEXPR_CONST int kkpWidth = KKP_ALL / 100;
+
+    for (int begin = 0; begin < KPP_ALL; begin += kppWidth) {
+      int end = std::min(begin + kppWidth, static_cast<int>(KPP_ALL));
+
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+        jobQueue_.push({
+          JobType::UpdateParam,
+          [this, begin, end] (uint32_t wn) {
+            for (int i = begin; i < end; i++) {
+              updateParameter(wn, ((FV::ValueType*)g_.t_->kpp)[i],
+                 ((Evaluator::ValueType*)eval_.t_->kpp)[i], max_, magnitude_);
+            }
+          },
+          InvalidWorkerNumber
+        });
+      }
+    }
+
+    for (int begin = 0; begin < KKP_ALL; begin += kkpWidth) {
+      int end = std::min(begin + kkpWidth, static_cast<int>(KKP_ALL));
+
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+        jobQueue_.push({
+          JobType::UpdateParam,
+          [this, begin, end] (uint32_t wn) {
+            for (int i = begin; i < end; i++) {
+              updateParameter(wn, ((FV::ValueType*)g_.t_->kkp)[i],
+               ((Evaluator::ValueType*)eval_.t_->kkp)[i], max_, magnitude_);
+            }
+          },
+          InvalidWorkerNumber
+        });
+      }
+    }
   }
 
-  for (int i = 0; i < KKP_ALL; i++) {
-    update(((FV::ValueType*)g_.t_->kkp)[i],
-           ((Evaluator::ValueType*)eval_.t_->kkp)[i],
-           max_, magnitude_);
-  }
+  waitForWorkers();
 
   LearningTemplates::symmetrize(eval_, [](Evaluator::ValueType& a, Evaluator::ValueType& b) {
       a = b;
@@ -482,9 +578,11 @@ void BatchLearning::updateMaterial() {
     return (*a) < (*b);
   });
 
+  auto& to = threadObjects_[0];
+
   // シャッフル
-  rand_.shuffle(p, p + 6);
-  rand_.shuffle(p + 6, p + 13);
+  to.rand->shuffle(p, p + 6);
+  to.rand->shuffle(p + 6, p + 13);
 
   // 更新値を決定
   *p[0]  = *p[1]  = -2.0f;
@@ -520,21 +618,12 @@ bool BatchLearning::iterate() {
   int  updateCount = 256;
 
   for (int i = 0; i < iterateCount; i++) {
-    if (!openTrainingData()) {
-      return false;
-    }
-
     totalMoves_ = 0;
     outOfWindLoss_ = 0;
 
-    if (!generateJobs()) {
+    if (!generateTrainingData()) {
       return false;
     }
-
-    waitForWorkers();
-
-    closeProgress();
-    closeTrainingData();
 
     updateCount = std::max(updateCount / 2, 16);
 
@@ -586,11 +675,26 @@ bool BatchLearning::run() {
   nt_ = config_.getInt(LCONF_THREADS);
 
   // Searcher生成
-  searchers_.clear();
   for (uint32_t wn = 0; wn < nt_; wn++) {
-    searchers_.emplace_back(new Searcher(eval_));
+  }
 
-    auto searchConfig = searchers_.back()->getConfig();
+  activeCount_ = 0;
+
+  // ワーカースレッド生成
+  shutdown_ = false;
+  threadObjects_.clear();
+  for (uint32_t wn = 0; wn < nt_; wn++) {
+    threadObjects_.push_back(ThreadObject {
+      std::thread(std::bind(std::mem_fn(&BatchLearning::work), this, wn)),
+      std::unique_ptr<Searcher>(new Searcher(eval_)),
+      std::unique_ptr<Random>(new Random()),
+      nullptr
+    });
+
+    auto& to = threadObjects_.back();
+    auto& searcher = *(to.searcher);
+
+    auto searchConfig = searcher.getConfig();
     searchConfig.workerSize = 1;
     searchConfig.treeSize = Searcher::standardTreeSize(searchConfig.workerSize);
     searchConfig.enableLimit = false;
@@ -598,16 +702,7 @@ bool BatchLearning::run() {
     searchConfig.ponder = false;
     searchConfig.logging = false;
     searchConfig.learning = true;
-    searchers_.back()->setConfig(searchConfig);
-  }
-
-  activeCount_ = 0;
-
-  // ワーカースレッド生成
-  shutdown_ = false;
-  threads_.clear();
-  for (uint32_t wn = 0; wn < nt_; wn++) {
-    threads_.emplace_back(std::bind(std::mem_fn(&BatchLearning::work), this, wn));
+    searcher.setConfig(searchConfig);
   }
 
   bool ok = iterate();
@@ -615,7 +710,8 @@ bool BatchLearning::run() {
   // ワーカースレッド停止
   shutdown_ = true;
   for (uint32_t wn = 0; wn < nt_; wn++) {
-    threads_[wn].join();
+    auto& to = threadObjects_[wn];
+    to.thread.join();
   }
 
   if (!ok) {
