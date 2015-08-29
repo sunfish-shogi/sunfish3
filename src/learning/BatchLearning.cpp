@@ -371,6 +371,13 @@ bool BatchLearning::generateGradient(uint32_t wn) {
     return false;
   }
 
+  float loss0 = 0.0f;
+  std::unique_ptr<FVM> gm0(new FVM);
+  std::unique_ptr<FV> g0(new FV);
+
+  gm0->init();
+  g0->init();
+
   while (true) {
     // ルート局面
     CompactBoard cb;
@@ -422,18 +429,43 @@ bool BatchLearning::generateGradient(uint32_t wn) {
       float g = gradient(diff);
       g = black ? g : -g;
 
-      {
-        std::lock_guard<std::mutex> lock(mutex_);
-        loss_ += loss(diff);
-        gm_.extract(board0, g);
-        gm_.extract(board, -g);
-        g_.extract<float, true>(board0, g);
-        g_.extract<float, true>(board, -g);
-      }
+      loss0 += loss(diff);
+      gm0->extract(board0, g);
+      gm0->extract(board, -g);
+      g0->extract<float, true>(board0, g);
+      g0->extract<float, true>(board, -g);
     }
   }
 
   inTrainingData.close();
+
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    loss_ += loss0;
+
+    gm_.pawn       = gm0->pawn;
+    gm_.lance      = gm0->lance;
+    gm_.knight     = gm0->knight;
+    gm_.silver     = gm0->silver;
+    gm_.gold       = gm0->gold;
+    gm_.bishop     = gm0->bishop;
+    gm_.rook       = gm0->rook;
+    gm_.tokin      = gm0->tokin;
+    gm_.pro_lance  = gm0->pro_lance;
+    gm_.pro_knight = gm0->pro_knight;
+    gm_.pro_silver = gm0->pro_silver;
+    gm_.horse      = gm0->horse;
+    gm_.dragon     = gm0->dragon;
+
+    for (int i = 0; i < KPP_ALL; i++) {
+      ((FV::ValueType*)g_.t_->kpp)[i] += ((FV::ValueType*)g0->t_->kpp)[i];
+    }
+
+    for (int i = 0; i < KKP_ALL; i++) {
+      ((FV::ValueType*)g_.t_->kkp)[i] += ((FV::ValueType*)g0->t_->kkp)[i];
+    }
+  }
 
   return true;
 }
@@ -486,6 +518,26 @@ void BatchLearning::updateParameter(uint32_t wn,
 /**
  * パラメータを更新します。
  */
+void BatchLearning::updateParameters(int wn) {
+  using namespace std::placeholders;
+
+  int begin = wn;
+  int width = nt_;
+
+  for (int i = begin; i < KPP_ALL; i += width) {
+    updateParameter(wn, ((FV::ValueType*)g_.t_->kpp)[i],
+      ((Evaluator::ValueType*)eval_.t_->kpp)[i], max_, magnitude_);
+  }
+
+  for (int i = begin; i < KKP_ALL; i += width) {
+    updateParameter(wn, ((FV::ValueType*)g_.t_->kkp)[i],
+      ((Evaluator::ValueType*)eval_.t_->kkp)[i], max_, magnitude_);
+  }
+}
+
+/**
+ * パラメータを更新します。
+ */
 void BatchLearning::updateParameters() {
   LearningTemplates::symmetrize(g_, [](float& a, float& b) {
       a = b = a + b;
@@ -497,45 +549,15 @@ void BatchLearning::updateParameters() {
   updateMaterial();
 
   {
-    using namespace std::placeholders;
-
-    CONSTEXPR_CONST int kppWidth = KPP_ALL / 100;
-    CONSTEXPR_CONST int kkpWidth = KKP_ALL / 100;
-
-    for (int begin = 0; begin < KPP_ALL; begin += kppWidth) {
-      int end = std::min(begin + kppWidth, static_cast<int>(KPP_ALL));
-
-      {
-        std::lock_guard<std::mutex> lock(mutex_);
-        jobQueue_.push({
-          JobType::UpdateParam,
-          [this, begin, end] (uint32_t wn) {
-            for (int i = begin; i < end; i++) {
-              updateParameter(wn, ((FV::ValueType*)g_.t_->kpp)[i],
-                 ((Evaluator::ValueType*)eval_.t_->kpp)[i], max_, magnitude_);
-            }
-          },
-          InvalidWorkerNumber
-        });
-      }
-    }
-
-    for (int begin = 0; begin < KKP_ALL; begin += kkpWidth) {
-      int end = std::min(begin + kkpWidth, static_cast<int>(KKP_ALL));
-
-      {
-        std::lock_guard<std::mutex> lock(mutex_);
-        jobQueue_.push({
-          JobType::UpdateParam,
-          [this, begin, end] (uint32_t wn) {
-            for (int i = begin; i < end; i++) {
-              updateParameter(wn, ((FV::ValueType*)g_.t_->kkp)[i],
-               ((Evaluator::ValueType*)eval_.t_->kkp)[i], max_, magnitude_);
-            }
-          },
-          InvalidWorkerNumber
-        });
-      }
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (uint32_t wn = 0; wn < nt_; wn++) {
+      jobQueue_.push({
+        JobType::UpdateParam,
+        [this](uint32_t wn) {
+          updateParameters(wn);
+        },
+        wn
+      });
     }
   }
 

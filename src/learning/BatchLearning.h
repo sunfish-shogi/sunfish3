@@ -102,6 +102,7 @@ private:
   bool generateGradient();
   void updateParameter(uint32_t wn, FV::ValueType& g, Evaluator::ValueType& e,
       Evaluator::ValueType& max, uint64_t& magnitude);
+  void updateParameters(int wn);
   void updateParameters();
   void updateMaterial();
   bool iterate();
