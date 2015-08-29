@@ -35,6 +35,7 @@ private:
   enum class JobType {
     GenerateTrainingData,
     GenerateGradient,
+    OverlapParam,
     UpdateParam,
   };
 
@@ -102,7 +103,10 @@ private:
   bool generateGradient();
   void updateParameter(uint32_t wn, FV::ValueType& g, Evaluator::ValueType& e,
       Evaluator::ValueType& max, uint64_t& magnitude);
-  void updateParameters(int wn);
+  void overlapParameters(int index1, int index2);
+  void overlapParameters(uint32_t wn);
+  void overlapParameters();
+  void updateParameters(uint32_t wn);
   void updateParameters();
   void updateMaterial();
   bool iterate();
