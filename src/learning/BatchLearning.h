@@ -78,6 +78,8 @@ private:
     std::unique_ptr<Searcher> searcher;
     std::unique_ptr<Random> rand;
     std::unique_ptr<std::ofstream> outTrainingData;
+    Evaluator::ValueType max;
+    uint64_t magnitude;
   };
 
   std::vector<ThreadObject> threadObjects_;

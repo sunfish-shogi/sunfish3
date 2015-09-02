@@ -673,14 +673,18 @@ void BatchLearning::updateParameters(uint32_t wn) {
   int begin = wn;
   int step = nt_;
 
+  auto& to = threadObjects_[wn];
+  auto& max = to.max;
+  auto& magnitude = to.magnitude;
+
   for (int i = begin; i < KPP_ALL; i += step) {
     updateParameter(wn, ((FV::ValueType*)g_.t_->kpp)[i],
-      ((Evaluator::ValueType*)eval_.t_->kpp)[i], max_, magnitude_);
+      ((Evaluator::ValueType*)eval_.t_->kpp)[i], max, magnitude);
   }
 
   for (int i = begin; i < KKP_ALL; i += step) {
     updateParameter(wn, ((FV::ValueType*)g_.t_->kkp)[i],
-      ((Evaluator::ValueType*)eval_.t_->kkp)[i], max_, magnitude_);
+      ((Evaluator::ValueType*)eval_.t_->kkp)[i], max, magnitude);
   }
 }
 
@@ -692,14 +696,13 @@ void BatchLearning::updateParameters() {
       a = b = a + b;
   });
 
-  max_ = 0;
-  magnitude_ = 0;
-
   updateMaterial();
 
   {
     std::lock_guard<std::mutex> lock(mutex_);
     for (uint32_t wn = 0; wn < nt_; wn++) {
+      threadObjects_[wn].max = 0;
+      threadObjects_[wn].magnitude = 0;
       jobQueue_.push({
         JobType::UpdateParam,
         [this](uint32_t wn) {
@@ -711,6 +714,13 @@ void BatchLearning::updateParameters() {
   }
 
   waitForWorkers();
+
+  max_ = 0;
+  magnitude_ = 0;
+  for (uint32_t wn = 0; wn < nt_; wn++) {
+    max_ += threadObjects_[wn].max;
+    magnitude_ += threadObjects_[wn].magnitude;
+  }
 
   LearningTemplates::symmetrize(eval_, [](Evaluator::ValueType& a, Evaluator::ValueType& b) {
       a = b;
@@ -786,7 +796,7 @@ void BatchLearning::updateMaterial() {
  */
 bool BatchLearning::iterate() {
   const int iterateCount = config_.getInt(LCONF_ITERATION);
-  int  updateCount = 256;
+  int  updateCount = 128;
 
   for (int i = 0; i < iterateCount; i++) {
     totalMoves_ = 0;
@@ -795,8 +805,6 @@ bool BatchLearning::iterate() {
     if (!generateTrainingData()) {
       return false;
     }
-
-    updateCount = std::max(updateCount / 2, 16);
 
     for (int j = 0; j < updateCount; j++) {
       loss_ = 0.0f;
@@ -828,6 +836,8 @@ bool BatchLearning::iterate() {
 
     // キャッシュクリア
     eval_.clearCache();
+
+    updateCount = std::max(updateCount / 2, 16);
   }
 
   return true;
@@ -861,7 +871,7 @@ bool BatchLearning::run() {
       std::thread(std::bind(std::mem_fn(&BatchLearning::work), this, wn)),
       std::unique_ptr<Searcher>(new Searcher(eval_)),
       std::unique_ptr<Random>(new Random()),
-      nullptr
+      nullptr, 0, 0,
     });
 
     auto& to = threadObjects_.back();
