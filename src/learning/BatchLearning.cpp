@@ -17,8 +17,10 @@
 #include <algorithm>
 #include <cstdlib>
 
-#define SEARCH_WINDOW 256
-#define NORM          1.0e-2f
+#define SEARCH_WINDOW  256
+#define NORM           1.0e-2f
+
+#define ENABLE_OVERLAP 1
 
 namespace {
 
@@ -581,17 +583,21 @@ void BatchLearning::overlapParameters(int index1, int index2) {
   PIECE_EACH(piece1) {
     PIECE_EACH(piece2) {
       FV::ValueType sum = 0.0f;
+      int num = 0;
 
-      overlap(piece1, piece2, index1, index2, [&sum, this, piece1, piece2](Square king, Square square1, Square square2) {
+      overlap(piece1, piece2, index1, index2,
+          [&sum, &num, this, piece1, piece2](Square king, Square square1, Square square2) {
         int x = kkpBoardIndex(piece1, square1);
         int y = kkpBoardIndex(piece2, square2);
         sum += g_.t_->kpp[king.index()][kpp_index_safe(x, y)];
+        num++;
       });
 
-      overlap(piece1, piece2, index1, index2, [&sum, this, piece1, piece2](Square king, Square square1, Square square2) {
+      overlap(piece1, piece2, index1, index2,
+          [sum, num, this, piece1, piece2](Square king, Square square1, Square square2) {
         int x = kkpBoardIndex(piece1, square1);
         int y = kkpBoardIndex(piece2, square2);
-        g_.t_->kpp[king.index()][kpp_index_safe(x, y)] += sum;
+        g_.t_->kpp[king.index()][kpp_index_safe(x, y)] += sum / (FV::ValueType)num;
       });
     }
   }
@@ -599,13 +605,17 @@ void BatchLearning::overlapParameters(int index1, int index2) {
   // king-king-piece
   PIECE_KIND_EACH(piece) {
     FV::ValueType sum = 0.0f;
+    int num = 0;
 
-    overlap(Piece::WKing, piece, index1, index2, [&sum, this, piece](Square king, Square square1, Square square2) {
+    overlap(Piece::WKing, piece, index1, index2,
+        [&sum, &num, this, piece](Square king, Square square1, Square square2) {
       sum += g_.t_->kkp[king.index()][square1.index()][kkpBoardIndex(piece, square2)];
+      num++;
     });
 
-    overlap(Piece::WKing, piece, index1, index2, [&sum, this, piece](Square king, Square square1, Square square2) {
-      g_.t_->kkp[king.index()][square1.index()][kkpBoardIndex(piece, square2)] += sum;
+    overlap(Piece::WKing, piece, index1, index2,
+        [sum, num, this, piece](Square king, Square square1, Square square2) {
+      g_.t_->kkp[king.index()][square1.index()][kkpBoardIndex(piece, square2)] += sum / (FV::ValueType)num;
     });
   }
 }
@@ -824,7 +834,9 @@ bool BatchLearning::iterate() {
         return false;
       }
 
+#if ENABLE_OVERLAP
       overlapParameters();
+#endif
 
       updateParameters();
 
