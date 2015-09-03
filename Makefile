@@ -83,7 +83,8 @@ learn:
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 
 clean:
-	$(RM) -rf $(BUILD_DIR) $(SUNFISH)
+	$(RM) -r $(BUILD_DIR)
+	$(RM) $(SUNFISH)
 
 run-prof:
 	./$(SUNFISH) --profile -d 30 -t 10
