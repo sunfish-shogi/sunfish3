@@ -18,7 +18,7 @@
 #include <cstdlib>
 
 #define SEARCH_WINDOW  256
-#define NORM           1.0e-2f
+#define NORM           1.0e-3f
 
 #define ENABLE_OVERLAP 1
 
