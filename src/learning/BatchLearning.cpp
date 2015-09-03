@@ -597,6 +597,17 @@ void BatchLearning::overlapParameters(int index1, int index2) {
   }
 
   // king-king-piece
+  PIECE_KIND_EACH(piece) {
+    FV::ValueType sum = 0.0f;
+
+    overlap(Piece::WKing, piece, index1, index2, [&sum, this, piece](Square king, Square square1, Square square2) {
+      sum += g_.t_->kkp[king.index()][square1.index()][kkpBoardIndex(piece, square2)];
+    });
+
+    overlap(Piece::WKing, piece, index1, index2, [&sum, this, piece](Square king, Square square1, Square square2) {
+      g_.t_->kkp[king.index()][square1.index()][kkpBoardIndex(piece, square2)] += sum;
+    });
+  }
 }
 
 /**
