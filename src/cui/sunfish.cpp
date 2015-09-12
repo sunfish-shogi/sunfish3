@@ -43,10 +43,10 @@ int checkMoveGen();
  * entry point
  */
 int main(int argc, char** argv, char** /*envp*/) {
-  std::cout << SUNFISH_NAME << ' ';
-  std::cout << SUNFISH_VERSION << '\n';
-  std::cout << SUNFISH_COPYRIGHT << '\n';
-  std::cout << std::endl;
+  std::cerr << SUNFISH_NAME << ' ';
+  std::cerr << SUNFISH_VERSION << '\n';
+  std::cerr << SUNFISH_COPYRIGHT << '\n';
+  std::cerr << std::endl;
 
   // program options
   ProgramOptions po;
