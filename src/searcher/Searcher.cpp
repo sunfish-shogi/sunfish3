@@ -49,6 +49,13 @@
 # error
 #endif
 
+namespace {
+
+CONSTEXPR_CONST int MAIN_TREEID = 0;
+CONSTEXPR_CONST int MAIN_WORKER_ID = 0;
+
+} // namespace
+
 namespace sunfish {
 
 namespace expt {
@@ -339,9 +346,6 @@ void Searcher::before(const Board& initialBoard, bool fastStart) {
     Loggers::error << __FILE_LINE__ << ": Searcher is already running!!!";
   }
 
-  int mainTreeId = 0;
-  int mainWorkerId = 0;
-
   allocateTrees();
   allocateWorkers();
 
@@ -356,17 +360,17 @@ void Searcher::before(const Board& initialBoard, bool fastStart) {
   for (int id = 0; id < config_.workerSize; id++) {
     auto& worker = workers_[id];
     worker.init(id, this);
-    if (id != mainWorkerId) {
-      worker.startOnNewThread();
+    if (id != MAIN_WORKER_ID) {
+      worker.startOnChildThread();
     }
   }
   idleWorkerCount_.store(config_.workerSize - 1);
 
   // 最初の tree を確保
-  auto& tree0 = trees_[mainTreeId];
-  auto& worker0 = workers_[mainWorkerId];
-  tree0.use(mainWorkerId);
-  worker0.startOnCurrentThread(mainTreeId);
+  auto& tree0 = trees_[MAIN_TREEID];
+  auto& worker0 = workers_[MAIN_WORKER_ID];
+  tree0.use(MAIN_WORKER_ID);
+  worker0.startOnCurrentThread(MAIN_TREEID);
 
   // timer 初期化
   timer_.set();
@@ -432,7 +436,11 @@ void Searcher::after() {
   // worker の停止
   for (int id = 1; id < config_.workerSize; id++) {
     auto& worker = workers_[id];
-    worker.stop();
+    if (config_.threadPooling) {
+      worker.sleep();
+    } else {
+      worker.stop();
+    }
   }
 
   // tree の解放

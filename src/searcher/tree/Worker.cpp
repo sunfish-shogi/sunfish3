@@ -7,73 +7,92 @@
 #include "Tree.h"
 #include "../Searcher.h"
 #include <functional>
+#include <chrono>
 
 namespace sunfish {
 
-void Worker::init(int id, Searcher* ps) {
-  psearcher = ps;
-  workerId = id;
-  treeId.store(Tree::InvalidId);
-  memset(&info, 0, sizeof(info));
+Worker::Worker() {
 }
 
-void Worker::startOnNewThread() {
-  job.store(false);
-  shutdown.store(false);
-  thread = std::thread(std::bind(std::mem_fn(&Worker::waitForJob), this, nullptr));
+Worker::~Worker() {
+  stop();
+}
+
+void Worker::init(int id, Searcher* ps) {
+  this->psearcher = ps;
+  this->workerId = id;
+  this->treeId = Tree::InvalidId;
+  memset(&info, 0, sizeof(this->info));
+}
+
+void Worker::startOnChildThread(bool sleeping) {
+  this->job = false;
+  this->shutdown = false;
+  this->sleeping = sleeping;
+  if (!thread.joinable()) {
+    thread = std::thread(std::bind(std::mem_fn(&Worker::waitForJob), this, nullptr));
+  }
 }
 
 void Worker::startOnCurrentThread(int tid) {
-  treeId.store(tid);
-  job.store(true);
-  shutdown.store(false);
+  stop();
+  this->treeId = tid;
+  this->job = true;
+  this->shutdown = false;
+  this->sleeping = false;
 }
 
 void Worker::stop() {
-  shutdown.store(true);
-  thread.join();
+  if (this->thread.joinable()) {
+    this->shutdown = true;
+    this->thread.join();
+  }
 }
 
 void Worker::setJob(int tid) {
-  treeId.store(tid);
-  job.store(true);
+  this->treeId = tid;
+  this->job = true;
 }
 
 void Worker::unsetJob() {
-  job.store(false);
+  this->job = false;
 }
 
 void Worker::swapTree(int tid) {
-  treeId.store(tid);
+  this->treeId = tid;
+}
+
+void Worker::sleep() {
+  this->sleeping = true;
 }
 
 void Worker::waitForJob(Tree* suspendedTree) {
   if (suspendedTree != nullptr) {
     std::lock_guard<std::mutex> lock(psearcher->getSplitMutex());
     unsetJob();
-    psearcher->addIdleWorker();
+    this->psearcher->addIdleWorker();
   }
 
   while (true) {
     if (suspendedTree != nullptr && suspendedTree->getTlp().childCount.load() == 0) {
-      std::lock_guard<std::mutex> lock(psearcher->getSplitMutex());
-      if (!job.load()) {
+      std::lock_guard<std::mutex> lock(this->psearcher->getSplitMutex());
+      if (!this->job) {
         setJob(suspendedTree->getTlp().treeId);
-        psearcher->reduceIdleWorker();
+        this->psearcher->reduceIdleWorker();
         return;
       }
     }
 
-    if (shutdown.load()) {
+    if (this->shutdown) {
       return;
     }
 
-    if (job.load()) {
-      psearcher->searchTlp(treeId.load());
+    if (this->job) {
+      this->psearcher->searchTlp(this->treeId);
       {
-        std::lock_guard<std::mutex> lock(psearcher->getSplitMutex());
+        std::lock_guard<std::mutex> lock(this->psearcher->getSplitMutex());
 
-        psearcher->releaseTree(treeId.load());
+        psearcher->releaseTree(this->treeId);
 
         if (suspendedTree != nullptr && suspendedTree->getTlp().childCount.load() == 0) {
           setJob(suspendedTree->getTlp().treeId);
@@ -81,11 +100,15 @@ void Worker::waitForJob(Tree* suspendedTree) {
         }
 
         unsetJob();
-        psearcher->addIdleWorker();
+        this->psearcher->addIdleWorker();
       }
     }
 
-    std::this_thread::yield();
+    if (this->sleeping) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    } else {
+      std::this_thread::yield();
+    }
   }
 }
 

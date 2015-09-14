@@ -71,6 +71,7 @@ public:
     float limitSeconds;
     bool enableLimit;
     bool enableTimeManagement;
+    bool threadPooling;
     bool ponder;
     bool logging;
 #if !defined(NLEARN)
@@ -141,6 +142,7 @@ private:
     config_.enableLimit = true;
     config_.limitSeconds = 10.0;
     config_.enableTimeManagement = true;
+    config_.threadPooling = true;
     config_.ponder = false;
     config_.logging = true;
 #if !defined(NLEARN)

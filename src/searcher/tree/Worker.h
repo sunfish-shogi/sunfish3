@@ -24,12 +24,20 @@ struct Worker {
   std::atomic<int> treeId;
   std::atomic<bool> job;
   std::atomic<bool> shutdown;
+  std::atomic<bool> sleeping;
+
+  Worker();
+  Worker(const Worker&) = delete;
+  Worker(Worker&&) = delete;
+  ~Worker();
 
   void init(int id, Searcher* ps);
 
-  void startOnNewThread();
+  void startOnChildThread(bool sleeping = false);
 
   void startOnCurrentThread(int tid);
+
+  void sleep();
 
   void stop();
 
