@@ -38,7 +38,7 @@ void test_method_ ## group ## name()
 
 namespace sunfish {
 
-typedef void (*TEST_METHOD)();
+using TEST_METHOD = void (*)();
 
 /**
  * error

@@ -13,13 +13,15 @@ using namespace sunfish;
 
 #if 0
 namespace {
-  void debugPrint(const Moves& moves) {
-    std::ostringstream oss;
-    for (auto ite = moves.begin(); ite != moves.end(); ite++) {
-      oss << ite->toString() << ", ";
-    }
-    Loggers::debug << oss.str();
+
+void debugPrint(const Moves& moves) {
+  std::ostringstream oss;
+  for (auto ite = moves.begin(); ite != moves.end(); ite++) {
+    oss << ite->toString() << ", ";
   }
+  Loggers::debug << oss.str();
+}
+
 }
 #endif
 

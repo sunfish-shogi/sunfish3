@@ -10,6 +10,10 @@ BUILD_DIR:=build
 PROF:=gprof
 PROFOUT:=profile.txt
 
+BMI2:=ON
+
+EXT_OPTS:=-D BMI2=$(BMI2)
+
 .PHONY: release release-pgo release-prof debug profile profile1 learn clean run-prof run-prof1
 
 help:
@@ -26,7 +30,7 @@ help:
 release:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && \
-	$(CMAKE) -D CMAKE_BUILD_TYPE=Release ../../src && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Release $(EXT_OPTS) ../../src && \
 	$(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 
@@ -35,19 +39,19 @@ release-pgo:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	$(RM) -f $(BUILD_DIR)/$@/$(CMAKE_CACHE)
 	cd $(BUILD_DIR)/$@ && \
-	$(CMAKE) -D CMAKE_BUILD_TYPE=Release -D PROFILE_GENERATE=ON ../../src && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Release $(EXT_OPTS) -D PROFILE_GENERATE=ON ../../src && \
 	$(MAKE) clean && $(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 	$(MAKE) run-prof
 	$(RM) -f $(BUILD_DIR)/$@/$(CMAKE_CACHE)
 	cd $(BUILD_DIR)/$@ && \
-	$(CMAKE) -D CMAKE_BUILD_TYPE=Release -D PROFILE_USE=ON ../../src && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Release $(EXT_OPTS) -D PROFILE_USE=ON ../../src && \
 	$(MAKE) clean && $(MAKE)
 
 debug:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && \
-	$(CMAKE) -D CMAKE_BUILD_TYPE=Debug ../../src && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Debug $(EXT_OPTS) ../../src && \
 	$(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 
@@ -59,7 +63,7 @@ release-prof:
 	$(TEST) -f $(EVAL_BIN)
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && \
-	$(CMAKE) -D CMAKE_BUILD_TYPE=Release -D PROFILE=ON ../../src && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Release $(EXT_OPTS) -D PROFILE=ON ../../src && \
 	$(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 
@@ -78,7 +82,7 @@ profile1:
 learn:
 	$(MKDIR) -p $(BUILD_DIR)/$@ 2> /dev/null
 	cd $(BUILD_DIR)/$@ && \
-	$(CMAKE) -D CMAKE_BUILD_TYPE=Release -D LEARNING=ON ../../src && \
+	$(CMAKE) -D CMAKE_BUILD_TYPE=Release $(EXT_OPTS) -D LEARNING=ON ../../src && \
 	$(MAKE)
 	$(LN) -s -f $(BUILD_DIR)/$@/$(SUNFISH) $(SUNFISH)
 

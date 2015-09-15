@@ -21,8 +21,8 @@ private:
 
 public:
 
-  typedef Move* iterator;
-  typedef const Move* const_iterator;
+  using iterator = Move*;
+  using const_iterator = const Move*;
 
   TempMoves() : size_(0) {
   }
@@ -81,7 +81,7 @@ public:
 
 };
 
-typedef TempMoves<1024> Moves;
+using Moves = TempMoves<1024>;
 
 } // namespace sunfish
 

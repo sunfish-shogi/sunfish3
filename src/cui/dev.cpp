@@ -35,10 +35,18 @@ int exprMoveGenSpeed() {
   return 0;
 }
 
-// ハッシュ表生成
+// Zobrist 用乱数表生成
 int generateZobrist() {
   CodeGenerator gen;
   gen.generateZobrist();
+
+  return 0;
+}
+
+// MoveTable 生成
+int generateMoveTable() {
+  CodeGenerator gen;
+  gen.generateMoveTable();
 
   return 0;
 }

@@ -89,7 +89,7 @@ std::string Config::getString(const char* name) const {
     return idef->second.defaultValue;
   }
 
-  return ""; // TODO: throw exception
+  return "";
 }
 
 int32_t Config::getInt(const std::string& name) const {

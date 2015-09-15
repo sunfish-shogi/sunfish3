@@ -23,7 +23,7 @@ namespace MovableFlag_ {
     RIGHT_DOWN = 0x01,
   };
 }
-typedef MovableFlag_::Type MovableFlag;
+using MovableFlag = MovableFlag_::Type;
 extern const uint8_t MovableTable[32];
 extern const uint8_t LongMovableTable[32];
 

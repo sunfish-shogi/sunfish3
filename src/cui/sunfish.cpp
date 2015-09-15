@@ -37,6 +37,7 @@ int test();
 // dev.cpp
 int exprMoveGenSpeed();
 int generateZobrist();
+int generateMoveTable();
 int checkMoveGen();
 
 /**
@@ -111,6 +112,9 @@ int main(int argc, char** argv, char** /*envp*/) {
 
     } else if (code == "zobrist") {
       return generateZobrist();
+
+    } else if (code == "move_table") {
+      return generateMoveTable();
 
     } else if (code == "gen_check") {
       return checkMoveGen();

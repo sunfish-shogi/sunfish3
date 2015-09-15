@@ -7,17 +7,10 @@
 #define SUNFISH_BITBOARD__
 
 #include "../def.h"
+#include "../sse.h"
 #include "../base/Square.h"
 #include "../util/StringUtil.h"
 #include <cstdint>
-
-#if __SSE2__
-# define USE_SSE2 0
-#endif
-
-#if USE_SSE2
-# include <emmintrin.h>
-#endif
 
 #if WIN32
 # include "windows.h"
@@ -35,7 +28,7 @@
  *  6 15 24 33 42 51 60 69 78 | 7
  *  7 16 25 34 43 52 61 70 79 | 8
  *  8 17 26 35 44 53 62 71 80 | 9
- *  low --------> <----- high
+ *  low --------------> <- high
  */
 
 /*
@@ -89,56 +82,56 @@
  * 5 8: 43: 43 - 0x0000080000000000
  * 5 9: 44: 44 - 0x0000100000000000
  *
- * 4 1: 45:  0 - 0x0000000000000001
- * 4 2: 46:  1 - 0x0000000000000002
- * 4 3: 47:  2 - 0x0000000000000004
- * 4 4: 48:  3 - 0x0000000000000008
- * 4 5: 49:  4 - 0x0000000000000010
- * 4 6: 50:  5 - 0x0000000000000020
- * 4 7: 51:  6 - 0x0000000000000040
- * 4 8: 52:  7 - 0x0000000000000080
- * 4 9: 53:  8 - 0x0000000000000100
+ * 4 1: 45: 45 - 0x0000200000000000
+ * 4 2: 46: 46 - 0x0000400000000000
+ * 4 3: 47: 47 - 0x0000800000000000
+ * 4 4: 48: 48 - 0x0001000000000000
+ * 4 5: 49: 49 - 0x0002000000000000
+ * 4 6: 50: 50 - 0x0004000000000000
+ * 4 7: 51: 51 - 0x0008000000000000
+ * 4 8: 52: 52 - 0x0010000000000000
+ * 4 9: 53: 53 - 0x0020000000000000
  *
- * 3 1: 54:  9 - 0x0000000000000200
- * 3 2: 55: 10 - 0x0000000000000400
- * 3 3: 56: 11 - 0x0000000000000800
- * 3 4: 57: 12 - 0x0000000000001000
- * 3 5: 58: 13 - 0x0000000000002000
- * 3 6: 59: 14 - 0x0000000000004000
- * 3 7: 60: 15 - 0x0000000000008000
- * 3 8: 61: 16 - 0x0000000000010000
- * 3 9: 62: 17 - 0x0000000000020000
+ * 3 1: 54: 54 - 0x0040000000000000
+ * 3 2: 55: 55 - 0x0080000000000000
+ * 3 3: 56: 56 - 0x0100000000000000
+ * 3 4: 57: 57 - 0x0200000000000000
+ * 3 5: 58: 58 - 0x0400000000000000
+ * 3 6: 59: 59 - 0x0800000000000000
+ * 3 7: 60: 60 - 0x1000000000000000
+ * 3 8: 61: 61 - 0x2000000000000000
+ * 3 9: 62: 62 - 0x4000000000000000
  *
- * 2 1: 63: 18 - 0x0000000000040000
- * 2 2: 64: 19 - 0x0000000000080000
- * 2 3: 65: 20 - 0x0000000000100000
- * 2 4: 66: 21 - 0x0000000000200000
- * 2 5: 67: 22 - 0x0000000000400000
- * 2 6: 68: 23 - 0x0000000000800000
- * 2 7: 69: 24 - 0x0000000001000000
- * 2 8: 70: 25 - 0x0000000002000000
- * 2 9: 71: 26 - 0x0000000004000000
+ * 2 1: 63:  0 - 0x0000000000000001
+ * 2 2: 64:  1 - 0x0000000000000002
+ * 2 3: 65:  2 - 0x0000000000000004
+ * 2 4: 66:  3 - 0x0000000000000008
+ * 2 5: 67:  4 - 0x0000000000000010
+ * 2 6: 68:  5 - 0x0000000000000020
+ * 2 7: 69:  6 - 0x0000000000000040
+ * 2 8: 70:  7 - 0x0000000000000080
+ * 2 9: 71:  8 - 0x0000000000000100
  *
- * 1 1: 73: 27 - 0x0000000008000000
- * 1 2: 74: 28 - 0x0000000010000000
- * 1 3: 75: 29 - 0x0000000020000000
- * 1 4: 76: 30 - 0x0000000040000000
- * 1 5: 77: 31 - 0x0000000080000000
- * 1 6: 78: 32 - 0x0000000100000000
- * 1 7: 79: 33 - 0x0000000200000000
- * 1 8: 80: 34 - 0x0000000400000000
- * 1 9: 81: 35 - 0x0000000800000000
+ * 1 1: 73:  9 - 0x0000000000000200
+ * 1 2: 74: 10 - 0x0000000000000400
+ * 1 3: 75: 11 - 0x0000000000000800
+ * 1 4: 76: 12 - 0x0000000000001000
+ * 1 5: 77: 13 - 0x0000000000002000
+ * 1 6: 78: 14 - 0x0000000000004000
+ * 1 7: 79: 15 - 0x0000000000008000
+ * 1 8: 80: 16 - 0x0000000000010000
+ * 1 9: 81: 17 - 0x0000000000020000
  */
 
-#define LOW_RANGE__  0x00001fffffffffffLL
-#define HIGH_RANGE__ 0x0000000fffffffffLL
+#define LOW_RANGE__  0x7fffffffffffffffLL
+#define HIGH_RANGE__ 0x000000000003ffffLL
 
 namespace sunfish {
 
 class Bitboard {
 public:
-  static CONSTEXPR_CONST int LowFiles = 5;
-  static CONSTEXPR_CONST int HighFiles = 4;
+  static CONSTEXPR_CONST int LowFiles = 7;
+  static CONSTEXPR_CONST int HighFiles = 2;
   static CONSTEXPR_CONST int LowBits = 9 * LowFiles;
   static CONSTEXPR_CONST int HighBits = 9 * HighFiles;
 
@@ -193,29 +186,29 @@ public:
 
   static Bitboard file(int fileIndex) {
     static CONSTEXPR_CONST Bitboard t[9] = {
-      Bitboard{ 0x0000000ff8000000, 0x0000000000000000 },
-      Bitboard{ 0x0000000007fc0000, 0x0000000000000000 },
-      Bitboard{ 0x000000000003fe00, 0x0000000000000000 },
-      Bitboard{ 0x00000000000001ff, 0x0000000000000000 },
-      Bitboard{ 0x0000000000000000, 0x00001ff000000000 },
-      Bitboard{ 0x0000000000000000, 0x0000000ff8000000 },
-      Bitboard{ 0x0000000000000000, 0x0000000007fc0000 },
-      Bitboard{ 0x0000000000000000, 0x000000000003fe00 },
-      Bitboard{ 0x0000000000000000, 0x00000000000001ff },
+      Bitboard{ 0x000000000003fe00LL, 0x0000000000000000LL },
+      Bitboard{ 0x00000000000001ffLL, 0x0000000000000000LL },
+      Bitboard{ 0x0000000000000000LL, 0x7fc0000000000000LL },
+      Bitboard{ 0x0000000000000000LL, 0x003fe00000000000LL },
+      Bitboard{ 0x0000000000000000LL, 0x00001ff000000000LL },
+      Bitboard{ 0x0000000000000000LL, 0x0000000ff8000000LL },
+      Bitboard{ 0x0000000000000000LL, 0x0000000007fc0000LL },
+      Bitboard{ 0x0000000000000000LL, 0x000000000003fe00LL },
+      Bitboard{ 0x0000000000000000LL, 0x00000000000001ffLL },
     };
     return t[fileIndex-1];
   }
   static Bitboard notFile(int fileIndex) {
     static CONSTEXPR_CONST Bitboard t[9] = {
-      Bitboard{ 0x0000000007ffffff, 0x00001fffffffffff },
-      Bitboard{ 0x0000000ff803ffff, 0x00001fffffffffff },
-      Bitboard{ 0x0000000ffffc01ff, 0x00001fffffffffff },
-      Bitboard{ 0x0000000ffffffe00, 0x00001fffffffffff },
-      Bitboard{ 0x0000000fffffffff, 0x0000000fffffffff },
-      Bitboard{ 0x0000000fffffffff, 0x00001ff007ffffff },
-      Bitboard{ 0x0000000fffffffff, 0x00001ffff803ffff },
-      Bitboard{ 0x0000000fffffffff, 0x00001ffffffc01ff },
-      Bitboard{ 0x0000000fffffffff, 0x00001ffffffffe00 },
+      Bitboard{ 0x00000000000001ffLL, 0x7fffffffffffffffLL },
+      Bitboard{ 0x000000000003fe00LL, 0x7fffffffffffffffLL },
+      Bitboard{ 0x000000000003ffffLL, 0x003fffffffffffffLL },
+      Bitboard{ 0x000000000003ffffLL, 0x7fc01fffffffffffLL },
+      Bitboard{ 0x000000000003ffffLL, 0x7fffe00fffffffffLL },
+      Bitboard{ 0x000000000003ffffLL, 0x7ffffff007ffffffLL },
+      Bitboard{ 0x000000000003ffffLL, 0x7ffffffff803ffffLL },
+      Bitboard{ 0x000000000003ffffLL, 0x7ffffffffffc01ffLL },
+      Bitboard{ 0x000000000003ffffLL, 0x7ffffffffffffe00LL },
     };
     return t[fileIndex-1];
   }
@@ -557,13 +550,13 @@ public:
     if (BB_LOW_) {
       return getFirst_(BB_LOW_) - 1;
     } else if (BB_HIGH_) {
-      return getFirst_(BB_HIGH_) + LowBits - 1;
+      return getFirst_(BB_HIGH_) + (LowBits - 1);
     }
     return Square::Invalid;
   }
   int getLast() const {
     if (BB_HIGH_) {
-      return getLast_(BB_HIGH_) + LowBits - 1;
+      return getLast_(BB_HIGH_) + (LowBits - 1);
     } else if(BB_LOW_) {
       return getLast_(BB_LOW_) - 1;
     }
@@ -610,27 +603,27 @@ public:
 #endif
 
 CONSTEXPR_CONST Bitboard BPawnMovable(
-  HIGH_RANGE__ - 0x0000000008040201LL,
-  LOW_RANGE__  - 0x0000001008040201LL
+  HIGH_RANGE__ - 0x0000000000000201LL,
+  LOW_RANGE__  - 0x0040201008040201LL
 );
 CONSTEXPR_CONST Bitboard BLanceMovable = BPawnMovable;
 CONSTEXPR_CONST Bitboard BKnightMovable(
-  HIGH_RANGE__ - 0x00000000180c0603LL,
-  LOW_RANGE__  - 0x00000030180c0603LL
+  HIGH_RANGE__ - 0x0000000000000603LL,
+  LOW_RANGE__  - 0x00c06030180c0603LL
 );
 CONSTEXPR_CONST Bitboard WPawnMovable(
-  HIGH_RANGE__ - 0x0000000804020100LL,
-  LOW_RANGE__  - 0x0000100804020100LL
+  HIGH_RANGE__ - 0x0000000000020100LL,
+  LOW_RANGE__  - 0x4020100804020100LL
 );
 CONSTEXPR_CONST Bitboard WLanceMovable = WPawnMovable;
 CONSTEXPR_CONST Bitboard WKnightMovable(
-  HIGH_RANGE__ - 0x0000000c06030180LL,
-  LOW_RANGE__  - 0x0000180c06030180LL
+  HIGH_RANGE__ - 0x0000000000030180LL,
+  LOW_RANGE__  - 0x6030180c06030180LL
 );
-CONSTEXPR_CONST Bitboard BPromotable(0x00000000381c0e07LL, 0x00000070381c0e07LL);
-CONSTEXPR_CONST Bitboard WPromotable(0x0000000e070381c0LL, 0x00001c0e070381c0LL);
-CONSTEXPR_CONST Bitboard BPromotable2(0x00000000180c0603LL, 0x00000030180c0603LL);
-CONSTEXPR_CONST Bitboard WPromotable2(0x0000000c06030180LL, 0x0000180c06030180LL);
+CONSTEXPR_CONST Bitboard BPromotable(0x0000000000000e07LL, 0x01c0e070381c0e07LL);
+CONSTEXPR_CONST Bitboard WPromotable(0x00000000000381c0LL, 0x70381c0e070381c0LL);
+CONSTEXPR_CONST Bitboard BPromotable2(0x0000000000000603LL, 0x00c06030180c0603LL);
+CONSTEXPR_CONST Bitboard WPromotable2(0x0000000000030180LL, 0x6030180c06030180LL);
 
 } // namespace sunfish
 
