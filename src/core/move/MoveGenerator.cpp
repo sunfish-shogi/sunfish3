@@ -413,14 +413,14 @@ void MoveGenerator::generateEvasion_(const Board& board, Moves& moves) {
     if ((tempAttacker = (MoveTables::bishop2(king, occ) & (board.getWBishop() | board.getWHorse())))) {
       longMask = MoveTables::bishop(king, occ);
       longAttacker = tempAttacker;
-      if (dirMask.rightUp(king) & longAttacker) {
-        longMask &= dirMask.rightUp(king);
-      } else if (dirMask.leftDown(king) & longAttacker) {
-        longMask &= dirMask.leftDown(king);
-      } else if (dirMask.rightDown(king) & longAttacker) {
-        longMask &= dirMask.rightDown(king);
-      } else if (dirMask.leftUp(king) & longAttacker) {
-        longMask &= dirMask.leftUp(king);
+      if (DirectionMaskTable::rightUp(king) & longAttacker) {
+        longMask &= DirectionMaskTable::rightUp(king);
+      } else if (DirectionMaskTable::leftDown(king) & longAttacker) {
+        longMask &= DirectionMaskTable::leftDown(king);
+      } else if (DirectionMaskTable::rightDown(king) & longAttacker) {
+        longMask &= DirectionMaskTable::rightDown(king);
+      } else if (DirectionMaskTable::leftUp(king) & longAttacker) {
+        longMask &= DirectionMaskTable::leftUp(king);
       }
       longAttack++;
     }
@@ -429,14 +429,14 @@ void MoveGenerator::generateEvasion_(const Board& board, Moves& moves) {
     if ((tempAttacker = (MoveTables::rook2(king, occ) & (board.getWRook() | board.getWDragon())))) {
       longMask = MoveTables::rook(king, occ);
       longAttacker = tempAttacker;
-      if (dirMask.left(king) & longAttacker) {
-        longMask &= dirMask.left(king);
-      } else if (dirMask.right(king) & longAttacker) {
-        longMask &= dirMask.right(king);
-      } else if (dirMask.up(king) & longAttacker) {
-        longMask &= dirMask.up(king);
-      } else if (dirMask.down(king) & longAttacker) {
-        longMask &= dirMask.down(king);
+      if (DirectionMaskTable::left(king) & longAttacker) {
+        longMask &= DirectionMaskTable::left(king);
+      } else if (DirectionMaskTable::right(king) & longAttacker) {
+        longMask &= DirectionMaskTable::right(king);
+      } else if (DirectionMaskTable::up(king) & longAttacker) {
+        longMask &= DirectionMaskTable::up(king);
+      } else if (DirectionMaskTable::down(king) & longAttacker) {
+        longMask &= DirectionMaskTable::down(king);
       }
       longAttack++;
     }
@@ -466,14 +466,14 @@ void MoveGenerator::generateEvasion_(const Board& board, Moves& moves) {
     if ((tempAttacker = (MoveTables::bishop2(king, occ) & (board.getBBishop() | board.getBHorse())))) {
       longMask = MoveTables::bishop(king, occ);
       longAttacker = tempAttacker;
-      if (dirMask.rightUp(king) & longAttacker) {
-        longMask &= dirMask.rightUp(king);
-      } else if (dirMask.leftDown(king) & longAttacker) {
-        longMask &= dirMask.leftDown(king);
-      } else if (dirMask.rightDown(king) & longAttacker) {
-        longMask &= dirMask.rightDown(king);
-      } else if (dirMask.leftUp(king) & longAttacker) {
-        longMask &= dirMask.leftUp(king);
+      if (DirectionMaskTable::rightUp(king) & longAttacker) {
+        longMask &= DirectionMaskTable::rightUp(king);
+      } else if (DirectionMaskTable::leftDown(king) & longAttacker) {
+        longMask &= DirectionMaskTable::leftDown(king);
+      } else if (DirectionMaskTable::rightDown(king) & longAttacker) {
+        longMask &= DirectionMaskTable::rightDown(king);
+      } else if (DirectionMaskTable::leftUp(king) & longAttacker) {
+        longMask &= DirectionMaskTable::leftUp(king);
       }
       longAttack++;
     }
@@ -482,14 +482,14 @@ void MoveGenerator::generateEvasion_(const Board& board, Moves& moves) {
     if ((tempAttacker = (MoveTables::rook2(king, occ) & (board.getBRook() | board.getBDragon())))) {
       longMask = MoveTables::rook(king, occ);
       longAttacker = tempAttacker;
-      if (dirMask.left(king) & longAttacker) {
-        longMask &= dirMask.left(king);
-      } else if (dirMask.right(king) & longAttacker) {
-        longMask &= dirMask.right(king);
-      } else if (dirMask.up(king) & longAttacker) {
-        longMask &= dirMask.up(king);
-      } else if (dirMask.down(king) & longAttacker) {
-        longMask &= dirMask.down(king);
+      if (DirectionMaskTable::left(king) & longAttacker) {
+        longMask &= DirectionMaskTable::left(king);
+      } else if (DirectionMaskTable::right(king) & longAttacker) {
+        longMask &= DirectionMaskTable::right(king);
+      } else if (DirectionMaskTable::up(king) & longAttacker) {
+        longMask &= DirectionMaskTable::up(king);
+      } else if (DirectionMaskTable::down(king) & longAttacker) {
+        longMask &= DirectionMaskTable::down(king);
       }
       longAttack++;
     }

@@ -521,13 +521,6 @@ void CodeGenerator::generateMoveTable() {
   std::cout << "\n";
   std::cout << "namespace sunfish {\n";
   std::cout << "\n";
-  std::cout << "const DirectionMaskTable dirMask;\n";
-  std::cout << "const DirectionMaskTable7x7 dirMask7x7;\n";
-  std::cout << "#if !USE_BMI2\n";
-  std::cout << "const MagicNumberTable magic;\n";
-  std::cout << "#endif\n";
-  std::cout << "const MovePatternTable movePattern;\n";
-  std::cout << "\n";
 
   generateDirectionMaskTable();
   generateMagicNumberTable();

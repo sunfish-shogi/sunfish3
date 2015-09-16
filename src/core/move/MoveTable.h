@@ -30,48 +30,47 @@ public:
   DirectionMaskTable() {}
   DirectionMaskTable(const DirectionMaskTable&) = delete;
   DirectionMaskTable(DirectionMaskTable&) = delete;
-  const Bitboard& left(const Square& sq) const {
+  static const Bitboard& left(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return left_[sq.index()];
   }
-  const Bitboard& right(const Square& sq) const {
+  static const Bitboard& right(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return right_[sq.index()];
   }
-  const Bitboard& up(const Square& sq) const {
+  static const Bitboard& up(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return up_[sq.index()];
   }
-  const Bitboard& down(const Square& sq) const {
+  static const Bitboard& down(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return down_[sq.index()];
   }
-  const Bitboard& leftUp(const Square& sq) const {
+  static const Bitboard& leftUp(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return leftUp_[sq.index()];
   }
-  const Bitboard& rightDown(const Square& sq) const {
+  static const Bitboard& rightDown(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return rightDown_[sq.index()];
   }
-  const Bitboard& rightUp(const Square& sq) const {
+  static const Bitboard& rightUp(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return rightUp_[sq.index()];
   }
-  const Bitboard& leftDown(const Square& sq) const {
+  static const Bitboard& leftDown(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return leftDown_[sq.index()];
   }
 };
-extern const DirectionMaskTable dirMask;
 
 /**
  * DirectionMaskTable7x7
@@ -86,23 +85,22 @@ public:
   DirectionMaskTable7x7() {}
   DirectionMaskTable7x7(const DirectionMaskTable7x7&) = delete;
   DirectionMaskTable7x7(DirectionMaskTable7x7&) = delete;
-  const Bitboard& rank(const Square& sq) const {
+  static const Bitboard& rank(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return rank_[sq.index()];
   }
-  const Bitboard& leftUpX(const Square& sq) const {
+  static const Bitboard& leftUpX(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return leftUpX_[sq.index()];
   }
-  const Bitboard& rightUpX(const Square& sq) const {
+  static const Bitboard& rightUpX(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return rightUpX_[sq.index()];
   }
 };
-extern const DirectionMaskTable7x7 dirMask7x7;
 
 #if !USE_BMI2
 /**
@@ -118,23 +116,22 @@ public:
   MagicNumberTable() {}
   MagicNumberTable(const MagicNumberTable&) = delete;
   MagicNumberTable(MagicNumberTable&&) = delete;
-  const Bitboard& rank(const Square& sq) const {
+  static const Bitboard& rank(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return rank_[sq.index()];
   }
-  const Bitboard& leftUp(const Square& sq) const {
+  static const Bitboard& leftUp(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return leftUp_[sq.index()];
   }
-  const Bitboard& rightUp(const Square& sq) const {
+  static const Bitboard& rightUp(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     return rightUp_[sq.index()];
   }
 };
-extern const sunfish::MagicNumberTable magic;
 #endif
 
 /**
@@ -160,91 +157,90 @@ public:
   MovePatternTable(const MovePatternTable&) = delete;
   MovePatternTable(MovePatternTable&&) = delete;
   template <class T>
-  const Bitboard& up(const Square& sq, T pattern) const {
+  static const Bitboard& up(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
     return up_[sq.index()][pattern];
   }
   template <class T>
-  const Bitboard& down(const Square& sq, T pattern) const {
+  static const Bitboard& down(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
     return down_[sq.index()][pattern];
   }
   template <class T>
-  const Bitboard& file(const Square& sq, T pattern) const {
+  static const Bitboard& file(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
     return file_[sq.index()][pattern];
   }
   template <class T>
-  const Bitboard& rank(const Square& sq, T pattern) const {
+  static const Bitboard& rank(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
     return rank_[sq.index()][pattern];
   }
   template <class T>
-  const Bitboard& leftUpX(const Square& sq, T pattern) const {
+  static const Bitboard& leftUpX(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
     return leftUpX_[sq.index()][pattern];
   }
   template <class T>
-  const Bitboard& rightUpX(const Square& sq, T pattern) const {
+  static const Bitboard& rightUpX(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
     return rightUpX_[sq.index()][pattern];
   }
   template <class T>
-  const Bitboard& leftUp(const Square& sq, T pattern) const {
+  static const Bitboard& leftUp(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
     return leftUp_[sq.index()][pattern];
   }
   template <class T>
-  const Bitboard& leftDown(const Square& sq, T pattern) const {
+  static const Bitboard& leftDown(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
     return leftDown_[sq.index()][pattern];
   }
   template <class T>
-  const Bitboard& rightUp(const Square& sq, T pattern) const {
+  static const Bitboard& rightUp(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
     return rightUp_[sq.index()][pattern];
   }
   template <class T>
-  const Bitboard& rightDown(const Square& sq, T pattern) const {
+  static const Bitboard& rightDown(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
     return rightDown_[sq.index()][pattern];
   }
   template <class T>
-  const Bitboard& left(const Square& sq, T pattern) const {
+  static const Bitboard& left(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
     return left_[sq.index()][pattern];
   }
   template <class T>
-  const Bitboard& right(const Square& sq, T pattern) const {
+  static const Bitboard& right(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
     return right_[sq.index()][pattern];
   }
 };
-extern const sunfish::MovePatternTable movePattern;
 
 /**
  * 利き算出テーブル
@@ -330,7 +326,7 @@ public:
     assert(sq.index() < Square::N);
     auto b = Bitboard::isHigh(sq) ? (bb.high() >> ((Bitboard::HighFiles * 9 + 1) - sq.getFile() * 9))
                                   : (bb.low() >> ((81 + 1) - sq.getFile() * 9));
-    return movePattern.file(sq, b & 0x7f);
+    return MovePatternTable::file(sq, b & 0x7f);
   }
 
   static const Bitboard& horizontal(const Square& sq, const Bitboard& bb) {
@@ -338,15 +334,15 @@ public:
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
 #if !USE_BMI2
-    Bitboard attack = bb & dirMask7x7.rank(sq);
-    const auto& m = magic.rank(sq);
+    Bitboard attack = bb & DirectionMaskTable7x7::rank(sq);
+    const auto& m = MagicNumberTable::rank(sq);
     auto b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
-    return movePattern.rank(sq, b & 0x7f);
+    return MovePatternTable::rank(sq, b & 0x7f);
 #else
-    Bitboard mask = dirMask7x7.rank(sq);
+    Bitboard mask = DirectionMaskTable7x7::rank(sq);
     Bitboard attack = bb & mask;
     auto b = _pext_u64(attack.high() | attack.low(), mask.high() | mask.low());
-    return movePattern.rank(sq, b);
+    return MovePatternTable::rank(sq, b);
 #endif
   }
 
@@ -355,15 +351,15 @@ public:
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
 #if !USE_BMI2
-    Bitboard attack = bb & dirMask7x7.rightUpX(sq);
-    const auto& m = magic.rightUp(sq);
+    Bitboard attack = bb & DirectionMaskTable7x7::rightUpX(sq);
+    const auto& m = MagicNumberTable::rightUp(sq);
     auto b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
-    return movePattern.rightUpX(sq, b & 0x7f);
+    return MovePatternTable::rightUpX(sq, b & 0x7f);
 #else
-    Bitboard mask = dirMask7x7.rightUpX(sq);
+    Bitboard mask = DirectionMaskTable7x7::rightUpX(sq);
     Bitboard attack = bb & mask;
     auto b = _pext_u64(attack.high() | attack.low(), mask.high() | mask.low());
-    return movePattern.rightUpX(sq, b);
+    return MovePatternTable::rightUpX(sq, b);
 #endif
   }
 
@@ -372,15 +368,15 @@ public:
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
 #if !USE_BMI2
-    Bitboard attack = bb & dirMask7x7.leftUpX(sq);
-    const auto& m = magic.leftUp(sq);
+    Bitboard attack = bb & DirectionMaskTable7x7::leftUpX(sq);
+    const auto& m = MagicNumberTable::leftUp(sq);
     auto b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
-    return movePattern.leftUpX(sq, b & 0x7f);
+    return MovePatternTable::leftUpX(sq, b & 0x7f);
 #else
-    Bitboard mask = dirMask7x7.leftUpX(sq);
+    Bitboard mask = DirectionMaskTable7x7::leftUpX(sq);
     Bitboard attack = bb & mask;
     auto b = _pext_u64(attack.high() | attack.low(), mask.high() | mask.low());
-    return movePattern.leftUpX(sq, b);
+    return MovePatternTable::leftUpX(sq, b);
 #endif
   }
 
@@ -389,15 +385,15 @@ public:
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
 #if !USE_BMI2
-    Bitboard attack = bb & dirMask7x7.rightUpX(sq);
-    const auto& m = magic.rightUp(sq);
+    Bitboard attack = bb & DirectionMaskTable7x7::rightUpX(sq);
+    const auto& m = MagicNumberTable::rightUp(sq);
     auto b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
-    return movePattern.rightUp(sq, b & 0x7f);
+    return MovePatternTable::rightUp(sq, b & 0x7f);
 #else
-    Bitboard mask = dirMask7x7.rightUpX(sq);
+    Bitboard mask = DirectionMaskTable7x7::rightUpX(sq);
     Bitboard attack = bb & mask;
     auto b = _pext_u64(attack.high() | attack.low(), mask.high() | mask.low());
-    return movePattern.rightUp(sq, b);
+    return MovePatternTable::rightUp(sq, b);
 #endif
   }
 
@@ -406,15 +402,15 @@ public:
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
 #if !USE_BMI2
-    Bitboard attack = bb & dirMask7x7.leftUpX(sq);
-    const auto& m = magic.leftUp(sq);
+    Bitboard attack = bb & DirectionMaskTable7x7::leftUpX(sq);
+    const auto& m = MagicNumberTable::leftUp(sq);
     auto b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
-    return movePattern.rightDown(sq, b & 0x7f);
+    return MovePatternTable::rightDown(sq, b & 0x7f);
 #else
-    Bitboard mask = dirMask7x7.leftUpX(sq);
+    Bitboard mask = DirectionMaskTable7x7::leftUpX(sq);
     Bitboard attack = bb & mask;
     auto b = _pext_u64(attack.high() | attack.low(), mask.high() | mask.low());
-    return movePattern.rightDown(sq, b);
+    return MovePatternTable::rightDown(sq, b);
 #endif
   }
 
@@ -423,15 +419,15 @@ public:
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
 #if !USE_BMI2
-    Bitboard attack = bb & dirMask7x7.leftUpX(sq);
-    const auto& m = magic.leftUp(sq);
+    Bitboard attack = bb & DirectionMaskTable7x7::leftUpX(sq);
+    const auto& m = MagicNumberTable::leftUp(sq);
     auto b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
-    return movePattern.leftUp(sq, b & 0x7f);
+    return MovePatternTable::leftUp(sq, b & 0x7f);
 #else
-    Bitboard mask = dirMask7x7.leftUpX(sq);
+    Bitboard mask = DirectionMaskTable7x7::leftUpX(sq);
     Bitboard attack = bb & mask;
     auto b = _pext_u64(attack.high() | attack.low(), mask.high() | mask.low());
-    return movePattern.leftUp(sq, b);
+    return MovePatternTable::leftUp(sq, b);
 #endif
   }
 
@@ -440,15 +436,15 @@ public:
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
 #if !USE_BMI2
-    Bitboard attack = bb & dirMask7x7.rightUpX(sq);
-    const auto& m = magic.rightUp(sq);
+    Bitboard attack = bb & DirectionMaskTable7x7::rightUpX(sq);
+    const auto& m = MagicNumberTable::rightUp(sq);
     auto b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
-    return movePattern.leftDown(sq, b & 0x7f);
+    return MovePatternTable::leftDown(sq, b & 0x7f);
 #else
-    Bitboard mask = dirMask7x7.rightUpX(sq);
+    Bitboard mask = DirectionMaskTable7x7::rightUpX(sq);
     Bitboard attack = bb & mask;
     auto b = _pext_u64(attack.high() | attack.low(), mask.high() | mask.low());
-    return movePattern.leftDown(sq, b);
+    return MovePatternTable::leftDown(sq, b);
 #endif
   }
 
@@ -457,15 +453,15 @@ public:
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
 #if !USE_BMI2
-    Bitboard attack = bb & dirMask7x7.rank(sq);
-    const auto& m = magic.rank(sq);
+    Bitboard attack = bb & DirectionMaskTable7x7::rank(sq);
+    const auto& m = MagicNumberTable::rank(sq);
     auto b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
-    return movePattern.right(sq, b & 0x7f);
+    return MovePatternTable::right(sq, b & 0x7f);
 #else
-    Bitboard mask = dirMask7x7.rank(sq);
+    Bitboard mask = DirectionMaskTable7x7::rank(sq);
     Bitboard attack = bb & mask;
     auto b = _pext_u64(attack.high() | attack.low(), mask.high() | mask.low());
-    return movePattern.right(sq, b);
+    return MovePatternTable::right(sq, b);
 #endif
   }
 
@@ -474,15 +470,15 @@ public:
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
 #if !USE_BMI2
-    Bitboard attack = bb & dirMask7x7.rank(sq);
-    const auto& m = magic.rank(sq);
+    Bitboard attack = bb & DirectionMaskTable7x7::rank(sq);
+    const auto& m = MagicNumberTable::rank(sq);
     auto b = ((attack.high() * m.high()) ^ (attack.low() * m.low())) >> (64-7);
-    return movePattern.left(sq, b & 0x7f);
+    return MovePatternTable::left(sq, b & 0x7f);
 #else
-    Bitboard mask = dirMask7x7.rank(sq);
+    Bitboard mask = DirectionMaskTable7x7::rank(sq);
     Bitboard attack = bb & mask;
     auto b = _pext_u64(attack.high() | attack.low(), mask.high() | mask.low());
-    return movePattern.left(sq, b);
+    return MovePatternTable::left(sq, b);
 #endif
   }
 
@@ -491,7 +487,7 @@ public:
     assert(sq.index() < Square::N);
     auto b = Bitboard::isHigh(sq) ? (bb.high() >> ((Bitboard::HighFiles * 9 + 1) - sq.getFile() * 9))
                                   : (bb.low() >> ((81 + 1) - sq.getFile() * 9));
-    return movePattern.up(sq, b & 0x7f);
+    return MovePatternTable::up(sq, b & 0x7f);
   }
 
   static const Bitboard& wlance(const Square& sq, const Bitboard& bb) {
@@ -499,7 +495,7 @@ public:
     assert(sq.index() < Square::N);
     auto b = Bitboard::isHigh(sq) ? (bb.high() >> ((Bitboard::HighFiles * 9 + 1) - sq.getFile() * 9))
                                   : (bb.low() >> ((81 + 1) - sq.getFile() * 9));
-    return movePattern.down(sq, b & 0x7f);
+    return MovePatternTable::down(sq, b & 0x7f);
   }
 
   /**
