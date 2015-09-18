@@ -522,19 +522,19 @@ bool BatchLearning::generateGradient(uint32_t wn) {
 
     loss_ += loss0;
 
-    gm_.pawn       = gm0->pawn;
-    gm_.lance      = gm0->lance;
-    gm_.knight     = gm0->knight;
-    gm_.silver     = gm0->silver;
-    gm_.gold       = gm0->gold;
-    gm_.bishop     = gm0->bishop;
-    gm_.rook       = gm0->rook;
-    gm_.tokin      = gm0->tokin;
-    gm_.pro_lance  = gm0->pro_lance;
-    gm_.pro_knight = gm0->pro_knight;
-    gm_.pro_silver = gm0->pro_silver;
-    gm_.horse      = gm0->horse;
-    gm_.dragon     = gm0->dragon;
+    gm_.pawn       += gm0->pawn;
+    gm_.lance      += gm0->lance;
+    gm_.knight     += gm0->knight;
+    gm_.silver     += gm0->silver;
+    gm_.gold       += gm0->gold;
+    gm_.bishop     += gm0->bishop;
+    gm_.rook       += gm0->rook;
+    gm_.tokin      += gm0->tokin;
+    gm_.pro_lance  += gm0->pro_lance;
+    gm_.pro_knight += gm0->pro_knight;
+    gm_.pro_silver += gm0->pro_silver;
+    gm_.horse      += gm0->horse;
+    gm_.dragon     += gm0->dragon;
 
     for (int i = 0; i < KPP_ALL; i++) {
       ((FV::ValueType*)g_.t_->kpp)[i] += ((FV::ValueType*)g0->t_->kpp)[i];
@@ -589,15 +589,19 @@ void BatchLearning::overlapParameters(int index1, int index2) {
           [&sum, &num, this, piece1, piece2](Square king, Square square1, Square square2) {
         int x = kkpBoardIndex(piece1, square1);
         int y = kkpBoardIndex(piece2, square2);
-        sum += g_.t_->kpp[king.index()][kpp_index_safe(x, y)];
-        num++;
+        if (x >= y) {
+          sum += g_.t_->kpp[king.index()][kpp_index(x, y)];
+          num++;
+        }
       });
 
       overlap(piece1, piece2, index1, index2,
           [sum, num, this, piece1, piece2](Square king, Square square1, Square square2) {
         int x = kkpBoardIndex(piece1, square1);
         int y = kkpBoardIndex(piece2, square2);
-        g_.t_->kpp[king.index()][kpp_index_safe(x, y)] += sum / (FV::ValueType)num;
+        if (x >= y) {
+          g_.t_->kpp[king.index()][kpp_index(x, y)] += sum / (FV::ValueType)num;
+        }
       });
     }
   }

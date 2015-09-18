@@ -93,6 +93,48 @@ public:
   }
 };
 
+template <class ValueType>
+class TFeatureX {
+public:
+
+  enum {
+    KP_ALL = 81 * KPP_MAX;
+  };
+
+  struct Table {
+    ValueType kp[81][KPP_MAX];
+  };
+
+  Table* t_;
+
+protected:
+
+  TFeatureX() {
+    t_ = new Table();
+  }
+  TFeatureX(const TFeatureX&) = delete;
+  TFeatureX(TFeatureX&&) = delete;
+
+  ~TFeatureX() {
+    delete t_;
+  }
+
+};
+
+class FeatureX : public TFeatureX<int16_t> {
+public:
+  void init() {
+    memset(t_, 0, sizeof(*t_));
+  }
+};
+
+class FVX : public TFeatureX<float> {
+public:
+  void init() {
+    memset(t_, 0, sizeof(*t_));
+  }
+};
+
 } // namespace sunfish
 
 #endif // SUNFISH_FV__
