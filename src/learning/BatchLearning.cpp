@@ -169,6 +169,36 @@ void BatchLearning::waitForWorkers() {
   }
 }
 
+void BatchLearning::generateGradientX() {
+  SQUARE_EACH(king1) {
+    for (int i = 0; i < KKP_MAX; i++) {
+      float gb = 0.0f;
+      float gw = 0.0f;
+      SQUARE_EACH(king2) {
+        gb += g_.t_->kkp[king1.index()][king2.index()][i];
+        gw += g_.t_->kkp[king2.index()][king1.index()][i];
+      }
+      gx_.t_->kpb[king1.index()][i] = gb;
+      gx_.t_->kpw[king1.index()][i] = gw;
+    }
+  }
+}
+
+void BatchLearning::mergeParametersX() {
+  evalMerged_ = eval_;
+
+  SQUARE_EACH(king1) {
+    for (int i = 0; i < KKP_MAX; i++) {
+      const float eb = ex_.t_->kpb[king1.index()][i];
+      const float ew = ex_.t_->kpw[king1.index()][i];
+      SQUARE_EACH(king2) {
+        evalMerged_.t_->kkp[king1.index()][king2.index()][i] += eb;
+        evalMerged_.t_->kkp[king2.index()][king1.index()][i] += ew;
+      }
+    }
+  }
+}
+
 /**
  * 訓練データを生成します。
  */
@@ -253,7 +283,7 @@ void BatchLearning::generateTrainingData(uint32_t wn, Board board, Move move0) {
     }
 
     if (val >= beta) {
-      outOfWindLoss_++;
+      oowLoss_++;
       continue;
     }
 
@@ -434,14 +464,14 @@ bool BatchLearning::generateGradient(uint32_t wn) {
 
     Board board0 = root;
     readPV(board0);
-    Value val0 = eval_.evaluate(board0).value();
+    Value val0 = evalMerged_.evaluate(board0).value();
 
     while (true) {
       Board board = root;
       if (!readPV(board)) {
         break;
       }
-      Value val = eval_.evaluate(board).value();
+      Value val = evalMerged_.evaluate(board).value();
 
       float diff = val.int32() - val0.int32();
       diff = black ? diff : -diff;
@@ -478,8 +508,8 @@ bool BatchLearning::generateGradient(uint32_t wn) {
     gm_.horse      += gm0->horse;
     gm_.dragon     += gm0->dragon;
 
-    for (int i = 0; i < KKP_ALL; i++) {
-      ((FV::ValueType*)g_.t_->kkp)[i] += ((FV::ValueType*)g0->t_->kkp)[i];
+    for (size_t i = 0; i < FV::size(); i++) {
+      ((FV::ValueType*)g_.t_)[i] += ((FV::ValueType*)g0->t_)[i];
     }
   }
 
@@ -510,12 +540,13 @@ bool BatchLearning::generateGradient() {
 
   waitForWorkers();
 
+  generateGradientX();
+
   return ok;
 }
 
 void BatchLearning::updateParameter(uint32_t wn,
-    FV::ValueType& g, Evaluator::ValueType& e,
-    Evaluator::ValueType& max, uint64_t& magnitude) {
+    FV::ValueType& g, Evaluator::ValueType& e) {
   auto& to = threadObjects_[wn];
   auto& r = *(to.rand);
 
@@ -525,10 +556,6 @@ void BatchLearning::updateParameter(uint32_t wn,
   } else if (g < 0.0f) {
     e -= r.getBit() + r.getBit();
   }
-
-  Evaluator::ValueType abs = std::abs(e);
-  max = std::max(max, abs);
-  magnitude = magnitude + abs;
 };
 
 /**
@@ -538,13 +565,14 @@ void BatchLearning::updateParameters(uint32_t wn) {
   int begin = wn;
   int step = nt_;
 
-  auto& to = threadObjects_[wn];
-  auto& max = to.max;
-  auto& magnitude = to.magnitude;
+  for (size_t i = begin; i < FV::size(); i += step) {
+    updateParameter(wn, ((FV::ValueType*)g_.t_)[i],
+      ((Evaluator::ValueType*)eval_.t_)[i]);
+  }
 
-  for (int i = begin; i < KKP_ALL; i += step) {
-    updateParameter(wn, ((FV::ValueType*)g_.t_->kkp)[i],
-      ((Evaluator::ValueType*)eval_.t_->kkp)[i], max, magnitude);
+  for (size_t i = begin; i < FVX::size(); i += step) {
+    updateParameter(wn, ((FVX::ValueType*)gx_.t_)[i],
+      ((EvaluatorX::ValueType*)ex_.t_)[i]);
   }
 }
 
@@ -561,8 +589,6 @@ void BatchLearning::updateParameters() {
   {
     std::lock_guard<std::mutex> lock(mutex_);
     for (uint32_t wn = 0; wn < nt_; wn++) {
-      threadObjects_[wn].max = 0;
-      threadObjects_[wn].magnitude = 0;
       jobQueue_.push({
         JobType::UpdateParam,
         [this](uint32_t wn) {
@@ -575,19 +601,28 @@ void BatchLearning::updateParameters() {
 
   waitForWorkers();
 
-  max_ = 0;
-  magnitude_ = 0;
-  for (uint32_t wn = 0; wn < nt_; wn++) {
-    max_ += threadObjects_[wn].max;
-    magnitude_ += threadObjects_[wn].magnitude;
-  }
-
   LearningTemplates::symmetrize(eval_, [](Evaluator::ValueType& a, Evaluator::ValueType& b) {
       a = b;
   });
 
+  LearningTemplates::symmetrize(ex_, [](Evaluator::ValueType& a, Evaluator::ValueType& b) {
+      a = b;
+  });
+
+  mergeParametersX();
+
+  max_ = 0;
+  magnitude_ = 0;
+  nonZero_ = 0;
+  for (size_t i = 0; i < Evaluator::size(); i++) {
+    Evaluator::ValueType e = ((Evaluator::ValueType*)evalMerged_.t_)[i];
+    max_ = std::max(max_, (Evaluator::ValueType)std::abs(e));
+    magnitude_ += std::abs(e);
+    nonZero_ += e != 0 ? 1 : 0;
+  }
+
   // ハッシュ表を初期化
-  eval_.clearCache();
+  evalMerged_.clearCache();
   // transposition table は SearchConfig::learning で無効にしている
   //for (uint32_t wn = 0; wn < nt_; wn++) {
   //  searchers_[wn]->clearTT();
@@ -660,7 +695,7 @@ bool BatchLearning::iterate() {
 
   for (int i = 0; i < iterateCount; i++) {
     totalMoves_ = 0;
-    outOfWindLoss_ = 0;
+    oowLoss_ = 0;
 
     if (!generateTrainingData()) {
       return false;
@@ -676,24 +711,23 @@ bool BatchLearning::iterate() {
       updateParameters();
 
       float elapsed = timer_.get();
-      float outOfWindLoss = (float)outOfWindLoss_ / totalMoves_;
-      float totalLoss = ((float)outOfWindLoss_ + loss_) / totalMoves_;
+      float oowLoss = (float)oowLoss_ / totalMoves_;
+      float totalLoss = ((float)oowLoss_ + loss_) / totalMoves_;
 
       Loggers::message
         << "elapsed=" << elapsed
         << "\titeration=" << i << "," << j
-        << "\tout_wind_loss=" << outOfWindLoss
+        << "\toow_loss=" << oowLoss
         << "\tloss=" << totalLoss
         << "\tmax=" << max_
-        << "\tmagnitude=" << magnitude_;
+        << "\tmagnitude=" << magnitude_
+        << "\tnon_zero=" << nonZero_
+        << "\tzero=" << (Evaluator::size() - nonZero_);
     }
 
     // 保存
     material::writeFile();
-    eval_.writeFile();
-
-    // キャッシュクリア
-    eval_.clearCache();
+    evalMerged_.writeFile();
 
     updateCount = std::max(updateCount / 2, 16);
   }
@@ -710,7 +744,9 @@ bool BatchLearning::run() {
   timer_.set();
 
   // 初期化
+  evalMerged_.init();
   eval_.init();
+  ex_.init();
 
   // 学習スレッド数
   nt_ = config_.getInt(LCONF_THREADS);
@@ -727,9 +763,9 @@ bool BatchLearning::run() {
   for (uint32_t wn = 0; wn < nt_; wn++) {
     threadObjects_.push_back(ThreadObject {
       std::thread(std::bind(std::mem_fn(&BatchLearning::work), this, wn)),
-      std::unique_ptr<Searcher>(new Searcher(eval_)),
+      std::unique_ptr<Searcher>(new Searcher(evalMerged_)),
       std::unique_ptr<Random>(new Random()),
-      nullptr, 0, 0,
+      nullptr,
     });
 
     auto& to = threadObjects_.back();

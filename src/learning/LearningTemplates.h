@@ -8,7 +8,7 @@
 
 #ifndef NLEARN
 
-#include "searcher/eval/Evaluator.h"
+#include "./FV.h"
 
 namespace sunfish {
 
@@ -44,6 +44,26 @@ public:
           }
           f(fv.t_->kkp[bking0.index()][wking0.index()][index0], fv.t_->kkp[bking1.index()][wking1.index()][index1]);
         }
+      }
+    }
+  }
+
+  template <class Type, class Func>
+  static void symmetrize(FeatureX<Type>& fv, Func&& f) {
+    // king-piece
+    SQUARE_EACH(king0) {
+      Square king1 = king0.sym();
+      if (king0.index() > king1.index()) {
+        continue;
+      }
+
+      for (int index0 = 0; index0 < KKP_MAX; index0++) {
+        int index1 = symmetrizeKkpIndex(index0);
+        if (king0.index() == king1.index() && index0 >= index1) {
+          continue;
+        }
+        f(fv.t_->kpb[king0.index()][index0], fv.t_->kpb[king1.index()][index1]);
+        f(fv.t_->kpw[king0.index()][index0], fv.t_->kpw[king1.index()][index1]);
       }
     }
   }

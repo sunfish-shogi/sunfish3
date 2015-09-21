@@ -278,10 +278,10 @@ bool OnlineLearning::miniBatch() {
     magnitudeW += std::abs(w);
     maxU = std::max(maxU, std::abs(u));
   };
-  for (int i = 0; i < KKP_ALL; i++) {
-    update1(((FV::ValueType*)g_.t_->kkp)[i],
-            ((FV::ValueType*)w_.t_->kkp)[i],
-            ((FV::ValueType*)u_.t_->kkp)[i],
+  for (int i = 0; i < FV::size(); i++) {
+    update1(((FV::ValueType*)g_.t_)[i],
+            ((FV::ValueType*)w_.t_)[i],
+            ((FV::ValueType*)u_.t_)[i],
             maxW, magnitudeW, maxU);
   }
 
@@ -295,10 +295,10 @@ bool OnlineLearning::miniBatch() {
     magnitude += std::abs(e);
     nonZero += e != 0 ? 1 : 0;
   };
-  for (int i = 0; i < KKP_ALL; i++) {
-    average(((FV::ValueType*)w_.t_->kkp)[i],
-            ((FV::ValueType*)u_.t_->kkp)[i],
-            ((Evaluator::ValueType*)eval_.t_->kkp)[i],
+  for (int i = 0; i < FV::size(); i++) {
+    average(((FV::ValueType*)w_.t_)[i],
+            ((FV::ValueType*)u_.t_)[i],
+            ((Evaluator::ValueType*)eval_.t_)[i],
             max, magnitude, nonZero);
   }
 
@@ -309,9 +309,9 @@ bool OnlineLearning::miniBatch() {
   auto update2 = [this](FV::ValueType& w, Evaluator::ValueType& e) {
     e = std::round(w);
   };
-  for (int i = 0; i < KKP_ALL; i++) {
-    update2(((FV::ValueType*)w_.t_->kkp)[i],
-            ((Evaluator::ValueType*)eval_.t_->kkp)[i]);
+  for (int i = 0; i < FV::size(); i++) {
+    update2(((FV::ValueType*)w_.t_)[i],
+            ((Evaluator::ValueType*)eval_.t_)[i]);
   }
 
   float error = errorSum_ / errorCount_;

@@ -66,8 +66,6 @@ enum {
   KKP_BDRAGON = KKP_BROOK   + 81,
   KKP_MAX     = KKP_BDRAGON + 81,
   KKP_ALL     = 81 * 81 * KKP_MAX,
-
-  EVAL_ALL    = KKP_ALL,
 };
 
 /**
@@ -94,6 +92,10 @@ public:
   struct Table {
     ValueType kkp[81][81][KKP_MAX];
   };
+
+  static CONSTEXPR size_t size() {
+    return sizeof(Table) / sizeof(ValueType);
+  }
 
   Table* t_;
 
@@ -124,6 +126,13 @@ protected:
   }
 
 public:
+
+  Feature& operator=(const Feature& src) {
+    memcpy((void*)t_, (const void*)src.t_, sizeof(Table));
+    return *this;
+  }
+
+  Feature& operator=(Feature&&) = delete;
 
   /**
    * ファイルからパラメータを読み込みます。
@@ -203,6 +212,11 @@ public:
 
   void init();
   void initRandom();
+
+  Evaluator& operator=(const Evaluator& src) {
+    Feature<ValueType>::operator=(src);
+    return *this;
+  }
 
   /**
    * ファイルからパラメータを読み込みます。
