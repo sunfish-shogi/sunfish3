@@ -48,42 +48,6 @@ public:
 };
 
 enum {
-  KPP_HBPAWN   = 0,
-  KPP_HWPAWN   = KPP_HBPAWN   + 19,
-  KPP_HBLANCE  = KPP_HWPAWN   + 19,
-  KPP_HWLANCE  = KPP_HBLANCE  + 5,
-  KPP_HBKNIGHT = KPP_HWLANCE  + 5,
-  KPP_HWKNIGHT = KPP_HBKNIGHT + 5,
-  KPP_HBSILVER = KPP_HWKNIGHT + 5,
-  KPP_HWSILVER = KPP_HBSILVER + 5,
-  KPP_HBGOLD   = KPP_HWSILVER + 5,
-  KPP_HWGOLD   = KPP_HBGOLD   + 5,
-  KPP_HBBISHOP = KPP_HWGOLD   + 5,
-  KPP_HWBISHOP = KPP_HBBISHOP + 3,
-  KPP_HBROOK   = KPP_HWBISHOP + 3,
-  KPP_HWROOK   = KPP_HBROOK   + 3,
-  KPP_BBPAWN   = KPP_HWROOK   + 3,
-  KPP_BWPAWN   = KPP_BBPAWN   + 81 - 9,
-  KPP_BBLANCE  = KPP_BWPAWN   + 81 - 9,
-  KPP_BWLANCE  = KPP_BBLANCE  + 81 - 9,
-  KPP_BBKNIGHT = KPP_BWLANCE  + 81 - 9,
-  KPP_BWKNIGHT = KPP_BBKNIGHT + 81 - 18,
-  KPP_BBSILVER = KPP_BWKNIGHT + 81 - 18,
-  KPP_BWSILVER = KPP_BBSILVER + 81,
-  KPP_BBGOLD   = KPP_BWSILVER + 81,
-  KPP_BWGOLD   = KPP_BBGOLD   + 81,
-  KPP_BBBISHOP = KPP_BWGOLD   + 81,
-  KPP_BWBISHOP = KPP_BBBISHOP + 81,
-  KPP_BBHORSE  = KPP_BWBISHOP + 81,
-  KPP_BWHORSE  = KPP_BBHORSE  + 81,
-  KPP_BBROOK   = KPP_BWHORSE  + 81,
-  KPP_BWROOK   = KPP_BBROOK   + 81,
-  KPP_BBDRAGON = KPP_BWROOK   + 81,
-  KPP_BWDRAGON = KPP_BBDRAGON + 81,
-  KPP_MAX      = KPP_BWDRAGON + 81,
-  KPP_SIZE     = KPP_MAX*(KPP_MAX+1)/2,
-  KPP_ALL      = 81 * KPP_SIZE,
-
   KKP_HPAWN   = 0,
   KKP_HLANCE  = KKP_HPAWN   + 19,
   KKP_HKNIGHT = KKP_HLANCE  + 5,
@@ -102,40 +66,14 @@ enum {
   KKP_BDRAGON = KKP_BROOK   + 81,
   KKP_MAX     = KKP_BDRAGON + 81,
   KKP_ALL     = 81 * 81 * KKP_MAX,
+
+  EVAL_ALL    = KKP_ALL,
 };
-
-inline int kpp_index(int x, int y) {
-  assert(x >= y);
-  return x*(x+1)/2+y;
-}
-
-inline int kpp_index(int x) {
-  return x*(x+1)/2+x;
-}
-
-inline int kpp_index_safe(int x, int y) {
-  return x >= y ? kpp_index(x, y) : kpp_index(y, x);
-}
-
-/**
- * KPP のインデクスを左右反転します。
- */
-int symmetrizeKppIndex(int index);
 
 /**
  * KKP のインデクスを左右反転します。
  */
 int symmetrizeKkpIndex(int index);
-
-/**
- * KPP のインデクスを Bonanza の並びに変換します。
- */
-int convertKppIndex4FvBin(int index);
-
-/**
- * KKP のインデクスを Bonanza の並びに変換します。
- */
-int convertKkpIndex4FvBin(int index);
 
 /**
  * 盤上の駒の種類から KKP のインデクスを取得します。
@@ -147,18 +85,6 @@ int kkpBoardIndex(Piece piece, const Square& sq);
  */
 int kkpHandIndex(Piece piece);
 
-/**
- * 盤上の先手の駒の種類から KPP のインデクスを取得します。
- */
-template <bool blackPiece>
-int kppBoardIndex(Piece piece, const Square& sq);
-
-/**
- * 持ち駒の種類から KPP のインデクスを取得します。
- */
-template <bool blackPiece>
-int kppHandIndex(Piece piece);
-
 template <class T>
 class Feature {
 public:
@@ -166,7 +92,6 @@ public:
   using ValueType = T;
 
   struct Table {
-    ValueType kpp[81][KPP_SIZE];
     ValueType kkp[81][81][KKP_MAX];
   };
 
@@ -246,10 +171,6 @@ private:
 
   EvaluateTable<18> evaluateCache_;
 
-  std::shared_ptr<Table> readFvBin();
-
-  void convertFromFvBin(Table* fvbin);
-
   /**
    * 局面の駒割りを算出します。
    * @param board
@@ -324,11 +245,6 @@ public:
   bool writeFile(const std::string& filename) const {
     return Feature<int16_t>::writeFile(filename);
   }
-
-  /**
-   * fv.bin があれば読み込んで並べ替えを行います。
-   */
-  bool convertFromFvBin();
 
   /**
    * 局面の評価値を算出します。

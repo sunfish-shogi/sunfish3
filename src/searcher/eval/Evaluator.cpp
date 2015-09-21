@@ -13,7 +13,6 @@
 #define FVBIN_FILENAME      "fv.bin"
 
 #define ENABLE_DIFF         1
-#define ENABLE_KPP          1
 #define ENABLE_HASHTABLE    1
 
 namespace {
@@ -88,27 +87,6 @@ struct TableInfo {
   int bonaOffset;
 };
 
-const TableInfo kppTableInfo[] = {
-  { sqIndexBPawn,   KPP_BBPAWN,   KPP_BWPAWN,   -9  },
-  { sqIndexWPawn,   KPP_BWPAWN,   KPP_BBLANCE,  0   },
-  { sqIndexBPawn,   KPP_BBLANCE,  KPP_BWLANCE,  -9  },
-  { sqIndexWPawn,   KPP_BWLANCE,  KPP_BBKNIGHT, 0   },
-  { sqIndexBKnight, KPP_BBKNIGHT, KPP_BWKNIGHT, -18 },
-  { sqIndexWKnight, KPP_BWKNIGHT, KPP_BBSILVER, 0   },
-  { nullptr,        KPP_BBSILVER, KPP_BWSILVER, 0   },
-  { nullptr,        KPP_BWSILVER, KPP_BBGOLD,   0   },
-  { nullptr,        KPP_BBGOLD,   KPP_BWGOLD,   0   },
-  { nullptr,        KPP_BWGOLD,   KPP_BBBISHOP, 0   },
-  { nullptr,        KPP_BBBISHOP, KPP_BWBISHOP, 0   },
-  { nullptr,        KPP_BWBISHOP, KPP_BBHORSE,  0   },
-  { nullptr,        KPP_BBHORSE,  KPP_BWHORSE,  0   },
-  { nullptr,        KPP_BWHORSE,  KPP_BBROOK,   0   },
-  { nullptr,        KPP_BBROOK,   KPP_BWROOK,   0   },
-  { nullptr,        KPP_BWROOK,   KPP_BBDRAGON, 0   },
-  { nullptr,        KPP_BBDRAGON, KPP_BWDRAGON, 0   },
-  { nullptr,        KPP_BWDRAGON, KPP_MAX,      0   },
-};
-
 const TableInfo kkpTableInfo[] = {
   { sqIndexBPawn  , KKP_BPAWN,   KKP_BLANCE,   -9 },
   { sqIndexBPawn  , KKP_BLANCE,  KKP_BKNIGHT,  -9 },
@@ -153,7 +131,6 @@ bool Feature<T>::readFile(const char* filename) {
     return false;
   }
 
-  file.read((char*)t_->kpp, sizeof(t_->kpp));
   file.read((char*)t_->kkp, sizeof(t_->kkp));
 
 
@@ -174,49 +151,11 @@ bool Feature<T>::writeFile(const char* filename) const {
     return false;
   }
 
-  file.write((const char*)t_->kpp, sizeof(t_->kpp));
   file.write((const char*)t_->kkp, sizeof(t_->kkp));
 
   file.close();
 
   return true;
-}
-
-/**
- * KPP のインデクスを左右反転します。
- */
-int symmetrizeKppIndex(int index) {
-  if (index < KPP_BBPAWN) {
-    return index;
-  }
-
-  for (unsigned i = 0; i < sizeof(kppTableInfo)/sizeof(kppTableInfo[0]); i++) {
-    const auto& ti = kppTableInfo[i];
-    if (ti.begin <= index && index < ti.end) {
-      int sq = index - ti.begin;
-      assert(sq >= 0);
-      assert(sq < 81);
-      if (ti.table != nullptr) {
-        sq = sqInv(ti.table, sq);
-        assert(sq >= 0);
-        assert(sq < 81);
-      }
-      sq = Square(sq).sym().index();
-      assert(sq >= 0);
-      assert(sq < 81);
-      if (ti.table != nullptr) {
-        sq = ti.table[sq];
-        assert(sq >= 0);
-        assert(sq < 81);
-      }
-      int result = ti.begin + sq;
-      assert(ti.begin <= result);
-      assert(result < ti.end);
-      return result;
-    }
-  }
-  assert(false);
-  return 0;
 }
 
 /**
@@ -247,64 +186,6 @@ int symmetrizeKkpIndex(int index) {
         assert(sq < 81);
       }
       int result = ti.begin + sq;
-      assert(ti.begin <= result);
-      assert(result < ti.end);
-      return result;
-    }
-  }
-  assert(false);
-  return 0;
-}
-
-/**
- * KPP のインデクスを Bonanza の並びに変換します。
- */
-int convertKppIndex4FvBin(int index) {
-  if (index < KPP_BBPAWN) {
-    return index;
-  }
-
-  for (unsigned i = 0; i < sizeof(kppTableInfo)/sizeof(kppTableInfo[0]); i++) {
-    const auto& ti = kppTableInfo[i];
-    if (ti.begin <= index && index < ti.end) {
-      int sq = index - ti.begin;
-      assert(sq >= 0);
-      assert(sq < 81);
-      if (ti.table != nullptr) {
-        sq = sqInv(ti.table, sq);
-        assert(sq >= 0);
-        assert(sq < 81);
-      }
-      int result = ti.begin + sqS2B[sq] + ti.bonaOffset;
-      assert(ti.begin <= result);
-      assert(result < ti.end);
-      return result;
-    }
-  }
-  assert(false);
-  return 0;
-}
-
-/**
- * KKP のインデクスを Bonanza の並びに変換します。
- */
-int convertKkpIndex4FvBin(int index) {
-  if (index < KKP_BPAWN) {
-    return index;
-  }
-
-  for (unsigned i = 0; i < sizeof(kkpTableInfo)/sizeof(kkpTableInfo[0]); i++) {
-    const auto& ti = kkpTableInfo[i];
-    if (ti.begin <= index && index < ti.end) {
-      int sq = index - ti.begin;
-      assert(sq >= 0);
-      assert(sq < 81);
-      if (ti.table != nullptr) {
-        sq = sqInv(ti.table, sq);
-      }
-      assert(sq >= 0);
-      assert(sq < 81);
-      int result = ti.begin + sqS2B[sq] + ti.bonaOffset;
       assert(ti.begin <= result);
       assert(result < ti.end);
       return result;
@@ -364,61 +245,6 @@ int kkpHandIndex(Piece piece) {
 
 }
 
-/**
- * 盤上の先手の駒の種類から KPP のインデクスを取得します。
- */
-template <bool blackPiece>
-int kppBoardIndex(Piece piece, const Square& sq) {
-  switch (piece.index()) {
-    case Piece::BPawn:      case Piece::WPawn:      return (blackPiece ? KPP_BBPAWN   : KPP_BWPAWN) + (blackPiece ? SQ_INDEX_BPAWN(sq) : SQ_INDEX_WPAWN(sq));
-    case Piece::BLance:     case Piece::WLance:     return (blackPiece ? KPP_BBLANCE  : KPP_BWLANCE) + (blackPiece ? SQ_INDEX_BPAWN(sq) : SQ_INDEX_WPAWN(sq));
-    case Piece::BKnight:    case Piece::WKnight:    return (blackPiece ? KPP_BBKNIGHT : KPP_BWKNIGHT) + (blackPiece ? SQ_INDEX_BKNIGHT(sq) : SQ_INDEX_WKNIGHT(sq));
-    case Piece::BSilver:    case Piece::WSilver:    return (blackPiece ? KPP_BBSILVER : KPP_BWSILVER) + sq.index();
-    case Piece::BGold:      case Piece::WGold:      return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + sq.index();
-    case Piece::BBishop:    case Piece::WBishop:    return (blackPiece ? KPP_BBBISHOP : KPP_BWBISHOP) + sq.index();
-    case Piece::BRook:      case Piece::WRook:      return (blackPiece ? KPP_BBROOK   : KPP_BWROOK) + sq.index();
-    case Piece::BTokin:     case Piece::WTokin:     return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + sq.index();
-    case Piece::BProLance:  case Piece::WProLance:  return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + sq.index();
-    case Piece::BProKnight: case Piece::WProKnight: return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + sq.index();
-    case Piece::BProSilver: case Piece::WProSilver: return (blackPiece ? KPP_BBGOLD   : KPP_BWGOLD) + sq.index();
-    case Piece::BHorse:     case Piece::WHorse:     return (blackPiece ? KPP_BBHORSE  : KPP_BWHORSE) + sq.index();
-    case Piece::BDragon:    case Piece::WDragon:    return (blackPiece ? KPP_BBDRAGON : KPP_BWDRAGON) + sq.index();
-  }
-
-  assert(false);
-  return 0;
-}
-template int kppBoardIndex<true>(Piece piece, const Square& sq);
-template int kppBoardIndex<false>(Piece piece, const Square& sq);
-
-/**
- * 持ち駒の種類から KPP のインデクスを取得します。
- */
-template <bool blackPiece>
-int kppHandIndex(Piece piece) {
-  switch (piece.index()) {
-    case Piece::BPawn:      case Piece::WPawn:      return blackPiece ? KPP_HBPAWN   : KPP_HWPAWN;
-    case Piece::BLance:     case Piece::WLance:     return blackPiece ? KPP_HBLANCE  : KPP_HWLANCE;
-    case Piece::BKnight:    case Piece::WKnight:    return blackPiece ? KPP_HBKNIGHT : KPP_HWKNIGHT;
-    case Piece::BSilver:    case Piece::WSilver:    return blackPiece ? KPP_HBSILVER : KPP_HWSILVER;
-    case Piece::BGold:      case Piece::WGold:      return blackPiece ? KPP_HBGOLD   : KPP_HWGOLD;
-    case Piece::BBishop:    case Piece::WBishop:    return blackPiece ? KPP_HBBISHOP : KPP_HWBISHOP;
-    case Piece::BRook:      case Piece::WRook:      return blackPiece ? KPP_HBROOK   : KPP_HWROOK;
-    case Piece::BTokin:     case Piece::WTokin:     return blackPiece ? KPP_HBPAWN   : KPP_HWPAWN;
-    case Piece::BProLance:  case Piece::WProLance:  return blackPiece ? KPP_HBLANCE  : KPP_HWLANCE;
-    case Piece::BProKnight: case Piece::WProKnight: return blackPiece ? KPP_HBKNIGHT : KPP_HWKNIGHT;
-    case Piece::BProSilver: case Piece::WProSilver: return blackPiece ? KPP_HBSILVER : KPP_HWSILVER;
-    case Piece::BHorse:     case Piece::WHorse:     return blackPiece ? KPP_HBBISHOP : KPP_HWBISHOP;
-    case Piece::BDragon:    case Piece::WDragon:    return blackPiece ? KPP_HBROOK   : KPP_HWROOK;
-  }
-
-  assert(false);
-  return 0;
-
-}
-template int kppHandIndex<true>(Piece piece);
-template int kppHandIndex<false>(Piece piece);
-
 template <class T>
 template <class U, bool update>
 U Feature<T>::extract(const Board& board, U delta) {
@@ -428,12 +254,6 @@ U Feature<T>::extract(const Board& board, U delta) {
   auto bkingR = bking.reverse();
   auto wkingR = wking.reverse();
 
-  int num = 14;
-  int bList[52]; // 52 = 40(総駒数) - 2(玉) + 14(駒台)
-  int wList[52];
-  int nTemp;
-  int wTemp[34]; // 34 = 18(と金) + 16(成香, 成桂, 成銀, 金)
-
 #define ON_HAND(piece, pieceL, i) { \
   int count = board.getBlackHand(Piece::piece); \
   if (update) { \
@@ -441,16 +261,12 @@ U Feature<T>::extract(const Board& board, U delta) {
   } else { \
     positional += t_->kkp[bking.index()][wking.index()][KKP_H ## pieceL+count]; \
   } \
-  bList[i] = KPP_HB ## pieceL + count; \
-  wList[i+1] = KPP_HW ## pieceL + count; \
   count = board.getWhiteHand(Piece::piece); \
   if (update) { \
     t_->kkp[wkingR.index()][bkingR.index()][KKP_H ## pieceL+count] -= ValueType(delta); \
   } else { \
     positional -= t_->kkp[wkingR.index()][bkingR.index()][KKP_H ## pieceL+count]; \
   } \
-  bList[i+1] = KPP_HW ## pieceL + count; \
-  wList[i] = KPP_HB ## pieceL + count; \
 }
 
   ON_HAND(Pawn, PAWN, 0);
@@ -464,7 +280,6 @@ U Feature<T>::extract(const Board& board, U delta) {
 #undef ON_HAND
 
 #define ON_BOARD(blackBB, whiteBB, pieceL, SQ_INDEX_B, SQ_INDEX_W) { \
-  nTemp = 0; \
   auto bb = (blackBB); \
   BB_EACH_OPE(sq, bb, { \
     if (update) { \
@@ -472,8 +287,6 @@ U Feature<T>::extract(const Board& board, U delta) {
     } else { \
       positional += t_->kkp[bking.index()][wking.index()][KKP_B ## pieceL+SQ_INDEX_B(sq)]; \
     } \
-    bList[num++] = KPP_BB ## pieceL + SQ_INDEX_B(sq); \
-    wTemp[nTemp++] = KPP_BW ## pieceL + SQ_INDEX_W(sq.reverse()); \
   }); \
   bb = (whiteBB); \
   BB_EACH_OPE(sq, bb, { \
@@ -482,10 +295,7 @@ U Feature<T>::extract(const Board& board, U delta) {
     } else { \
       positional -= t_->kkp[wkingR.index()][bkingR.index()][KKP_B ## pieceL+SQ_INDEX_B(sq.reverse())]; \
     } \
-    bList[num++] = KPP_BW ## pieceL + SQ_INDEX_W(sq); \
-    wTemp[nTemp++] = KPP_BB ## pieceL + SQ_INDEX_B(sq.reverse()); \
   }); \
-  for (int i = 0; i < nTemp; i++) { wList[num-i-1] = wTemp[i]; } \
 }
 
   ON_BOARD(board.getBPawn(), board.getWPawn(), PAWN, SQ_INDEX_BPAWN, SQ_INDEX_WPAWN);
@@ -502,26 +312,6 @@ U Feature<T>::extract(const Board& board, U delta) {
 
 #undef ON_BOARD
 
-#if ENABLE_KPP
-  for (int i = 0; i < num; i++) {
-    int bx = bList[i];
-    int wx = wList[i];
-    for (int j = 0; j <= i; j++) {
-      int by = bList[j];
-      int wy = wList[j];
-      assert(by <= bx);
-      assert(wy <= wx);
-      if (update) {
-        t_->kpp[bking.index()][kpp_index(bx, by)] += ValueType(delta);
-        t_->kpp[wkingR.index()][kpp_index(wx, wy)] -= ValueType(delta);
-      } else {
-        positional += t_->kpp[bking.index()][kpp_index(bx, by)];
-        positional -= t_->kpp[wkingR.index()][kpp_index(wx, wy)];
-      }
-    }
-  }
-#endif // ENABLE_KPP
-
   return positional;
 }
 
@@ -532,11 +322,7 @@ Evaluator::Evaluator(InitType initType /*= InitType::File*/) {
   switch (initType) {
   case InitType::File:
     init();
-    if (!readFile()) {
-      if (convertFromFvBin()) {
-        writeFile();
-      }
-    }
+    readFile();
     break;
 
   case InitType::Zero:
@@ -557,15 +343,11 @@ Evaluator::Evaluator(Evaluator& ref) : Feature<int16_t>(ref) {
 }
 
 void Evaluator::init() {
-  memset(t_->kpp, 0, sizeof(t_->kpp));
   memset(t_->kkp, 0, sizeof(t_->kkp));
 }
 
 void Evaluator::initRandom() {
   Random random;
-  for (int i = 0; i < KPP_ALL; i++) {
-    ((ValueType*)t_->kpp)[i] = (ValueType)(random.getInt32() % 21) - 10;
-  }
   for (int i = 0; i < KKP_ALL; i++) {
     ((ValueType*)t_->kkp)[i] = (ValueType)(random.getInt32() % 21) - 10;
   }
@@ -583,101 +365,6 @@ bool Evaluator::readFile() {
  */
 bool Evaluator::writeFile() const {
   return Feature<ValueType>::writeFile(DEFAULT_FV_FILENAME);
-}
-
-/**
- * fv.bin があれば読み込んで並べ替えを行います。
- */
-bool Evaluator::convertFromFvBin() {
-
-  std::shared_ptr<Table> fvbin_ptr = readFvBin();
-
-  if (!fvbin_ptr) {
-    return false;
-  }
-
-  convertFromFvBin(fvbin_ptr.get());
-
-  return true;
-
-}
-
-std::shared_ptr<Evaluator::Table> Evaluator::readFvBin() {
-  std::ifstream file(FVBIN_FILENAME, std::ios::binary | std::ios::in);
-
-  if (!file) {
-    return std::shared_ptr<Table>();
-  }
-
-  std::shared_ptr<Table> fvbin_ptr = std::make_shared<Table>();
-  auto fvbin = fvbin_ptr.get();
-
-  file.read((char*)fvbin->kpp, sizeof(t_->kpp));
-  file.read((char*)fvbin->kkp, sizeof(t_->kkp));
-
-  file.close();
-
-  return fvbin_ptr;
-
-}
-
-void Evaluator::convertFromFvBin(Table* fvbin) {
-
-#define CONV_ERROR_CHECK 1
-
-#if CONV_ERROR_CHECK
-  for (int i = 0; i < KPP_ALL; i++) {
-    ((ValueType*)t_->kpp)[i] = (ValueType)0x7fff;
-  }
-  for (int i = 0; i < KKP_ALL; i++) {
-    ((ValueType*)t_->kkp)[i] = (ValueType)0x7fff;
-  }
-#endif
-
-  // king-piece-piece
-  SQUARE_EACH(kingSq) {
-    int king = kingSq.index();
-    int bona = sqS2B[king];
-
-    for (int x = 0; x < KPP_MAX; x++) {
-      int bx = convertKppIndex4FvBin(x);
-      for (int y = 0; y <= x; y++) {
-        int by = convertKppIndex4FvBin(y);
-        int index = kpp_index(x, y);
-        int bonaIndex = bx >= by ? kpp_index(bx, by) : kpp_index(by, bx);
-        t_->kpp[king][index] = fvbin->kpp[bona][bonaIndex];
-      }
-    }
-  }
-
-  // king-king-piece
-  SQUARE_EACH(bkingSq) {
-    SQUARE_EACH(wkingSq) {
-      int bking = bkingSq.index();
-      int wking = wkingSq.index();
-      int bbona = sqS2B[bking];
-      int wbona = sqS2B[wking];
-
-      for (int index = 0; index < KKP_MAX; index++) {
-        int bonaIndex = convertKkpIndex4FvBin(index);
-        t_->kkp[bking][wking][index] = fvbin->kkp[bbona][wbona][bonaIndex];
-      }
-    }
-  }
-
-#if CONV_ERROR_CHECK
-  for (int i = 0; i < KPP_ALL; i++) {
-    if (((ValueType*)(t_->kpp))[i] == (ValueType)0x7fff) {
-      Loggers::error << "error kpp " << i;
-    }
-  }
-  for (int i = 0; i < KKP_ALL; i++) {
-    if (((ValueType*)(t_->kkp))[i] == (ValueType)0x7fff) {
-      Loggers::error << "error kkp " << i;
-    }
-  }
-#endif
-
 }
 
 /**
@@ -816,15 +503,6 @@ ValuePair Evaluator::evaluateDiff_(const Board& board, const ValuePair& prevValu
   auto bkingR = bking.reverse();
   auto wkingR = wking.reverse();
 
-  int kppIndexFromB;
-  int kppIndexFromW;
-  int kppIndexToB;
-  int kppIndexToW;
-  int kppIndexCapturedB;
-  int kppIndexCapturedW;
-  int kppIndexCapHandB;
-  int kppIndexCapHandW;
-
   assert(piece != Piece::King);
 
   // 移動元
@@ -835,27 +513,19 @@ ValuePair Evaluator::evaluateDiff_(const Board& board, const ValuePair& prevValu
       int kkpIndex = kkpHandIndex(piece) + num;
       positional += t_->kkp[bking.index()][wking.index()][kkpIndex];
       positional -= t_->kkp[bking.index()][wking.index()][kkpIndex+1];
-      kppIndexFromB = kppHandIndex<true>(piece.index()) + num;
-      kppIndexFromW = kppHandIndex<false>(piece.index()) + num;
     } else {
       int num = board.getWhiteHand(piece);
       int kkpIndex = kkpHandIndex(piece) + num;
       positional -= t_->kkp[wkingR.index()][bkingR.index()][kkpIndex];
       positional += t_->kkp[wkingR.index()][bkingR.index()][kkpIndex+1];
-      kppIndexFromB = kppHandIndex<false>(piece.index()) + num;
-      kppIndexFromW = kppHandIndex<true>(piece.index()) + num;
     }
   } else {
     // 盤上の駒を動かした場合
     auto from = move.from();
     if (black) {
       positional -= t_->kkp[bking.index()][wking.index()][kkpBoardIndex(piece, from)];
-      kppIndexFromB = kppBoardIndex<true>(piece, from);
-      kppIndexFromW = kppBoardIndex<false>(piece, from.reverse());
     } else {
       positional += t_->kkp[wkingR.index()][bkingR.index()][kkpBoardIndex(piece, from.reverse())];
-      kppIndexFromB = kppBoardIndex<false>(piece, from);
-      kppIndexFromW = kppBoardIndex<true>(piece, from.reverse());
     }
   }
 
@@ -866,25 +536,17 @@ ValuePair Evaluator::evaluateDiff_(const Board& board, const ValuePair& prevValu
       material += material::piecePromote(piece);
       auto promoted = piece.promote();
       positional += t_->kkp[bking.index()][wking.index()][kkpBoardIndex(promoted, to)];
-      kppIndexToB = kppBoardIndex<true>(promoted, to);
-      kppIndexToW = kppBoardIndex<false>(promoted, to.reverse());
     } else {
       material -= material::piecePromote(piece);
       auto promoted = piece.promote();
       positional -= t_->kkp[wkingR.index()][bkingR.index()][kkpBoardIndex(promoted, to.reverse())];
-      kppIndexToB = kppBoardIndex<false>(promoted, to);
-      kppIndexToW = kppBoardIndex<true>(promoted, to.reverse());
     }
   } else {
     // 成らなかった場合
     if (black) {
       positional += t_->kkp[bking.index()][wking.index()][kkpBoardIndex(piece, to)];
-      kppIndexToB = kppBoardIndex<true>(piece, to);
-      kppIndexToW = kppBoardIndex<false>(piece, to.reverse());
     } else {
       positional -= t_->kkp[wkingR.index()][bkingR.index()][kkpBoardIndex(piece, to.reverse())];
-      kppIndexToB = kppBoardIndex<false>(piece, to);
-      kppIndexToW = kppBoardIndex<true>(piece, to.reverse());
     }
   }
 
@@ -893,13 +555,9 @@ ValuePair Evaluator::evaluateDiff_(const Board& board, const ValuePair& prevValu
     if (black) {
       material += material::pieceExchange(captured);
       positional += t_->kkp[wkingR.index()][bkingR.index()][kkpBoardIndex(captured, to.reverse())];
-      kppIndexCapturedB = kppBoardIndex<false>(captured, to);
-      kppIndexCapturedW = kppBoardIndex<true>(captured, to.reverse());
     } else {
       material -= material::pieceExchange(captured);
       positional -= t_->kkp[bking.index()][wking.index()][kkpBoardIndex(captured, to)];
-      kppIndexCapturedB = kppBoardIndex<true>(captured, to);
-      kppIndexCapturedW = kppBoardIndex<false>(captured, to.reverse());
     }
     auto hand = captured.hand();
     if (black) {
@@ -907,182 +565,13 @@ ValuePair Evaluator::evaluateDiff_(const Board& board, const ValuePair& prevValu
       int kkpIndex = kkpHandIndex(hand) + num;
       positional += t_->kkp[bking.index()][wking.index()][kkpIndex];
       positional -= t_->kkp[bking.index()][wking.index()][kkpIndex-1];
-      kppIndexCapHandB = kppHandIndex<true>(hand) + num;
-      kppIndexCapHandW = kppHandIndex<false>(hand) + num;
     } else {
       int num = board.getWhiteHand(hand);
       int kkpIndex = kkpHandIndex(hand) + num;
       positional -= t_->kkp[wkingR.index()][bkingR.index()][kkpIndex];
       positional += t_->kkp[wkingR.index()][bkingR.index()][kkpIndex-1];
-      kppIndexCapHandB = kppHandIndex<false>(hand) + num;
-      kppIndexCapHandW = kppHandIndex<true>(hand) + num;
     }
   }
-
-  int num = 14;
-  int bList[52]; // 52 = 40(総駒数) - 2(玉) + 14(駒台)
-  int wList[52];
-  int nTemp;
-  int wTemp[34]; // 34 = 18(と金) + 16(成香, 成桂, 成銀, 金)
-
-#define ON_HAND(piece, pieceL, index) { \
-  int count = board.getBlackHand(Piece::piece); \
-  bList[index] = KPP_HB ## pieceL + count; \
-  wList[index+1] = KPP_HW ## pieceL + count; \
-  count = board.getWhiteHand(Piece::piece); \
-  bList[index+1] = KPP_HW ## pieceL + count; \
-  wList[index] = KPP_HB ## pieceL + count; \
-}
-
-  ON_HAND(Pawn, PAWN, 0);
-  ON_HAND(Lance, LANCE, 2);
-  ON_HAND(Knight, KNIGHT, 4);
-  ON_HAND(Silver, SILVER, 6);
-  ON_HAND(Gold, GOLD, 8);
-  ON_HAND(Bishop, BISHOP, 10);
-  ON_HAND(Rook, ROOK, 12);
-
-#undef ON_HAND
-
-#define ON_BOARD(blackBB, whiteBB, pieceL, SQ_INDEX_B, SQ_INDEX_W) { \
-  nTemp = 0; \
-  auto bb = (blackBB); \
-  BB_EACH_OPE(sq, bb, { \
-    bList[num++] = KPP_BB ## pieceL + SQ_INDEX_B(sq); \
-    wTemp[nTemp++] = KPP_BW ## pieceL + SQ_INDEX_W(sq.reverse()); \
-  }); \
-  bb = (whiteBB); \
-  BB_EACH_OPE(sq, bb, { \
-    bList[num++] = KPP_BW ## pieceL + SQ_INDEX_W(sq); \
-    wTemp[nTemp++] = KPP_BB ## pieceL + SQ_INDEX_B(sq.reverse()); \
-  }); \
-  for (int i = 0; i < nTemp; i++) { wList[num-i-1] = wTemp[i]; } \
-}
-
-  ON_BOARD(board.getBPawn(), board.getWPawn(), PAWN, SQ_INDEX_BPAWN, SQ_INDEX_WPAWN);
-  ON_BOARD(board.getBLance(),board.getWLance(), LANCE, SQ_INDEX_BPAWN, SQ_INDEX_WPAWN);
-  ON_BOARD(board.getBKnight(), board.getWKnight(), KNIGHT, SQ_INDEX_BKNIGHT, SQ_INDEX_WKNIGHT);
-  ON_BOARD(board.getBSilver(), board.getWSilver(), SILVER, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
-  ON_BOARD(board.getBGold() | board.getBTokin() | board.getBProLance() | board.getBProKnight() | board.getBProSilver(),
-           board.getWGold() | board.getWTokin() | board.getWProLance() | board.getWProKnight() | board.getWProSilver(), GOLD,
-           SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
-  ON_BOARD(board.getBBishop(), board.getWBishop(), BISHOP, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
-  ON_BOARD(board.getBHorse(), board.getWHorse(), HORSE, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
-  ON_BOARD(board.getBRook(), board.getWRook(), ROOK, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
-  ON_BOARD(board.getBDragon(), board.getWDragon(), DRAGON, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
-
-#undef ON_BOARD
-
-#if ENABLE_KPP
-  if (isHand) {
-    // 持ち駒を打った場合
-    for (int i = 0; i < num; i++) {
-      int b = bList[i];
-      int w = wList[i];
-      // 持ち駒の現在の数
-      positional += t_->kpp[bking.index()][kpp_index_safe(b, kppIndexFromB)];
-      positional -= t_->kpp[wkingR.index()][kpp_index_safe(w, kppIndexFromW)];
-      // 持ち駒の元の数
-      positional -= t_->kpp[bking.index()][kpp_index_safe(b, kppIndexFromB+1)];
-      positional += t_->kpp[wkingR.index()][kpp_index_safe(w, kppIndexFromW+1)];
-      // 移動先の駒
-      positional += t_->kpp[bking.index()][kpp_index_safe(b, kppIndexToB)];
-      positional -= t_->kpp[wkingR.index()][kpp_index_safe(w, kppIndexToW)];
-      // 現在の局面では存在しないはずのインデクス
-      assert(b != kppIndexFromB+1);
-      assert(w != kppIndexFromW+1);
-    }
-    // 2重に足している特徴の組み合わせ(ループ内で足しすぎているので引く)
-    positional -= t_->kpp[bking.index()][kpp_index_safe(kppIndexFromB, kppIndexToB)];
-    positional += t_->kpp[wkingR.index()][kpp_index_safe(kppIndexFromW, kppIndexToW)];
-    // 前の局面に存在しなかった特徴の組み合わせ(ループ内で引きすぎている分を足す)
-    positional += t_->kpp[bking.index()][kpp_index(kppIndexFromB+1, kppIndexFromB)];
-    positional += t_->kpp[bking.index()][kpp_index_safe(kppIndexFromB+1, kppIndexToB)];
-    positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexFromW+1, kppIndexFromW)];
-    positional -= t_->kpp[wkingR.index()][kpp_index_safe(kppIndexFromW+1, kppIndexToW)];
-    // 前の局面にしか存在しない特徴の組み合わせ(現局面には存在しないので引く)
-    positional -= t_->kpp[bking.index()][kpp_index(kppIndexFromB+1, kppIndexFromB+1)];
-    positional += t_->kpp[wkingR.index()][kpp_index(kppIndexFromW+1, kppIndexFromW+1)];
-  } else if (captured.isEmpty()) {
-    // 駒を取らずに盤上の駒を移動した場合
-    for (int i = 0; i < num; i++) {
-      int b = bList[i];
-      int w = wList[i];
-      // 移動元の駒
-      positional -= t_->kpp[bking.index()][kpp_index_safe(b, kppIndexFromB)];
-      positional += t_->kpp[wkingR.index()][kpp_index_safe(w, kppIndexFromW)];
-      // 移動先の駒
-      positional += t_->kpp[bking.index()][kpp_index_safe(b, kppIndexToB)];
-      positional -= t_->kpp[wkingR.index()][kpp_index_safe(w, kppIndexToW)];
-      // 現在の局面では存在しないはずのインデクス
-      assert(b != kppIndexFromB);
-      assert(w != kppIndexFromW);
-    }
-    // 前の局面に存在しなかった特徴の組み合わせ(ループ内で引きすぎている分を足す)
-    positional += t_->kpp[bking.index()][kpp_index_safe(kppIndexFromB, kppIndexToB)];
-    positional -= t_->kpp[wkingR.index()][kpp_index_safe(kppIndexFromW, kppIndexToW)];
-    // 前の局面にしか存在しない特徴の組み合わせ(現局面には存在しないので引く)
-    positional -= t_->kpp[bking.index()][kpp_index(kppIndexFromB, kppIndexFromB)];
-    positional += t_->kpp[wkingR.index()][kpp_index(kppIndexFromW, kppIndexFromW)];
-  } else {
-    // 駒を取った場合
-    for (int i = 0; i < num; i++) {
-      int b = bList[i];
-      int w = wList[i];
-      // 移動元の駒
-      positional -= t_->kpp[bking.index()][kpp_index_safe(b, kppIndexFromB)];
-      positional += t_->kpp[wkingR.index()][kpp_index_safe(w, kppIndexFromW)];
-      // 移動先の駒
-      positional += t_->kpp[bking.index()][kpp_index_safe(b, kppIndexToB)];
-      positional -= t_->kpp[wkingR.index()][kpp_index_safe(w, kppIndexToW)];
-      // 取られた駒
-      positional -= t_->kpp[bking.index()][kpp_index_safe(b, kppIndexCapturedB)];
-      positional += t_->kpp[wkingR.index()][kpp_index_safe(w, kppIndexCapturedW)];
-      // 持ち駒の現在の数
-      positional += t_->kpp[bking.index()][kpp_index_safe(b, kppIndexCapHandB)];
-      positional -= t_->kpp[wkingR.index()][kpp_index_safe(w, kppIndexCapHandW)];
-      // 持ち駒の元の数
-      positional -= t_->kpp[bking.index()][kpp_index_safe(b, kppIndexCapHandB-1)];
-      positional += t_->kpp[wkingR.index()][kpp_index_safe(w, kppIndexCapHandW-1)];
-      // 現在の局面では存在しないはずのインデクス
-      assert(b != kppIndexFromB);
-      assert(w != kppIndexFromW);
-      assert(b != kppIndexCapturedB);
-      assert(w != kppIndexCapturedW);
-      assert(b != kppIndexCapHandB-1);
-      assert(w != kppIndexCapHandW-1);
-    }
-    // 2重に足している特徴の組み合わせ(ループ内で足しすぎているので引く)
-    positional -= t_->kpp[bking.index()][kpp_index(kppIndexToB, kppIndexCapHandB)];
-    positional += t_->kpp[wkingR.index()][kpp_index(kppIndexToW, kppIndexCapHandW)];
-    // 前の局面に存在しなかった特徴の組み合わせ(ループ内で引きすぎている分を足す)
-    positional += t_->kpp[bking.index()][kpp_index_safe(kppIndexFromB, kppIndexToB)];
-    positional += t_->kpp[bking.index()][kpp_index(kppIndexFromB, kppIndexCapHandB)];
-    positional += t_->kpp[bking.index()][kpp_index_safe(kppIndexCapturedB, kppIndexToB)];
-    positional += t_->kpp[bking.index()][kpp_index(kppIndexCapturedB, kppIndexCapHandB)];
-    positional += t_->kpp[bking.index()][kpp_index(kppIndexToB, kppIndexCapHandB-1)];
-    positional += t_->kpp[bking.index()][kpp_index(kppIndexCapHandB, kppIndexCapHandB-1)];
-    positional -= t_->kpp[wkingR.index()][kpp_index_safe(kppIndexFromW, kppIndexToW)];
-    positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexFromW, kppIndexCapHandW)];
-    positional -= t_->kpp[wkingR.index()][kpp_index_safe(kppIndexCapturedW, kppIndexToW)];
-    positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexCapturedW, kppIndexCapHandW)];
-    positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexToW, kppIndexCapHandW-1)];
-    positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexCapHandW, kppIndexCapHandW-1)];
-    // 前の局面にしか存在しない特徴の組み合わせ(現局面には存在しないので引く)
-    positional -= t_->kpp[bking.index()][kpp_index(kppIndexFromB, kppIndexFromB)];
-    positional -= t_->kpp[bking.index()][kpp_index_safe(kppIndexFromB, kppIndexCapturedB)];
-    positional -= t_->kpp[bking.index()][kpp_index(kppIndexFromB, kppIndexCapHandB-1)];
-    positional -= t_->kpp[bking.index()][kpp_index(kppIndexCapturedB, kppIndexCapturedB)];
-    positional -= t_->kpp[bking.index()][kpp_index(kppIndexCapturedB, kppIndexCapHandB-1)];
-    positional -= t_->kpp[bking.index()][kpp_index(kppIndexCapHandB-1, kppIndexCapHandB-1)];
-    positional += t_->kpp[wkingR.index()][kpp_index(kppIndexFromW, kppIndexFromW)];
-    positional += t_->kpp[wkingR.index()][kpp_index_safe(kppIndexFromW, kppIndexCapturedW)];
-    positional += t_->kpp[wkingR.index()][kpp_index(kppIndexFromW, kppIndexCapHandW-1)];
-    positional += t_->kpp[wkingR.index()][kpp_index(kppIndexCapturedW, kppIndexCapturedW)];
-    positional += t_->kpp[wkingR.index()][kpp_index(kppIndexCapturedW, kppIndexCapHandW-1)];
-    positional += t_->kpp[wkingR.index()][kpp_index(kppIndexCapHandW-1, kppIndexCapHandW-1)];
-  }
-#endif // ENABLE_KPP
 
 #if ENABLE_HASHTABLE
   evaluateCache_.set(board.getNoTurnHash(), positional);
@@ -1128,23 +617,11 @@ Value Evaluator::estimate_(const Board& board, const Move& move) {
       int kkpIndex = kkpHandIndex(piece) + num;
       positional += t_->kkp[bking.index()][wking.index()][kkpIndex];
       positional -= t_->kkp[bking.index()][wking.index()][kkpIndex+1];
-      int kppIndexB = kppHandIndex<true>(piece) + num;
-      positional += t_->kpp[bking.index()][kpp_index(kppIndexB)];
-      positional -= t_->kpp[bking.index()][kpp_index(kppIndexB+1)];
-      int kppIndexW = kppHandIndex<false>(piece) + num;
-      positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexW)];
-      positional += t_->kpp[wkingR.index()][kpp_index(kppIndexW+1)];
     } else {
       int num = board.getWhiteHand(piece);
       int kkpIndex = kkpHandIndex(piece) + num;
       positional -= t_->kkp[wkingR.index()][bkingR.index()][kkpIndex];
       positional += t_->kkp[wkingR.index()][bkingR.index()][kkpIndex+1];
-      int kppIndexB = kppHandIndex<false>(piece) + num;
-      positional += t_->kpp[bking.index()][kpp_index(kppIndexB)];
-      positional -= t_->kpp[bking.index()][kpp_index(kppIndexB+1)];
-      int kppIndexW = kppHandIndex<true>(piece) + num;
-      positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexW)];
-      positional += t_->kpp[wkingR.index()][kpp_index(kppIndexW+1)];
     }
   } else {
     // 盤上の駒を動かした場合
@@ -1152,18 +629,10 @@ Value Evaluator::estimate_(const Board& board, const Move& move) {
     if (black) {
       if (!isKing) {
         positional -= t_->kkp[bking.index()][wking.index()][kkpBoardIndex(piece, from)];
-        int kppIndexB = kppBoardIndex<true>(piece, from);
-        positional += t_->kpp[bking.index()][kpp_index(kppIndexB)];
-        int kppIndexW = kppBoardIndex<false>(piece, from.reverse());
-        positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexW)];
       }
     } else {
       if (!isKing) {
         positional += t_->kkp[wkingR.index()][bkingR.index()][kkpBoardIndex(piece, from.reverse())];
-        int kppIndexB = kppBoardIndex<false>(piece, from);
-        positional += t_->kpp[bking.index()][kpp_index(kppIndexB)];
-        int kppIndexW = kppBoardIndex<true>(piece, from.reverse());
-        positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexW)];
       }
     }
   }
@@ -1175,36 +644,20 @@ Value Evaluator::estimate_(const Board& board, const Move& move) {
       if (!positionalOnly) { material += material::piecePromote(piece); }
       auto promoted = piece.promote();
       positional += t_->kkp[bking.index()][wking.index()][kkpBoardIndex(promoted, to)];
-      int kppIndexB = kppBoardIndex<true>(promoted, to);
-      positional += t_->kpp[bking.index()][kpp_index(kppIndexB)];
-      int kppIndexW = kppBoardIndex<false>(promoted, to.reverse());
-      positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexW)];
     } else {
       if (!positionalOnly) { material -= material::piecePromote(piece); }
       auto promoted = piece.promote();
       positional -= t_->kkp[wkingR.index()][bkingR.index()][kkpBoardIndex(promoted, to.reverse())];
-      int kppIndexB = kppBoardIndex<false>(promoted, to);
-      positional -= t_->kpp[bking.index()][kpp_index(kppIndexB)];
-      int kppIndexW = kppBoardIndex<true>(promoted, to.reverse());
-      positional += t_->kpp[wkingR.index()][kpp_index(kppIndexW)];
     }
   } else {
     // 成らなかった場合
     if (black) {
       if (!isKing) {
         positional += t_->kkp[bking.index()][wking.index()][kkpBoardIndex(piece, to)];
-        int kppIndexB = kppBoardIndex<true>(piece, to);
-        positional += t_->kpp[bking.index()][kpp_index(kppIndexB)];
-        int kppIndexW = kppBoardIndex<false>(piece, to.reverse());
-        positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexW)];
       }
     } else {
       if (!isKing) {
         positional -= t_->kkp[wkingR.index()][bkingR.index()][kkpBoardIndex(piece, to.reverse())];
-        int kppIndexB = kppBoardIndex<false>(piece, to);
-        positional -= t_->kpp[bking.index()][kpp_index(kppIndexB)];
-        int kppIndexW = kppBoardIndex<true>(piece, to.reverse());
-        positional += t_->kpp[wkingR.index()][kpp_index(kppIndexW)];
       }
     }
   }
@@ -1214,17 +667,9 @@ Value Evaluator::estimate_(const Board& board, const Move& move) {
     if (black) {
       if (!positionalOnly) { material += material::pieceExchange(captured); }
       positional += t_->kkp[wkingR.index()][bkingR.index()][kkpBoardIndex(captured, to.reverse())];
-      int kppIndexB = kppBoardIndex<false>(captured, to);
-      positional += t_->kpp[bking.index()][kpp_index(kppIndexB)];
-      int kppIndexW = kppBoardIndex<true>(captured, to.reverse());
-      positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexW)];
     } else {
       if (!positionalOnly) { material -= material::pieceExchange(captured); }
       positional -= t_->kkp[bking.index()][wking.index()][kkpBoardIndex(captured, to)];
-      int kppIndexB = kppBoardIndex<true>(captured, to);
-      positional -= t_->kpp[bking.index()][kpp_index(kppIndexB)];
-      int kppIndexW = kppBoardIndex<false>(captured, to.reverse());
-      positional += t_->kpp[wkingR.index()][kpp_index(kppIndexW)];
     }
     auto hand = captured.hand();
     if (black) {
@@ -1232,23 +677,11 @@ Value Evaluator::estimate_(const Board& board, const Move& move) {
       int kkpIndex = kkpHandIndex(hand) + num;
       positional += t_->kkp[bking.index()][wking.index()][kkpIndex];
       positional -= t_->kkp[bking.index()][wking.index()][kkpIndex-1];
-      int kppIndexB = kppHandIndex<true>(hand) + num;
-      positional += t_->kpp[bking.index()][kpp_index(kppIndexB)];
-      positional -= t_->kpp[bking.index()][kpp_index(kppIndexB-1)];
-      int kppIndexW = kppHandIndex<false>(hand) + num;
-      positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexW)];
-      positional += t_->kpp[wkingR.index()][kpp_index(kppIndexW-1)];
     } else {
       int num = board.getWhiteHand(hand);
       int kkpIndex = kkpHandIndex(hand) + num;
       positional -= t_->kkp[wkingR.index()][bkingR.index()][kkpIndex];
       positional += t_->kkp[wkingR.index()][bkingR.index()][kkpIndex-1];
-      int kppIndexB = kppHandIndex<false>(hand) + num;
-      positional -= t_->kpp[bking.index()][kpp_index(kppIndexB)];
-      positional += t_->kpp[bking.index()][kpp_index(kppIndexB-1)];
-      int kppIndexW = kppHandIndex<true>(hand) + num;
-      positional += t_->kpp[wkingR.index()][kpp_index(kppIndexW)];
-      positional -= t_->kpp[wkingR.index()][kpp_index(kppIndexW-1)];
     }
   }
 

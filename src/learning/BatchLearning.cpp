@@ -20,36 +20,9 @@
 #define SEARCH_WINDOW  256
 #define NORM           1.0e-1f
 
-#define ENABLE_OVERLAP 1
-
 namespace {
 
 using namespace sunfish;
-
-struct RelativeSquare {
-  int8_t file;
-  int8_t rank;
-};
-
-const RelativeSquare RelativeSquares[] = {
-  {-8,-8}, {-7,-8}, {-6,-8}, {-5,-8}, {-4,-8}, {-3,-8}, {-2,-8}, {-1,-8}, { 0,-8}, { 1,-8}, { 2,-8}, { 3,-8}, { 4,-8}, { 5,-8}, { 6,-8}, { 7,-8}, { 8,-8},
-  {-8,-7}, {-7,-7}, {-6,-7}, {-5,-7}, {-4,-7}, {-3,-7}, {-2,-7}, {-1,-7}, { 0,-7}, { 1,-7}, { 2,-7}, { 3,-7}, { 4,-7}, { 5,-7}, { 6,-7}, { 7,-7}, { 8,-7},
-  {-8,-6}, {-7,-6}, {-6,-6}, {-5,-6}, {-4,-6}, {-3,-6}, {-2,-6}, {-1,-6}, { 0,-6}, { 1,-6}, { 2,-6}, { 3,-6}, { 4,-6}, { 5,-6}, { 6,-6}, { 7,-6}, { 8,-6},
-  {-8,-5}, {-7,-5}, {-6,-5}, {-5,-5}, {-4,-5}, {-3,-5}, {-2,-5}, {-1,-5}, { 0,-5}, { 1,-5}, { 2,-5}, { 3,-5}, { 4,-5}, { 5,-5}, { 6,-5}, { 7,-5}, { 8,-5},
-  {-8,-4}, {-7,-4}, {-6,-4}, {-5,-4}, {-4,-4}, {-3,-4}, {-2,-4}, {-1,-4}, { 0,-4}, { 1,-4}, { 2,-4}, { 3,-4}, { 4,-4}, { 5,-4}, { 6,-4}, { 7,-4}, { 8,-4},
-  {-8,-3}, {-7,-3}, {-6,-3}, {-5,-3}, {-4,-3}, {-3,-3}, {-2,-3}, {-1,-3}, { 0,-3}, { 1,-3}, { 2,-3}, { 3,-3}, { 4,-3}, { 5,-3}, { 6,-3}, { 7,-3}, { 8,-3},
-  {-8,-2}, {-7,-2}, {-6,-2}, {-5,-2}, {-4,-2}, {-3,-2}, {-2,-2}, {-1,-2}, { 0,-2}, { 1,-2}, { 2,-2}, { 3,-2}, { 4,-2}, { 5,-2}, { 6,-2}, { 7,-2}, { 8,-2},
-  {-8,-1}, {-7,-1}, {-6,-1}, {-5,-1}, {-4,-1}, {-3,-1}, {-2,-1}, {-1,-1}, { 0,-1}, { 1,-1}, { 2,-1}, { 3,-1}, { 4,-1}, { 5,-1}, { 6,-1}, { 7,-1}, { 8,-1},
-  {-8, 0}, {-7, 0}, {-6, 0}, {-5, 0}, {-4, 0}, {-3, 0}, {-2, 0}, {-1, 0},          { 1, 0}, { 2, 0}, { 3, 0}, { 4, 0}, { 5, 0}, { 6, 0}, { 7, 0}, { 8, 0},
-  {-8, 1}, {-7, 1}, {-6, 1}, {-5, 1}, {-4, 1}, {-3, 1}, {-2, 1}, {-1, 1}, { 0, 1}, { 1, 1}, { 2, 1}, { 3, 1}, { 4, 1}, { 5, 1}, { 6, 1}, { 7, 1}, { 8, 1},
-  {-8, 2}, {-7, 2}, {-6, 2}, {-5, 2}, {-4, 2}, {-3, 2}, {-2, 2}, {-1, 2}, { 0, 2}, { 1, 2}, { 2, 2}, { 3, 2}, { 4, 2}, { 5, 2}, { 6, 2}, { 7, 2}, { 8, 2},
-  {-8, 3}, {-7, 3}, {-6, 3}, {-5, 3}, {-4, 3}, {-3, 3}, {-2, 3}, {-1, 3}, { 0, 3}, { 1, 3}, { 2, 3}, { 3, 3}, { 4, 3}, { 5, 3}, { 6, 3}, { 7, 3}, { 8, 3},
-  {-8, 4}, {-7, 4}, {-6, 4}, {-5, 4}, {-4, 4}, {-3, 4}, {-2, 4}, {-1, 4}, { 0, 4}, { 1, 4}, { 2, 4}, { 3, 4}, { 4, 4}, { 5, 4}, { 6, 4}, { 7, 4}, { 8, 4},
-  {-8, 5}, {-7, 5}, {-6, 5}, {-5, 5}, {-4, 5}, {-3, 5}, {-2, 5}, {-1, 5}, { 0, 5}, { 1, 5}, { 2, 5}, { 3, 5}, { 4, 5}, { 5, 5}, { 6, 5}, { 7, 5}, { 8, 5},
-  {-8, 6}, {-7, 6}, {-6, 6}, {-5, 6}, {-4, 6}, {-3, 6}, {-2, 6}, {-1, 6}, { 0, 6}, { 1, 6}, { 2, 6}, { 3, 6}, { 4, 6}, { 5, 6}, { 6, 6}, { 7, 6}, { 8, 6},
-  {-8, 7}, {-7, 7}, {-6, 7}, {-5, 7}, {-4, 7}, {-3, 7}, {-2, 7}, {-1, 7}, { 0, 7}, { 1, 7}, { 2, 7}, { 3, 7}, { 4, 7}, { 5, 7}, { 6, 7}, { 7, 7}, { 8, 7},
-  {-8, 8}, {-7, 8}, {-6, 8}, {-5, 8}, {-4, 8}, {-3, 8}, {-2, 8}, {-1, 8}, { 0, 8}, { 1, 8}, { 2, 8}, { 3, 8}, { 4, 8}, { 5, 8}, { 6, 8}, { 7, 8}, { 8, 8},
-};
 
 bool isValidSquare(Piece piece, Square square) {
   if ((piece == Piece::BPawn || piece == Piece::BLance) && !square.isPawnMovable<true>()) {
@@ -69,37 +42,6 @@ bool isValidSquare(Piece piece, Square square) {
   }
 
   return true;
-}
-
-template <class T>
-void overlap(Piece piece1, Piece piece2, int index1, int index2, T&& func) {
-  SQUARE_EACH(king) {
-    int kingFile = king.getFile();
-    int kingRank = king.getRank();
-
-    int file1 = kingFile + RelativeSquares[index1].file;
-    int rank1 = kingRank + RelativeSquares[index1].rank;
-
-    int file2 = kingFile + RelativeSquares[index2].file;
-    int rank2 = kingRank + RelativeSquares[index2].rank;
-
-    if (!Square::isValidFile(file1) || !Square::isValidRank(rank1)) {
-      continue;
-    }
-
-    if (!Square::isValidFile(file2) || !Square::isValidRank(rank2)) {
-      continue;
-    }
-
-    Square square1(file1, rank1);
-    Square square2(file2, rank2);
-
-    if (!isValidSquare(piece1, square1) || !isValidSquare(piece2, square2)) {
-      return;
-    }
-
-    func(king, square1, square2);
-  }
 }
 
 std::string trainingDataFileName(uint32_t wn) {
@@ -536,10 +478,6 @@ bool BatchLearning::generateGradient(uint32_t wn) {
     gm_.horse      += gm0->horse;
     gm_.dragon     += gm0->dragon;
 
-    for (int i = 0; i < KPP_ALL; i++) {
-      ((FV::ValueType*)g_.t_->kpp)[i] += ((FV::ValueType*)g0->t_->kpp)[i];
-    }
-
     for (int i = 0; i < KKP_ALL; i++) {
       ((FV::ValueType*)g_.t_->kkp)[i] += ((FV::ValueType*)g0->t_->kkp)[i];
     }
@@ -575,104 +513,6 @@ bool BatchLearning::generateGradient() {
   return ok;
 }
 
-/**
- * 相対座標が同じである要素同士を重ねあわせます。
- */
-void BatchLearning::overlapParameters(int index1, int index2) {
-  // king-piece-piece
-  PIECE_EACH(piece1) {
-    PIECE_EACH(piece2) {
-      FV::ValueType sum = 0.0f;
-      int num = 0;
-
-      overlap(piece1, piece2, index1, index2,
-          [&sum, &num, this, piece1, piece2](Square king, Square square1, Square square2) {
-        int x = kkpBoardIndex(piece1, square1);
-        int y = kkpBoardIndex(piece2, square2);
-        if (x >= y) {
-          sum += g_.t_->kpp[king.index()][kpp_index(x, y)];
-          num++;
-        }
-      });
-
-      overlap(piece1, piece2, index1, index2,
-          [sum, num, this, piece1, piece2](Square king, Square square1, Square square2) {
-        int x = kkpBoardIndex(piece1, square1);
-        int y = kkpBoardIndex(piece2, square2);
-        if (x >= y) {
-          g_.t_->kpp[king.index()][kpp_index(x, y)] += sum / (FV::ValueType)num;
-        }
-      });
-    }
-  }
-
-  // king-king-piece
-  PIECE_KIND_EACH(piece) {
-    FV::ValueType sum = 0.0f;
-    int num = 0;
-
-    overlap(Piece::WKing, piece, index1, index2,
-        [&sum, &num, this, piece](Square king, Square square1, Square square2) {
-      sum += g_.t_->kkp[king.index()][square1.index()][kkpBoardIndex(piece, square2)];
-      num++;
-    });
-
-    overlap(Piece::WKing, piece, index1, index2,
-        [sum, num, this, piece](Square king, Square square1, Square square2) {
-      g_.t_->kkp[king.index()][square1.index()][kkpBoardIndex(piece, square2)] += sum / (FV::ValueType)num;
-    });
-  }
-}
-
-/**
- * 相対座標が同じである要素同士を重ねあわせます。
- */
-void BatchLearning::overlapParameters(uint32_t wn) {
-  int begin = wn;
-  int step = nt_;
-  int rslen = sizeof(RelativeSquares) / sizeof(RelativeSquares[0]);
-
-  for (int i = begin; i < rslen; i += step) {
-    for (int j = 0; j < rslen; j++) {
-      if (i == j) {
-        continue;
-      }
-
-      int maxFile = std::max({ (int8_t)0, RelativeSquares[i].file, RelativeSquares[j].file});
-      int maxRank = std::max({ (int8_t)0, RelativeSquares[i].rank, RelativeSquares[j].rank});
-      int minFile = std::min({ (int8_t)0, RelativeSquares[i].file, RelativeSquares[j].file});
-      int minRank = std::min({ (int8_t)0, RelativeSquares[i].rank, RelativeSquares[j].rank});
-      int width = maxFile - minFile + 1;
-      int height = maxRank - minRank + 1;
-      if (width > Square::FileN || height > Square::RankN) {
-        continue;
-      }
-
-      overlapParameters(i, j);
-    }
-  }
-}
-
-/**
- * 相対座標が同じである要素同士を重ねあわせます。
- */
-void BatchLearning::overlapParameters() {
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    for (uint32_t wn = 0; wn < nt_; wn++) {
-      jobQueue_.push({
-        JobType::OverlapParam,
-        [this](uint32_t wn) {
-          overlapParameters(wn);
-        },
-        wn
-      });
-    }
-  }
-
-  waitForWorkers();
-}
-
 void BatchLearning::updateParameter(uint32_t wn,
     FV::ValueType& g, Evaluator::ValueType& e,
     Evaluator::ValueType& max, uint64_t& magnitude) {
@@ -701,11 +541,6 @@ void BatchLearning::updateParameters(uint32_t wn) {
   auto& to = threadObjects_[wn];
   auto& max = to.max;
   auto& magnitude = to.magnitude;
-
-  for (int i = begin; i < KPP_ALL; i += step) {
-    updateParameter(wn, ((FV::ValueType*)g_.t_->kpp)[i],
-      ((Evaluator::ValueType*)eval_.t_->kpp)[i], max, magnitude);
-  }
 
   for (int i = begin; i < KKP_ALL; i += step) {
     updateParameter(wn, ((FV::ValueType*)g_.t_->kkp)[i],
@@ -837,10 +672,6 @@ bool BatchLearning::iterate() {
       if (!generateGradient()) {
         return false;
       }
-
-#if ENABLE_OVERLAP
-      overlapParameters();
-#endif
 
       updateParameters();
 

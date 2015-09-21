@@ -278,12 +278,6 @@ bool OnlineLearning::miniBatch() {
     magnitudeW += std::abs(w);
     maxU = std::max(maxU, std::abs(u));
   };
-  for (int i = 0; i < KPP_ALL; i++) {
-    update1(((FV::ValueType*)g_.t_->kpp)[i],
-            ((FV::ValueType*)w_.t_->kpp)[i],
-            ((FV::ValueType*)u_.t_->kpp)[i],
-            maxW, magnitudeW, maxU);
-  }
   for (int i = 0; i < KKP_ALL; i++) {
     update1(((FV::ValueType*)g_.t_->kkp)[i],
             ((FV::ValueType*)w_.t_->kkp)[i],
@@ -301,12 +295,6 @@ bool OnlineLearning::miniBatch() {
     magnitude += std::abs(e);
     nonZero += e != 0 ? 1 : 0;
   };
-  for (int i = 0; i < KPP_ALL; i++) {
-    average(((FV::ValueType*)w_.t_->kpp)[i],
-            ((FV::ValueType*)u_.t_->kpp)[i],
-            ((Evaluator::ValueType*)eval_.t_->kpp)[i],
-            max, magnitude, nonZero);
-  }
   for (int i = 0; i < KKP_ALL; i++) {
     average(((FV::ValueType*)w_.t_->kkp)[i],
             ((FV::ValueType*)u_.t_->kkp)[i],
@@ -321,10 +309,6 @@ bool OnlineLearning::miniBatch() {
   auto update2 = [this](FV::ValueType& w, Evaluator::ValueType& e) {
     e = std::round(w);
   };
-  for (int i = 0; i < KPP_ALL; i++) {
-    update2(((FV::ValueType*)w_.t_->kpp)[i],
-            ((Evaluator::ValueType*)eval_.t_->kpp)[i]);
-  }
   for (int i = 0; i < KKP_ALL; i++) {
     update2(((FV::ValueType*)w_.t_->kkp)[i],
             ((Evaluator::ValueType*)eval_.t_->kkp)[i]);
