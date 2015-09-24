@@ -298,28 +298,9 @@ TEST(EvaluatorTest, testEstimate) {
 }
 
 TEST(EvaluatorTest, testSymmetrize) {
-  ASSERT_EQ(KPP_HBPAWN + 17, symmetrizeKppIndex(KPP_HBPAWN + 17));
-  ASSERT_EQ(KPP_HWROOK + 2, symmetrizeKppIndex(KPP_HWROOK + 2));
-  ASSERT_EQ(KPP_BBPAWN + 64, symmetrizeKppIndex(KPP_BBPAWN + 0));
-  ASSERT_EQ(KPP_BBPAWN + 22, symmetrizeKppIndex(KPP_BBPAWN + 54));
-  ASSERT_EQ(KPP_BBSILVER + S74, symmetrizeKppIndex(KPP_BBSILVER + S34));
-
   ASSERT_EQ(KKP_HROOK + 2, symmetrizeKkpIndex(KKP_HROOK + 2));
   ASSERT_EQ(KKP_BPAWN + 64, symmetrizeKkpIndex(KKP_BPAWN + 0));
   ASSERT_EQ(KKP_BPAWN + 29, symmetrizeKkpIndex(KKP_BPAWN + 45));
-}
-
-TEST(EvaluatorTest, testBonanza) {
-  ASSERT_EQ(KPP_HBPAWN + 17, convertKppIndex4FvBin(KPP_HBPAWN + 17));
-  ASSERT_EQ(KPP_HWROOK + 2, convertKppIndex4FvBin(KPP_HWROOK + 2));
-  ASSERT_EQ(KPP_BBPAWN + 0, convertKppIndex4FvBin(KPP_BBPAWN + 0));
-  ASSERT_EQ(KPP_BBPAWN + 52, convertKppIndex4FvBin(KPP_BBPAWN + 61));
-  ASSERT_EQ(KPP_BWDRAGON + 14, convertKppIndex4FvBin(KPP_BWDRAGON + S42));
-
-  ASSERT_EQ(KKP_HPAWN + 10, convertKkpIndex4FvBin(KKP_HPAWN + 10));
-  ASSERT_EQ(KKP_HROOK + 2, convertKkpIndex4FvBin(KKP_HROOK + 2));
-  ASSERT_EQ(KKP_BPAWN + 0, convertKkpIndex4FvBin(KKP_BPAWN + 0));
-  ASSERT_EQ(KKP_BPAWN + 42, convertKkpIndex4FvBin(KKP_BPAWN + 52));
 }
 
 #endif // !defined(NDEBUG)
