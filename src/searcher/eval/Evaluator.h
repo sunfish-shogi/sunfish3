@@ -66,12 +66,56 @@ enum {
   KKP_BDRAGON = KKP_BROOK   + 81,
   KKP_MAX     = KKP_BDRAGON + 81,
   KKP_ALL     = 81 * 81 * KKP_MAX,
+
+  KG_BSILVER  = 0,
+  KG_WSILVER  = KG_BSILVER  + 81,
+  KG_BGOLD    = KG_WSILVER  + 81,
+  KG_WGOLD    = KG_BGOLD    + 81,
+  KG_MAX      = KG_WGOLD    + 81,
+
+  KGG_SIZE    = KG_MAX * (KG_MAX + 1) / 2,
+  KGG_ALL     = 81 * KGG_SIZE,
+
+  KGP_BPAWN   = 0,
+  KGP_WPAWN   = KGP_BPAWN   + 81 - 9,
+  KGP_BLANCE  = KGP_WPAWN   + 81 - 9,
+  KGP_WLANCE  = KGP_BLANCE  + 81 - 9,
+  KGP_BKNIGHT = KGP_WLANCE  + 81 - 9,
+  KGP_WKNIGHT = KGP_BKNIGHT + 81 - 18,
+  KGP_BBISHOP = KGP_WKNIGHT + 81 - 18,
+  KGP_WBISHOP = KGP_BBISHOP + 81,
+  KGP_BHORSE  = KGP_WBISHOP + 81,
+  KGP_WHORSE  = KGP_BHORSE  + 81,
+  KGP_BROOK   = KGP_WHORSE  + 81,
+  KGP_WROOK   = KGP_BROOK   + 81,
+  KGP_BDRAGON = KGP_WROOK   + 81,
+  KGP_WDRAGON = KGP_BDRAGON + 81,
+  KGP_MAX     = KGP_WDRAGON + 81,
+  KGP_ALL     = 81 * KG_MAX * KGP_MAX,
 };
+
+inline int kgg_index(int x, int y) {
+  return x * (x + 1) / 2 + y;
+}
+
+inline int kgg_index_safe(int x, int y) {
+  return x >= y ? kgg_index(x, y) : kgg_index(y, x);
+}
 
 /**
  * KKP のインデクスを左右反転します。
  */
 int symmetrizeKkpIndex(int index);
+
+/**
+ * KG のインデクスを左右反転します。
+ */
+int symmetrizeKgIndex(int index);
+
+/**
+ * KGP のインデクスを左右反転します。
+ */
+int symmetrizeKgpIndex(int index);
 
 /**
  * 盤上の駒の種類から KKP のインデクスを取得します。
@@ -91,6 +135,8 @@ public:
 
   struct Table {
     ValueType kkp[81][81][KKP_MAX];
+    ValueType kgg[81][KGG_SIZE];
+    ValueType kgp[81][KG_MAX][KGP_MAX];
   };
 
   static CONSTEXPR size_t size() {

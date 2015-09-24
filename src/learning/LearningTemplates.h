@@ -46,6 +46,56 @@ public:
         }
       }
     }
+
+    // king-gold-piece
+    SQUARE_EACH(king0) {
+      Square king1 = king0.sym();
+      if (king0.index() > king1.index()) {
+        continue;
+      }
+
+      for (int x0 = 0; x0 < KG_MAX; x0++) {
+        int x1 = symmetrizeKgIndex(x0);
+        if (king0.index() == king1.index() && x0 > x1) {
+          continue;
+        }
+
+        for (int y0 = 0; y0 < KGP_MAX; y0++) {
+          int y1 = symmetrizeKgpIndex(y0);
+          if (king0.index() == king1.index() && x0 == x1 && y0 > y1) {
+            continue;
+          }
+
+          f(fv.t_->kgp[king0.index()][x0][y0], fv.t_->kgp[king1.index()][x1][y1]);
+        }
+      }
+    }
+
+    // king-gold-gold
+    SQUARE_EACH(king0) {
+      Square king1 = king0.sym();
+      if (king0.index() > king1.index()) {
+        continue;
+      }
+
+      for (int x0 = 0; x0 < KG_MAX; x0++) {
+        int x1 = symmetrizeKgIndex(x0);
+        if (king0.index() == king1.index() && x0 > x1) {
+          continue;
+        }
+
+        for (int y0 = 0; y0 <= x0; y0++) {
+          int y1 = symmetrizeKgIndex(y0);
+          if (king0.index() == king1.index() && x0 == x1 && y0 > y1) {
+            continue;
+          }
+
+          int index0 = kgg_index(x0, y0);
+          int index1 = kgg_index_safe(x1, y1);
+          f(fv.t_->kgg[king0.index()][index0], fv.t_->kgg[king1.index()][index1]);
+        }
+      }
+    }
   }
 
   template <class Type, class Func>
