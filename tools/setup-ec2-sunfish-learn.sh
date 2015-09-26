@@ -10,6 +10,8 @@ EC2_HOST=$2
 KIFU_TARBALL=$3
 KIFU_TARBALL_NAME=`basename ${KIFU_TARBALL}`
 
+TARGET_BRANCH=master
+
 YUM_PACKAGES="git gcc-c++ cmake"
 SUNFISH_REPO="https://github.com/sunfish-shogi/sunfish3.git"
 SUNFISH_DIR="sunfish3"
@@ -20,7 +22,7 @@ scp -i ${SSH_KEY} ${CONF_FILE} ec2-user@${EC2_HOST}:~/
 
 ssh -i ${SSH_KEY} -t -t ec2-user@${EC2_HOST} <<EOF
 sudo yum install -y ${YUM_PACKAGES}
-git clone ${SUNFISH_REPO} ${SUNFISH_DIR}
+git clone --branch ${TARGET_BRANCH} --depth 1 ${SUNFISH_REPO} ${SUNFISH_DIR}
 cd ${SUNFISH_DIR}
 make learn -j
 tar zxf ~/${KIFU_TARBALL_NAME}
