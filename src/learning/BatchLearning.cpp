@@ -18,7 +18,7 @@
 #include <cstdlib>
 
 #define SEARCH_WINDOW  256
-#define NORM           1.0e-1f
+#define NORM           1.0e-2f
 
 namespace {
 
