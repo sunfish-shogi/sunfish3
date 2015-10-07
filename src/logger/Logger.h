@@ -11,6 +11,7 @@
 #include <ctime>
 #include <mutex>
 #include <memory>
+#include <utility>
 
 #define __FILE_LINE__ (__FILE__ ":" __L2STR(__LINE__))
 #define __L2STR(l) L2STR__(l)
@@ -50,8 +51,8 @@ public:
       data = std::make_shared<Data>(plogger, mutex);
     }
     template <class T>
-    SubLogger& operator<<(T t) {
-      data->plogger->printNoLock(t);
+    SubLogger& operator<<(T&& t) {
+      data->plogger->printNoLock(std::forward<T>(t));
       return *this;
     }
   };
@@ -90,7 +91,7 @@ public:
     addStream(o, false, false, nullptr, nullptr);
   }
 
-  template <class T> void printNoLock(const T t, bool top = false) {
+  template <class T> void printNoLock(T&& t, bool top = false) {
     std::vector<Stream>::iterator it;
     for (it = os_.begin(); it != os_.end(); it++) {
       if (it->before != nullptr) {
@@ -104,7 +105,7 @@ public:
           *(it->pout) << name_ << ' ';
         }
       }
-      *(it->pout) << t;
+      *(it->pout) << std::forward<T>(t);
       if (it->after != nullptr) {
         *(it->pout) << it->after;
       }
@@ -112,15 +113,15 @@ public:
     }
   }
 
-  template <class T> void print(const T t) {
+  template <class T> void print(T&& t) {
     std::lock_guard<std::mutex> lock(mutex_);
-    printNoLock(t);
+    printNoLock(std::forward<T>(t));
   }
 
   template <class T>
-  SubLogger operator<<(const T t) {
+  SubLogger operator<<(T&& t) {
     SubLogger s(this, mutex_);
-    printNoLock(t, true);
+    printNoLock(std::forward<T>(t), true);
     return s;
   }
 
