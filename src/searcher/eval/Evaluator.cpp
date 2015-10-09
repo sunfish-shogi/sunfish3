@@ -102,7 +102,15 @@ const TableInfo kgTableInfo[] = {
   { nullptr, KG_BSILVER, KG_WSILVER, 0 },
   { nullptr, KG_WSILVER, KG_BGOLD,   0 },
   { nullptr, KG_BGOLD,   KG_WGOLD,   0 },
-  { nullptr, KG_WGOLD,   KG_MAX,     0 },
+  { nullptr, KG_WGOLD,   KG_BBISHOP, 0 },
+  { nullptr, KG_BBISHOP, KG_WBISHOP, 0 },
+  { nullptr, KG_WBISHOP, KG_BHORSE,  0 },
+  { nullptr, KG_BHORSE,  KG_WHORSE,  0 },
+  { nullptr, KG_WHORSE,  KG_BROOK,   0 },
+  { nullptr, KG_BROOK,   KG_WROOK,   0 },
+  { nullptr, KG_WROOK,   KG_BDRAGON, 0 },
+  { nullptr, KG_BDRAGON, KG_WDRAGON, 0 },
+  { nullptr, KG_WDRAGON, KG_MAX,     0 },
 };
 
 const TableInfo kgpTableInfo[] = {
@@ -111,15 +119,7 @@ const TableInfo kgpTableInfo[] = {
   { sqIndexBPawn  , KGP_BLANCE,  KGP_WLANCE,   -9 },
   { sqIndexBPawn  , KGP_WLANCE,  KGP_BKNIGHT,  -9 },
   { sqIndexBKnight, KGP_BKNIGHT, KGP_WKNIGHT, -18 },
-  { sqIndexBKnight, KGP_WKNIGHT, KGP_BBISHOP, -18 },
-  { nullptr       , KGP_BBISHOP, KGP_WBISHOP,   0 },
-  { nullptr       , KGP_WBISHOP, KGP_BHORSE,    0 },
-  { nullptr       , KGP_BHORSE,  KGP_WHORSE,    0 },
-  { nullptr       , KGP_WHORSE,  KGP_BROOK,     0 },
-  { nullptr       , KGP_BROOK,   KGP_WROOK,     0 },
-  { nullptr       , KGP_WROOK,   KGP_BDRAGON,   0 },
-  { nullptr       , KGP_BDRAGON, KGP_WDRAGON,   0 },
-  { nullptr       , KGP_WDRAGON, KGP_MAX,       0 },
+  { sqIndexBKnight, KGP_WKNIGHT, KGP_MAX,     -18 },
 };
 
 int sqInv(const int8_t* table, int in) {
@@ -379,6 +379,10 @@ U Feature<T>::extract(const Board& board, U delta) {
   GOLD_ON_BOARD(board.getBGold() | board.getBTokin() | board.getBProLance() | board.getBProKnight() | board.getBProSilver(),
                 board.getWGold() | board.getWTokin() | board.getWProLance() | board.getWProKnight() | board.getWProSilver(), GOLD,
                 SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
+  GOLD_ON_BOARD(board.getBBishop(), board.getWBishop(), BISHOP, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
+  GOLD_ON_BOARD(board.getBHorse(), board.getWHorse(), HORSE, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
+  GOLD_ON_BOARD(board.getBRook(), board.getWRook(), ROOK, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
+  GOLD_ON_BOARD(board.getBDragon(), board.getWDragon(), DRAGON, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
 
 #undef GOLD_ON_BOARD
 
@@ -420,10 +424,6 @@ U Feature<T>::extract(const Board& board, U delta) {
   ON_BOARD(board.getBPawn(), board.getWPawn(), PAWN, SQ_INDEX_BPAWN, SQ_INDEX_WPAWN);
   ON_BOARD(board.getBLance(),board.getWLance(), LANCE, SQ_INDEX_BPAWN, SQ_INDEX_WPAWN);
   ON_BOARD(board.getBKnight(), board.getWKnight(), KNIGHT, SQ_INDEX_BKNIGHT, SQ_INDEX_WKNIGHT);
-  ON_BOARD(board.getBBishop(), board.getWBishop(), BISHOP, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
-  ON_BOARD(board.getBHorse(), board.getWHorse(), HORSE, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
-  ON_BOARD(board.getBRook(), board.getWRook(), ROOK, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
-  ON_BOARD(board.getBDragon(), board.getWDragon(), DRAGON, SQ_INDEX_BNORMAL, SQ_INDEX_WNORMAL);
 
 #undef ON_BOARD
 
