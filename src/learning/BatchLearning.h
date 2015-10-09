@@ -51,11 +51,17 @@ private:
 
   const Config& config_;
 
+  Evaluator evalMerged_;
+
   Evaluator eval_;
+
+  EvaluatorX ex_;
 
   FVM gm_;
 
   FV g_;
+
+  FVX gx_;
 
   std::queue<Job> jobQueue_;
 
@@ -65,7 +71,7 @@ private:
 
   std::atomic<uint32_t> totalMoves_;
 
-  std::atomic<uint32_t> outOfWindLoss_;
+  std::atomic<uint32_t> oowLoss_;
 
   float loss_;
 
@@ -73,13 +79,13 @@ private:
 
   uint64_t magnitude_;
 
+  int nonZero_;
+
   struct ThreadObject {
     std::thread thread;
     std::unique_ptr<Searcher> searcher;
     std::unique_ptr<Random> rand;
     std::unique_ptr<std::ofstream> outTrainingData;
-    Evaluator::ValueType max;
-    uint64_t magnitude;
   };
 
   std::vector<ThreadObject> threadObjects_;
@@ -98,16 +104,14 @@ private:
   void work(uint32_t wn);
   void waitForWorkers();
 
+  void generateGradientX();
+  void mergeParametersX();
   void generateTrainingData(uint32_t wn, Board board, Move move0);
   void generateTrainingDataOnWorker(uint32_t wn, const std::string& path);
   bool generateTrainingData();
   bool generateGradient(uint32_t wn);
   bool generateGradient();
-  void updateParameter(uint32_t wn, FV::ValueType& g, Evaluator::ValueType& e,
-      Evaluator::ValueType& max, uint64_t& magnitude);
-  void overlapParameters(int index1, int index2);
-  void overlapParameters(uint32_t wn);
-  void overlapParameters();
+  void updateParameter(uint32_t wn, FV::ValueType& g, Evaluator::ValueType& e);
   void updateParameters(uint32_t wn);
   void updateParameters();
   void updateMaterial();

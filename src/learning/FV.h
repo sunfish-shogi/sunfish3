@@ -6,6 +6,7 @@
 #ifndef SUNFISH_FV__
 #define SUNFISH_FV__
 
+#include "core/def.h"
 #include "core/board/Board.h"
 #include "searcher/eval/Evaluator.h"
 
@@ -87,6 +88,52 @@ struct FVM {
 };
 
 class FV : public Feature<float> {
+public:
+  void init() {
+    memset(t_, 0, sizeof(*t_));
+  }
+};
+
+template<class T>
+class FeatureX {
+public:
+
+  using ValueType = T;
+
+  struct Table {
+    ValueType kpb[81][KKP_MAX];
+    ValueType kpw[81][KKP_MAX];
+  };
+
+  Table* t_;
+
+  static CONSTEXPR size_t size() {
+    return sizeof(Table) / sizeof(ValueType);
+  }
+
+protected:
+
+  FeatureX() : t_(nullptr) {
+    t_ = new Table();
+  }
+
+  FeatureX(const FeatureX&) = delete;
+  FeatureX(FeatureX&&) = delete;
+
+  ~FeatureX() {
+    delete t_;
+  }
+
+};
+
+class EvaluatorX : public FeatureX<int16_t> {
+public:
+  void init() {
+    memset(t_, 0, sizeof(*t_));
+  }
+};
+
+class FVX : public FeatureX<float> {
 public:
   void init() {
     memset(t_, 0, sizeof(*t_));

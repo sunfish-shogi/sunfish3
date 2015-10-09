@@ -18,38 +18,11 @@
 #include <cstdlib>
 
 #define SEARCH_WINDOW  256
-#define NORM           1.0e-1f
-
-#define ENABLE_OVERLAP 1
+#define NORM           1.0e-2f
 
 namespace {
 
 using namespace sunfish;
-
-struct RelativeSquare {
-  int8_t file;
-  int8_t rank;
-};
-
-const RelativeSquare RelativeSquares[] = {
-  {-8,-8}, {-7,-8}, {-6,-8}, {-5,-8}, {-4,-8}, {-3,-8}, {-2,-8}, {-1,-8}, { 0,-8}, { 1,-8}, { 2,-8}, { 3,-8}, { 4,-8}, { 5,-8}, { 6,-8}, { 7,-8}, { 8,-8},
-  {-8,-7}, {-7,-7}, {-6,-7}, {-5,-7}, {-4,-7}, {-3,-7}, {-2,-7}, {-1,-7}, { 0,-7}, { 1,-7}, { 2,-7}, { 3,-7}, { 4,-7}, { 5,-7}, { 6,-7}, { 7,-7}, { 8,-7},
-  {-8,-6}, {-7,-6}, {-6,-6}, {-5,-6}, {-4,-6}, {-3,-6}, {-2,-6}, {-1,-6}, { 0,-6}, { 1,-6}, { 2,-6}, { 3,-6}, { 4,-6}, { 5,-6}, { 6,-6}, { 7,-6}, { 8,-6},
-  {-8,-5}, {-7,-5}, {-6,-5}, {-5,-5}, {-4,-5}, {-3,-5}, {-2,-5}, {-1,-5}, { 0,-5}, { 1,-5}, { 2,-5}, { 3,-5}, { 4,-5}, { 5,-5}, { 6,-5}, { 7,-5}, { 8,-5},
-  {-8,-4}, {-7,-4}, {-6,-4}, {-5,-4}, {-4,-4}, {-3,-4}, {-2,-4}, {-1,-4}, { 0,-4}, { 1,-4}, { 2,-4}, { 3,-4}, { 4,-4}, { 5,-4}, { 6,-4}, { 7,-4}, { 8,-4},
-  {-8,-3}, {-7,-3}, {-6,-3}, {-5,-3}, {-4,-3}, {-3,-3}, {-2,-3}, {-1,-3}, { 0,-3}, { 1,-3}, { 2,-3}, { 3,-3}, { 4,-3}, { 5,-3}, { 6,-3}, { 7,-3}, { 8,-3},
-  {-8,-2}, {-7,-2}, {-6,-2}, {-5,-2}, {-4,-2}, {-3,-2}, {-2,-2}, {-1,-2}, { 0,-2}, { 1,-2}, { 2,-2}, { 3,-2}, { 4,-2}, { 5,-2}, { 6,-2}, { 7,-2}, { 8,-2},
-  {-8,-1}, {-7,-1}, {-6,-1}, {-5,-1}, {-4,-1}, {-3,-1}, {-2,-1}, {-1,-1}, { 0,-1}, { 1,-1}, { 2,-1}, { 3,-1}, { 4,-1}, { 5,-1}, { 6,-1}, { 7,-1}, { 8,-1},
-  {-8, 0}, {-7, 0}, {-6, 0}, {-5, 0}, {-4, 0}, {-3, 0}, {-2, 0}, {-1, 0},          { 1, 0}, { 2, 0}, { 3, 0}, { 4, 0}, { 5, 0}, { 6, 0}, { 7, 0}, { 8, 0},
-  {-8, 1}, {-7, 1}, {-6, 1}, {-5, 1}, {-4, 1}, {-3, 1}, {-2, 1}, {-1, 1}, { 0, 1}, { 1, 1}, { 2, 1}, { 3, 1}, { 4, 1}, { 5, 1}, { 6, 1}, { 7, 1}, { 8, 1},
-  {-8, 2}, {-7, 2}, {-6, 2}, {-5, 2}, {-4, 2}, {-3, 2}, {-2, 2}, {-1, 2}, { 0, 2}, { 1, 2}, { 2, 2}, { 3, 2}, { 4, 2}, { 5, 2}, { 6, 2}, { 7, 2}, { 8, 2},
-  {-8, 3}, {-7, 3}, {-6, 3}, {-5, 3}, {-4, 3}, {-3, 3}, {-2, 3}, {-1, 3}, { 0, 3}, { 1, 3}, { 2, 3}, { 3, 3}, { 4, 3}, { 5, 3}, { 6, 3}, { 7, 3}, { 8, 3},
-  {-8, 4}, {-7, 4}, {-6, 4}, {-5, 4}, {-4, 4}, {-3, 4}, {-2, 4}, {-1, 4}, { 0, 4}, { 1, 4}, { 2, 4}, { 3, 4}, { 4, 4}, { 5, 4}, { 6, 4}, { 7, 4}, { 8, 4},
-  {-8, 5}, {-7, 5}, {-6, 5}, {-5, 5}, {-4, 5}, {-3, 5}, {-2, 5}, {-1, 5}, { 0, 5}, { 1, 5}, { 2, 5}, { 3, 5}, { 4, 5}, { 5, 5}, { 6, 5}, { 7, 5}, { 8, 5},
-  {-8, 6}, {-7, 6}, {-6, 6}, {-5, 6}, {-4, 6}, {-3, 6}, {-2, 6}, {-1, 6}, { 0, 6}, { 1, 6}, { 2, 6}, { 3, 6}, { 4, 6}, { 5, 6}, { 6, 6}, { 7, 6}, { 8, 6},
-  {-8, 7}, {-7, 7}, {-6, 7}, {-5, 7}, {-4, 7}, {-3, 7}, {-2, 7}, {-1, 7}, { 0, 7}, { 1, 7}, { 2, 7}, { 3, 7}, { 4, 7}, { 5, 7}, { 6, 7}, { 7, 7}, { 8, 7},
-  {-8, 8}, {-7, 8}, {-6, 8}, {-5, 8}, {-4, 8}, {-3, 8}, {-2, 8}, {-1, 8}, { 0, 8}, { 1, 8}, { 2, 8}, { 3, 8}, { 4, 8}, { 5, 8}, { 6, 8}, { 7, 8}, { 8, 8},
-};
 
 bool isValidSquare(Piece piece, Square square) {
   if ((piece == Piece::BPawn || piece == Piece::BLance) && !square.isPawnMovable<true>()) {
@@ -69,37 +42,6 @@ bool isValidSquare(Piece piece, Square square) {
   }
 
   return true;
-}
-
-template <class T>
-void overlap(Piece piece1, Piece piece2, int index1, int index2, T&& func) {
-  SQUARE_EACH(king) {
-    int kingFile = king.getFile();
-    int kingRank = king.getRank();
-
-    int file1 = kingFile + RelativeSquares[index1].file;
-    int rank1 = kingRank + RelativeSquares[index1].rank;
-
-    int file2 = kingFile + RelativeSquares[index2].file;
-    int rank2 = kingRank + RelativeSquares[index2].rank;
-
-    if (!Square::isValidFile(file1) || !Square::isValidRank(rank1)) {
-      continue;
-    }
-
-    if (!Square::isValidFile(file2) || !Square::isValidRank(rank2)) {
-      continue;
-    }
-
-    Square square1(file1, rank1);
-    Square square2(file2, rank2);
-
-    if (!isValidSquare(piece1, square1) || !isValidSquare(piece2, square2)) {
-      return;
-    }
-
-    func(king, square1, square2);
-  }
 }
 
 std::string trainingDataFileName(uint32_t wn) {
@@ -227,6 +169,36 @@ void BatchLearning::waitForWorkers() {
   }
 }
 
+void BatchLearning::generateGradientX() {
+  SQUARE_EACH(king1) {
+    for (int i = 0; i < KKP_MAX; i++) {
+      float gb = 0.0f;
+      float gw = 0.0f;
+      SQUARE_EACH(king2) {
+        gb += g_.t_->kkp[king1.index()][king2.index()][i];
+        gw += g_.t_->kkp[king2.index()][king1.index()][i];
+      }
+      gx_.t_->kpb[king1.index()][i] = gb;
+      gx_.t_->kpw[king1.index()][i] = gw;
+    }
+  }
+}
+
+void BatchLearning::mergeParametersX() {
+  evalMerged_ = eval_;
+
+  SQUARE_EACH(king1) {
+    for (int i = 0; i < KKP_MAX; i++) {
+      const float eb = ex_.t_->kpb[king1.index()][i];
+      const float ew = ex_.t_->kpw[king1.index()][i];
+      SQUARE_EACH(king2) {
+        evalMerged_.t_->kkp[king1.index()][king2.index()][i] += eb;
+        evalMerged_.t_->kkp[king2.index()][king1.index()][i] += ew;
+      }
+    }
+  }
+}
+
 /**
  * 訓練データを生成します。
  */
@@ -311,7 +283,7 @@ void BatchLearning::generateTrainingData(uint32_t wn, Board board, Move move0) {
     }
 
     if (val >= beta) {
-      outOfWindLoss_++;
+      oowLoss_++;
       continue;
     }
 
@@ -492,14 +464,14 @@ bool BatchLearning::generateGradient(uint32_t wn) {
 
     Board board0 = root;
     readPV(board0);
-    Value val0 = eval_.evaluate(board0).value();
+    Value val0 = evalMerged_.evaluate(board0).value();
 
     while (true) {
       Board board = root;
       if (!readPV(board)) {
         break;
       }
-      Value val = eval_.evaluate(board).value();
+      Value val = evalMerged_.evaluate(board).value();
 
       float diff = val.int32() - val0.int32();
       diff = black ? diff : -diff;
@@ -536,12 +508,8 @@ bool BatchLearning::generateGradient(uint32_t wn) {
     gm_.horse      += gm0->horse;
     gm_.dragon     += gm0->dragon;
 
-    for (int i = 0; i < KPP_ALL; i++) {
-      ((FV::ValueType*)g_.t_->kpp)[i] += ((FV::ValueType*)g0->t_->kpp)[i];
-    }
-
-    for (int i = 0; i < KKP_ALL; i++) {
-      ((FV::ValueType*)g_.t_->kkp)[i] += ((FV::ValueType*)g0->t_->kkp)[i];
+    for (size_t i = 0; i < FV::size(); i++) {
+      ((FV::ValueType*)g_.t_)[i] += ((FV::ValueType*)g0->t_)[i];
     }
   }
 
@@ -572,110 +540,13 @@ bool BatchLearning::generateGradient() {
 
   waitForWorkers();
 
+  generateGradientX();
+
   return ok;
 }
 
-/**
- * 相対座標が同じである要素同士を重ねあわせます。
- */
-void BatchLearning::overlapParameters(int index1, int index2) {
-  // king-piece-piece
-  PIECE_EACH(piece1) {
-    PIECE_EACH(piece2) {
-      FV::ValueType sum = 0.0f;
-      int num = 0;
-
-      overlap(piece1, piece2, index1, index2,
-          [&sum, &num, this, piece1, piece2](Square king, Square square1, Square square2) {
-        int x = kkpBoardIndex(piece1, square1);
-        int y = kkpBoardIndex(piece2, square2);
-        if (x >= y) {
-          sum += g_.t_->kpp[king.index()][kpp_index(x, y)];
-          num++;
-        }
-      });
-
-      overlap(piece1, piece2, index1, index2,
-          [sum, num, this, piece1, piece2](Square king, Square square1, Square square2) {
-        int x = kkpBoardIndex(piece1, square1);
-        int y = kkpBoardIndex(piece2, square2);
-        if (x >= y) {
-          g_.t_->kpp[king.index()][kpp_index(x, y)] += sum / (FV::ValueType)num;
-        }
-      });
-    }
-  }
-
-  // king-king-piece
-  PIECE_KIND_EACH(piece) {
-    FV::ValueType sum = 0.0f;
-    int num = 0;
-
-    overlap(Piece::WKing, piece, index1, index2,
-        [&sum, &num, this, piece](Square king, Square square1, Square square2) {
-      sum += g_.t_->kkp[king.index()][square1.index()][kkpBoardIndex(piece, square2)];
-      num++;
-    });
-
-    overlap(Piece::WKing, piece, index1, index2,
-        [sum, num, this, piece](Square king, Square square1, Square square2) {
-      g_.t_->kkp[king.index()][square1.index()][kkpBoardIndex(piece, square2)] += sum / (FV::ValueType)num;
-    });
-  }
-}
-
-/**
- * 相対座標が同じである要素同士を重ねあわせます。
- */
-void BatchLearning::overlapParameters(uint32_t wn) {
-  int begin = wn;
-  int step = nt_;
-  int rslen = sizeof(RelativeSquares) / sizeof(RelativeSquares[0]);
-
-  for (int i = begin; i < rslen; i += step) {
-    for (int j = 0; j < rslen; j++) {
-      if (i == j) {
-        continue;
-      }
-
-      int maxFile = std::max({ (int8_t)0, RelativeSquares[i].file, RelativeSquares[j].file});
-      int maxRank = std::max({ (int8_t)0, RelativeSquares[i].rank, RelativeSquares[j].rank});
-      int minFile = std::min({ (int8_t)0, RelativeSquares[i].file, RelativeSquares[j].file});
-      int minRank = std::min({ (int8_t)0, RelativeSquares[i].rank, RelativeSquares[j].rank});
-      int width = maxFile - minFile + 1;
-      int height = maxRank - minRank + 1;
-      if (width > Square::FileN || height > Square::RankN) {
-        continue;
-      }
-
-      overlapParameters(i, j);
-    }
-  }
-}
-
-/**
- * 相対座標が同じである要素同士を重ねあわせます。
- */
-void BatchLearning::overlapParameters() {
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    for (uint32_t wn = 0; wn < nt_; wn++) {
-      jobQueue_.push({
-        JobType::OverlapParam,
-        [this](uint32_t wn) {
-          overlapParameters(wn);
-        },
-        wn
-      });
-    }
-  }
-
-  waitForWorkers();
-}
-
 void BatchLearning::updateParameter(uint32_t wn,
-    FV::ValueType& g, Evaluator::ValueType& e,
-    Evaluator::ValueType& max, uint64_t& magnitude) {
+    FV::ValueType& g, Evaluator::ValueType& e) {
   auto& to = threadObjects_[wn];
   auto& r = *(to.rand);
 
@@ -685,10 +556,6 @@ void BatchLearning::updateParameter(uint32_t wn,
   } else if (g < 0.0f) {
     e -= r.getBit() + r.getBit();
   }
-
-  Evaluator::ValueType abs = std::abs(e);
-  max = std::max(max, abs);
-  magnitude = magnitude + abs;
 };
 
 /**
@@ -698,18 +565,14 @@ void BatchLearning::updateParameters(uint32_t wn) {
   int begin = wn;
   int step = nt_;
 
-  auto& to = threadObjects_[wn];
-  auto& max = to.max;
-  auto& magnitude = to.magnitude;
-
-  for (int i = begin; i < KPP_ALL; i += step) {
-    updateParameter(wn, ((FV::ValueType*)g_.t_->kpp)[i],
-      ((Evaluator::ValueType*)eval_.t_->kpp)[i], max, magnitude);
+  for (size_t i = begin; i < FV::size(); i += step) {
+    updateParameter(wn, ((FV::ValueType*)g_.t_)[i],
+      ((Evaluator::ValueType*)eval_.t_)[i]);
   }
 
-  for (int i = begin; i < KKP_ALL; i += step) {
-    updateParameter(wn, ((FV::ValueType*)g_.t_->kkp)[i],
-      ((Evaluator::ValueType*)eval_.t_->kkp)[i], max, magnitude);
+  for (size_t i = begin; i < FVX::size(); i += step) {
+    updateParameter(wn, ((FVX::ValueType*)gx_.t_)[i],
+      ((EvaluatorX::ValueType*)ex_.t_)[i]);
   }
 }
 
@@ -726,8 +589,6 @@ void BatchLearning::updateParameters() {
   {
     std::lock_guard<std::mutex> lock(mutex_);
     for (uint32_t wn = 0; wn < nt_; wn++) {
-      threadObjects_[wn].max = 0;
-      threadObjects_[wn].magnitude = 0;
       jobQueue_.push({
         JobType::UpdateParam,
         [this](uint32_t wn) {
@@ -740,19 +601,28 @@ void BatchLearning::updateParameters() {
 
   waitForWorkers();
 
-  max_ = 0;
-  magnitude_ = 0;
-  for (uint32_t wn = 0; wn < nt_; wn++) {
-    max_ += threadObjects_[wn].max;
-    magnitude_ += threadObjects_[wn].magnitude;
-  }
-
   LearningTemplates::symmetrize(eval_, [](Evaluator::ValueType& a, Evaluator::ValueType& b) {
       a = b;
   });
 
+  LearningTemplates::symmetrize(ex_, [](Evaluator::ValueType& a, Evaluator::ValueType& b) {
+      a = b;
+  });
+
+  mergeParametersX();
+
+  max_ = 0;
+  magnitude_ = 0;
+  nonZero_ = 0;
+  for (size_t i = 0; i < Evaluator::size(); i++) {
+    Evaluator::ValueType e = ((Evaluator::ValueType*)evalMerged_.t_)[i];
+    max_ = std::max(max_, (Evaluator::ValueType)std::abs(e));
+    magnitude_ += std::abs(e);
+    nonZero_ += e != 0 ? 1 : 0;
+  }
+
   // ハッシュ表を初期化
-  eval_.clearCache();
+  evalMerged_.clearCache();
   // transposition table は SearchConfig::learning で無効にしている
   //for (uint32_t wn = 0; wn < nt_; wn++) {
   //  searchers_[wn]->clearTT();
@@ -825,7 +695,7 @@ bool BatchLearning::iterate() {
 
   for (int i = 0; i < iterateCount; i++) {
     totalMoves_ = 0;
-    outOfWindLoss_ = 0;
+    oowLoss_ = 0;
 
     if (!generateTrainingData()) {
       return false;
@@ -838,31 +708,26 @@ bool BatchLearning::iterate() {
         return false;
       }
 
-#if ENABLE_OVERLAP
-      overlapParameters();
-#endif
-
       updateParameters();
 
       float elapsed = timer_.get();
-      float outOfWindLoss = (float)outOfWindLoss_ / totalMoves_;
-      float totalLoss = ((float)outOfWindLoss_ + loss_) / totalMoves_;
+      float oowLoss = (float)oowLoss_ / totalMoves_;
+      float totalLoss = ((float)oowLoss_ + loss_) / totalMoves_;
 
       Loggers::message
         << "elapsed=" << elapsed
         << "\titeration=" << i << "," << j
-        << "\tout_wind_loss=" << outOfWindLoss
+        << "\toow_loss=" << oowLoss
         << "\tloss=" << totalLoss
         << "\tmax=" << max_
-        << "\tmagnitude=" << magnitude_;
+        << "\tmagnitude=" << magnitude_
+        << "\tnon_zero=" << nonZero_
+        << "\tzero=" << (Evaluator::size() - nonZero_);
     }
 
     // 保存
     material::writeFile();
-    eval_.writeFile();
-
-    // キャッシュクリア
-    eval_.clearCache();
+    evalMerged_.writeFile();
 
     updateCount = std::max(updateCount / 2, 16);
   }
@@ -879,7 +744,9 @@ bool BatchLearning::run() {
   timer_.set();
 
   // 初期化
+  evalMerged_.init();
   eval_.init();
+  ex_.init();
 
   // 学習スレッド数
   nt_ = config_.getInt(LCONF_THREADS);
@@ -896,9 +763,9 @@ bool BatchLearning::run() {
   for (uint32_t wn = 0; wn < nt_; wn++) {
     threadObjects_.push_back(ThreadObject {
       std::thread(std::bind(std::mem_fn(&BatchLearning::work), this, wn)),
-      std::unique_ptr<Searcher>(new Searcher(eval_)),
+      std::unique_ptr<Searcher>(new Searcher(evalMerged_)),
       std::unique_ptr<Random>(new Random()),
-      nullptr, 0, 0,
+      nullptr,
     });
 
     auto& to = threadObjects_.back();

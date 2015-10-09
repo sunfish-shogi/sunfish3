@@ -9,6 +9,7 @@
 #include "core/def.h"
 #include "core/base/Piece.h"
 #include "Value.h"
+#include "material_values.h"
 #include <cstdint>
 
 namespace sunfish {
@@ -16,19 +17,19 @@ namespace sunfish {
 namespace material {
 
 #if defined(NLEARN)
-CONSTEXPR_CONST int16_t Pawn       = 87;
-CONSTEXPR_CONST int16_t Lance      = 232;
-CONSTEXPR_CONST int16_t Knight     = 257;
-CONSTEXPR_CONST int16_t Silver     = 369;
-CONSTEXPR_CONST int16_t Gold       = 444;
-CONSTEXPR_CONST int16_t Bishop     = 569;
-CONSTEXPR_CONST int16_t Rook       = 642;
-CONSTEXPR_CONST int16_t Tokin      = 534;
-CONSTEXPR_CONST int16_t Pro_lance  = 489;
-CONSTEXPR_CONST int16_t Pro_knight = 510;
-CONSTEXPR_CONST int16_t Pro_silver = 495;
-CONSTEXPR_CONST int16_t Horse      = 827;
-CONSTEXPR_CONST int16_t Dragon     = 945;
+CONSTEXPR_CONST int16_t Pawn       = MATERIAL_VALUE_PAWN;
+CONSTEXPR_CONST int16_t Lance      = MATERIAL_VALUE_LANCE;
+CONSTEXPR_CONST int16_t Knight     = MATERIAL_VALUE_KNIGHT;
+CONSTEXPR_CONST int16_t Silver     = MATERIAL_VALUE_SILVER;
+CONSTEXPR_CONST int16_t Gold       = MATERIAL_VALUE_GOLD;
+CONSTEXPR_CONST int16_t Bishop     = MATERIAL_VALUE_BISHOP;
+CONSTEXPR_CONST int16_t Rook       = MATERIAL_VALUE_ROOK;
+CONSTEXPR_CONST int16_t Tokin      = MATERIAL_VALUE_TOKIN;
+CONSTEXPR_CONST int16_t Pro_lance  = MATERIAL_VALUE_PRO_LANCE;
+CONSTEXPR_CONST int16_t Pro_knight = MATERIAL_VALUE_PRO_KNIGHT;
+CONSTEXPR_CONST int16_t Pro_silver = MATERIAL_VALUE_PRO_SILVER;
+CONSTEXPR_CONST int16_t Horse      = MATERIAL_VALUE_HORSE;
+CONSTEXPR_CONST int16_t Dragon     = MATERIAL_VALUE_DRAGON;
 
 CONSTEXPR_CONST int16_t PawnEx       = Pawn * 2;
 CONSTEXPR_CONST int16_t LanceEx      = Lance * 2;
