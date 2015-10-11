@@ -43,14 +43,6 @@ int generateZobrist() {
   return 0;
 }
 
-// MoveTable 生成
-int generateMoveTable() {
-  CodeGenerator gen;
-  gen.generateMoveTable();
-
-  return 0;
-}
-
 int checkMoveGen() {
   MoveGenChecker checker;
   bool ok = checker.check();

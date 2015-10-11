@@ -28,7 +28,6 @@
 #define ENABLE_MATE_HISTORY           1
 #define ENABLE_STORE_PV               1
 #define ENABLE_SINGULAR_EXTENSION     1
-#define SHALLOW_SEE                   0 // should be 0
 
 #define ENABLE_MOVE_COUNT_EXPT        0
 #define ENABLE_FUT_EXPT               0
@@ -589,10 +588,9 @@ void Searcher::forceInterrupt() {
 /**
  * get see value
  */
-template <bool shallow>
 Value Searcher::searchSee(const Board& board, const Move& move, Value alpha, Value beta) {
   See see;
-  return see.search<shallow>(board, move, alpha, beta);
+  return see.search(board, move, alpha, beta);
 }
 
 /**
@@ -637,11 +635,7 @@ void Searcher::sortSee(Tree& tree, int offset, Value standPat, Value alpha, bool
       }
     }
 
-#if SHALLOW_SEE
-    value = searchSee<true>(board, move, -1, Value::PieceInf);
-#else
-    value = searchSee<false>(board, move, -1, Value::PieceInf);
-#endif
+    value = searchSee(board, move, -1, Value::PieceInf);
     if (estimate) {
       value += tree.estimate<true>(move, eval_);
     }
@@ -1241,7 +1235,7 @@ void Searcher::updateKiller(Tree& tree, const Move& move) {
 
   } else {
     if (node.expStat & Killer1Done) {
-      Value val = searchSee<false>(board, move, -1, Value::PieceInf) - capVal + 1;
+      Value val = searchSee(board, move, -1, Value::PieceInf) - capVal + 1;
       node.kvalue1 = Value::min(node.kvalue1, val);
     }
     node.killer2 = node.killer1;
@@ -1753,7 +1747,7 @@ Value Searcher::search(Tree& tree, bool black, int depth, Value alpha, Value bet
     if (!isCheck && newDepth < Depth1Ply * 2 && isNullWindow &&
         captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
         !tree.isPriorMove(move)) {
-      if (searchSee<true>(board, move, -1, 0) < Value::Zero) {
+      if (searchSee(board, move, -1, 0) < Value::Zero) {
         isFirst = false;
         continue;
       }
@@ -2140,7 +2134,7 @@ void Searcher::searchTlp(Tree& tree) {
     if (newDepth < Depth1Ply * 2 && isNullWindow && !isCheck &&
         captured.isEmpty() && (!move.promote() || move.piece() == Piece::Silver) &&
         !isPriorMove) {
-      if (searchSee<true>(board, move, -1, 0) < Value::Zero) {
+      if (searchSee(board, move, -1, 0) < Value::Zero) {
         continue;
       }
     }

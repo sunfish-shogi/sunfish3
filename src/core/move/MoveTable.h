@@ -17,58 +17,62 @@ namespace sunfish {
  */
 class DirectionMaskTable {
 private:
-  static const Bitboard right_[Square::N];
-  static const Bitboard left_[Square::N];
-  static const Bitboard up_[Square::N];
-  static const Bitboard down_[Square::N];
-  static const Bitboard leftUp_[Square::N];
-  static const Bitboard rightDown_[Square::N];
-  static const Bitboard rightUp_[Square::N];
-  static const Bitboard leftDown_[Square::N];
+  Bitboard right_[Square::N];
+  Bitboard left_[Square::N];
+  Bitboard up_[Square::N];
+  Bitboard down_[Square::N];
+  Bitboard leftUp_[Square::N];
+  Bitboard rightDown_[Square::N];
+  Bitboard rightUp_[Square::N];
+  Bitboard leftDown_[Square::N];
+
+  static const DirectionMaskTable instance;
+
+  DirectionMaskTable();
 
 public:
-  DirectionMaskTable() {}
   DirectionMaskTable(const DirectionMaskTable&) = delete;
   DirectionMaskTable(DirectionMaskTable&) = delete;
+
   static const Bitboard& left(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return left_[sq.index()];
+    return instance.left_[sq.index()];
   }
   static const Bitboard& right(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return right_[sq.index()];
+    return instance.right_[sq.index()];
   }
   static const Bitboard& up(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return up_[sq.index()];
+    return instance.up_[sq.index()];
   }
   static const Bitboard& down(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return down_[sq.index()];
+    return instance.down_[sq.index()];
   }
   static const Bitboard& leftUp(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return leftUp_[sq.index()];
+    return instance.leftUp_[sq.index()];
   }
   static const Bitboard& rightDown(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return rightDown_[sq.index()];
+    return instance.rightDown_[sq.index()];
   }
   static const Bitboard& rightUp(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return rightUp_[sq.index()];
+    return instance.rightUp_[sq.index()];
   }
   static const Bitboard& leftDown(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return leftDown_[sq.index()];
+    return instance.leftDown_[sq.index()];
   }
 };
 
@@ -77,28 +81,32 @@ public:
  */
 class DirectionMaskTable7x7 {
 private:
-  static const Bitboard rank_[Square::N];
-  static const Bitboard leftUpX_[Square::N];
-  static const Bitboard rightUpX_[Square::N];
+  Bitboard rank_[Square::N];
+  Bitboard leftUpX_[Square::N];
+  Bitboard rightUpX_[Square::N];
+
+  static const DirectionMaskTable7x7 instance;
+
+  DirectionMaskTable7x7();
 
 public:
-  DirectionMaskTable7x7() {}
   DirectionMaskTable7x7(const DirectionMaskTable7x7&) = delete;
   DirectionMaskTable7x7(DirectionMaskTable7x7&) = delete;
+
   static const Bitboard& rank(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return rank_[sq.index()];
+    return instance.rank_[sq.index()];
   }
   static const Bitboard& leftUpX(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return leftUpX_[sq.index()];
+    return instance.leftUpX_[sq.index()];
   }
   static const Bitboard& rightUpX(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return rightUpX_[sq.index()];
+    return instance.rightUpX_[sq.index()];
   }
 };
 
@@ -108,28 +116,32 @@ public:
  */
 class MagicNumberTable {
 private:
-  static const Bitboard rank_[Square::N];
-  static const Bitboard leftUp_[Square::N];
-  static const Bitboard rightUp_[Square::N];
+  Bitboard rank_[Square::N];
+  Bitboard leftUp_[Square::N];
+  Bitboard rightUp_[Square::N];
+
+  static const MagicNumberTable instance;
+
+  MagicNumberTable();
 
 public:
-  MagicNumberTable() {}
   MagicNumberTable(const MagicNumberTable&) = delete;
   MagicNumberTable(MagicNumberTable&&) = delete;
+
   static const Bitboard& rank(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return rank_[sq.index()];
+    return instance.rank_[sq.index()];
   }
   static const Bitboard& leftUp(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return leftUp_[sq.index()];
+    return instance.leftUp_[sq.index()];
   }
   static const Bitboard& rightUp(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return rightUp_[sq.index()];
+    return instance.rightUp_[sq.index()];
   }
 };
 #endif
@@ -139,106 +151,110 @@ public:
  */
 class MovePatternTable {
 private:
-  static const Bitboard up_[Square::N][0x80];
-  static const Bitboard down_[Square::N][0x80];
-  static const Bitboard file_[Square::N][0x80];
-  static const Bitboard rank_[Square::N][0x80];
-  static const Bitboard leftUpX_[Square::N][0x80];
-  static const Bitboard rightUpX_[Square::N][0x80];
-  static const Bitboard leftUp_[Square::N][0x80];
-  static const Bitboard leftDown_[Square::N][0x80];
-  static const Bitboard rightUp_[Square::N][0x80];
-  static const Bitboard rightDown_[Square::N][0x80];
-  static const Bitboard left_[Square::N][0x80];
-  static const Bitboard right_[Square::N][0x80];
+  Bitboard up_[Square::N][0x80];
+  Bitboard down_[Square::N][0x80];
+  Bitboard file_[Square::N][0x80];
+  Bitboard rank_[Square::N][0x80];
+  Bitboard leftUpX_[Square::N][0x80];
+  Bitboard rightUpX_[Square::N][0x80];
+  Bitboard leftUp_[Square::N][0x80];
+  Bitboard leftDown_[Square::N][0x80];
+  Bitboard rightUp_[Square::N][0x80];
+  Bitboard rightDown_[Square::N][0x80];
+  Bitboard left_[Square::N][0x80];
+  Bitboard right_[Square::N][0x80];
+
+  static const MovePatternTable instance;
+
+  MovePatternTable();
 
 public:
-  MovePatternTable() {}
   MovePatternTable(const MovePatternTable&) = delete;
   MovePatternTable(MovePatternTable&&) = delete;
+
   template <class T>
   static const Bitboard& up(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
-    return up_[sq.index()][pattern];
+    return instance.up_[sq.index()][pattern];
   }
   template <class T>
   static const Bitboard& down(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
-    return down_[sq.index()][pattern];
+    return instance.down_[sq.index()][pattern];
   }
   template <class T>
   static const Bitboard& file(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
-    return file_[sq.index()][pattern];
+    return instance.file_[sq.index()][pattern];
   }
   template <class T>
   static const Bitboard& rank(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
-    return rank_[sq.index()][pattern];
+    return instance.rank_[sq.index()][pattern];
   }
   template <class T>
   static const Bitboard& leftUpX(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
-    return leftUpX_[sq.index()][pattern];
+    return instance.leftUpX_[sq.index()][pattern];
   }
   template <class T>
   static const Bitboard& rightUpX(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
-    return rightUpX_[sq.index()][pattern];
+    return instance.rightUpX_[sq.index()][pattern];
   }
   template <class T>
   static const Bitboard& leftUp(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
-    return leftUp_[sq.index()][pattern];
+    return instance.leftUp_[sq.index()][pattern];
   }
   template <class T>
   static const Bitboard& leftDown(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
-    return leftDown_[sq.index()][pattern];
+    return instance.leftDown_[sq.index()][pattern];
   }
   template <class T>
   static const Bitboard& rightUp(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
-    return rightUp_[sq.index()][pattern];
+    return instance.rightUp_[sq.index()][pattern];
   }
   template <class T>
   static const Bitboard& rightDown(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
-    return rightDown_[sq.index()][pattern];
+    return instance.rightDown_[sq.index()][pattern];
   }
   template <class T>
   static const Bitboard& left(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
-    return left_[sq.index()][pattern];
+    return instance.left_[sq.index()][pattern];
   }
   template <class T>
   static const Bitboard& right(const Square& sq, T pattern) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
     assert(pattern < 0x80);
-    return right_[sq.index()][pattern];
+    return instance.right_[sq.index()][pattern];
   }
 };
 
@@ -247,79 +263,86 @@ public:
  */
 class MoveTables {
 private:
+  Bitboard bpawn_[Square::N];
+  Bitboard bknight_[Square::N];
+  Bitboard bsilver_[Square::N];
+  Bitboard bgold_[Square::N];
+  Bitboard wpawn_[Square::N];
+  Bitboard wknight_[Square::N];
+  Bitboard wsilver_[Square::N];
+  Bitboard wgold_[Square::N];
+  Bitboard bishop1_[Square::N];
+  Bitboard rook1_[Square::N];
+  Bitboard king_[Square::N];
+  Bitboard horseOneStepMove_[Square::N];
+  Bitboard dragonOneStepMove_[Square::N];
+
+  static const MoveTables instance;
+
   MoveTables();
 
-  static const Bitboard bpawn_[Square::N];
-  static const Bitboard bknight_[Square::N];
-  static const Bitboard bsilver_[Square::N];
-  static const Bitboard bgold_[Square::N];
-  static const Bitboard wpawn_[Square::N];
-  static const Bitboard wknight_[Square::N];
-  static const Bitboard wsilver_[Square::N];
-  static const Bitboard wgold_[Square::N];
-  static const Bitboard bishop1_[Square::N];
-  static const Bitboard rook1_[Square::N];
-  static const Bitboard king_[Square::N];
-  static const Bitboard horseOneStepMove_[Square::N];
-  static const Bitboard dragonOneStepMove_[Square::N];
-
 public:
+  MoveTables(const MoveTables&) = delete;
+  MoveTables(MoveTables&&) = delete;
+
   static const Bitboard& bpawn(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return bpawn_[sq.index()];
+    return instance.bpawn_[sq.index()];
   }
   static const Bitboard& bknight(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return bknight_[sq.index()];
+    return instance.bknight_[sq.index()];
   }
   static const Bitboard& bsilver(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return bsilver_[sq.index()];
+    return instance.bsilver_[sq.index()];
   }
   static const Bitboard& bgold(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return bgold_[sq.index()];
+    return instance.bgold_[sq.index()];
   }
   static const Bitboard& wpawn(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return wpawn_[sq.index()];
+    return instance.wpawn_[sq.index()];
   }
   static const Bitboard& wknight(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return wknight_[sq.index()];
+    return instance.wknight_[sq.index()];
   }
   static const Bitboard& wsilver(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return wsilver_[sq.index()];
+    return instance.wsilver_[sq.index()];
   }
   static const Bitboard& wgold(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return wgold_[sq.index()];
+    return instance.wgold_[sq.index()];
   }
   static const Bitboard& bishop1(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return bishop1_[sq.index()];
+    return instance.bishop1_[sq.index()];
   }
   static const Bitboard& rook1(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return rook1_[sq.index()];
+    return instance.rook1_[sq.index()];
   }
   static const Bitboard& king(const Square& sq) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return king_[sq.index()];
+    return instance.king_[sq.index()];
   }
 
+private:
+  /* deprecated */
   static const Bitboard& vertical(const Square& sq, const Bitboard& bb) {
     // 縦方向
     assert(sq.index() >= 0);
@@ -329,6 +352,7 @@ public:
     return MovePatternTable::file(sq, b & 0x7f);
   }
 
+  /* deprecated */
   static const Bitboard& horizontal(const Square& sq, const Bitboard& bb) {
     // 横方向
     assert(sq.index() >= 0);
@@ -346,6 +370,7 @@ public:
 #endif
   }
 
+  /* deprecated */
   static const Bitboard& rightUpX(const Square& sq, const Bitboard& bb) {
     // 双方向右上がり
     assert(sq.index() >= 0);
@@ -363,6 +388,7 @@ public:
 #endif
   }
 
+  /* deprecated */
   static const Bitboard& rightDownX(const Square& sq, const Bitboard& bb) {
     // 双方向右下がり
     assert(sq.index() >= 0);
@@ -380,6 +406,7 @@ public:
 #endif
   }
 
+  /* deprecated */
   static const Bitboard& rightUp(const Square& sq, const Bitboard& bb) {
     // 右上がり
     assert(sq.index() >= 0);
@@ -397,6 +424,7 @@ public:
 #endif
   }
 
+  /* deprecated */
   static const Bitboard& rightDown(const Square& sq, const Bitboard& bb) {
     // 右下がり
     assert(sq.index() >= 0);
@@ -414,6 +442,7 @@ public:
 #endif
   }
 
+  /* deprecated */
   static const Bitboard& leftUp(const Square& sq, const Bitboard& bb) {
     // 左上がり
     assert(sq.index() >= 0);
@@ -431,6 +460,7 @@ public:
 #endif
   }
 
+  /* deprecated */
   static const Bitboard& leftDown(const Square& sq, const Bitboard& bb) {
     // 左下がり
     assert(sq.index() >= 0);
@@ -448,6 +478,7 @@ public:
 #endif
   }
 
+  /* deprecated */
   static const Bitboard& right(const Square& sq, const Bitboard& bb) {
     // 右
     assert(sq.index() >= 0);
@@ -465,6 +496,7 @@ public:
 #endif
   }
 
+  /* deprecated */
   static const Bitboard& left(const Square& sq, const Bitboard& bb) {
     // 左
     assert(sq.index() >= 0);
@@ -482,6 +514,7 @@ public:
 #endif
   }
 
+public:
   static const Bitboard& blance(const Square& sq, const Bitboard& bb) {
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
@@ -541,7 +574,7 @@ public:
     // 角の利きに縦横1マスの移動を加える。
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return rightUpX(sq, bb) | rightDownX(sq, bb) | horseOneStepMove_[sq.index()];
+    return rightUpX(sq, bb) | rightDownX(sq, bb) | instance.horseOneStepMove_[sq.index()];
   }
 
   /**
@@ -551,7 +584,7 @@ public:
     // 飛車の利きに斜め1マスの移動を加える。
     assert(sq.index() >= 0);
     assert(sq.index() < Square::N);
-    return vertical(sq, bb) | horizontal(sq, bb) | dragonOneStepMove_[sq.index()];
+    return vertical(sq, bb) | horizontal(sq, bb) | instance.dragonOneStepMove_[sq.index()];
   }
 };
 

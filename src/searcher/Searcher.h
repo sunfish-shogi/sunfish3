@@ -205,7 +205,6 @@ private:
   /**
    * get see value
    */
-  template <bool shallow>
   Value searchSee(const Board& board, const Move& move, Value alpha, Value beta);
 
   /**

@@ -16,7 +16,6 @@ private:
 public:
 
   void generateZobrist();
-  void generateMoveTable();
 
 };
 
