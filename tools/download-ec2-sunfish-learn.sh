@@ -9,7 +9,7 @@ SSH_KEY=$1
 EC2_HOST=$2
 
 SUNFISH_DIR="sunfish3"
-MATERIAL_TXT="material.txt"
+MATERIAL_TXT="material_values.h"
 EVAL_BIN="eval.bin"
 EVAL_BIN_GZ="${EVAL_BIN}.gz"
 LEAN_LOG="learn.log"
